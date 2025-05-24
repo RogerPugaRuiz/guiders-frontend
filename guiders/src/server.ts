@@ -41,15 +41,29 @@ app.get(
 app.get('**', (req, res, next) => {
   const { protocol, originalUrl, baseUrl, headers } = req;
 
+  // Detectar el tema preferido del cliente (si está disponible)
+  let preferredTheme = 'dark'; // Por defecto usamos dark para evitar el flash
+  
+  // En una aplicación real podrías verificar las cookies o cabeceras del cliente
+  // para determinar su tema preferido durante SSR
+  
   commonEngine
     .render({
       bootstrap,
       documentFilePath: indexHtml,
       url: `${protocol}://${headers.host}${originalUrl}`,
       publicPath: browserDistFolder,
-      providers: [{ provide: APP_BASE_HREF, useValue: baseUrl }],
+      providers: [
+        { provide: APP_BASE_HREF, useValue: baseUrl },
+        // Aquí se podrían añadir providers adicionales para SSR si fuera necesario
+      ],
     })
-    .then((html) => res.send(html))
+    .then((html) => {
+      // Podríamos modificar el HTML para incluir atributos de tema antes de enviarlo
+      // Esto es opcional ya que estamos manejando el tema en el cliente también
+      const htmlWithTheme = html.replace('<html', `<html data-theme="${preferredTheme}"`);
+      res.send(htmlWithTheme);
+    })
     .catch((err) => next(err));
 });
 

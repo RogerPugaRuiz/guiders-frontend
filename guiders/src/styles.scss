@@ -1,7 +1,7 @@
 /* Estilos globales inspirados en GitHub */
 :root {
   /* Colores principales de GitHub - Tema claro (default) */
-  --color-primary: #8c5cb9;        /* Azul GitHub para enlaces y acciones primarias */
+  --color-primary: #0969da;        /* Azul GitHub para enlaces y acciones primarias */
   --color-primary-rgb: 9, 105, 218; /* Mismo color en formato RGB para opacidad */
   --color-secondary: #57606a;      /* Color secundario para textos menos importantes */
   --color-accent: #2da44e;         /* Verde GitHub para botones de acción */
@@ -23,7 +23,7 @@
 /* Tema oscuro */
 [data-theme="dark"] {
   /* Colores principales - Tema oscuro */
-  --color-primary: #af72e9;        /* Azul más claro para enlaces y acciones primarias */
+  --color-primary: #0974ef;        /* Azul más claro para enlaces y acciones primarias */
   --color-primary-rgb: 88, 166, 255; /* Mismo color en formato RGB para opacidad */
   --color-secondary: #8b949e;      /* Color secundario para textos menos importantes */
   --color-accent: #3fb950;         /* Verde GitHub para botones de acción en modo oscuro */

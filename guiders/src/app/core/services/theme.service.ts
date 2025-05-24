@@ -36,32 +36,60 @@ export class ThemeService {
       return;
     }
     
-    // En el cliente, recuperamos el tema que ya se aplicó en el script inicial
-    const currentThemeAttribute = document.documentElement.getAttribute('data-theme') as Theme;
-    
-    // Si el tema ya está aplicado en el HTML (por el script inicial), lo usamos
-    if (currentThemeAttribute) {
-      this.theme.next(currentThemeAttribute as Theme);
-    } else {
-      // Verificar si existe un tema guardado en localStorage
-      const savedTheme = localStorage.getItem('theme') as Theme;
+    try {
+      // En el cliente, recuperamos el tema que ya se aplicó en el script inicial
+      const currentThemeAttribute = document.documentElement.getAttribute('data-theme') as Theme;
       
-      if (savedTheme) {
-        this.setTheme(savedTheme);
+      // Aplicar color primario personalizado si existe
+      this.applyCustomPrimaryColor();
+      
+      // Si el tema ya está aplicado en el HTML (por el script inicial), lo usamos
+      if (currentThemeAttribute) {
+        this.theme.next(currentThemeAttribute as Theme);
       } else {
-        // Detectar preferencia del sistema
-        const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        this.setTheme(prefersDarkMode ? Theme.Dark : Theme.Light);
+        // Verificar si existe un tema guardado en localStorage
+        const savedTheme = localStorage.getItem('theme') as Theme;
+        
+        if (savedTheme) {
+          this.setTheme(savedTheme);
+        } else {
+          // Detectar preferencia del sistema
+          const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          this.setTheme(prefersDarkMode ? Theme.Dark : Theme.Light);
+        }
       }
+      
+      // Escuchar cambios en la preferencia del sistema
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+        // Solo cambiar automáticamente si el usuario no ha establecido explícitamente un tema
+        if (!localStorage.getItem('theme')) {
+          this.setTheme(e.matches ? Theme.Dark : Theme.Light);
+        }
+      });
+    } catch (error) {
+      // Capturar cualquier error que pueda ocurrir durante la hidratación o casos edge en SSR
+      console.warn('Error al inicializar el tema:', error);
+      this.theme.next(Theme.Dark); // Tema predeterminado en caso de error
     }
-    
-    // Escuchar cambios en la preferencia del sistema
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      // Solo cambiar automáticamente si el usuario no ha establecido explícitamente un tema
-      if (!localStorage.getItem('theme')) {
-        this.setTheme(e.matches ? Theme.Dark : Theme.Light);
+  }
+  
+  private applyCustomPrimaryColor(): void {
+    try {
+      const savedColor = localStorage.getItem('primaryColor');
+      if (savedColor) {
+        // Aplicar color guardado
+        document.documentElement.style.setProperty('--color-primary', savedColor);
+        
+        // Convertir hex a rgb para la variable --color-primary-rgb
+        const r = parseInt(savedColor.slice(1, 3), 16);
+        const g = parseInt(savedColor.slice(3, 5), 16);
+        const b = parseInt(savedColor.slice(5, 7), 16);
+        
+        document.documentElement.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
       }
-    });
+    } catch (e) {
+      console.warn('Error al aplicar color primario personalizado:', e);
+    }
   }
 
   public toggleTheme(): void {
@@ -70,16 +98,20 @@ export class ThemeService {
   }
   
   public setTheme(theme: Theme): void {
-    if (this.isBrowser) {
-      // Guardar en localStorage para persistir la preferencia
-      localStorage.setItem('theme', theme);
-      
-      // Actualizar atributo data-theme en el documento
-      this.renderer.setAttribute(document.documentElement, 'data-theme', theme);
-    }
-    
     // Actualizar el subject (esto funciona tanto en el servidor como en el cliente)
     this.theme.next(theme);
+    
+    if (this.isBrowser) {
+      try {
+        // Guardar en localStorage para persistir la preferencia
+        localStorage.setItem('theme', theme);
+        
+        // Actualizar atributo data-theme en el documento
+        this.renderer.setAttribute(document.documentElement, 'data-theme', theme);
+      } catch (error) {
+        console.warn('Error al establecer el tema:', error);
+      }
+    }
   }
   
   public getCurrentTheme(): Theme {

@@ -66,17 +66,21 @@
 		&--light {
 			background-color: #f8f9fa;
 			
+
 			.theme-option__header {
-				background-color: #0066cc;
+				background-color: #1a1d23;
 			}
 			
 			.theme-option__sidebar {
 				background-color: #ffffff;
+				height: 100%;
 				border-right: 1px solid #e1e4e8;
+				border-bottom: 1px solid #e1e4e8;
 			}
 			
 			.theme-option__content {
 				background-color: #f8f9fa;
+				border-bottom: 1px solid #e1e4e8;
 			}
 		}
 		
@@ -133,4 +137,212 @@
 .density-options {
 	display: flex;
 	gap: var(--spacing-md);
+}
+
+// Estilos para la selección de colores
+.color-options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--spacing-md);
+	margin-bottom: var(--spacing-lg);
+	margin-left: 1rem;
+}
+
+// Estilos para la vista previa
+.color-preview {
+	margin-top: var(--spacing-xl);
+	background-color: var(--color-background-secondary);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	padding: var(--spacing-lg);
+	
+	h4 {
+		margin-top: 0;
+		margin-bottom: var(--spacing-md);
+		font-weight: 600;
+	}
+	
+	&__elements {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: var(--spacing-lg);
+		margin-bottom: var(--spacing-lg);
+	}
+	
+	&__actions {
+		margin-top: var(--spacing-lg);
+		padding-top: var(--spacing-md);
+		border-top: 1px solid var(--color-border);
+		display: flex;
+		justify-content: flex-end;
+	}
+}
+
+.preview-item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--spacing-sm);
+	
+	label {
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		color: var(--color-text-light);
+	}
+}
+
+.gh-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: var(--font-size-xs);
+	font-weight: 500;
+	border-radius: 10px;
+	background-color: var(--color-primary);
+	color: white;
+}
+
+.gh-switch {
+	width: 40px;
+	height: 22px;
+	background-color: var(--color-background);
+	border: 1px solid var(--color-border);
+	border-radius: 11px;
+	position: relative;
+	cursor: pointer;
+	
+	&__toggle {
+		position: absolute;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background-color: var(--color-border);
+		top: 2px;
+		left: 2px;
+		transition: all 0.2s ease;
+		
+		&--active {
+			background-color: var(--color-primary);
+			left: 20px;
+		}
+	}
+}
+
+.color-option {
+	position: relative;
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	cursor: pointer;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+	transition: all 0.2s ease;
+	
+	&--active {
+		transform: scale(1.1);
+		box-shadow: 0 0 0 2px white, 0 0 0 4px var(--color-primary);
+	}
+	
+	&:hover:not(&--active) {
+		transform: translateY(-3px);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+		
+		.color-option__tooltip {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	
+	&__check {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	&__tooltip {
+		position: absolute;
+		top: -40px;
+		left: 50%;
+		transform: translateX(-50%) translateY(5px);
+		background-color: var(--color-background-secondary);
+		color: var(--color-text);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius-sm);
+		white-space: nowrap;
+		font-size: var(--font-size-xs);
+		box-shadow: var(--shadow-md);
+		opacity: 0;
+		transition: all 0.2s ease;
+		pointer-events: none;
+		z-index: 10;
+		
+		&:after {
+			content: '';
+			position: absolute;
+			bottom: -4px;
+			left: 50%;
+			transform: translateX(-50%) rotate(45deg);
+			width: 8px;
+			height: 8px;
+			background-color: var(--color-background-secondary);
+		}
+	}
+}
+
+// Estilos para los elementos de la sidebar
+.sidebar-item {
+	height: 10px;
+	margin: 6px;
+	border-radius: 3px;
+	
+	&:nth-child(1) {
+		width: 80%;
+	}
+	
+	&:nth-child(2) {
+		width: 70%;
+	}
+	
+	&:nth-child(3) {
+		width: 75%;
+	}
+	
+	&--active {
+		background-color: var(--color-primary) !important;
+	}
+}
+
+// Estilos para las líneas de contenido
+.content-line {
+	height: 8px;
+	border-radius: 3px;
+	margin: 8px;
+	width: 80%;
+	
+	&--short {
+		width: 60%;
+	}
+}
+
+// Colores específicos para modo claro
+.theme-option__preview--light {
+	.sidebar-item {
+		background-color: #e1e4e8;
+	}
+	
+	.content-line {
+		background-color: #e1e4e8;
+	}
+}
+
+// Colores específicos para modo oscuro
+.theme-option__preview--dark {
+	.sidebar-item {
+		background-color: #393f4a;
+	}
+	
+	.content-line {
+		background-color: #393f4a;
+	}
 }
