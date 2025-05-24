@@ -93,6 +93,7 @@
 			background-color: var(--color-background);
 			font-size: var(--font-size-sm);
 			transition: all 0.2s ease;
+			color: var(--color-text);
 			
 			&:focus {
 				outline: none;
@@ -478,10 +479,12 @@
 			border-radius: var(--border-radius);
 			background-color: var(--color-background);
 			font-size: var(--font-size-sm);
+			color: var(--color-text);
 			
 			&:focus {
 				outline: none;
 				box-shadow: var(--shadow-focus);
+				border-color: var(--color-primary);
 			}
 		}
 	}
