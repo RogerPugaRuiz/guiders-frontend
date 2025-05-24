@@ -1,5 +1,25 @@
 # Guiders
 
+## Descripción de la Plataforma
+
+Guiders es una aplicación profesional **diseñada específicamente para equipos comerciales**, que les permite gestionar y conectar con visitantes de sitios web en tiempo real. Esta es la plataforma que utilizan los agentes comerciales para monitorizar, interactuar y convertir a los visitantes en clientes potenciales.
+
+La aplicación ofrece:
+
+- **Chat en Tiempo Real**: Permite a los comerciales interactuar directamente con los visitantes mientras navegan por el sitio web, ofreciendo asistencia personalizada y resolviendo dudas al instante.
+
+- **Seguimiento de Acciones**: Monitoriza el comportamiento y las acciones de los usuarios en el sitio web (páginas visitadas, tiempo de permanencia, interacciones con elementos), proporcionando datos valiosos para personalizar la experiencia.
+
+- **Gestión de Leads**: Captura y organiza la información de los contactos potenciales, facilitando el seguimiento y la conversión.
+
+- **Análisis de Interacciones**: Ofrece estadísticas y métricas detalladas sobre las interacciones, tasas de conversión y efectividad de las comunicaciones.
+
+**Nota importante**: Esta aplicación es la interfaz del comercial/agente y no debe confundirse con el widget que se integra en los sitios web de los clientes para los visitantes finales.
+
+Guiders transforma la forma en que las empresas conectan con sus clientes potenciales, cerrando la brecha entre la experiencia digital y la atención personalizada.
+
+## Desarrollo
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.1.8.
 
 ## Development server

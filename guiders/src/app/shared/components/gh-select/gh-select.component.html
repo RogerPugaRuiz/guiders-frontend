@@ -1,0 +1,20 @@
+<div class="gh-select" [class.gh-select--disabled]="disabled" [class.gh-select--sm]="size === 'sm'" [class.gh-select--lg]="size === 'lg'">
+  <svg class="gh-select__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+    <path d="M4.427 7.427l3.396 3.396a.25.25 0 0 0 .354 0l3.396-3.396A.25.25 0 0 0 11.396 7H4.604a.25.25 0 0 0-.177.427Z" />
+  </svg>
+  <div class="gh-select__control" (click)="toggleDropdown()">
+    <div class="gh-select__value">
+      {{ selectedOption?.label || placeholder }}
+    </div>
+  </div>
+  
+  <div class="gh-select__menu" *ngIf="isOpen">
+    <div 
+      class="gh-select__option" 
+      *ngFor="let option of options" 
+      [class.gh-select__option--selected]="selectedOption?.value === option.value"
+      (click)="selectOption(option)">
+      {{ option.label }}
+    </div>
+  </div>
+</div>

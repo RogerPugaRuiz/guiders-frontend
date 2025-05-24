@@ -1,12 +1,22 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
-  title = 'guiders';
+export class AppComponent implements OnInit {
+  title = 'Guiders';
+  
+  constructor(private themeService: ThemeService) {}
+  
+  ngOnInit(): void {
+    // Asegurar que se inicialice el tema correctamente
+    // y eliminar la clase que oculta la página mientras se carga el tema
+    document.documentElement.classList.remove('theme-initializing');
+  }
 }
