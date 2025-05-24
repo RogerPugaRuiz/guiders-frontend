@@ -28,6 +28,8 @@ jobs:
       run: |
         npm ci
         cd ${{ matrix.project }} && npm ci
+        # Instalar explícitamente las dependencias de rollup para Linux
+        cd ${{ matrix.project }} && npm install @rollup/rollup-linux-x64-gnu
 
     - name: Ejecutar tests unitarios
       run: npm run test:jest:${{ matrix.project }}
@@ -53,6 +55,10 @@ jobs:
       run: |
         npm ci
         cd ${{ matrix.project }} && npm ci
+        # Instalar explícitamente las dependencias de rollup para Linux
+        cd ${{ matrix.project }} && npm install @rollup/rollup-linux-x64-gnu
+        # Instalar serve para servir aplicaciones compiladas
+        npm install -g serve
     
     # Instalar dependencias para Cypress en Ubuntu
     - name: Instalar dependencias de Cypress
@@ -68,9 +74,15 @@ jobs:
         # Determinar el puerto según el proyecto
         PORT_NUMBER=$([ "${{ matrix.project }}" == "backoffice" ] && echo "4201" || echo "4200")
         # Iniciar el servidor en segundo plano con el puerto correcto
-        npm start &
-        # Esperar a que el servidor esté listo
-        npx wait-on http://localhost:$PORT_NUMBER --timeout 60000
+        # Usar --configuration=production para evitar problemas con rollup
+        if [ "${{ matrix.project }}" == "backoffice" ]; then
+          npm run build -- --configuration=production &
+          npx serve dist/${{ matrix.project }}/browser -l $PORT_NUMBER &
+        else
+          npm start &
+        fi
+        # Esperar a que el servidor esté listo (aumentado a 2 minutos)
+        npx wait-on http://localhost:$PORT_NUMBER --timeout 120000
         # Volver al directorio raíz y ejecutar las pruebas de Cypress en modo headless
         cd ..
         npm run test:cypress:headless:${{ matrix.project }}
