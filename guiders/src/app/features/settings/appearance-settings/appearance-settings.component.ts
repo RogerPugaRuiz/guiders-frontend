@@ -1,13 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { ThemeService } from '../../../core/services/theme.service';
+import { ColorThemeService, ColorOption } from '../../../core/services/color-theme.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-interface ColorOption {
-  name: string;
-  value: string;
-  variable: string;
-}
 
 @Component({
   selector: 'app-appearance-settings',
@@ -111,93 +105,53 @@ interface ColorOption {
   imports: [CommonModule, FormsModule]
 })
 export class AppearanceSettingsComponent implements OnInit {
-  primaryColorOptions: ColorOption[] = [
-    { name: 'Azul GitHub (Predeterminado)', value: '#0969da', variable: '--color-primary' },
-    { name: 'Verde Éxito', value: '#2da44e', variable: '--color-primary' },
-    { name: 'Violeta Creatividad', value: '#8250df', variable: '--color-primary' },
-    { name: 'Naranja Energía', value: '#bc4c00', variable: '--color-primary' },
-    { name: 'Rojo Acción', value: '#cf222e', variable: '--color-primary' }
-  ];
-  
   selectedPrimaryColor: string = '';
   
-  constructor(private themeService: ThemeService) {}
+  constructor(private colorThemeService: ColorThemeService) {
+    // Suscribirse a cambios de color
+    this.colorThemeService.colorChange$.subscribe(color => {
+      if (color) {
+        this.selectedPrimaryColor = color;
+      }
+    });
+  }
   
   ngOnInit(): void {
-    // Solo ejecutar en el navegador
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        // Obtener el color primario actual para preseleccionarlo
-        const rootStyles = getComputedStyle(document.documentElement);
-        const currentPrimaryColor = rootStyles.getPropertyValue('--color-primary').trim();
-        
-        // Buscar el color en nuestras opciones
-        const foundColor = this.primaryColorOptions.find(option => 
-          option.value.toLowerCase() === currentPrimaryColor.toLowerCase() || 
-          `#${currentPrimaryColor.toLowerCase()}` === option.value.toLowerCase()
-        );
-        
-        this.selectedPrimaryColor = foundColor ? foundColor.value : this.primaryColorOptions[0].value;
-      } catch (error) {
-        console.warn('Error al obtener el color primario actual:', error);
-        // Usar el primer color como predeterminado en caso de error
-        this.selectedPrimaryColor = this.primaryColorOptions[0].value;
-      }
-    } else {
-      // En SSR, usar el primer color como predeterminado
-      this.selectedPrimaryColor = this.primaryColorOptions[0].value;
-    }
+    this.selectedPrimaryColor = this.colorThemeService.getSelectedColor();
   }
   
   get isDarkMode(): boolean {
-    return this.themeService.isDarkMode();
+    return this.colorThemeService.isDarkMode;
   }
   
   setLightTheme(): void {
     if (this.isDarkMode) {
-      this.themeService.toggleTheme();
+      this.colorThemeService.setLightTheme();
+      this.selectedPrimaryColor = this.colorThemeService.getSelectedColor();
     }
   }
   
   setDarkTheme(): void {
     if (!this.isDarkMode) {
-      this.themeService.toggleTheme();
+      this.colorThemeService.setDarkTheme();
+      this.selectedPrimaryColor = this.colorThemeService.getSelectedColor();
     }
   }
   
   changePrimaryColor(color: string): void {
     this.selectedPrimaryColor = color;
-    this.applyPrimaryColor(color);
-  }
-  
-  applyPrimaryColor(hexColor: string): void {
-    // Solo ejecutar en el navegador
-    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
-      try {
-        // Aplica el color primario al documento
-        document.documentElement.style.setProperty('--color-primary', hexColor);
-        
-        // Convertir hex a rgb para la variable --color-primary-rgb
-        const r = parseInt(hexColor.slice(1, 3), 16);
-        const g = parseInt(hexColor.slice(3, 5), 16);
-        const b = parseInt(hexColor.slice(5, 7), 16);
-        
-        document.documentElement.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
-        
-        // Guardar la preferencia de color en localStorage
-        localStorage.setItem('primaryColor', hexColor);
-      } catch (error) {
-        console.warn('Error al aplicar el color primario:', error);
-      }
-    }
+    this.colorThemeService.changePrimaryColor(color);
   }
   
   resetToDefaultColor(): void {
-    const defaultColor = this.primaryColorOptions[0].value;
-    this.selectedPrimaryColor = defaultColor;
-    this.applyPrimaryColor(defaultColor);
+    this.colorThemeService.resetToDefaultColor();
+    this.selectedPrimaryColor = this.colorThemeService.getSelectedColor();
     
     // Opcional: mostrar mensaje de confirmación
     alert('El color primario se ha restablecido al valor predeterminado.');
+  }
+  
+  get primaryColorOptions(): ColorOption[] {
+    return this.colorThemeService.getCurrentColorOptions();
   }
 }

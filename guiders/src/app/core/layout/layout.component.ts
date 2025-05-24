@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SideMenuComponent } from './side-menu/side-menu.component';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+import { ColorThemeService } from '../services/color-theme.service';
 
 @Component({
   selector: 'app-layout',
@@ -120,4 +121,26 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
   `]
 })
 export class LayoutComponent {
+  constructor(private colorThemeService: ColorThemeService) {
+    // Inicializar color y tema al cargar el componente de layout
+    // Esto se asegura de que las variables CSS estén correctamente configuradas
+    this.initializeTheme();
+    
+    // Suscribirse a los cambios de color
+    this.colorThemeService.colorChange$.subscribe(color => {
+      if (color) {
+        console.log('Layout detectó cambio de color a:', color);
+        // El color ya se aplica en el servicio, no necesitamos hacer nada más aquí
+      }
+    });
+  }
+  
+  private initializeTheme(): void {
+    // El ColorThemeService ya tiene lógica para inicializar colores
+    // Solo necesitamos garantizar que se instancie aquí y se aplique el color actual
+    const currentColor = this.colorThemeService.getSelectedColor();
+    if (currentColor) {
+      this.colorThemeService.applyPrimaryColor(currentColor);
+    }
+  }
 }

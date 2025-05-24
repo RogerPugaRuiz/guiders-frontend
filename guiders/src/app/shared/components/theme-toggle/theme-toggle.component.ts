@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ThemeService } from '../../../core/services/theme.service';
+import { ColorThemeService } from '../../../core/services/color-theme.service';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -59,13 +59,17 @@ import { ThemeService } from '../../../core/services/theme.service';
 })
 export class ThemeToggleComponent {
   
-  constructor(private themeService: ThemeService) {}
+  constructor(private colorThemeService: ColorThemeService) {}
   
   get isDarkMode(): boolean {
-    return this.themeService.isDarkMode();
+    return this.colorThemeService.isDarkMode;
   }
   
   toggleTheme(): void {
-    this.themeService.toggleTheme();
+    if (this.isDarkMode) {
+      this.colorThemeService.setLightTheme();
+    } else {
+      this.colorThemeService.setDarkTheme();
+    }
   }
 }

@@ -263,7 +263,7 @@
 	&__tooltip {
 		position: absolute;
 		top: -40px;
-		left: 50%;
+		left: 25%;
 		transform: translateX(-50%) translateY(5px);
 		background-color: var(--color-background-secondary);
 		color: var(--color-text);
@@ -276,17 +276,6 @@
 		transition: all 0.2s ease;
 		pointer-events: none;
 		z-index: 10;
-		
-		&:after {
-			content: '';
-			position: absolute;
-			bottom: -4px;
-			left: 50%;
-			transform: translateX(-50%) rotate(45deg);
-			width: 8px;
-			height: 8px;
-			background-color: var(--color-background-secondary);
-		}
 	}
 }
 

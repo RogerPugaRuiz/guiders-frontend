@@ -15,7 +15,7 @@
   --color-hover: #f6f8fa;          /* Fondo para hover de elementos */
   --color-text: #24292f;           /* Color de texto principal */
   --color-text-light: #57606a;     /* Color de texto secundario */
-  --color-border: #d0d7de;         /* Color de bordes */
+  --color-border: #b6bdc4;         /* Color de bordes */
   --color-header-bg: #24292f;      /* Color de fondo para header */
   --color-sidebar-bg: #ffffff;     /* Color de fondo para sidebar */
 }
@@ -23,7 +23,7 @@
 /* Tema oscuro */
 [data-theme="dark"] {
   /* Colores principales - Tema oscuro */
-  --color-primary: #0974ef;        /* Azul más claro para enlaces y acciones primarias */
+  --color-primary: #58a6ff;        /* Azul más claro para enlaces y acciones primarias */
   --color-primary-rgb: 88, 166, 255; /* Mismo color en formato RGB para opacidad */
   --color-secondary: #8b949e;      /* Color secundario para textos menos importantes */
   --color-accent: #3fb950;         /* Verde GitHub para botones de acción en modo oscuro */
