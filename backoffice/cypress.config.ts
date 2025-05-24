@@ -1,7 +1,7 @@
 import { defineConfig } from 'cypress';
 
 // Obtener el puerto de la variable de entorno o usar 4201 por defecto
-const port = process.env.PORT || '4201';
+const port = process.env['PORT'] || '4201';
 
 export default defineConfig({
   e2e: {
