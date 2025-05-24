@@ -70,27 +70,28 @@
         <p class="login-subtitle">Inicia sesión para continuar tu viaje</p>
       </div>
       
-      <form (ngSubmit)="onSubmit()" class="login-form-content">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form-content">
         <div class="form-group">
-          <label for="username">
+          <label for="email">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-							stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-icon lucide-user">
-							<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-							<circle cx="12" cy="7" r="4" /></svg>
-						<span class="label-text">
-							Usuario
-						</span>
+							stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-mail-icon lucide-mail">
+							<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+							<polyline points="22,6 12,13 2,6"/>
+						</svg>
+						<span class="label-text">Email</span>
           </label>
           <div class="input-container">
             <input 
-              type="text" 
-              id="username" 
-              name="username" 
-              placeholder="Introduce tu usuario" 
-              [(ngModel)]="username"
-              required
+              type="email" 
+              id="email" 
+              formControlName="email"
+              placeholder="Introduce tu email" 
+              [class.error]="hasFieldError('email')"
             >
             <div class="input-focus-border"></div>
+          </div>
+          <div *ngIf="hasFieldError('email')" class="field-error">
+            {{ getFieldErrorMessage('email') }}
           </div>
         </div>
         
@@ -106,14 +107,31 @@
           </label>
           <div class="input-container">
             <input 
-              type="password" 
+              [type]="showPassword ? 'text' : 'password'"
               id="password" 
-              name="password" 
+              formControlName="password"
               placeholder="Introduce tu contraseña" 
-              [(ngModel)]="password"
-              required
+              [class.error]="hasFieldError('password')"
             >
+            <button 
+              type="button" 
+              class="password-toggle"
+              (click)="togglePasswordVisibility()"
+              tabindex="-1"
+            >
+              <svg *ngIf="!showPassword" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              <svg *ngIf="showPassword" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            </button>
             <div class="input-focus-border"></div>
+          </div>
+          <div *ngIf="hasFieldError('password')" class="field-error">
+            {{ getFieldErrorMessage('password') }}
           </div>
         </div>
         
@@ -134,10 +152,15 @@
           {{ errorMessage }}
         </div>
         
-        <button type="submit" class="login-button">
-          <span>Iniciar sesión</span>
-          <svg class="button-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <button type="submit" class="login-button" [disabled]="isLoading || loginForm.invalid">
+          <span *ngIf="!isLoading">Iniciar sesión</span>
+          <span *ngIf="isLoading">Iniciando sesión...</span>
+          <svg *ngIf="!isLoading" class="button-arrow" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <svg *ngIf="isLoading" class="loading-spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none" opacity="0.25"/>
+            <path d="M12 2C13.1046 2 14 2.89543 14 4C14 5.10457 13.1046 6 12 6C10.8954 6 10 5.10457 10 4C10 2.89543 10.8954 2 12 2Z" fill="currentColor"/>
           </svg>
         </button>
       </form>

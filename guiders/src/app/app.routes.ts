@@ -1,15 +1,28 @@
 import { Routes } from '@angular/router';
 import { LayoutComponent } from './core/layout/layout.component';
+import { AuthGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
-    path: 'login',
-    loadComponent: () => import('./features/login/login.component').then(c => c.LoginComponent),
-    title: 'Iniciar Sesión - Guiders'
+    path: 'auth',
+    children: [
+      {
+        path: 'login',
+        loadComponent: () => import('./features/auth/infrastructure/components/login.component').then(c => c.LoginComponent),
+        title: 'Iniciar Sesión - Guiders'
+      },
+      {
+        path: '',
+        redirectTo: 'login',
+        pathMatch: 'full'
+      }
+    ]
   },
   {
     path: '',
     component: LayoutComponent,
+    canActivate: [AuthGuard],
+    canActivateChild: [AuthGuard],
     children: [
       {
         path: '',
@@ -80,8 +93,13 @@ export const routes: Routes = [
       }
     ]
   },
+  // Deprecated login route - redirect to new auth structure
+  {
+    path: 'login',
+    redirectTo: 'auth/login'
+  },
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'auth/login'
   }
 ];

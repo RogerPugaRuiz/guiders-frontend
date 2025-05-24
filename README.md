@@ -4,7 +4,9 @@ Este repositorio contiene dos aplicaciones Angular en una estructura de monorepo
 
 ## Sobre la Plataforma
 
-Guiders es una plataforma innovadora diseñada para equipos comerciales, permitiéndoles conectar y gestionar a visitantes de sitios web en tiempo real. Esta herramienta profesional es utilizada por los agentes comerciales para monitorizar la actividad de los visitantes, interactuar con ellos y convertirlos en leads cualificados.
+Guiders es una plataform### Arquitectura de Features
+
+Las características complejas (auth, chat, etc.) se organizan en `/libs/feature/` con **dominio + aplicación puros**, sin dependencias de frameworks.
 
 **Características principales:**
 
@@ -141,20 +143,188 @@ backoffice/
 
 ### Bibliotecas Compartidas (libs)
 
-La carpeta `libs` contiene código reutilizable entre ambas aplicaciones, siguiendo principios de arquitectura hexagonal:
+La carpeta `libs` contiene código reutilizable entre ambas aplicaciones, siguiendo principios de arquitectura hexagonal estricta:
 
-- **[Domain](/libs/domain/README.md)**: El núcleo de la aplicación con entidades, casos de uso y puertos.
-- **[Data Access](/libs/data-access/README.md)**: Implementaciones concretas de repositorios y servicios de datos.
-- **[Feature](/libs/feature/README.md)**: Módulos funcionales completos compartidos.
+- **[Domain](/libs/domain/README.md)**: El núcleo puro de la aplicación con entidades, casos de uso y puertos (sin dependencias de infraestructura como RxJS).
+- **[Data Access](/libs/data-access/README.md)**: Configuraciones y utilidades compartidas para acceso a datos (los adaptadores están en cada app).
+- **[Feature](/libs/feature/README.md)**: Módulos funcionales de dominio compartidos (sin Angular/RxJS).
 - **[UI](/libs/ui/README.md)**: Componentes de UI reutilizables organizados siguiendo principios de diseño atómico.
 - **[Utils](/libs/utils/README.md)**: Utilidades, helpers y funciones comunes.
 
+### Arquitectura de Features
+
+Para características complejas (auth, chat, etc.), el dominio + aplicación puros se ubican en `/libs/feature/`:
+
+```bash
+/libs/feature/auth/          # Dominio + Aplicación puros
+├── domain/                  # Entidades, casos de uso y puertos (interfaces)
+├── application/             # Servicios y orquestadores (sin frameworks)
+└── value-objects/           # Objetos de valor
+
+/libs/feature/chat/          # Dominio + Aplicación puros  
+├── domain/                  # Entidades, casos de uso y puertos (interfaces)
+├── application/             # Servicios y orquestadores (sin frameworks)
+└── value-objects/           # Objetos de valor
+```
+
+### Implementaciones por Aplicación
+
+Solo las implementaciones de infraestructura están en cada aplicación:
+
+```bash
+# Guiders
+/guiders/src/app/features/auth/
+├── infrastructure/          # Componentes y adaptadores Angular
+└── index.ts
+
+# Backoffice
+/backoffice/src/app/features/auth/  
+├── infrastructure/          # Componentes y adaptadores Angular
+└── index.ts
+```
+
 ### Principios Arquitectónicos
 
-1. **Independencia de frameworks**: La lógica de negocio es independiente de Angular o cualquier otro framework.
+1. **Independencia total de frameworks**: La lógica de negocio (domain) es completamente independiente de Angular, RxJS o cualquier framework.
 2. **Dependencias hacia el interior**: Las capas externas dependen de las internas, no al revés.
-3. **Separación clara de responsabilidades**: Cada directorio tiene una responsabilidad única y claramente definida.
-4. **Reutilización de código**: Componentes y módulos diseñados para ser compartidos entre aplicaciones.
-5. **Testabilidad**: Estructura que facilita la escritura de pruebas unitarias y e2e.
+3. **Separación estricta de responsabilidades**: Domain puro, adaptadores por app, bibliotecas compartidas solo para código reutilizable.
+4. **Adaptadores específicos por contexto**: Cada aplicación implementa sus propios adaptadores según sus necesidades específicas.
+5. **Reutilización cross-platform**: El dominio puede ser reutilizado en cualquier plataforma sin modificaciones.
+6. **Testabilidad**: Estructura que facilita la escritura de pruebas unitarias y e2e con mocks simples.
 
 Para más detalles sobre cada módulo compartido, consulta los README específicos en cada carpeta de la biblioteca.
+
+## 🔐 Sistema de Autenticación con Arquitectura Hexagonal
+
+El proyecto implementa un sistema de autenticación robusto siguiendo **arquitectura hexagonal estricta**, con dominio y aplicación completamente puros e implementaciones específicas por aplicación.
+
+### Estructura de Autenticación
+
+```text
+/libs/feature/auth/                  # ⚡ Dominio + Aplicación puros
+├── domain/                          # Entidades y puertos (sin frameworks)
+│   ├── entities/
+│   │   ├── user.entity.ts          # User, AuthSession, LoginCredentials
+│   │   └── auth-error.entity.ts    # Errores específicos del dominio
+│   └── ports/
+│       └── auth-repository.port.ts # Interface del repositorio (Puerto)
+└── application/                     # Casos de uso puros (sin Angular/RxJS)
+    └── use-cases/
+        ├── login.use-case.ts
+        ├── logout.use-case.ts
+        ├── get-current-user.use-case.ts
+        ├── get-session.use-case.ts
+        ├── is-authenticated.use-case.ts
+        └── validate-token.use-case.ts
+
+/guiders/src/app/features/auth/      # 🎯 Implementación Guiders
+└── infrastructure/
+    ├── repositories/
+    │   └── http-auth.repository.ts  # Implementación HTTP específica
+    ├── components/
+    │   └── auth-example.component.ts # Componente demo/ejemplo
+    └── auth-config.providers.ts     # Tokens de inyección Guiders
+
+/backoffice/src/app/features/auth/   # 🎯 Implementación Backoffice (futuro)
+└── infrastructure/
+    ├── repositories/
+    │   └── admin-auth.repository.ts # Implementación específica admin
+    └── auth-config.providers.ts     # Tokens de inyección Backoffice
+```
+
+### Características Principales
+
+- **Dominio Puro**: Sin dependencias de Angular, RxJS o cualquier framework
+- **Casos de Uso Independientes**: Cada funcionalidad es un caso de uso específico
+- **Tokens por Aplicación**: Los tokens de inyección están definidos en cada app
+- **Implementaciones Específicas**: Cada aplicación puede tener sus propios adapters
+- **Validaciones de Dominio**: Reglas de negocio en el dominio (email válido, password mínimo, etc.)
+- **Manejo de Errores Tipados**: Errores específicos del dominio
+- **Portabilidad Total**: El dominio puede usarse en móvil, Node.js, etc.
+
+### Flujo de Arquitectura
+
+```text
+Component (Angular) → AuthService → LoginUseCase (Pure) → AuthRepositoryPort → HttpAuthRepository → API
+                                           ↓
+                                    Domain Validations
+                                           ↓
+                               (Email format + Password length)
+                                           ↓
+                                  AuthResponse → AuthSession
+```
+
+### Casos de Uso Implementados
+
+| Caso de Uso | Responsabilidad | Validaciones |
+|-------------|-----------------|--------------|
+| `LoginUseCase` | Autenticar usuario | Email válido, password mínimo 6 chars |
+| `LogoutUseCase` | Cerrar sesión | Limpieza de tokens y estado |
+| `GetCurrentUserUseCase` | Obtener usuario actual | Verificación de sesión válida |
+| `GetSessionUseCase` | Gestión de sesiones | Validación de expiración |
+| `IsAuthenticatedUseCase` | Estado de autenticación | Verificación rápida |
+| `ValidateTokenUseCase` | Validar token | Comunicación con servidor |
+
+### Implementación en Guiders
+
+```typescript
+// Configuración en app.config.ts
+import { GUIDERS_AUTH_PROVIDERS } from './features/auth/infrastructure/auth-config.providers';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    ...GUIDERS_AUTH_PROVIDERS, // Incluye todos los tokens y factories
+  ]
+};
+
+// AuthService usando inyección directa de casos de uso
+@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private loginUseCase = inject(LOGIN_USE_CASE_TOKEN);
+  private logoutUseCase = inject(LOGOUT_USE_CASE_TOKEN);
+  // ... otros use cases
+
+  login(credentials: LoginCredentials): Observable<AuthResponse> {
+    return from(this.loginUseCase.execute(credentials)); // Pure → Observable
+  }
+}
+```
+
+### Tokens de Inyección por Aplicación
+
+**Guiders** (`auth-config.providers.ts`):
+```typescript
+export const LOGIN_USE_CASE_TOKEN = new InjectionToken<LoginUseCase>('LoginUseCase');
+export const LOGOUT_USE_CASE_TOKEN = new InjectionToken<LogoutUseCase>('LogoutUseCase');
+// ... otros tokens
+
+export const GUIDERS_AUTH_PROVIDERS: Provider[] = [
+  { provide: AUTH_REPOSITORY_TOKEN, useClass: HttpAuthRepository },
+  { provide: LOGIN_USE_CASE_TOKEN, useFactory: createLoginUseCase, deps: [AUTH_REPOSITORY_TOKEN] },
+  // ... otros providers
+];
+```
+
+**Backoffice** (futuro - tendrá sus propios tokens):
+```typescript
+export const ADMIN_LOGIN_USE_CASE_TOKEN = new InjectionToken<LoginUseCase>('AdminLoginUseCase');
+// ... tokens específicos para admin
+
+export const BACKOFFICE_AUTH_PROVIDERS: Provider[] = [
+  { provide: AUTH_REPOSITORY_TOKEN, useClass: AdminAuthRepository }, // Diferente implementación
+  // ... providers específicos
+];
+```
+
+### Beneficios de esta Arquitectura
+
+1. **🔄 Reutilización Total**: El dominio funciona en cualquier plataforma
+2. **🧪 Testabilidad**: Tests simples sin mocks complejos de Angular
+3. **🔧 Flexibilidad**: Cada app puede tener implementaciones diferentes
+4. **📦 Separación Clara**: Dominio, aplicación e infraestructura bien definidos
+5. **🚀 Evolución**: Fácil añadir nuevas funcionalidades sin romper existentes
+6. **🎯 Especialización**: Guiders para usuarios, Backoffice para administradores
+
+Para más detalles, consulta:
+- [Documentación completa de Auth](/libs/feature/auth/README.md)
+- [Implementación específica de Guiders](/guiders/README.md#-sistema-de-autenticación)

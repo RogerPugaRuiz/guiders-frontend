@@ -110,3 +110,136 @@ SOFTWARE.
 ```
 
 Para más información sobre Lucide, visite [lucide.dev](https://lucide.dev/).
+
+## 🔐 Sistema de Autenticación
+
+Guiders implementa un sistema de autenticación robusto basado en **arquitectura hexagonal** que utiliza la librería compartida `@libs/feature/auth`.
+
+### Características Principales
+
+- **Arquitectura Hexagonal**: Separación clara entre dominio, aplicación e infraestructura
+- **Inyección de Dependencias**: Tokens específicos para cada caso de uso
+- **Observable Pattern**: Integración completa con RxJS
+- **Gestión de Estados**: Manejo centralizado del estado de autenticación
+- **Persistencia Local**: Almacenamiento seguro en localStorage
+- **Interceptores HTTP**: Inyección automática de tokens de autorización
+
+### Estructura de Implementación
+
+```text
+/guiders/src/app/
+├── core/
+│   ├── services/
+│   │   └── auth.service.ts           # Servicio principal de autenticación
+│   ├── interceptors/
+│   │   └── auth.interceptor.ts       # Interceptor para tokens HTTP
+│   └── guards/
+│       └── auth.guard.ts             # Guard de protección de rutas
+├── features/auth/infrastructure/
+│   ├── repositories/
+│   │   └── http-auth.repository.ts   # Implementación HTTP del repositorio
+│   ├── components/
+│   │   └── auth-example.component.ts # Componente de ejemplo/demostración
+│   └── auth-config.providers.ts      # Configuración de inyección de dependencias
+└── app.config.ts                     # Configuración principal de la aplicación
+```
+
+### Configuración
+
+El sistema está configurado en `app.config.ts`:
+
+```typescript
+import { GUIDERS_AUTH_PROVIDERS } from './features/auth/infrastructure/auth-config.providers';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    // ... otros proveedores
+    ...GUIDERS_AUTH_PROVIDERS,
+  ]
+};
+```
+
+### Casos de Uso Implementados
+
+| Funcionalidad | Descripción | Endpoint |
+|---------------|-------------|----------|
+| **Login** | Autenticación de usuarios | `POST /api/auth/login` |
+| **Logout** | Cierre de sesión | `POST /api/auth/logout` |
+| **Usuario Actual** | Obtener datos del usuario autenticado | `GET /api/auth/me` |
+| **Sesión Activa** | Verificar sesión activa | `GET /api/auth/session` |
+| **Validar Token** | Validar token actual | `POST /api/auth/validate` |
+
+### Ejemplo de Uso
+
+```typescript
+@Component({...})
+export class DashboardComponent implements OnInit {
+  private authService = inject(AuthService);
+  
+  currentUser$ = this.authService.getCurrentUser();
+  isAuthenticated$ = this.authService.isAuthenticated();
+
+  async ngOnInit() {
+    // Verificar autenticación
+    const isAuth = await this.authService.isAuthenticated().toPromise();
+    if (!isAuth) {
+      // Redirigir al login
+    }
+  }
+
+  async logout() {
+    await this.authService.logout().toPromise();
+    // Redirigir al login
+  }
+}
+```
+
+### Interceptor HTTP
+
+El sistema incluye un interceptor que automáticamente:
+
+- Añade el token de autorización a las peticiones HTTP
+- Maneja la renovación automática de tokens
+- Gestiona errores de autenticación (401, 403)
+- Redirige al login cuando es necesario
+
+### Guards de Protección
+
+```typescript
+// Proteger rutas que requieren autenticación
+{
+  path: 'dashboard',
+  component: DashboardComponent,
+  canActivate: [AuthGuard]
+}
+```
+
+### Almacenamiento Local
+
+El sistema utiliza localStorage con prefijos específicos:
+
+- `guiders_auth_token`: Token de acceso
+- `guiders_auth_refresh_token`: Token de renovación  
+- `guiders_auth_user`: Datos del usuario actual
+- `guiders_auth_session`: Información de sesión
+
+### Manejo de Errores
+
+El sistema gestiona diferentes tipos de errores:
+
+- **ValidationError**: Errores de validación de campos
+- **AuthenticationError**: Credenciales inválidas
+- **SessionExpiredError**: Sesión expirada
+- **UnauthorizedError**: Acceso no autorizado
+
+### Componente de Demostración
+
+Incluye un componente de ejemplo (`AuthExampleComponent`) que demuestra:
+
+- Estado de autenticación en tiempo real
+- Información del usuario actual
+- Validación de tokens
+- Manejo de errores
+- Interfaz de usuario reactiva
+
+Para más detalles sobre la implementación, consulte la [documentación de la librería auth](../libs/feature/auth/README.md).
