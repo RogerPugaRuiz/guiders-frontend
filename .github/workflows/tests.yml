@@ -27,9 +27,20 @@ jobs:
     - name: Instalar dependencias
       run: |
         npm ci
-        cd ${{ matrix.project }} && npm ci
-        # Instalar explícitamente las dependencias de rollup para Linux
-        cd ${{ matrix.project }} && npm install @rollup/rollup-linux-x64-gnu
+        # Asegurarnos de que estamos en el directorio correcto
+        echo "Directorios en la raíz del proyecto:"
+        ls -la
+        if [ -d "${{ matrix.project }}" ]; then
+          echo "Entrando al directorio ${{ matrix.project }}"
+          cd ${{ matrix.project }}
+          npm ci
+          # Instalar explícitamente las dependencias de rollup para Linux
+          npm install @rollup/rollup-linux-x64-gnu
+          cd ..
+        else
+          echo "Error: El directorio ${{ matrix.project }} no existe"
+          exit 1
+        fi
 
     - name: Ejecutar tests unitarios
       run: npm run test:jest:${{ matrix.project }}
@@ -54,11 +65,21 @@ jobs:
     - name: Instalar dependencias
       run: |
         npm ci
-        cd ${{ matrix.project }} && npm ci
-        # Instalar explícitamente las dependencias de rollup para Linux
-        cd ${{ matrix.project }} && npm install @rollup/rollup-linux-x64-gnu
-        # Instalar serve para servir aplicaciones compiladas
-        npm install -g serve
+        # Asegurarnos de que estamos en el directorio correcto
+        echo "Directorios en la raíz del proyecto:"
+        ls -la
+        if [ -d "${{ matrix.project }}" ]; then
+          echo "Entrando al directorio ${{ matrix.project }}"
+          cd ${{ matrix.project }}
+          # Usar --legacy-peer-deps para evitar problemas de compatibilidad
+          npm ci --legacy-peer-deps
+          cd ..
+        else
+          echo "Error: El directorio ${{ matrix.project }} no existe"
+          exit 1
+        fi
+        # Instalar Angular CLI globalmente para poder usar comandos directamente
+        npm install -g @angular/cli
     
     # Instalar dependencias para Cypress en Ubuntu
     - name: Instalar dependencias de Cypress
@@ -69,23 +90,60 @@ jobs:
     # Ejecutar el servidor en segundo plano y luego las pruebas
     - name: Ejecutar servidor y tests e2e
       run: |
-        # Iniciar el servidor en segundo plano
-        cd ${{ matrix.project }}
+        # Verificar la estructura del directorio
+        echo "Directorios en la raíz del proyecto:"
+        ls -la
+        
+        # Asegurarnos de que el directorio del proyecto existe
+        if [ ! -d "${{ matrix.project }}" ]; then
+          echo "Error: El directorio ${{ matrix.project }} no existe"
+          exit 1
+        fi
+        
+        # Instalar http-server globalmente
+        npm install -g http-server
+        
         # Determinar el puerto según el proyecto
         PORT_NUMBER=$([ "${{ matrix.project }}" == "backoffice" ] && echo "4201" || echo "4200")
-        # Iniciar el servidor en segundo plano con el puerto correcto
-        # Usar --configuration=production para evitar problemas con rollup
-        if [ "${{ matrix.project }}" == "backoffice" ]; then
-          npm run build -- --configuration=production &
-          npx serve dist/${{ matrix.project }}/browser -l $PORT_NUMBER &
-        else
-          npm start &
+        
+        # Construir el proyecto para evitar problemas con rollup
+        echo "Construyendo el proyecto ${{ matrix.project }}..."
+        cd ${{ matrix.project }}
+        
+        # Usar el comando build simple para evitar problemas con rollup
+        NODE_ENV=production npx @angular/cli@latest build --configuration=production
+        
+        # Verificar el resultado de la construcción
+        if [ -d "dist/${{ matrix.project }}" ]; then
+          echo "Aplicación construida exitosamente en dist/${{ matrix.project }}"
+          ls -la dist/${{ matrix.project }}
+        else 
+          echo "Error: No se encuentra el directorio de salida dist/${{ matrix.project }}"
+          ls -la dist
+          exit 1
         fi
-        # Esperar a que el servidor esté listo (aumentado a 2 minutos)
+        
+        # Iniciar http-server para servir los archivos estáticos
+        echo "Iniciando http-server en el puerto $PORT_NUMBER..."
+        if [ -d "dist/${{ matrix.project }}/browser" ]; then
+          # Angular 16+ usa /browser como subdirectorio
+          http-server ./dist/${{ matrix.project }}/browser -p $PORT_NUMBER --silent &
+        else
+          # Angular anterior a 16 no usa /browser
+          http-server ./dist/${{ matrix.project }} -p $PORT_NUMBER --silent &
+        fi
+        SERVER_PID=$!
+        
+        # Esperar a que el servidor esté listo
+        echo "Esperando a que el servidor esté disponible en http://localhost:$PORT_NUMBER..."
         npx wait-on http://localhost:$PORT_NUMBER --timeout 120000
+        
         # Volver al directorio raíz y ejecutar las pruebas de Cypress en modo headless
         cd ..
         npm run test:cypress:headless:${{ matrix.project }}
+        
+        # Terminar el servidor http
+        kill $SERVER_PID || true
       env:
         # Asignar el puerto correcto según el proyecto
         PORT: ${{ matrix.project == 'backoffice' && '4201' || '4200' }}
