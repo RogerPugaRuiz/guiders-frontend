@@ -1,0 +1,39 @@
+{
+  "name": "guiders-frontend",
+  "version": "1.0.0",
+  "description": "Monorepo que contiene los proyectos Guiders y Backoffice",
+  "scripts": {
+    "start:guiders": "cd guiders && npm start",
+    "start:backoffice": "cd backoffice && npm start",
+    "start:guiders:hmr": "cd guiders && npm run start:hmr",
+    "start:backoffice:hmr": "cd backoffice && npm run start:hmr",
+    "build:guiders": "cd guiders && npm run build",
+    "build:backoffice": "cd backoffice && npm run build",
+    "test:guiders": "cd guiders && npm run test:jest",
+    "test:backoffice": "cd backoffice && npm run test:jest",
+    "test:jest:guiders": "cd guiders && npm run test:jest",
+    "test:jest:backoffice": "cd backoffice && npm run test:jest",
+    "test:cypress:guiders": "cd guiders && npm run test:cypress",
+    "test:cypress:backoffice": "cd backoffice && npm run test:cypress",
+    "test:cypress:headless:guiders": "cd guiders && npm run test:cypress:headless",
+    "test:cypress:headless:backoffice": "cd backoffice && npm run test:cypress:headless",
+    "test:cypress:open:guiders": "cd guiders && npm run test:cypress:open",
+    "test:cypress:open:backoffice": "cd backoffice && npm run test:cypress:open",
+    "lint:guiders": "cd guiders && npm run lint",
+    "lint:backoffice": "cd backoffice && npm run lint",
+    "test:all": "npm run test:jest:guiders && npm run test:jest:backoffice",
+    "test:e2e:all": "npm run test:cypress:headless:guiders && npm run test:cypress:headless:backoffice",
+    "test:full": "./run-all-tests.sh",
+    "install:all": "npm install && cd guiders && npm install && cd ../backoffice && npm install"
+  },
+  "private": true,
+  "keywords": [
+    "angular",
+    "monorepo",
+    "guiders",
+    "backoffice"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

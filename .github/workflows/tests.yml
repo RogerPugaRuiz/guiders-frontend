@@ -1,0 +1,77 @@
+name: Test Monorepo
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # Job para tests unitarios con Jest
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [guiders, backoffice]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Instalar dependencias
+      run: |
+        npm ci
+        cd ${{ matrix.project }} && npm ci
+
+    - name: Ejecutar tests unitarios
+      run: npm run test:jest:${{ matrix.project }}
+
+  # Job para tests e2e con Cypress
+  e2e-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [guiders, backoffice]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Configurar Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Instalar dependencias
+      run: |
+        npm ci
+        cd ${{ matrix.project }} && npm ci
+    
+    # Instalar dependencias para Cypress en Ubuntu
+    - name: Instalar dependencias de Cypress
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+    
+    # Ejecutar el servidor en segundo plano y luego las pruebas
+    - name: Ejecutar servidor y tests e2e
+      run: |
+        # Iniciar el servidor en segundo plano
+        cd ${{ matrix.project }}
+        # Determinar el puerto según el proyecto
+        PORT_NUMBER=$([ "${{ matrix.project }}" == "backoffice" ] && echo "4201" || echo "4200")
+        # Iniciar el servidor en segundo plano con el puerto correcto
+        npm start &
+        # Esperar a que el servidor esté listo
+        npx wait-on http://localhost:$PORT_NUMBER --timeout 60000
+        # Volver al directorio raíz y ejecutar las pruebas de Cypress en modo headless
+        cd ..
+        npm run test:cypress:headless:${{ matrix.project }}
+      env:
+        # Asignar el puerto correcto según el proyecto
+        PORT: ${{ matrix.project == 'backoffice' && '4201' || '4200' }}
