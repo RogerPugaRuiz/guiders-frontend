@@ -11,6 +11,7 @@
   /* Colores de fondo y texto - Tema claro */
   --color-background: #f6f8fa;     /* Fondo gris muy claro */
   --color-background-secondary: #ffffff; /* Fondo blanco para tarjetas y contenedores */
+  --color-surface: #ffffff;        /* Superficie para componentes como menús y diálogos */
   --color-active-bg: #eaeef2;      /* Fondo para elementos activos/seleccionados */
   --color-hover: #f6f8fa;          /* Fondo para hover de elementos */
   --color-text: #24292f;           /* Color de texto principal */
@@ -33,6 +34,7 @@
   /* Colores de fondo y texto - Tema oscuro */
   --color-background: #0d1117;     /* Fondo oscuro */
   --color-background-secondary: #161b22; /* Fondo ligeramente más claro para tarjetas */
+  --color-surface: #161b22;        /* Superficie para componentes como menús y diálogos en modo oscuro */
   --color-active-bg: #21262d;      /* Fondo para elementos activos/seleccionados en modo oscuro */
   --color-hover: #202329;          /* Fondo para hover de elementos en modo oscuro */
   --color-text: #c9d1d9;           /* Color de texto principal en modo oscuro */

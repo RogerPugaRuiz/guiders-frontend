@@ -24,6 +24,10 @@
 	display: flex;
 	flex-direction: column;
 	height: 100%;
+
+	.start-conversation{
+		margin-top: auto;
+	}
 	
 	.gh-page-header {
 		display: flex;
@@ -382,6 +386,8 @@
 		padding: var(--spacing-lg);
 		overflow-y: auto;
 		background-color: var(--color-background);
+		display: flex;
+		flex-direction: column;
 	}
 	
 	.chat-date-separator {
