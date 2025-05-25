@@ -15,13 +15,14 @@ import {
 } from '@libs/feature/auth';
 
 import { StorageService } from '../../../../core/services/storage.service';
+import { environment } from '../../../../../environments/environment';
 
 /**
  * Implementación HTTP del repositorio de autenticación para la aplicación Guiders
  */
 @Injectable()
 export class HttpAuthRepository implements AuthRepositoryPort {
-  private readonly API_BASE_URL = '/api/auth';
+  private readonly API_BASE_URL = `${environment.apiUrl}/user/auth`;
   private readonly STORAGE_KEYS = {
     TOKEN: 'guiders_auth_token',
     REFRESH_TOKEN: 'guiders_refresh_token',
@@ -183,18 +184,26 @@ export class HttpAuthRepository implements AuthRepositoryPort {
     if (error instanceof HttpErrorResponse) {
       switch (error.status) {
         case 400:
-          return new ValidationError('credentials', error.error?.message || 'Datos inválidos');
+          return new ValidationError('credentials', 'Parece que hay un problema con los datos que ingresaste. Por favor, revísalos e inténtalo de nuevo.');
         case 401:
-          return new AuthenticationError(error.error?.message || 'Credenciales inválidas');
+          return new AuthenticationError('El email o la contraseña no son correctos. ¿Quizás te equivocaste al escribirlos?');
         case 403:
-          return new UnauthorizedError(error.error?.message || 'Acceso denegado');
+          return new UnauthorizedError('No tienes permisos para acceder en este momento. Si crees que esto es un error, contacta con soporte.');
         case 0:
-          return new Error('Error de conexión. Verifica tu conexión a internet.');
+          return new Error('No pudimos conectarnos con el servidor');
+        case 404:
+          return new Error('El servicio que intentas usar no está disponible en este momento. Inténtalo más tarde.');
+        case 429:
+          return new Error('Has realizado demasiados intentos. Espera unos minutos antes de volver a intentarlo.');
+        case 500:
+          return new Error('Ocurrió algo inesperado');
+        case 503:
+          return new Error('El servicio está temporalmente no disponible. Estamos realizando mantenimiento. Vuelve pronto.');
         default:
-          return new Error(error.error?.message || 'Error del servidor');
+          return new Error('Ups, algo no salió como esperábamos. Inténtalo de nuevo en unos momentos.');
       }
     }
 
-    return error instanceof Error ? error : new Error('Error desconocido');
+    return new Error('Ocurrió algo inesperado. Si el problema persiste, contacta con nosotros.');
   }
 }

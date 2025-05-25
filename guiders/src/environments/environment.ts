@@ -3,7 +3,7 @@
  */
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api',
+  apiUrl: 'http://localhost:3000',
   apiDocUrl: 'http://localhost:3000/doc',
   appName: 'Guiders',
   version: '1.0.0',

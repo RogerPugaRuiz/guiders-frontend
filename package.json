@@ -23,6 +23,9 @@
     "lint:backoffice": "cd backoffice && npm run lint",
     "test:all": "npm run test:jest:guiders && npm run test:jest:backoffice",
     "test:e2e:all": "npm run test:cypress:headless:guiders && npm run test:cypress:headless:backoffice",
+    "test:e2e:auth-with-mock": "cd guiders && npm run test:e2e:auth-with-mock",
+    "test:e2e:with-mock": "cd guiders && npm run test:e2e:with-mock",
+    "mock:server": "cd guiders && npm run mock:server",
     "test:full": "./run-all-tests.sh",
     "install:all": "npm install && cd guiders && npm install && cd ../backoffice && npm install"
   },

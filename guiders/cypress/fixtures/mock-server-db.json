@@ -1,0 +1,17 @@
+{
+  "user": {
+    "auth": {
+      "login": {
+				"access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+				"refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      }
+    }
+  },
+  "dashboard": {
+    "stats": {
+      "totalUsers": 150,
+      "activeProjects": 12,
+      "completedTasks": 89
+    }
+  }
+}

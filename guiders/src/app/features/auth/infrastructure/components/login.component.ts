@@ -66,7 +66,7 @@ export class LoginComponent {
           } else if (error instanceof AuthenticationError) {
             this.errorMessage = error.message;
           } else {
-            this.errorMessage = error.message || 'Error al iniciar sesión. Por favor, inténtalo de nuevo.';
+            this.errorMessage = 'No pudimos iniciar tu sesión. ¿Podrías intentarlo de nuevo?';
           }
           this.isLoading = false;
         }
@@ -82,13 +82,13 @@ export class LoginComponent {
     
     if (field?.errors && field.touched) {
       if (field.errors['required']) {
-        return fieldName === 'email' ? 'El email es requerido' : 'La contraseña es requerida';
+        return fieldName === 'email' ? 'No olvides escribir tu email' : 'Tu contraseña es necesaria para continuar';
       }
       if (field.errors['email']) {
-        return 'El formato del email no es válido';
+        return 'Ese email no parece válido. ¿Podrías revisarlo?';
       }
       if (field.errors['minlength']) {
-        return 'La contraseña debe tener al menos 6 caracteres';
+        return 'Tu contraseña necesita al menos 6 caracteres para ser segura';
       }
       if (field.errors['serverError']) {
         return field.errors['serverError'];
