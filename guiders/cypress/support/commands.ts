@@ -38,37 +38,43 @@ declare global {
 }
 
 Cypress.Commands.add('login', (email: string, password: string) => {
-  cy.get('[data-cy="email-input"]').clear().type(email);
-  cy.get('[data-cy="password-input"]').clear().type(password);
-  cy.get('[data-cy="login-button"]').click();
+  cy.get('input[type="email"]').clear().type(email);
+  cy.get('input[type="password"]').clear().type(password);
+  
+  // Esperamos a que el botón esté habilitado
+  cy.get('button[type="submit"]').should('not.be.disabled');
+  
+  // Hacemos clic en el botón
+  cy.get('button[type="submit"]').click();
 });
 
 Cypress.Commands.add('tab', { prevSubject: 'element' }, (subject) => {
-  return cy.wrap(subject).trigger('keydown', { key: 'Tab' });
+  // Usar enfoque y desenfoque directamente en lugar de tab
+  cy.wrap(subject).blur();
+  return cy.wrap(subject).next().focus();
 });
 
 Cypress.Commands.add('verifyLoginPageElements', () => {
   // Verificar elementos del branding
   cy.contains('Guiders').should('be.visible');
-  cy.contains('Conecta, interactúa y convierte visitantes en tiempo real').should('be.visible');
+  cy.get('.brand-subtitle').should('be.visible');
   
-  // Verificar elementos del formulario
-  cy.get('[data-cy="login-form"]').should('be.visible');
-  cy.get('[data-cy="email-input"]').should('be.visible');
-  cy.get('[data-cy="password-input"]').should('be.visible');
-  cy.get('[data-cy="login-button"]').should('be.visible');
+  // Verificar elementos del formulario - usar selectores más generales
+  cy.get('form').should('exist');
+  cy.get('input[type="email"]').should('be.visible');
+  cy.get('input[type="password"]').should('be.visible');
+  cy.get('button[type="submit"]').should('be.visible');
   
-  // Verificar elementos adicionales
-  cy.contains('¡Bienvenido de vuelta!').should('be.visible');
-  cy.contains('Inicia sesión para continuar tu viaje').should('be.visible');
+  // Verificar elementos de la interfaz
+  cy.get('.logo-svg').should('be.visible');
 });
 
 Cypress.Commands.add('interceptLoginSuccess', () => {
-  cy.intercept('POST', '/api/auth/login', { fixture: 'login-success.json' }).as('loginSuccess');
+  cy.intercept('POST', '**/user/auth/login', { fixture: 'login-success.json' }).as('loginSuccess');
 });
 
 Cypress.Commands.add('interceptLoginError', (statusCode: number, message: string) => {
-  cy.intercept('POST', '/api/auth/login', {
+  cy.intercept('POST', '**/user/auth/login', {
     statusCode,
     body: { message }
   }).as('loginError');

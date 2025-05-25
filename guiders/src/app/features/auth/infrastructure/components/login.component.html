@@ -139,7 +139,7 @@
         
         <div class="form-actions">
           <div class="remember-me">
-            <input type="checkbox" id="remember-me">
+            <input type="checkbox" id="remember-me" [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" data-cy="remember-me-checkbox">
             <label for="remember-me">Recordarme</label>
           </div>
           <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>

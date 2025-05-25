@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../../../core/services/auth.service';
 import { 
@@ -13,7 +13,7 @@ import {
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -26,12 +26,19 @@ export class LoginComponent {
   isLoading = false;
   errorMessage = '';
   showPassword = false;
+  rememberMe = false;
 
   constructor() {
+    // Recuperar el email guardado si existe
+    const savedEmail = localStorage.getItem('guiders_remembered_email');
+    
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      email: [savedEmail || '', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+    
+    // Si había un email guardado, activar el checkbox de recordar
+    this.rememberMe = !!savedEmail;
   }
 
   get email() { return this.loginForm.get('email'); }
@@ -50,6 +57,13 @@ export class LoginComponent {
       email: this.email?.value,
       password: this.password?.value
     };
+
+    // Guardar o eliminar el email según el estado del checkbox
+    if (this.rememberMe && this.email?.value) {
+      localStorage.setItem('guiders_remembered_email', this.email.value);
+    } else {
+      localStorage.removeItem('guiders_remembered_email');
+    }
 
     this.authService.login(credentials)
       .subscribe({
