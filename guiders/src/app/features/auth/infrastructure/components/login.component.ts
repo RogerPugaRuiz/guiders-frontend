@@ -54,7 +54,7 @@ export class LoginComponent {
     this.authService.login(credentials)
       .subscribe({
         next: (response) => {
-          console.log('Login exitoso:', response.user.email);
+          console.log('Login exitoso:', response.user?.email || response.session?.user?.email || 'Usuario autenticado');
           this.router.navigate(['/dashboard']);
           this.isLoading = false;
         },

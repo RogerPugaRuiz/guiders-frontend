@@ -7,6 +7,7 @@ export interface User {
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  companyId?: string;
 }
 
 export interface AuthSession {

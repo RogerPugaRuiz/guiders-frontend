@@ -16,6 +16,7 @@ import {
 
 import { StorageService } from '../../../../core/services/storage.service';
 import { environment } from '../../../../../environments/environment';
+import { decodeJwtPayload, extractUserFromToken, isTokenExpired, JwtPayload } from '../../../../core/utils/jwt.utils';
 
 /**
  * Implementación HTTP del repositorio de autenticación para la aplicación Guiders
@@ -37,14 +38,55 @@ export class HttpAuthRepository implements AuthRepositoryPort {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      const response = await firstValueFrom(
-        this.http.post<AuthResponse>(`${this.API_BASE_URL}/login`, credentials)
+      // La respuesta real del backend tiene esta estructura:
+      // { access_token: string, refresh_token: string }
+      const backendResponse = await firstValueFrom(
+        this.http.post<{ access_token: string; refresh_token: string }>(`${this.API_BASE_URL}/login`, credentials)
       );
 
-      // Guardar en localStorage
-      if (response.success && response.session) {
-        await this.saveSession(response.session);
+      // Extraer información del usuario desde el access_token
+      const userInfo = extractUserFromToken(backendResponse.access_token);
+      if (!userInfo) {
+        throw new Error('No se pudo extraer información del usuario del token');
       }
+
+      // Obtener información de expiración del token
+      const payload = decodeJwtPayload<JwtPayload>(backendResponse.access_token);
+      if (!payload) {
+        throw new Error('Token inválido recibido del servidor');
+      }
+
+      // Crear el objeto User según nuestras interfaces
+      const user: User = {
+        id: userInfo.id,
+        email: userInfo.email,
+        name: userInfo.email, // Por ahora usamos el email como nombre
+        role: userInfo.role,
+        companyId: userInfo.companyId, // Agregar el companyId del token
+        isActive: true,
+        lastLoginAt: new Date(),
+        createdAt: new Date(), // No tenemos esta info del JWT, usamos fecha actual
+        updatedAt: new Date()
+      };
+
+      // Crear la sesión según nuestras interfaces
+      const session: AuthSession = {
+        token: backendResponse.access_token,
+        refreshToken: backendResponse.refresh_token,
+        expiresAt: new Date(payload.exp * 1000), // Convertir de segundos a milisegundos
+        user: user
+      };
+
+      // Crear la respuesta según nuestras interfaces
+      const response: AuthResponse = {
+        success: true,
+        user: user,
+        session: session,
+        message: 'Login exitoso'
+      };
+
+      // Guardar en localStorage
+      await this.saveSession(session);
 
       return response;
     } catch (error) {
@@ -103,8 +145,8 @@ export class HttpAuthRepository implements AuthRepositoryPort {
 
       const session: AuthSession = JSON.parse(sessionData);
       
-      // Verificar si la sesión ha expirado
-      if (new Date(session.expiresAt) <= new Date()) {
+      // Verificar si el token ha expirado usando la utilidad JWT
+      if (isTokenExpired(session.token)) {
         await this.clearSession();
         return null;
       }
@@ -119,7 +161,7 @@ export class HttpAuthRepository implements AuthRepositoryPort {
 
   async isAuthenticated(): Promise<boolean> {
     const session = await this.getSession();
-    return session !== null && new Date(session.expiresAt) > new Date();
+    return session !== null && !isTokenExpired(session.token);
   }
 
   async validateToken(): Promise<boolean> {
@@ -176,7 +218,9 @@ export class HttpAuthRepository implements AuthRepositoryPort {
   private async saveSession(session: AuthSession): Promise<void> {
     localStorage.setItem(this.STORAGE_KEYS.SESSION, JSON.stringify(session));
     localStorage.setItem(this.STORAGE_KEYS.TOKEN, session.token);
-    localStorage.setItem(this.STORAGE_KEYS.REFRESH_TOKEN, session.refreshToken);
+    if (session.refreshToken) {
+      localStorage.setItem(this.STORAGE_KEYS.REFRESH_TOKEN, session.refreshToken);
+    }
     localStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(session.user));
   }
 

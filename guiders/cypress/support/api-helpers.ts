@@ -1,168 +1,77 @@
-/// <reference types="cypress" />
-
 /**
- * Helpers para manejo de API en tests
- * Permite alternar entre mock y backend real
+ * Helpers para manejo de APIs en tests de Cypress
  */
 
-// Configuración de entornos
-export const API_CONFIG = {
-  // Usar backend real o mock
-  USE_REAL_API: Cypress.env('USE_REAL_API') || false,
+/**
+ * Intercepta todas las llamadas de autenticación
+ */
+export const interceptAuthAPIs = () => {
+  // Login exitoso
+  cy.intercept('POST', '/api/auth/login', { fixture: 'login-success.json' }).as('loginAPI');
   
-  // URLs base
-  MOCK_API_BASE: 'http://localhost:4200',
-  REAL_API_BASE: Cypress.env('API_BASE_URL') || 'http://localhost:3000',
+  // Logout
+  cy.intercept('POST', '/api/auth/logout', { statusCode: 200, body: { success: true } }).as('logoutAPI');
   
-  // Credenciales para backend real
-  REAL_TEST_USER: {
-    email: Cypress.env('TEST_USER_EMAIL') || 'test@guiders.com',
-    password: Cypress.env('TEST_USER_PASSWORD') || 'password123'
-  }
+  // Refresh token
+  cy.intercept('POST', '/api/auth/refresh', { fixture: 'login-success.json' }).as('refreshAPI');
+  
+  // Verificación de token
+  cy.intercept('GET', '/api/auth/verify', { 
+    statusCode: 200, 
+    body: { valid: true, user: { id: '123', email: 'usuario@example.com' } } 
+  }).as('verifyAPI');
 };
 
 /**
- * Configurar interceptores para autenticación
- * Puede usar mock o permitir llamadas reales
+ * Simula un usuario ya autenticado
  */
-export function setupAuthInterceptors(useMock: boolean = true) {
-  if (useMock) {
-    // Interceptores Mock - usando patrones que capturan cualquier URL
-    cy.intercept('POST', '**/user/auth/login', {
-      statusCode: 200,
-      body: {
-        success: true,
-        session: {
-          token: 'mock-jwt-token',
-          refreshToken: 'mock-refresh-token',
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          user: {
-            id: 'test-user-id',
-            email: 'test@guiders.com',
-            name: 'Usuario de Prueba',
-            role: 'user',
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        }
-      }
-    }).as('loginMock');
-
-    cy.intercept('GET', '**/user/auth/me', {
-      statusCode: 200,
-      body: {
-        id: 'test-user-id',
-        email: 'test@guiders.com',
-        name: 'Usuario de Prueba',
-        role: 'user',
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    }).as('getCurrentUserMock');
-
-    cy.intercept('GET', '**/user/auth/validate', {
-      statusCode: 200,
-      body: { valid: true }
-    }).as('validateTokenMock');
-
-    cy.intercept('POST', '**/user/auth/logout', {
-      statusCode: 200,
-      body: { success: true, message: 'Logout exitoso' }
-    }).as('logoutMock');
-
-  } else {
-    // Permitir llamadas reales al backend
-    // Solo interceptar para logging/debugging
-    cy.intercept('POST', '**/user/auth/login').as('loginReal');
-    cy.intercept('GET', '**/user/auth/me').as('getCurrentUserReal');
-    cy.intercept('GET', '**/user/auth/validate').as('validateTokenReal');
-    cy.intercept('POST', '**/user/auth/logout').as('logoutReal');
-  }
-}
+export const setAuthenticatedUser = () => {
+  cy.window().then((win) => {
+    win.localStorage.setItem('token', 'jwt-token-example');
+    win.localStorage.setItem('user', JSON.stringify({
+      id: '123',
+      email: 'usuario@example.com',
+      name: 'Usuario de Prueba',
+      role: 'user'
+    }));
+  });
+};
 
 /**
- * Configurar interceptores para errores específicos
+ * Limpia la sesión de usuario
  */
-export function setupErrorInterceptors() {
-  return {
-    // Error de credenciales inválidas
-    invalidCredentials: () => {
-      cy.intercept('POST', '**/user/auth/login', {
-        statusCode: 401,
-        body: {
-          success: false,
-          message: 'El email o la contraseña no son correctos'
-        }
-      }).as('loginInvalidCredentials');
-    },
-
-    // Error de conexión
-    networkError: () => {
-      cy.intercept('POST', '**/user/auth/login', {
-        forceNetworkError: true
-      }).as('loginNetworkError');
-    },
-
-    // Error del servidor
-    serverError: () => {
-      cy.intercept('POST', '**/user/auth/login', {
-        statusCode: 500,
-        body: { 
-          success: false,
-          message: 'Algo salió mal en nuestros servidores. Ya estamos trabajando para solucionarlo. Inténtalo en unos minutos.' 
-        }
-      }).as('loginServerError');
-    },
-
-    // Token expirado
-    expiredToken: () => {
-      cy.intercept('GET', '**/user/auth/validate', {
-        statusCode: 401,
-        body: { valid: false, message: 'Token expired' }
-      }).as('expiredToken');
-    },
-
-    // Error de validación
-    validationError: () => {
-      cy.intercept('POST', '**/user/auth/login', {
-        statusCode: 400,
-        body: {
-          success: false,
-          message: 'Datos de entrada inválidos',
-          field: 'email'
-        }
-      }).as('loginValidationError');
-    }
-  };
-}
+export const clearUserSession = () => {
+  cy.window().then((win) => {
+    win.localStorage.clear();
+    win.sessionStorage.clear();
+  });
+};
 
 /**
- * Comando personalizado para configurar el entorno de pruebas
+ * Intercepta errores comunes de API
  */
-Cypress.Commands.add('setupTestEnvironment', (options: {
-  useMock?: boolean;
-  scenario?: 'success' | 'invalidCredentials' | 'networkError' | 'serverError';
-} = {}) => {
-  const { useMock = true, scenario = 'success' } = options;
+export const interceptCommonAPIErrors = () => {
+  // Error 401 - No autorizado
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 401,
+    body: { message: 'Credenciales incorrectas' }
+  }).as('unauthorizedError');
   
-  if (scenario === 'success') {
-    setupAuthInterceptors(useMock);
-  } else {
-    const errorInterceptors = setupErrorInterceptors();
-    errorInterceptors[scenario]?.();
-  }
-});
-
-// Extender tipos de Cypress
-declare global {
-  namespace Cypress {
-    interface Chainable {
-      setupTestEnvironment(options?: {
-        useMock?: boolean;
-        scenario?: 'success' | 'invalidCredentials' | 'networkError' | 'serverError';
-      }): Chainable<void>;
+  // Error 422 - Validación
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 422,
+    body: { 
+      field: 'email',
+      message: 'El email no está registrado en nuestro sistema'
     }
-  }
-}
+  }).as('validationError');
+  
+  // Error 500 - Servidor
+  cy.intercept('POST', '/api/auth/login', {
+    statusCode: 500,
+    body: { message: 'Error interno del servidor' }
+  }).as('serverError');
+  
+  // Error de red
+  cy.intercept('POST', '/api/auth/login', { forceNetworkError: true }).as('networkError');
+};

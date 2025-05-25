@@ -16,3 +16,13 @@
 // Import commands.js using ES2015 syntax:
 import './commands';
 import './api-helpers';
+
+// Configuración global para los tests
+beforeEach(() => {
+  // Interceptar llamadas a analytics para evitar errores en tests
+  cy.intercept('POST', '**/analytics/**', { statusCode: 200, body: {} });
+  cy.intercept('GET', '**/analytics/**', { statusCode: 200, body: {} });
+  
+  // Interceptar llamadas a servicios externos
+  cy.intercept('GET', '**/api/health', { statusCode: 200, body: { status: 'ok' } });
+});

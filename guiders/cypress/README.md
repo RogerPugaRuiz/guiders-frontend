@@ -5,20 +5,22 @@
 Este sistema de testing implementa una **estrategia híbrida** que combina tests con API mock y tests de integración con backend real, permitiendo:
 
 - ✅ **Tests rápidos y consistentes** con datos mock
-- ✅ **Validación completa de integración** con backend real  
+- ✅ **Validación completa de integración** con backend real
 - ✅ **Autenticación automática** sin repetir login en cada test
 - ✅ **Flexibilidad** para elegir la estrategia según necesidad
 
 ## 🎯 Cuándo Usar Mock vs Backend Real
 
-### 🔸 **Usar MOCK cuando:**
+### 🔸 **Usar MOCK cuando**
+
 - Validar **lógica del frontend**
 - Probar **manejo de errores** específicos
 - Tests de **performance** y velocidad
 - **Navegación** entre rutas protegidas
 - Tests que se ejecutan **frecuentemente** (CI/CD)
 
-### 🔸 **Usar BACKEND REAL cuando:**
+### 🔸 **Usar BACKEND REAL cuando**
+
 - Validar **integración completa**
 - Probar **contratos de API**
 - Tests de **aceptación** end-to-end
@@ -45,7 +47,7 @@ npm run test:e2e:dev
 
 ## 📁 Estructura de Tests
 
-```
+```text
 cypress/
 ├── e2e/
 │   ├── auth/
@@ -64,6 +66,7 @@ cypress/
 ## 🛠️ Comandos Personalizados
 
 ### Autenticación
+
 ```typescript
 // Login automático con token (mock)
 cy.loginByToken();
@@ -80,6 +83,7 @@ cy.clearAuth();
 ```
 
 ### Configuración de Entorno
+
 ```typescript
 // Configurar mock (por defecto)
 cy.setupTestEnvironment({ useMock: true, scenario: 'success' });
@@ -97,6 +101,7 @@ cy.setupTestEnvironment({
 ## 📝 Ejemplos de Uso
 
 ### 1. Test de Lógica Frontend (Mock)
+
 ```typescript
 describe('Frontend Logic', () => {
   beforeEach(() => {
@@ -115,6 +120,7 @@ describe('Frontend Logic', () => {
 ```
 
 ### 2. Test de Navegación (Mock + Token)
+
 ```typescript
 describe('Authenticated Navigation', () => {
   beforeEach(() => {
@@ -131,6 +137,7 @@ describe('Authenticated Navigation', () => {
 ```
 
 ### 3. Test de Integración (Backend Real)
+
 ```typescript
 describe('Integration Tests', () => {
   beforeEach(() => {
@@ -148,6 +155,7 @@ describe('Integration Tests', () => {
 ## ⚙️ Configuración
 
 ### Variables de Entorno
+
 ```javascript
 // cypress.config.ts
 env: {
@@ -162,6 +170,7 @@ env: {
 ```
 
 ### Selectores de Testing
+
 Los componentes deben incluir atributos `data-cy`:
 
 ```html
@@ -176,18 +185,21 @@ Los componentes deben incluir atributos `data-cy`:
 ## 🔧 Configuración de Interceptores
 
 ### Mock Automático
+
 ```typescript
 // Configura automáticamente todos los interceptores necesarios
 cy.setupTestEnvironment({ useMock: true, scenario: 'success' });
 ```
 
 ### Backend Real
+
 ```typescript
 // Permite llamadas reales, solo intercepta para logging
 cy.setupTestEnvironment({ useMock: false });
 ```
 
 ### Errores Específicos
+
 ```typescript
 // Simula diferentes tipos de errores
 cy.setupTestEnvironment({ 
@@ -208,6 +220,7 @@ cy.setupTestEnvironment({
 ## 🏃‍♂️ Ejecución de Tests
 
 ### Desarrollo Local
+
 ```bash
 # Desarrollo rápido con interfaz gráfica
 npm run test:e2e:dev
@@ -217,6 +230,7 @@ npm run test:e2e:mock
 ```
 
 ### CI/CD Pipeline
+
 ```bash
 # Tests principales (mock)
 npm run test:e2e:hybrid
@@ -228,6 +242,7 @@ npm run test:e2e:integration
 ## 🚨 Buenas Prácticas
 
 ### ✅ Do's
+
 - Usar mock para tests frecuentes
 - Usar backend real para validación crítica
 - Mantener tests independientes
@@ -235,6 +250,7 @@ npm run test:e2e:integration
 - Limpiar estado entre tests
 
 ### ❌ Don'ts
+
 - No usar backend real en todos los tests
 - No hardcodear URLs o credenciales
 - No hacer tests dependientes entre sí
@@ -244,6 +260,7 @@ npm run test:e2e:integration
 ## 🔍 Debugging
 
 ### Ver Requests en Tests
+
 ```typescript
 // Los interceptores automáticamente crean aliases
 cy.wait('@loginMock');      // Para mock
@@ -251,6 +268,7 @@ cy.wait('@loginReal');      // Para backend real
 ```
 
 ### Logs Detallados
+
 ```bash
 # Ejecutar con logs detallados
 npx cypress run --config video=true,screenshotOnRunFailure=true
@@ -266,6 +284,7 @@ npx cypress run --config video=true,screenshotOnRunFailure=true
 ## 🔄 Mantenimiento
 
 ### Actualizar Mocks
+
 Cuando la API cambie, actualizar `cypress/support/api-helpers.ts`:
 
 ```typescript
@@ -276,6 +295,7 @@ const mockResponse = {
 ```
 
 ### Sincronizar con Backend
+
 Ejecutar tests de integración regularmente para detectar cambios en contratos de API.
 
 ---
