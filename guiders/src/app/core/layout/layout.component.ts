@@ -8,6 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { UserStatusService } from '../services/user-status.service';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { StorageService } from '../services/storage.service';
 
 @Component({
   selector: 'app-layout',
@@ -259,7 +260,10 @@ export class LayoutComponent implements OnInit {
   userRole = new BehaviorSubject<string>(''); // Rol del usuario para el mensaje de bienvenida
   showProfileMenu = false; // Controla la visibilidad del menú desplegable
 
-  constructor(private colorThemeService: ColorThemeService) {
+  constructor(
+    private colorThemeService: ColorThemeService,
+    private storageService: StorageService
+  ) {
     // Inicializar color y tema al cargar el componente de layout
     // Esto se asegura de que las variables CSS estén correctamente configuradas
     this.initializeTheme();
@@ -322,11 +326,11 @@ export class LayoutComponent implements OnInit {
         console.error('Mensaje del error:', error.message);
         console.error('Status del error:', error.status || 'N/A');
         
-        // Verificar si hay datos en localStorage
-        const token = localStorage.getItem('guiders_auth_token');
-        const session = localStorage.getItem('guiders_session');
-        console.log('Token en localStorage:', token ? 'SÍ existe' : 'NO existe');
-        console.log('Sesión en localStorage:', session ? 'SÍ existe' : 'NO existe');
+        // Verificar si hay datos en storage
+        const token = this.storageService.getItem('guiders_auth_token');
+        const session = this.storageService.getItem('guiders_session');
+        console.log('Token en storage:', token ? 'SÍ existe' : 'NO existe');
+        console.log('Sesión en storage:', session ? 'SÍ existe' : 'NO existe');
         
         // En caso de error, dejamos el valor por defecto 'U'
       }
