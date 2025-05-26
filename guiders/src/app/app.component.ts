@@ -2,6 +2,7 @@ import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { isPlatformBrowser } from '@angular/common';
+import { TokenRefreshService } from './core/services/token-refresh.service';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ export class AppComponent implements OnInit {
   
   constructor(
     private themeService: ThemeService,
+    private tokenRefreshService: TokenRefreshService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
   
@@ -23,6 +25,9 @@ export class AppComponent implements OnInit {
     // y eliminar la clase que oculta la página mientras se carga el tema
     if (isPlatformBrowser(this.platformId)) {
       document.documentElement.classList.remove('theme-initializing');
+      
+      // Inicializar el servicio de renovación de token basado en actividad del usuario
+      this.tokenRefreshService.initialize();
     }
   }
 }
