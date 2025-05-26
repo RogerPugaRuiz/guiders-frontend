@@ -41,7 +41,7 @@ describe('Login Page (Simplified Tests)', () => {
       // Esperar respuesta del login
       cy.wait('@loginSuccess', { timeout: 30000 });
       
-      // Esperar a que se complete la redirección (podría tardar debido a la carga del módulo)
+      // // Esperar a que se complete la redirección (podría tardar debido a la carga del módulo)
       cy.location('pathname', { timeout: 30000 }).should('include', '/dashboard');
     });
     

@@ -133,6 +133,7 @@ export class HttpAuthRepository implements AuthRepositoryPort {
     try {
       const sessionData = this.storageService.getItem(this.STORAGE_KEYS.SESSION);
       if (!sessionData) {
+        console.warn('No session data found in storage');
         return null;
       }
 
