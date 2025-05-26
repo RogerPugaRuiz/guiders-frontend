@@ -116,23 +116,16 @@ export class HttpAuthRepository implements AuthRepositoryPort {
   async getCurrentUser(): Promise<User | null> {
     try {
       const session = await this.getSession();
-      if (!session?.token) {
+      if (!session?.user) {
         return null;
       }
 
-      const user = await firstValueFrom(
-        this.http.get<User>(`${this.API_BASE_URL}/me`, {
-          headers: { Authorization: `Bearer ${session.token}` }
-        })
-      );
-
-      return user;
+      // Devolver directamente el usuario almacenado en la sesión
+      // que ya fue extraído del token durante el login
+      return session.user;
     } catch (error) {
-      if (error instanceof HttpErrorResponse && error.status === 401) {
-        await this.clearSession();
-        return null;
-      }
-      throw this.handleHttpError(error);
+      console.error('Error al obtener usuario de la sesión:', error);
+      return null;
     }
   }
 

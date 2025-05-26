@@ -5,7 +5,9 @@ import { SideMenuComponent } from './side-menu/side-menu.component';
 import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
 import { ColorThemeService } from '../services/color-theme.service';
 import { AuthService } from '../services/auth.service';
-import { BehaviorSubject } from 'rxjs';
+import { UserStatusService } from '../services/user-status.service';
+import { BehaviorSubject, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-layout',
@@ -16,6 +18,9 @@ import { BehaviorSubject } from 'rxjs';
       <div class="gh-header__container">
         <div class="gh-header__logo">
           <h1>Guiders</h1>
+          <span class="gh-header__welcome" *ngIf="userRole | async as role">
+            {{ getWelcomeMessage(role) }}
+          </span>
         </div>
         <div class="gh-header__nav">
           <a href="#" class="gh-header__nav-item">Documentación</a>
@@ -70,6 +75,13 @@ import { BehaviorSubject } from 'rxjs';
         }
       }
       
+      &__welcome {
+        font-size: var(--font-size-xs);
+        color: rgba(255, 255, 255, 0.8);
+        margin-left: var(--spacing-sm);
+        font-weight: 400;
+      }
+      
       &__nav {
         display: flex;
         align-items: center;
@@ -107,7 +119,7 @@ import { BehaviorSubject } from 'rxjs';
       }
 
       &__profile-info {
-        padding: var(--spacing-sm) var(--spacing-md);
+        padding: var(--spacing-md);
         border-bottom: 1px solid var(--color-border);
       }
 
@@ -115,6 +127,53 @@ import { BehaviorSubject } from 'rxjs';
         font-size: var(--font-size-xs);
         color: var(--color-text-secondary);
         word-break: break-all;
+        display: block;
+        margin-bottom: var(--spacing-xs);
+      }
+
+      &__user-details {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs);
+      }
+
+      &__user-role {
+        font-size: var(--font-size-xs);
+        color: var(--color-primary);
+        font-weight: 500;
+        background-color: var(--color-primary-background);
+        padding: 2px 6px;
+        border-radius: 3px;
+        align-self: flex-start;
+      }
+
+      &__user-status {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      &__status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        
+        &.status--online {
+          background-color: #3fb950;
+        }
+        
+        &.status--offline {
+          background-color: #8b949e;
+        }
+        
+        &.status--away {
+          background-color: #f6a33a;
+        }
+      }
+
+      &__status-text {
+        font-size: var(--font-size-xs);
+        color: var(--color-text-secondary);
       }
 
       &__profile-actions {
@@ -189,11 +248,15 @@ export class LayoutComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
   
+  // Servicios públicos para usar en el template
+  userStatusService = inject(UserStatusService);
+  
   // ViewChild para el menú desplegable
   @ViewChild('profileMenu') profileMenuElement!: ElementRef;
   
   userInitial = new BehaviorSubject<string>('U'); // Valor predeterminado mientras carga
   userEmail = new BehaviorSubject<string>(''); // Email completo para mostrar en el menú
+  userRole = new BehaviorSubject<string>(''); // Rol del usuario para el mensaje de bienvenida
   showProfileMenu = false; // Controla la visibilidad del menú desplegable
 
   constructor(private colorThemeService: ColorThemeService) {
@@ -211,21 +274,60 @@ export class LayoutComponent implements OnInit {
   }
   
   ngOnInit(): void {
-    // Obtener el usuario actual y extraer la inicial del correo
+    // Verificar primero si hay una sesión guardada
+    console.log('LayoutComponent ngOnInit - Verificando sesión...');
+    
+    // Primero intentar obtener de la sesión local, luego del endpoint
+    this.authService.getSession().subscribe({
+      next: (session) => {
+        if (session?.user?.email) {
+          // Usar los datos de la sesión local
+          const initial = session.user.email.charAt(0).toUpperCase();
+          this.userInitial.next(initial);
+          this.userEmail.next(session.user.email);
+          this.userRole.next(session.user.role || 'user');
+          console.log('Usuario obtenido de sesión local:', session.user.email);
+        } else {
+          // Si no hay sesión local, intentar con el endpoint
+          this.getCurrentUserFromAPI();
+        }
+      },
+      error: (error) => {
+        console.error('Error al obtener sesión local:', error);
+        // Intentar con el endpoint como fallback
+        this.getCurrentUserFromAPI();
+      }
+    });
+  }
+  
+  private getCurrentUserFromAPI(): void {
+    // Obtener el usuario actual del endpoint y extraer la inicial del correo
     this.authService.getCurrentUser().subscribe({
       next: (user) => {
+        console.log('Usuario obtenido exitosamente desde API:', user);
         if (user && user.email) {
           const initial = user.email.charAt(0).toUpperCase();
           this.userInitial.next(initial);
           this.userEmail.next(user.email);
+          this.userRole.next(user.role || 'user');
           console.log('Inicial obtenida del correo:', initial);
         } else {
           // Si no hay usuario o email, dejamos el valor por defecto 'U'
-          console.log('No se pudo obtener el correo del usuario');
+          console.log('No se pudo obtener el correo del usuario - usuario es null o sin email');
         }
       },
       error: (error) => {
-        console.error('Error al obtener el usuario:', error);
+        console.error('Error al obtener el usuario desde API:', error);
+        console.error('Tipo de error:', error.constructor.name);
+        console.error('Mensaje del error:', error.message);
+        console.error('Status del error:', error.status || 'N/A');
+        
+        // Verificar si hay datos en localStorage
+        const token = localStorage.getItem('guiders_auth_token');
+        const session = localStorage.getItem('guiders_session');
+        console.log('Token en localStorage:', token ? 'SÍ existe' : 'NO existe');
+        console.log('Sesión en localStorage:', session ? 'SÍ existe' : 'NO existe');
+        
         // En caso de error, dejamos el valor por defecto 'U'
       }
     });
@@ -257,6 +359,32 @@ export class LayoutComponent implements OnInit {
     });
   }
   
+  // Método para generar un mensaje de bienvenida más humano y amigable
+  getWelcomeMessage(role: string): string {
+    const messages = {
+      'admin': '¡Hola! Tienes el control total',
+      'user': '¡Hola! Listo para explorar',
+      'guide': '¡Hola! Listo para guiar el camino',
+      'moderator': '¡Hola! Manteniendo todo en orden'
+    };
+
+    return messages[role as keyof typeof messages] || messages['user'];
+  }
+
+  // Método para obtener el nombre legible del rol del usuario
+  getRoleDisplayName(role: string): string {
+    const roleNames = {
+      'admin': 'Administrador',
+      'user': 'Usuario',
+      'guide': 'Guía',
+      'moderator': 'Moderador',
+      'manager': 'Gerente',
+      'support': 'Soporte'
+    };
+
+    return roleNames[role as keyof typeof roleNames] || 'Usuario';
+  }
+
   private initializeTheme(): void {
     // El ColorThemeService ya tiene lógica para inicializar colores
     // Solo necesitamos garantizar que se instancie aquí y se aplique el color actual
