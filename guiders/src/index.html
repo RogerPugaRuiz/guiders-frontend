@@ -25,6 +25,12 @@
     }
   </style>
   <!-- Script para prevenir el destello inicial del tema (optimizado para SSR) -->
+  <!-- 
+    Nota: Este script utiliza localStorage directamente en lugar de StorageService por dos razones:
+    1. Necesita ejecutarse antes del bootstrap de Angular para prevenir el destello visual
+    2. StorageService es una dependencia inyectable de Angular no disponible en este punto
+    Este es un caso de uso legítimo para acceso directo a localStorage con las comprobaciones adecuadas
+  -->
   <script>
     (function() {
       // Solo ejecutar en el cliente, no durante SSR

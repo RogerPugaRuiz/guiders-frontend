@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { ThemeService } from './theme.service';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { StorageService } from './storage.service';
 
 export interface ColorOption {
   name: string;
@@ -34,7 +35,10 @@ export class ColorThemeService {
   private colorChange = new BehaviorSubject<string>('');
   public readonly colorChange$ = this.colorChange.asObservable();
 
-  constructor(private themeService: ThemeService) {
+  constructor(
+    private themeService: ThemeService,
+    private storageService: StorageService
+  ) {
     this.initializeColor();
     
     // Suscribirse a cambios de tema para actualizar colores automáticamente
@@ -160,8 +164,8 @@ export class ColorThemeService {
         
         document.documentElement.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
         
-        // Guardar la preferencia de color en localStorage
-        localStorage.setItem('primaryColor', hexColor);
+        // Guardar la preferencia de color
+        this.storageService.setItem('primaryColor', hexColor);
       } catch (error) {
         console.warn('Error al aplicar el color primario:', error);
       }
