@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { expect } from '@jest/globals';
 
 // Este test básico sirve para evitar fallos en la pipeline de CI/CD cuando no hay tests específicos
 describe('Actions (Jest)', () => {
