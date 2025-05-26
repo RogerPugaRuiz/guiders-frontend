@@ -18,8 +18,10 @@ import {
   GET_CURRENT_USER_USE_CASE_TOKEN,
   GET_SESSION_USE_CASE_TOKEN,
   IS_AUTHENTICATED_USE_CASE_TOKEN,
-  VALIDATE_TOKEN_USE_CASE_TOKEN
+  VALIDATE_TOKEN_USE_CASE_TOKEN,
+  REFRESH_TOKEN_USE_CASE_TOKEN
 } from '../../features/auth/infrastructure/auth-config.providers';
+import { RefreshTokenUseCase } from '../../features/auth/infrastructure/use-cases/refresh-token.use-case';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +33,7 @@ export class AuthService {
   private getSessionUseCase: GetSessionUseCase = inject(GET_SESSION_USE_CASE_TOKEN);
   private isAuthenticatedUseCase: IsAuthenticatedUseCase = inject(IS_AUTHENTICATED_USE_CASE_TOKEN);
   private validateTokenUseCase: ValidateTokenUseCase = inject(VALIDATE_TOKEN_USE_CASE_TOKEN);
+  private refreshTokenUseCase: RefreshTokenUseCase = inject(REFRESH_TOKEN_USE_CASE_TOKEN);
 
   login(credentials: LoginCredentials): Observable<AuthResponse> {
     return from(this.loginUseCase.execute(credentials));
@@ -54,5 +57,9 @@ export class AuthService {
 
   validateToken(): Observable<boolean> {
     return from(this.validateTokenUseCase.execute());
+  }
+
+  refreshToken(): Observable<AuthSession> {
+    return from(this.refreshTokenUseCase.execute());
   }
 }

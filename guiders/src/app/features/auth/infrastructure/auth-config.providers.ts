@@ -9,6 +9,7 @@ import {
   ValidateTokenUseCase
 } from '@libs/feature/auth';
 import { HttpAuthRepository } from './repositories/http-auth.repository';
+import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
 
 /**
  * Token de inyección para el repositorio de autenticación
@@ -24,6 +25,7 @@ export const GET_CURRENT_USER_USE_CASE_TOKEN = new InjectionToken<GetCurrentUser
 export const GET_SESSION_USE_CASE_TOKEN = new InjectionToken<GetSessionUseCase>('GetSessionUseCase');
 export const IS_AUTHENTICATED_USE_CASE_TOKEN = new InjectionToken<IsAuthenticatedUseCase>('IsAuthenticatedUseCase');
 export const VALIDATE_TOKEN_USE_CASE_TOKEN = new InjectionToken<ValidateTokenUseCase>('ValidateTokenUseCase');
+export const REFRESH_TOKEN_USE_CASE_TOKEN = new InjectionToken<RefreshTokenUseCase>('RefreshTokenUseCase');
 
 /**
  * Factories para crear los casos de uso
@@ -50,6 +52,10 @@ export function createIsAuthenticatedUseCase(authRepository: AuthRepositoryPort)
 
 export function createValidateTokenUseCase(authRepository: AuthRepositoryPort): ValidateTokenUseCase {
   return new ValidateTokenUseCase(authRepository);
+}
+
+export function createRefreshTokenUseCase(authRepository: AuthRepositoryPort): RefreshTokenUseCase {
+  return new RefreshTokenUseCase(authRepository);
 }
 
 /**
@@ -90,6 +96,11 @@ export const GUIDERS_AUTH_PROVIDERS: Provider[] = [
   {
     provide: VALIDATE_TOKEN_USE_CASE_TOKEN,
     useFactory: createValidateTokenUseCase,
+    deps: [AUTH_REPOSITORY_TOKEN]
+  },
+  {
+    provide: REFRESH_TOKEN_USE_CASE_TOKEN,
+    useFactory: createRefreshTokenUseCase,
     deps: [AUTH_REPOSITORY_TOKEN]
   }
 ];
