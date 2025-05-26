@@ -1,4 +1,5 @@
-import { Injectable, NgZone, inject, OnDestroy } from '@angular/core';
+import { Injectable, NgZone, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { interval, Subscription, fromEvent, merge, Subject, takeUntil } from 'rxjs';
 import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
@@ -14,6 +15,7 @@ import { isTokenNearExpiration } from '../utils/jwt.utils';
 export class TokenRefreshService implements OnDestroy {
   private authService = inject(AuthService);
   private ngZone = inject(NgZone);
+  private platformId = inject(PLATFORM_ID);
   
   private destroy$ = new Subject<void>();
   private userActivity$ = new Subject<void>();
@@ -30,6 +32,11 @@ export class TokenRefreshService implements OnDestroy {
    * Inicializa el servicio de renovación de token basado en actividad del usuario
    */
   initialize(): void {
+    // Solo ejecutar en el navegador
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     this.ngZone.runOutsideAngular(() => {
       // Monitorear eventos de actividad del usuario
       const userEvents = merge(

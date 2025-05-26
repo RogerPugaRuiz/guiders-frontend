@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject, NgZone } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable, fromEvent, merge } from 'rxjs';
 import { map, startWith } from 'rxjs/operators';
 
@@ -12,18 +13,23 @@ export interface UserStatus {
   providedIn: 'root'
 })
 export class UserStatusService {
+  private platformId = inject(PLATFORM_ID);
+  private ngZone = inject(NgZone);
   private userStatusSubject = new BehaviorSubject<UserStatus>({
-    isOnline: navigator.onLine,
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
     lastSeen: new Date(),
-    connectionType: navigator.onLine ? 'online' : 'offline'
+    connectionType: typeof navigator !== 'undefined' && navigator.onLine ? 'online' : 'offline'
   });
 
   private awayTimer: any;
   private readonly AWAY_TIME = 5 * 60 * 1000; // 5 minutos para considerar "away"
 
   constructor() {
-    this.initializeNetworkListeners();
-    this.initializeActivityListeners();
+    // Solo inicializar en el navegador
+    if (isPlatformBrowser(this.platformId)) {
+      this.initializeNetworkListeners();
+      this.initializeActivityListeners();
+    }
   }
 
   /**
@@ -177,9 +183,13 @@ export class UserStatusService {
       clearTimeout(this.awayTimer);
     }
 
-    this.awayTimer = setTimeout(() => {
-      this.setAway();
-    }, this.AWAY_TIME);
+    this.ngZone.runOutsideAngular(() => {
+      this.awayTimer = setTimeout(() => {
+        this.ngZone.run(() => {
+          this.setAway();
+        });
+      }, this.AWAY_TIME);
+    });
   }
 
   /**

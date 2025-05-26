@@ -1,4 +1,5 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { 
   HttpInterceptor, 
   HttpRequest, 
@@ -6,7 +7,7 @@ import {
   HttpEvent, 
   HttpErrorResponse 
 } from '@angular/common/http';
-import { Observable, throwError, from, switchMap, catchError } from 'rxjs';
+import { Observable, throwError, from, switchMap, catchError, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { isTokenNearExpiration } from '../utils/jwt.utils';
@@ -16,8 +17,14 @@ import { AuthSession } from '@libs/feature/auth';
 export class AuthInterceptor implements HttpInterceptor {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Skip auth processing on server-side during SSR/hydration
+    if (!isPlatformBrowser(this.platformId)) {
+      return next.handle(req);
+    }
+
     // Skip auth headers for login and refresh endpoints
     if (this.shouldSkipAuth(req.url)) {
       return next.handle(req);
@@ -79,7 +86,14 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private shouldSkipAuth(url: string): boolean {
-    const skipPaths = ['/api/auth/login', '/api/auth/refresh', '/api/auth/register'];
+    const skipPaths = [
+      '/api/auth/login', 
+      '/api/auth/refresh', 
+      '/api/auth/register',
+      '/user/auth/login',
+      '/user/auth/refresh',
+      '/user/auth/register'
+    ];
     return skipPaths.some(path => url.includes(path));
   }
 
