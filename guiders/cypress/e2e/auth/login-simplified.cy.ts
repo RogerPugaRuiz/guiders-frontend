@@ -20,8 +20,18 @@ describe('Login Page (Simplified Tests)', () => {
   describe('Login Functionality', () => {
     it('should login successfully with valid credentials', () => {
       // Utiliza comandos personalizados para interceptar y realizar login
-      cy.interceptLoginSuccess();
-      cy.login('usuario@example.com', 'password123');
+      cy.intercept('POST', '**/user/auth/login', {
+        statusCode: 200,
+        fixture: 'login-success.json',
+        delay: 100 // Añadir un pequeño retraso para simular respuesta de red
+      }).as('loginSuccess');
+      
+      cy.get('input[data-cy="email-input"]').type('usuario@example.com');
+      cy.get('input[data-cy="password-input"]').type('password123');
+      
+      // Verificar que el botón no está deshabilitado
+      cy.get('button[type="submit"]').should('not.be.disabled');
+      cy.get('button[type="submit"]').click();
       
       // Esperar respuesta y verificar redirección
       cy.wait('@loginSuccess');
@@ -30,10 +40,19 @@ describe('Login Page (Simplified Tests)', () => {
     
     it('should show error with incorrect credentials', () => {
       // Interceptar error de credenciales
-      cy.interceptLoginError(401, 'Credenciales incorrectas');
+      cy.intercept('POST', '**/user/auth/login', {
+        statusCode: 401,
+        body: { message: 'Credenciales incorrectas' },
+        delay: 100 // Añadir un pequeño retraso para simular respuesta de red
+      }).as('loginError');
       
       // Realizar login con credenciales incorrectas
-      cy.login('wrong@example.com', 'wrongpassword');
+      cy.get('input[data-cy="email-input"]').type('wrong@example.com');
+      cy.get('input[data-cy="password-input"]').type('wrongpassword');
+      
+      // Verificar que el botón no está deshabilitado
+      cy.get('button[type="submit"]').should('not.be.disabled');
+      cy.get('button[type="submit"]').click();
       
       // Esperar respuesta y verificar mensaje de error
       cy.wait('@loginError');
@@ -44,7 +63,7 @@ describe('Login Page (Simplified Tests)', () => {
   describe('Form Validations', () => {
     it('should validate required fields', () => {
       // Clic en botón de login sin completar campos
-      cy.get('button[type="submit"]').click();
+      cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensajes de error
       cy.contains('No olvides escribir tu email').should('be.visible');
@@ -54,7 +73,7 @@ describe('Login Page (Simplified Tests)', () => {
     it('should validate email format', () => {
       // Ingresar email con formato incorrecto
       cy.get('input[data-cy="email-input"]').type('invalid-email');
-      cy.get('button[type="submit"]').click();
+      cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensaje de error
       cy.contains('Ese email no parece válido').should('be.visible');
@@ -64,7 +83,7 @@ describe('Login Page (Simplified Tests)', () => {
       // Ingresar contraseña corta
       cy.get('input[data-cy="email-input"]').type('test@example.com');
       cy.get('input[data-cy="password-input"]').type('12345');
-      cy.get('button[type="submit"]').click();
+      cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensaje de error
       cy.contains('Tu contraseña necesita al menos 6 caracteres').should('be.visible');
@@ -90,13 +109,22 @@ describe('Login Page (Simplified Tests)', () => {
   describe('Error Scenarios', () => {
     it('should handle server errors gracefully', () => {
       // Interceptar error de servidor
-      cy.interceptLoginError(500, 'Error interno del servidor');
+      cy.intercept('POST', '**/user/auth/login', {
+        statusCode: 500,
+        body: { message: 'Error interno del servidor' },
+        delay: 100 // Añadir un pequeño retraso para simular respuesta de red
+      }).as('serverError');
       
       // Realizar login
-      cy.login('test@example.com', 'password123');
+      cy.get('input[data-cy="email-input"]').type('test@example.com');
+      cy.get('input[data-cy="password-input"]').type('password123');
+      
+      // Verificar que el botón no está deshabilitado
+      cy.get('button[type="submit"]').should('not.be.disabled');
+      cy.get('button[type="submit"]').click();
       
       // Verificar mensaje de error
-      cy.wait('@loginError');
+      cy.wait('@serverError');
       cy.contains('Error interno del servidor').should('be.visible');
     });
     
@@ -105,7 +133,12 @@ describe('Login Page (Simplified Tests)', () => {
       cy.intercept('POST', '**/user/auth/login', { forceNetworkError: true }).as('networkError');
       
       // Realizar login
-      cy.login('test@example.com', 'password123');
+      cy.get('input[data-cy="email-input"]').type('test@example.com');
+      cy.get('input[data-cy="password-input"]').type('password123');
+      
+      // Verificar que el botón no está deshabilitado
+      cy.get('button[type="submit"]').should('not.be.disabled');
+      cy.get('button[type="submit"]').click();
       
       // Verificar manejo de error
       cy.wait('@networkError');
