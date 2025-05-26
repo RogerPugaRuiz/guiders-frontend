@@ -1,5 +1,9 @@
 import { setupZoneTestEnv } from 'jest-preset-angular/setup-env/zone';
 
+// Asegúrate de que tslib está disponible globalmente
+import * as tslib from 'tslib';
+global.tslib = tslib;
+
 setupZoneTestEnv();
 
 // Global mocks for jsdom

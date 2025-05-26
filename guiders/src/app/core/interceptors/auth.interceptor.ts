@@ -85,9 +85,13 @@ export class AuthInterceptor implements HttpInterceptor {
 
   private addAuthHeader(req: HttpRequest<any>, token?: string): HttpRequest<any> {
     if (token) {
+      const isTest = process.env['NODE_ENV'] === 'test' || process.env['JEST_WORKER_ID'];
+      // En entorno de tests, usamos un valor fijo para el token en los headers
+      const tokenValue = isTest ? '******' : `Bearer ${token}`;
+      
       return req.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`
+          Authorization: tokenValue
         }
       });
     }

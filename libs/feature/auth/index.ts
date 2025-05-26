@@ -10,3 +10,8 @@ export * from './application/use-cases/get-current-user.use-case';
 export * from './application/use-cases/get-session.use-case';
 export * from './application/use-cases/is-authenticated.use-case';
 export * from './application/use-cases/validate-token.use-case';
+export * from './application/use-cases/refresh-token.use-case';
+
+// Asegurar exportación explícita de RefreshTokenUseCase
+import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
+export { RefreshTokenUseCase };
