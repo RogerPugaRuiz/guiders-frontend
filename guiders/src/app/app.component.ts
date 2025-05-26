@@ -1,8 +1,9 @@
-import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject, afterNextRender } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { isPlatformBrowser } from '@angular/common';
 import { TokenRefreshService } from './core/services/token-refresh.service';
+import { AppInitializationService } from './core/services/app-initialization.service';
 
 @Component({
   selector: 'app-root',
@@ -17,8 +18,16 @@ export class AppComponent implements OnInit {
   constructor(
     private themeService: ThemeService,
     private tokenRefreshService: TokenRefreshService,
+    private appInitializationService: AppInitializationService,
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) {
+    // Usar afterNextRender para asegurar que la inicialización ocurra después del renderizado completo
+    if (isPlatformBrowser(this.platformId)) {
+      afterNextRender(() => {
+        this.appInitializationService.initializeApp();
+      });
+    }
+  }
   
   ngOnInit(): void {
     // Asegurar que se inicialice el tema correctamente
