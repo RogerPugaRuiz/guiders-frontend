@@ -202,19 +202,19 @@ export class HttpAuthRepository implements AuthRepositoryPort {
   }
 
   async clearSession(): Promise<void> {
-    localStorage.removeItem(this.STORAGE_KEYS.TOKEN);
-    localStorage.removeItem(this.STORAGE_KEYS.REFRESH_TOKEN);
-    localStorage.removeItem(this.STORAGE_KEYS.USER);
-    localStorage.removeItem(this.STORAGE_KEYS.SESSION);
+    this.storageService.removeItem(this.STORAGE_KEYS.TOKEN);
+    this.storageService.removeItem(this.STORAGE_KEYS.REFRESH_TOKEN);
+    this.storageService.removeItem(this.STORAGE_KEYS.USER);
+    this.storageService.removeItem(this.STORAGE_KEYS.SESSION);
   }
 
   private async saveSession(session: AuthSession): Promise<void> {
-    localStorage.setItem(this.STORAGE_KEYS.SESSION, JSON.stringify(session));
-    localStorage.setItem(this.STORAGE_KEYS.TOKEN, session.token);
+    this.storageService.setItem(this.STORAGE_KEYS.SESSION, JSON.stringify(session));
+    this.storageService.setItem(this.STORAGE_KEYS.TOKEN, session.token);
     if (session.refreshToken) {
-      localStorage.setItem(this.STORAGE_KEYS.REFRESH_TOKEN, session.refreshToken);
+      this.storageService.setItem(this.STORAGE_KEYS.REFRESH_TOKEN, session.refreshToken);
     }
-    localStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(session.user));
+    this.storageService.setItem(this.STORAGE_KEYS.USER, JSON.stringify(session.user));
   }
 
   private handleHttpError(error: any): Error {
