@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
-import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { AuthInterceptor } from '../auth.interceptor';
 import { AuthService } from '../../services/auth.service';
 import { of, throwError } from 'rxjs';
@@ -21,11 +23,10 @@ describe('AuthInterceptor', () => {
     };
 
     TestBed.configureTestingModule({
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule
-      ],
       providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
         { provide: AuthService, useValue: spy },
         { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
       ]
