@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../../../core/services/auth.service';
+import { StorageService } from '../../../../core/services/storage.service';
 import { 
   LoginCredentials,
   AuthenticationError, 
@@ -21,6 +22,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private storageService = inject(StorageService);
 
   loginForm: FormGroup;
   isLoading = false;
@@ -30,7 +32,7 @@ export class LoginComponent {
 
   constructor() {
     // Recuperar el email guardado si existe
-    const savedEmail = localStorage.getItem('guiders_remembered_email');
+    const savedEmail = this.storageService.getItem('guiders_remembered_email');
     
     this.loginForm = this.fb.group({
       email: [savedEmail || '', [Validators.required, Validators.email]],
@@ -60,9 +62,9 @@ export class LoginComponent {
 
     // Guardar o eliminar el email según el estado del checkbox
     if (this.rememberMe && this.email?.value) {
-      localStorage.setItem('guiders_remembered_email', this.email.value);
+      this.storageService.setItem('guiders_remembered_email', this.email.value);
     } else {
-      localStorage.removeItem('guiders_remembered_email');
+      this.storageService.removeItem('guiders_remembered_email');
     }
 
     this.authService.login(credentials)
