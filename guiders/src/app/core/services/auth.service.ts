@@ -10,7 +10,8 @@ import {
   GetCurrentUserUseCase,
   GetSessionUseCase,
   IsAuthenticatedUseCase,
-  ValidateTokenUseCase
+  ValidateTokenUseCase,
+  RefreshTokenUseCase
 } from '@libs/feature/auth';
 import {
   LOGIN_USE_CASE_TOKEN,
@@ -21,7 +22,6 @@ import {
   VALIDATE_TOKEN_USE_CASE_TOKEN,
   REFRESH_TOKEN_USE_CASE_TOKEN
 } from '../../features/auth/infrastructure/auth-config.providers';
-import { RefreshTokenUseCase } from '../../features/auth/infrastructure/use-cases/refresh-token.use-case';
 
 @Injectable({
   providedIn: 'root'

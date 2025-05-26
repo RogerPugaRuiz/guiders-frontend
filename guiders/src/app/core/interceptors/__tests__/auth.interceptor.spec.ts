@@ -6,14 +6,19 @@ import { AuthInterceptor } from '../auth.interceptor';
 import { AuthService } from '../../services/auth.service';
 import { of, throwError } from 'rxjs';
 import * as jwtUtils from '../../utils/jwt.utils';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
 describe('AuthInterceptor', () => {
   let httpClient: HttpClient;
   let httpMock: HttpTestingController;
-  let authServiceSpy: jasmine.SpyObj<AuthService>;
+  let authServiceSpy: any;
 
   beforeEach(() => {
-    const spy = jasmine.createSpyObj('AuthService', ['getSession', 'refreshToken', 'logout']);
+    const spy = {
+      getSession: jest.fn(),
+      refreshToken: jest.fn(),
+      logout: jest.fn()
+    };
 
     TestBed.configureTestingModule({
       imports: [
@@ -28,7 +33,7 @@ describe('AuthInterceptor', () => {
 
     httpClient = TestBed.inject(HttpClient);
     httpMock = TestBed.inject(HttpTestingController);
-    authServiceSpy = TestBed.inject(AuthService) as jasmine.SpyObj<AuthService>;
+    authServiceSpy = TestBed.inject(AuthService);
   });
 
   afterEach(() => {
@@ -37,7 +42,7 @@ describe('AuthInterceptor', () => {
 
   it('should add auth header when session is available', () => {
     // Mock session
-    authServiceSpy.getSession.and.returnValue(of({
+    authServiceSpy.getSession.mockReturnValue(of({
       token: 'test-token',
       refreshToken: 'test-refresh-token',
       expiresAt: new Date(Date.now() + 3600000), // 1 hour in the future
@@ -45,18 +50,18 @@ describe('AuthInterceptor', () => {
     }));
 
     // Mock isTokenNearExpiration to return false
-    spyOn(jwtUtils, 'isTokenNearExpiration').and.returnValue(false);
+    jest.spyOn(jwtUtils, 'isTokenNearExpiration').mockReturnValue(false);
 
     httpClient.get('/api/data').subscribe();
 
     const req = httpMock.expectOne('/api/data');
-    expect(req.request.headers.has('Authorization')).toBeTrue();
+    expect(req.request.headers.has('Authorization')).toBe(true);
     expect(req.request.headers.get('Authorization')).toBe('******');
   });
 
   it('should refresh token when token is near expiration', () => {
     // Mock session with a token that's about to expire
-    authServiceSpy.getSession.and.returnValue(of({
+    authServiceSpy.getSession.mockReturnValue(of({
       token: 'expiring-token',
       refreshToken: 'test-refresh-token',
       expiresAt: new Date(Date.now() + 60000), // 1 minute in the future
@@ -64,7 +69,7 @@ describe('AuthInterceptor', () => {
     }));
 
     // Mock refreshToken to return a new session
-    authServiceSpy.refreshToken.and.returnValue(of({
+    authServiceSpy.refreshToken.mockReturnValue(of({
       token: 'new-token',
       refreshToken: 'new-refresh-token',
       expiresAt: new Date(Date.now() + 3600000), // 1 hour in the future
@@ -72,19 +77,19 @@ describe('AuthInterceptor', () => {
     }));
 
     // Mock isTokenNearExpiration to return true
-    spyOn(jwtUtils, 'isTokenNearExpiration').and.returnValue(true);
+    jest.spyOn(jwtUtils, 'isTokenNearExpiration').mockReturnValue(true);
 
     httpClient.get('/api/data').subscribe();
 
     const req = httpMock.expectOne('/api/data');
-    expect(req.request.headers.has('Authorization')).toBeTrue();
+    expect(req.request.headers.has('Authorization')).toBe(true);
     expect(req.request.headers.get('Authorization')).toBe('******');
     expect(authServiceSpy.refreshToken).toHaveBeenCalled();
   });
 
   it('should handle error when token refresh fails', () => {
     // Mock session with a token that's about to expire
-    authServiceSpy.getSession.and.returnValue(of({
+    authServiceSpy.getSession.mockReturnValue(of({
       token: 'expiring-token',
       refreshToken: 'test-refresh-token',
       expiresAt: new Date(Date.now() + 60000), // 1 minute in the future
@@ -92,11 +97,11 @@ describe('AuthInterceptor', () => {
     }));
 
     // Mock refreshToken to fail
-    authServiceSpy.refreshToken.and.returnValue(throwError(() => ({ status: 401 })));
-    authServiceSpy.logout.and.returnValue(of(undefined));
+    authServiceSpy.refreshToken.mockReturnValue(throwError(() => ({ status: 401 })));
+    authServiceSpy.logout.mockReturnValue(of(undefined));
 
     // Mock isTokenNearExpiration to return true
-    spyOn(jwtUtils, 'isTokenNearExpiration').and.returnValue(true);
+    jest.spyOn(jwtUtils, 'isTokenNearExpiration').mockReturnValue(true);
 
     httpClient.get('/api/data').subscribe({
       error: (err) => {

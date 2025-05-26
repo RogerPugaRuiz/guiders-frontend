@@ -6,10 +6,10 @@ import {
   GetCurrentUserUseCase,
   GetSessionUseCase,
   IsAuthenticatedUseCase,
-  ValidateTokenUseCase
+  ValidateTokenUseCase,
+  RefreshTokenUseCase
 } from '@libs/feature/auth';
 import { HttpAuthRepository } from './repositories/http-auth.repository';
-import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
 
 /**
  * Token de inyección para el repositorio de autenticación
