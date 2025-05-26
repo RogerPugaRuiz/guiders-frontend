@@ -5,7 +5,7 @@
     "ng": "ng",
     "start": "ng serve --no-hmr --port=4200",
     "start:hmr": "ng serve --port=4200",
-    "build": "ng build",
+    "build": "ng build --output-path=dist/guiders",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:jest": "jest",

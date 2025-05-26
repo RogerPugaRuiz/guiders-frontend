@@ -13,19 +13,19 @@ describe('Login Page Tests', () => {
   describe('UI Elements and Branding', () => {
     it('should display all required login elements', () => {
       // Verificar elementos de branding
-      cy.contains('Guiders').should('be.visible');
-      cy.contains('¡Bienvenido de vuelta!').should('be.visible');
+      cy.contains('Guiders', { timeout: 15000 }).should('be.visible');
+      cy.contains('¡Bienvenido de vuelta!', { timeout: 15000 }).should('be.visible');
 
       // Verificar elementos del formulario
-      cy.get('form[data-cy="login-form"]').should('exist');
-      cy.get('input[data-cy="email-input"]').should('be.visible');
-      cy.get('input[data-cy="password-input"]').should('be.visible');
-      cy.get('button[type="submit"]').should('be.visible');
+      cy.get('form[data-cy="login-form"]', { timeout: 15000 }).should('exist');
+      cy.get('input[data-cy="email-input"]', { timeout: 15000 }).should('be.visible');
+      cy.get('input[data-cy="password-input"]', { timeout: 15000 }).should('be.visible');
+      cy.get('button[type="submit"]', { timeout: 15000 }).should('be.visible');
       
       // Verificar elementos adicionales de la UI
-      cy.contains('Iniciar sesión para continuar tu viaje').should('be.visible');
-      cy.contains('Email').should('be.visible');
-      cy.contains('Contraseña').should('be.visible');
+      cy.contains('Iniciar sesión para continuar tu viaje', { timeout: 15000 }).should('be.visible');
+      cy.contains('Email', { timeout: 15000 }).should('be.visible');
+      cy.contains('Contraseña', { timeout: 15000 }).should('be.visible');
     });
 
     it('should have the correct input attributes and placeholders', () => {

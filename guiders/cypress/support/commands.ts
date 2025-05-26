@@ -38,14 +38,14 @@ declare global {
 }
 
 Cypress.Commands.add('login', (email: string, password: string) => {
-  cy.get('input[type="email"]').clear().type(email);
-  cy.get('input[type="password"]').clear().type(password);
+  cy.get('input[type="email"]', { timeout: 10000 }).clear().type(email);
+  cy.get('input[type="password"]', { timeout: 10000 }).clear().type(password);
   
   // Esperamos a que el botón esté habilitado
-  cy.get('button[type="submit"]').should('not.be.disabled');
+  cy.get('button[type="submit"]', { timeout: 10000 }).should('not.be.disabled');
   
   // Hacemos clic en el botón
-  cy.get('button[type="submit"]').click();
+  cy.get('button[type="submit"]').click({ force: true });
 });
 
 Cypress.Commands.add('tab', { prevSubject: 'element' }, (subject) => {

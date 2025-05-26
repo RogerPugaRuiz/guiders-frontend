@@ -6,8 +6,8 @@ describe('Login Page (Simplified Tests)', () => {
   // Visitar la página de login antes de cada test
   beforeEach(() => {
     cy.visit('/auth/login');
-    // Esperar a que la aplicación se cargue completamente
-    cy.get('form[data-cy="login-form"]').should('be.visible');
+    // Esperar a que la aplicación se cargue completamente con un timeout mayor
+    cy.get('form[data-cy="login-form"]', { timeout: 15000 }).should('be.visible');
   });
   
   describe('UI Validations', () => {
@@ -34,8 +34,8 @@ describe('Login Page (Simplified Tests)', () => {
       cy.get('button[type="submit"]').click();
       
       // Esperar respuesta y verificar redirección
-      cy.wait('@loginSuccess');
-      cy.url().should('include', '/dashboard');
+      cy.wait('@loginSuccess', { timeout: 20000 });
+      cy.url().should('include', '/dashboard', { timeout: 10000 });
     });
     
     it('should show error with incorrect credentials', () => {

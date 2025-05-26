@@ -111,7 +111,7 @@ jobs:
         cd ${{ matrix.project }}
         
         # Usar el comando build simple para evitar problemas con rollup
-        NODE_ENV=production npx @angular/cli@latest build --configuration=production
+        NODE_ENV=production npx @angular/cli@latest build --configuration=production --output-path=dist/${{ matrix.project }}
         
         # Verificar el resultado de la construcción
         if [ -d "dist/${{ matrix.project }}" ]; then
