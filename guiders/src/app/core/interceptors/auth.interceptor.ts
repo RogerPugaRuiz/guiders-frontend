@@ -6,10 +6,10 @@ import {
   HttpEvent, 
   HttpErrorResponse 
 } from '@angular/common/http';
-import { Observable, throwError, from, switchMap } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, from, switchMap, catchError, lastValueFrom } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { isTokenAboutToExpire } from '../utils/jwt.utils';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -23,7 +23,7 @@ export class AuthInterceptor implements HttpInterceptor {
     }
 
     // Get current session and add auth header
-    return from(this.authService.getSession()).pipe(
+    return from(this.getSessionWithRefreshIfNeeded()).pipe(
       switchMap(session => {
         const authReq = this.addAuthHeader(req, session?.token);
         
@@ -38,6 +38,41 @@ export class AuthInterceptor implements HttpInterceptor {
         );
       })
     );
+  }
+
+  private async getSessionWithRefreshIfNeeded() {
+    try {
+      const session = await lastValueFrom(this.authService.getSession());
+      
+      // If no session or no token, return null
+      if (!session || !session.token) {
+        return null;
+      }
+
+      // Check if token is about to expire
+      if (isTokenAboutToExpire(session.token)) {
+        console.log('Access token is about to expire, refreshing...');
+        try {
+          // Try to refresh the token
+          return await this.authService.refreshToken();
+        } catch (error: any) {
+          // Handle specific error cases for refresh token
+          if (error instanceof HttpErrorResponse) {
+            if (error.status === 400 || error.status === 401 || error.status === 500) {
+              // For 400 (malformed token), 401 (invalid refresh) or 500 (server error)
+              // Clear session and redirect to login
+              this.handleAuthError();
+            }
+          }
+          return null;
+        }
+      }
+
+      return session;
+    } catch (error) {
+      console.error('Error in getSessionWithRefreshIfNeeded:', error);
+      return null;
+    }
   }
 
   private shouldSkipAuth(url: string): boolean {

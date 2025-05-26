@@ -63,6 +63,28 @@ export function isTokenExpired(token: string): boolean {
 }
 
 /**
+ * Verifica si un token está próximo a expirar dentro de los próximos X minutos
+ */
+export function isTokenAboutToExpire(token: string, thresholdMinutes: number = 2): boolean {
+  try {
+    const payload = decodeJwtPayload<JwtPayload>(token);
+    if (!payload || !payload.exp) {
+      return true;
+    }
+
+    // exp está en segundos, Date.now() en milisegundos
+    const expirationTime = payload.exp * 1000;
+    const currentTime = Date.now();
+    
+    // Si quedan menos de thresholdMinutes minutos para la expiración
+    return (expirationTime - currentTime) < (thresholdMinutes * 60 * 1000);
+  } catch (error) {
+    console.error('Error al verificar si el token está próximo a expirar:', error);
+    return true;
+  }
+}
+
+/**
  * Extrae la información del usuario desde un token JWT
  */
 export function extractUserFromToken(token: string): { id: string; email: string; role: string; companyId: string } | null {

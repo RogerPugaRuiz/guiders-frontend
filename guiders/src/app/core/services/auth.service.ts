@@ -10,7 +10,8 @@ import {
   GetCurrentUserUseCase,
   GetSessionUseCase,
   IsAuthenticatedUseCase,
-  ValidateTokenUseCase
+  ValidateTokenUseCase,
+  RefreshTokenUseCase
 } from '@libs/feature/auth';
 import {
   LOGIN_USE_CASE_TOKEN,
@@ -18,7 +19,8 @@ import {
   GET_CURRENT_USER_USE_CASE_TOKEN,
   GET_SESSION_USE_CASE_TOKEN,
   IS_AUTHENTICATED_USE_CASE_TOKEN,
-  VALIDATE_TOKEN_USE_CASE_TOKEN
+  VALIDATE_TOKEN_USE_CASE_TOKEN,
+  REFRESH_TOKEN_USE_CASE_TOKEN
 } from '../../features/auth/infrastructure/auth-config.providers';
 
 @Injectable({
@@ -31,6 +33,7 @@ export class AuthService {
   private getSessionUseCase: GetSessionUseCase = inject(GET_SESSION_USE_CASE_TOKEN);
   private isAuthenticatedUseCase: IsAuthenticatedUseCase = inject(IS_AUTHENTICATED_USE_CASE_TOKEN);
   private validateTokenUseCase: ValidateTokenUseCase = inject(VALIDATE_TOKEN_USE_CASE_TOKEN);
+  private refreshTokenUseCase: RefreshTokenUseCase = inject(REFRESH_TOKEN_USE_CASE_TOKEN);
 
   login(credentials: LoginCredentials): Observable<AuthResponse> {
     return from(this.loginUseCase.execute(credentials));
@@ -54,5 +57,17 @@ export class AuthService {
 
   validateToken(): Observable<boolean> {
     return from(this.validateTokenUseCase.execute());
+  }
+
+  /**
+   * Refresca el token de acceso usando el refresh token
+   */
+  async refreshToken(): Promise<AuthSession | null> {
+    try {
+      return await this.refreshTokenUseCase.execute();
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      return null;
+    }
   }
 }
