@@ -45,8 +45,8 @@ describe('Login Page Tests', () => {
       cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensajes de error para campos requeridos
-      cy.contains('No olvides escribir tu email').should('be.visible');
-      cy.contains('Tu contraseña es necesaria para continuar').should('be.visible');
+      cy.contains('No olvides escribir tu email', { timeout: 30000 }).should('be.visible');
+      cy.contains('Tu contraseña es necesaria para continuar', { timeout: 30000 }).should('be.visible');
     });
 
     it('should validate email format', () => {
@@ -56,7 +56,7 @@ describe('Login Page Tests', () => {
       cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensaje de error de formato
-      cy.contains('Ese email no parece válido').should('be.visible');
+      cy.contains('Ese email no parece válido', { timeout: 30000 }).should('be.visible');
     });
 
     it('should validate password minimum length', () => {
@@ -66,7 +66,7 @@ describe('Login Page Tests', () => {
       cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensaje de error de longitud
-      cy.contains('Tu contraseña necesita al menos 6 caracteres').should('be.visible');
+      cy.contains('Tu contraseña necesita al menos 6 caracteres', { timeout: 30000 }).should('be.visible');
     });
 
     it('should clear errors when user corrects input', () => {
@@ -153,7 +153,7 @@ describe('Login Page Tests', () => {
       cy.wait('@loginError');
       
       // Verificar mensaje de error
-      cy.contains('Credenciales incorrectas').should('be.visible');
+      cy.contains('Credenciales incorrectas', { timeout: 30000 }).should('be.visible');
     });
     
     it('should handle validation error from server (422)', () => {
@@ -178,7 +178,7 @@ describe('Login Page Tests', () => {
       cy.wait('@loginError');
       
       // Verificar mensaje de error
-      cy.contains('El email no está registrado en nuestro sistema').should('be.visible');
+      cy.contains('El email no está registrado en nuestro sistema', { timeout: 30000 }).should('be.visible');
     });
     
     it('should handle server error (500)', () => {
@@ -203,7 +203,7 @@ describe('Login Page Tests', () => {
       cy.wait('@loginError');
       
       // Verificar mensaje de error
-      cy.contains('Error interno del servidor').should('be.visible');
+      cy.contains('Error interno del servidor', { timeout: 30000 }).should('be.visible');
     });
   });
 

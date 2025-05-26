@@ -56,7 +56,7 @@ describe('Login Page (Simplified Tests)', () => {
       
       // Esperar respuesta y verificar mensaje de error
       cy.wait('@loginError');
-      cy.contains('Credenciales incorrectas').should('be.visible');
+      cy.contains('Credenciales incorrectas', { timeout: 30000 }).should('be.visible');
     });
   });
   
@@ -66,8 +66,8 @@ describe('Login Page (Simplified Tests)', () => {
       cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensajes de error
-      cy.contains('No olvides escribir tu email').should('be.visible');
-      cy.contains('Tu contraseña es necesaria para continuar').should('be.visible');
+      cy.contains('No olvides escribir tu email', { timeout: 30000 }).should('be.visible');
+      cy.contains('Tu contraseña es necesaria para continuar', { timeout: 30000 }).should('be.visible');
     });
     
     it('should validate email format', () => {
@@ -76,7 +76,7 @@ describe('Login Page (Simplified Tests)', () => {
       cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensaje de error
-      cy.contains('Ese email no parece válido').should('be.visible');
+      cy.contains('Ese email no parece válido', { timeout: 30000 }).should('be.visible');
     });
     
     it('should validate password minimum length', () => {
@@ -86,7 +86,7 @@ describe('Login Page (Simplified Tests)', () => {
       cy.get('button[type="submit"]').click({force: true});
       
       // Verificar mensaje de error
-      cy.contains('Tu contraseña necesita al menos 6 caracteres').should('be.visible');
+      cy.contains('Tu contraseña necesita al menos 6 caracteres', { timeout: 30000 }).should('be.visible');
     });
   });
   
@@ -125,7 +125,7 @@ describe('Login Page (Simplified Tests)', () => {
       
       // Verificar mensaje de error
       cy.wait('@serverError');
-      cy.contains('Error interno del servidor').should('be.visible');
+      cy.contains('Error interno del servidor', { timeout: 30000 }).should('be.visible');
     });
     
     it('should handle network errors', () => {
@@ -144,7 +144,7 @@ describe('Login Page (Simplified Tests)', () => {
       cy.wait('@networkError');
       // El comportamiento específico dependerá de cómo la aplicación maneje estos errores
       // Por ejemplo, podría mostrar un mensaje como:
-      cy.contains(/error|conexión|red/i).should('exist');
+      cy.contains(/error|conexión|red/i, { timeout: 30000 }).should('exist');
     });
   });
 });

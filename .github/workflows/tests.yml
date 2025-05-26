@@ -85,7 +85,7 @@ jobs:
     - name: Instalar dependencias de Cypress
       run: |
         sudo apt-get update
-        sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2t64 libxtst6 xauth xvfb
+        sudo apt-get install -y libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth xvfb
     
     # Ejecutar el servidor en segundo plano y luego las pruebas
     - name: Ejecutar servidor y tests e2e
@@ -97,6 +97,7 @@ jobs:
         # Asegurarnos de que el directorio del proyecto existe
         if [ ! -d "${{ matrix.project }}" ]; then
           echo "Error: El directorio ${{ matrix.project }} no existe"
+          ls -la
           exit 1
         fi
         
@@ -119,6 +120,8 @@ jobs:
           ls -la dist/${{ matrix.project }}
         else 
           echo "Error: No se encuentra el directorio de salida dist/${{ matrix.project }}"
+          echo "Contenido del directorio dist:"
+          mkdir -p dist
           ls -la dist
           exit 1
         fi
