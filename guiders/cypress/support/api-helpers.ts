@@ -24,6 +24,11 @@ export const interceptAuthAPIs = () => {
 
 /**
  * Simula un usuario ya autenticado
+ * 
+ * Nota: Estos helpers utilizan localStorage directamente en lugar de StorageService porque:
+ * 1. Son herramientas de prueba que no forman parte del código de producción
+ * 2. Necesitan manipular el estado de prueba directamente en el contexto del navegador de Cypress
+ * 3. No tienen acceso a los servicios inyectados de Angular
  */
 export const setAuthenticatedUser = () => {
   cy.window().then((win) => {
@@ -59,6 +64,8 @@ export const setAuthenticatedUser = () => {
 
 /**
  * Limpia la sesión de usuario
+ * 
+ * Nota: Usa localStorage directamente por las mismas razones explicadas en setAuthenticatedUser
  */
 export const clearUserSession = () => {
   cy.window().then((win) => {
