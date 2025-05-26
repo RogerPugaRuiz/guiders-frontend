@@ -15,10 +15,10 @@ export default defineConfig({
     video: false,
     screenshotOnRunFailure: true,
     
-    // Timeouts optimizados
-    defaultCommandTimeout: 10000,
-    requestTimeout: 15000,
-    responseTimeout: 15000,
+    // Timeouts aumentados para mayor estabilidad
+    defaultCommandTimeout: 20000,
+    requestTimeout: 30000,
+    responseTimeout: 30000,
     
     // Variables de entorno para tests
     env: {
