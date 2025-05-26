@@ -6,10 +6,11 @@ import {
   HttpEvent, 
   HttpErrorResponse 
 } from '@angular/common/http';
-import { Observable, throwError, from, switchMap } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, from, switchMap, catchError } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { isTokenNearExpiration } from '../utils/jwt.utils';
+import { AuthSession } from '@libs/feature/auth';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
@@ -25,17 +26,54 @@ export class AuthInterceptor implements HttpInterceptor {
     // Get current session and add auth header
     return from(this.authService.getSession()).pipe(
       switchMap(session => {
-        const authReq = this.addAuthHeader(req, session?.token);
+        // Si no hay sesión, no hay token que verificar
+        if (!session?.token) {
+          return next.handle(req).pipe(
+            catchError((error: HttpErrorResponse) => {
+              if (error.status === 401) {
+                this.handleAuthError();
+              }
+              return throwError(() => error);
+            })
+          );
+        }
         
+        // Verificar si el token está próximo a expirar
+        if (isTokenNearExpiration(session.token)) {
+          // El token está próximo a expirar, intentar refrescarlo
+          return this.refreshAndContinueRequest(req, next);
+        }
+        
+        // El token es válido, continuar con la petición original
+        const authReq = this.addAuthHeader(req, session.token);
         return next.handle(authReq).pipe(
           catchError((error: HttpErrorResponse) => {
             if (error.status === 401) {
               this.handleAuthError();
             }
-            
             return throwError(() => error);
           })
         );
+      })
+    );
+  }
+
+  /**
+   * Refresca el token de acceso y continúa con la petición original utilizando el nuevo token
+   */
+  private refreshAndContinueRequest(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    return from(this.authService.refreshToken()).pipe(
+      switchMap((newSession: AuthSession) => {
+        // Continuar con la petición original usando el nuevo token
+        const authReq = this.addAuthHeader(req, newSession.token);
+        return next.handle(authReq);
+      }),
+      catchError((error: HttpErrorResponse) => {
+        // Si hay un error al refrescar el token, limpiar sesión y redirigir al login
+        if (error.status === 400 || error.status === 401 || error.status === 500) {
+          this.handleAuthError();
+        }
+        return throwError(() => error);
       })
     );
   }
