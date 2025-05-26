@@ -1,6 +1,7 @@
 import { Injectable, Renderer2, RendererFactory2, PLATFORM_ID, Inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { StorageService } from './storage.service';
 
 enum Theme {
   Light = 'light',
@@ -18,7 +19,8 @@ export class ThemeService {
 
   constructor(
     rendererFactory: RendererFactory2,
-    @Inject(PLATFORM_ID) private platformId: Object
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private storageService: StorageService
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -47,8 +49,8 @@ export class ThemeService {
       if (currentThemeAttribute) {
         this.theme.next(currentThemeAttribute as Theme);
       } else {
-        // Verificar si existe un tema guardado en localStorage
-        const savedTheme = localStorage.getItem('theme') as Theme;
+        // Verificar si existe un tema guardado en el storage
+        const savedTheme = this.storageService.getItem('theme') as Theme;
         
         if (savedTheme) {
           this.setTheme(savedTheme);
@@ -62,7 +64,7 @@ export class ThemeService {
       // Escuchar cambios en la preferencia del sistema
       window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
         // Solo cambiar automáticamente si el usuario no ha establecido explícitamente un tema
-        if (!localStorage.getItem('theme')) {
+        if (!this.storageService.getItem('theme')) {
           this.setTheme(e.matches ? Theme.Dark : Theme.Light);
         }
       });
@@ -75,7 +77,7 @@ export class ThemeService {
   
   private applyCustomPrimaryColor(): void {
     try {
-      const savedColor = localStorage.getItem('primaryColor');
+      const savedColor = this.storageService.getItem('primaryColor');
       if (savedColor) {
         // Aplicar color guardado
         document.documentElement.style.setProperty('--color-primary', savedColor);
@@ -103,8 +105,8 @@ export class ThemeService {
     
     if (this.isBrowser) {
       try {
-        // Guardar en localStorage para persistir la preferencia
-        localStorage.setItem('theme', theme);
+        // Guardar en storage para persistir la preferencia
+        this.storageService.setItem('theme', theme);
         
         // Actualizar atributo data-theme en el documento
         this.renderer.setAttribute(document.documentElement, 'data-theme', theme);
