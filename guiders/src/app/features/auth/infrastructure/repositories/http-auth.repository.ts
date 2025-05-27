@@ -141,6 +141,7 @@ export class HttpAuthRepository implements AuthRepositoryPort {
       
       // Verificar si el token ha expirado usando la utilidad JWT
       if (isTokenExpired(session.token)) {
+        console.warn('Session token has expired');
         await this.clearSession();
         return null;
       }
@@ -174,6 +175,7 @@ export class HttpAuthRepository implements AuthRepositoryPort {
       return true;
     } catch (error) {
       if (error instanceof HttpErrorResponse && error.status === 401) {
+        console.warn('Token validation failed, session may be expired');
         await this.clearSession();
         return false;
       }
@@ -188,21 +190,40 @@ export class HttpAuthRepository implements AuthRepositoryPort {
         throw new SessionExpiredError('No refresh token available');
       }
 
-      const newSession = await firstValueFrom(
-        this.http.post<AuthSession>(`${this.API_BASE_URL}/refresh`, {
+      const refresh = await firstValueFrom(
+        this.http.post<{ accessToken: string }>(`${this.API_BASE_URL}/refresh`, {
           refreshToken: session.refreshToken
         })
       );
+      const payload = decodeJwtPayload<JwtPayload>(refresh.accessToken);
+      if (!payload) {
+        throw new Error('Token inválido recibido del servidor');
+      }
+
+      // Crear la nueva sesión manteniendo la estructura correcta
+      const currentUser = await this.getCurrentUser();
+      if (!currentUser) {
+        throw new Error('No se pudo obtener el usuario actual');
+      }
+
+      const newSession: AuthSession = {
+        token: refresh.accessToken,
+        refreshToken: session.refreshToken, // Preservar el refresh token
+        expiresAt: new Date(payload.exp * 1000), // Convertir de segundos a milisegundos
+        user: currentUser
+      };
 
       await this.saveSession(newSession);
       return newSession;
     } catch (error) {
+      console.error('Error refreshing token:', error);
       await this.clearSession();
       throw this.handleHttpError(error);
     }
   }
 
   async clearSession(): Promise<void> {
+    console.log('Clearing session data from storage');
     this.storageService.removeItem(this.STORAGE_KEYS.TOKEN);
     this.storageService.removeItem(this.STORAGE_KEYS.REFRESH_TOKEN);
     this.storageService.removeItem(this.STORAGE_KEYS.USER);

@@ -64,6 +64,7 @@ export class LoginComponent {
     if (this.rememberMe && this.email?.value) {
       this.storageService.setItem('guiders_remembered_email', this.email.value);
     } else {
+      // console.log(`Removing item from localStorage: guiders_remembered_email - this is a test log [1]`);
       this.storageService.removeItem('guiders_remembered_email');
     }
 

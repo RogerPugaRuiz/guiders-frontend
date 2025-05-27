@@ -58,7 +58,8 @@ export class StorageService {
     }
     
     try {
-      localStorage.removeItem(key);
+      console.log(`Removing item from localStorage: ${key} - this is a test log [1]`);
+      // localStorage.removeItem(key);
     } catch (error) {
       console.warn('Error removing from localStorage:', error);
     }

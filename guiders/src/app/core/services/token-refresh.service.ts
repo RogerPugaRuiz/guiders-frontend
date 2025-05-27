@@ -1,13 +1,13 @@
 import { Injectable, NgZone, inject, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { interval, Subscription, fromEvent, merge, Subject, takeUntil } from 'rxjs';
-import { debounceTime, filter, switchMap, tap } from 'rxjs/operators';
+import { interval, Subscription, Subject, takeUntil, EMPTY } from 'rxjs';
+import { filter, switchMap, catchError } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { isTokenNearExpiration } from '../utils/jwt.utils';
+import { AuthSession } from '@libs/feature/auth';
 
 /**
- * Servicio para gestionar la renovación automática del token cuando el usuario está activo
- * en la aplicación, independientemente de si está realizando peticiones HTTP.
+ * Servicio para gestionar la renovación automática del token mientras la aplicación esté activa
  */
 @Injectable({
   providedIn: 'root'
@@ -18,18 +18,18 @@ export class TokenRefreshService implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
   
   private destroy$ = new Subject<void>();
-  private userActivity$ = new Subject<void>();
   
   // Subscripciones para limpiar al destruir el servicio
   private checkIntervalSubscription?: Subscription;
-  private activitySubscription?: Subscription;
+  
+  // Control para evitar múltiples refreshes simultáneos
+  private isRefreshing = false;
   
   // Configuración
   private readonly TOKEN_CHECK_INTERVAL = 60 * 1000; // Verificar el token cada minuto
-  private readonly USER_ACTIVITY_DEBOUNCE = 30 * 1000; // Considerar al usuario activo si interactúa cada 30 segundos
 
   /**
-   * Inicializa el servicio de renovación de token basado en actividad del usuario
+   * Inicializa el servicio de renovación de token automática
    */
   initialize(): void {
     // Solo ejecutar en el navegador
@@ -37,40 +37,56 @@ export class TokenRefreshService implements OnDestroy {
       return;
     }
 
+    console.log('Iniciando servicio de renovación automática de tokens');
+    this.setupTokenRefreshCheck();
+  }
+
+  /**
+   * Configura la verificación periódica del token
+   */
+  private setupTokenRefreshCheck(): void {
+    // Ejecutar el intervalo fuera de la zona de Angular para evitar problemas con la hidratación SSR
     this.ngZone.runOutsideAngular(() => {
-      // Monitorear eventos de actividad del usuario
-      const userEvents = merge(
-        fromEvent(document, 'mousemove'),
-        fromEvent(document, 'click'),
-        fromEvent(document, 'keydown'),
-        fromEvent(document, 'scroll'),
-        fromEvent(document, 'touchstart')
-      );
-      
-      // Suscribirse a los eventos de actividad del usuario
-      this.activitySubscription = userEvents.pipe(
-        debounceTime(this.USER_ACTIVITY_DEBOUNCE),
-        takeUntil(this.destroy$)
-      ).subscribe(() => {
-        this.userActivity$.next();
-      });
-      
-      // Verificación periódica del token
       this.checkIntervalSubscription = interval(this.TOKEN_CHECK_INTERVAL).pipe(
         takeUntil(this.destroy$),
         switchMap(() => this.authService.getSession()),
         filter(session => !!session?.token),
         filter(session => isTokenNearExpiration(session!.token, 300)), // 5 minutos antes de expirar
-        tap(() => {
-          this.ngZone.run(() => {
-            console.log('Token próximo a expirar. Refrescando automáticamente...');
-            this.authService.refreshToken().subscribe({
-              next: () => console.log('Token refrescado correctamente'),
-              error: err => console.error('Error al refrescar el token:', err)
-            });
-          });
+        filter(() => !this.isRefreshing), // Evitar múltiples refreshes simultáneos
+        switchMap(() => {
+          console.log('Token próximo a expirar. Refrescando automáticamente...');
+          return this.performTokenRefresh();
+        }),
+        catchError(err => {
+          console.error('Error en la verificación del token:', err);
+          this.isRefreshing = false;
+          return EMPTY;
         })
       ).subscribe();
+    });
+  }
+
+  /**
+   * Realiza el refresh del token
+   */
+  private performTokenRefresh() {
+    return new Promise<void>((resolve, reject) => {
+      this.ngZone.run(() => {
+        this.isRefreshing = true;
+        
+        this.authService.refreshToken().subscribe({
+          next: (authSession: AuthSession) => {
+            console.log('Token refrescado correctamente', authSession);
+            this.isRefreshing = false;
+            resolve();
+          },
+          error: err => {
+            console.error('Error al refrescar el token:', err);
+            this.isRefreshing = false;
+            reject(err);
+          }
+        });
+      });
     });
   }
   
@@ -82,6 +98,5 @@ export class TokenRefreshService implements OnDestroy {
     this.destroy$.complete();
     
     this.checkIntervalSubscription?.unsubscribe();
-    this.activitySubscription?.unsubscribe();
   }
 }
