@@ -1,36 +1,337 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Guiders</title>
+  <title>Guiders - Tu Plataforma de Guías</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="https://animatedicons.co/scripts/embed-animated-icons.js"></script>
-  <!-- Estilos para prevenir el destello del tema -->
+  
+  <!-- TÉCNICA GMAIL: CSS Y ASSETS INLINE PARA CARGA INSTANTÁNEA -->
   <style>
-    /* Esta clase oculta momentáneamente el contenido durante la inicialización del tema */
+    /* Reset base - optimizado para carga rápida */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    /* LOADER PRINCIPAL - Estilo Gmail adaptado para Guiders */
+    .guiders-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+    }
+
+    /* LOGO GUIDERS - Inline SVG */
+    .guiders-logo {
+      width: 140px;
+      height: 140px;
+      margin-bottom: 40px;
+      animation: logoFloat 3s ease-in-out infinite;
+      filter: drop-shadow(0 8px 32px rgba(0, 0, 0, 0.2));
+    }
+
+    /* SPINNER GUIDERS-STYLE */
+    .guiders-spinner {
+      width: 52px;
+      height: 52px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ffffff;
+      border-radius: 50%;
+      animation: guidersSpinSmooth 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      margin-bottom: 32px;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.15));
+    }
+
+    /* TEXTOS DE CARGA */
+    .loading-text {
+      font-size: 20px;
+      color: #ffffff;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-align: center;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .loading-subtext {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: 400;
+      text-align: center;
+      margin-bottom: 40px;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    /* BARRA DE PROGRESO GUIDERS */
+    .progress-container {
+      width: 320px;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #ffffff, #f0f4ff);
+      border-radius: 6px;
+      animation: progressLoad 2.5s ease-in-out infinite;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+
+    /* PARTÍCULAS FLOTANTES */
+    .particles {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      animation: float 6s linear infinite;
+    }
+
+    .particle:nth-child(1) { left: 10%; animation-delay: 0s; }
+    .particle:nth-child(2) { left: 20%; animation-delay: 1s; }
+    .particle:nth-child(3) { left: 30%; animation-delay: 2s; }
+    .particle:nth-child(4) { left: 40%; animation-delay: 0.5s; }
+    .particle:nth-child(5) { left: 50%; animation-delay: 1.5s; }
+    .particle:nth-child(6) { left: 60%; animation-delay: 2.5s; }
+    .particle:nth-child(7) { left: 70%; animation-delay: 0.8s; }
+    .particle:nth-child(8) { left: 80%; animation-delay: 1.8s; }
+    .particle:nth-child(9) { left: 90%; animation-delay: 0.3s; }
+
+    /* VERSIÓN DARK MODE del sistema */
+    @media (prefers-color-scheme: dark) {
+      .guiders-loader {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+      }
+    }
+
+    /* TEMA GUIDERS - Variables CSS que se sincronizarán con Angular */
+    html[data-theme="light"] {
+      --loader-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --loader-text: #ffffff;
+      --loader-subtext: rgba(255, 255, 255, 0.8);
+    }
+    
+    html[data-theme="dark"] {
+      --loader-bg: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+      --loader-text: #ffffff;
+      --loader-subtext: rgba(255, 255, 255, 0.7);
+    }
+
+    /* ANIMACIONES OPTIMIZADAS */
+    @keyframes guidersSpinSmooth {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { 
+        transform: translateY(0px) scale(1);
+        opacity: 0.9;
+      }
+      50% { 
+        transform: translateY(-12px) scale(1.05);
+        opacity: 1;
+      }
+    }
+
+    @keyframes progressLoad {
+      0% { 
+        width: 0%; 
+        transform: translateX(-100%);
+      }
+      50% { 
+        width: 75%; 
+        transform: translateX(0%);
+      }
+      100% { 
+        width: 100%; 
+        transform: translateX(0%);
+      }
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(100vh) scale(0);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      90% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-100vh) scale(1);
+        opacity: 0;
+      }
+    }
+
+    /* FADE OUT cuando Angular carga */
+    .guiders-loader.fade-out {
+      opacity: 0;
+      transform: scale(0.9);
+      pointer-events: none;
+    }
+
+    /* RESPONSIVE OPTIMIZADO */
+    @media (max-width: 768px) {
+      .guiders-logo {
+        width: 100px;
+        height: 100px;
+        margin-bottom: 32px;
+      }
+      
+      .progress-container {
+        width: 280px;
+      }
+      
+      .loading-text {
+        font-size: 18px;
+      }
+      
+      .loading-subtext {
+        font-size: 13px;
+        margin-bottom: 32px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .guiders-logo {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 24px;
+      }
+      
+      .progress-container {
+        width: 240px;
+        height: 4px;
+      }
+      
+      .loading-text {
+        font-size: 16px;
+      }
+      
+      .loading-subtext {
+        font-size: 12px;
+      }
+    }
+
+    /* OCULTAR CUANDO ANGULAR ESTÁ LISTO */
+    body.app-loaded .guiders-loader {
+      opacity: 0;
+      transform: scale(0.95);
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+
+    /* SKELETON HEADER para continuidad visual */
+    .app-skeleton-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 72px;
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.95) 0%, rgba(118, 75, 162, 0.95) 100%);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      opacity: 0;
+      z-index: 99998;
+      transition: opacity 0.4s ease-in 0.3s;
+    }
+
+    body.app-loaded .app-skeleton-header {
+      opacity: 1;
+    }
+
+    .skeleton-menu-button {
+      width: 28px;
+      height: 28px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      margin-right: 20px;
+      animation: pulse 1.8s ease-in-out infinite;
+    }
+
+    .skeleton-logo-small {
+      width: 120px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      margin-right: auto;
+      animation: pulse 1.8s ease-in-out infinite 0.2s;
+    }
+
+    .skeleton-search {
+      width: 300px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 20px;
+      margin-right: 24px;
+      animation: pulse 1.8s ease-in-out infinite 0.4s;
+    }
+
+    .skeleton-profile {
+      width: 36px;
+      height: 36px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      animation: pulse 1.8s ease-in-out infinite 0.6s;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.8; }
+    }
+
+    /* Estilos para prevenir destello del tema (mantenidos) */
     .theme-initializing {
       visibility: hidden;
     }
-    /* Toda la página tendrá un fondo negro durante la carga para evitar el destello blanco */
+    
     html {
-      background-color: #0d1117; /* Color de fondo oscuro como fallback */
+      background-color: #667eea;
     }
     html[data-theme="light"] {
-      background-color: #f6f8fa; /* Actualizado para tema claro */
+      background-color: #f6f8fa;
     }
     html[data-theme="dark"] {
-      background-color: #0d1117; /* Actualizado para tema oscuro */
+      background-color: #0d1117;
     }
   </style>
   <!-- Script para prevenir el destello inicial del tema (optimizado para SSR) -->
-  <!-- 
-    Nota: Este script utiliza localStorage directamente en lugar de StorageService por dos razones:
-    1. Necesita ejecutarse antes del bootstrap de Angular para prevenir el destello visual
-    2. StorageService es una dependencia inyectable de Angular no disponible en este punto
-    Este es un caso de uso legítimo para acceso directo a localStorage con las comprobaciones adecuadas
-  -->
   <script>
     (function() {
       // Solo ejecutar en el cliente, no durante SSR
@@ -82,7 +383,170 @@
     })();
   </script>
 </head>
+
 <body>
-  <app-root></app-root>
+  <app-root>
+    <!-- LOADER PRINCIPAL - Técnica Gmail adaptada para Guiders -->
+    <div class="guiders-loader" id="guidersLoader">
+      
+      <!-- PARTÍCULAS FLOTANTES DE FONDO -->
+      <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+      </div>
+      
+      <!-- LOGO GUIDERS - SVG INLINE OPTIMIZADO -->
+      <div class="guiders-logo">
+        <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Círculo exterior con gradiente -->
+          <defs>
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#f0f4ff;stop-opacity:1" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge> 
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          
+          <!-- Círculo principal -->
+          <circle cx="70" cy="70" r="65" fill="url(#logoGradient)" stroke="rgba(255,255,255,0.3)" stroke-width="2" filter="url(#glow)"/>
+          
+          <!-- Ícono de guía/compass -->
+          <g transform="translate(70,70)">
+            <!-- Brújula central -->
+            <circle r="35" fill="none" stroke="rgba(102,126,234,0.8)" stroke-width="3"/>
+            <circle r="25" fill="none" stroke="rgba(102,126,234,0.6)" stroke-width="2"/>
+            
+            <!-- Puntos cardinales -->
+            <path d="M0,-30 L8,-22 L0,-20 L-8,-22 Z" fill="rgba(102,126,234,0.9)"/>
+            <path d="M30,0 L22,8 L20,0 L22,-8 Z" fill="rgba(102,126,234,0.7)"/>
+            <path d="M0,30 L8,22 L0,20 L-8,22 Z" fill="rgba(102,126,234,0.7)"/>
+            <path d="M-30,0 L-22,8 L-20,0 L-22,-8 Z" fill="rgba(102,126,234,0.7)"/>
+            
+            <!-- Centro -->
+            <circle r="6" fill="rgba(102,126,234,1)"/>
+            <circle r="3" fill="#ffffff"/>
+          </g>
+          
+          <!-- Texto GUIDERS -->
+          <text x="70" y="120" text-anchor="middle" fill="rgba(102,126,234,0.9)" 
+                font-size="14" font-weight="700" font-family="Arial, sans-serif">GUIDERS</text>
+        </svg>
+      </div>
+
+      <!-- SPINNER GUIDERS -->
+      <div class="guiders-spinner"></div>
+
+      <!-- TEXTOS DE CARGA -->
+      <div class="loading-text">Iniciando Guiders</div>
+      <div class="loading-subtext">Tu plataforma de guías está cargando...</div>
+
+      <!-- BARRA DE PROGRESO -->
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+
+    </div>
+
+    <!-- SKELETON HEADER que aparece durante transición -->
+    <div class="app-skeleton-header">
+      <div class="skeleton-menu-button"></div>
+      <div class="skeleton-logo-small"></div>
+      <div class="skeleton-search"></div>
+      <div class="skeleton-profile"></div>
+    </div>
+
+  </app-root>
+
+  <!-- SCRIPT OPTIMIZADO PARA INTEGRACIÓN CON ANGULAR -->
+  <script>
+    (function() {
+      // Variables para control del loader
+      let loaderHidden = false;
+      const loader = document.getElementById('guidersLoader');
+      
+      // Función para ocultar el loader
+      function hideLoader() {
+        if (!loaderHidden && loader) {
+          loaderHidden = true;
+          
+          // Añadir clase de fade out
+          loader.classList.add('fade-out');
+          document.body.classList.add('app-loaded');
+          
+          // Remover el tema initializing
+          document.documentElement.classList.remove('theme-initializing');
+          
+          // Ocultar completamente después de la transición
+          setTimeout(() => {
+            if (loader && loader.parentNode) {
+              loader.style.display = 'none';
+            }
+          }, 600);
+          
+          // Log para desarrollo
+          console.log('🚀 Guiders cargado exitosamente');
+        }
+      }
+      
+      // Detectar cuando Angular está listo
+      function checkAngularReady() {
+        // Verificar si Angular ha iniciado (ng namespace disponible)
+        if (typeof window !== 'undefined' && 
+            (window.ng || document.querySelector('app-root > *:not(.guiders-loader)'))) {
+          hideLoader();
+          return true;
+        }
+        return false;
+      }
+      
+      // Intentar detectar Angular cada 100ms
+      const angularCheckInterval = setInterval(() => {
+        if (checkAngularReady()) {
+          clearInterval(angularCheckInterval);
+        }
+      }, 100);
+      
+      // Fallback: ocultar después de 8 segundos máximo
+      setTimeout(() => {
+        clearInterval(angularCheckInterval);
+        if (!loaderHidden) {
+          console.warn('⚠️ Timeout del loader alcanzado, ocultando forzadamente');
+          hideLoader();
+        }
+      }, 8000);
+      
+      // Detectar cuando todos los recursos críticos han cargado
+      if (document.readyState === 'complete') {
+        setTimeout(checkAngularReady, 500);
+      } else {
+        window.addEventListener('load', () => {
+          setTimeout(checkAngularReady, 500);
+        });
+      }
+      
+      // Escuchar eventos personalizados de Angular si los hay
+      window.addEventListener('app:ready', hideLoader);
+      
+      // Optimización: precarga de fuentes si es necesario
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          // Código para optimizaciones adicionales si es necesario
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

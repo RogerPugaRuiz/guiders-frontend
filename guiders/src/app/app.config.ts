@@ -20,7 +20,7 @@ export const appConfig: ApplicationConfig = {
     // Configuración de hidratación más robusta
     provideClientHydration(
       withEventReplay(),
-      withNoHttpTransferCache()
+      // withNoHttpTransferCache()
     ),
     ...GUIDERS_AUTH_PROVIDERS,
     {

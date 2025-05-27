@@ -19,9 +19,9 @@ import { StorageService } from '../services/storage.service';
       <div class="gh-header__container">
         <div class="gh-header__logo">
           <h1>Guiders</h1>
-          <span class="gh-header__welcome" *ngIf="userRole | async as role">
-            {{ getWelcomeMessage(role) }}
-          </span>
+            <span class="gh-header__welcome">
+              {{ getWelcomeMessage(currentUserRole() || '') }}
+            </span>
         </div>
         <div class="gh-header__nav">
           <a href="#" class="gh-header__nav-item">Documentación</a>
@@ -81,6 +81,22 @@ import { StorageService } from '../services/storage.service';
         color: rgba(255, 255, 255, 0.8);
         margin-left: var(--spacing-sm);
         font-weight: 400;
+        
+        &--loading {
+          opacity: 0.7;
+          animation: pulse 2s infinite;
+        }
+        
+        &--placeholder {
+          opacity: 0.6;
+          font-style: italic;
+        }
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 0.7; }
+        50% { opacity: 1; }
+        100% { opacity: 0.7; }
       }
       
       &__nav {
@@ -248,13 +264,13 @@ import { StorageService } from '../services/storage.service';
 export class LayoutComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
-  
+
   // Servicios públicos para usar en el template
   userStatusService = inject(UserStatusService);
-  
+
   // ViewChild para el menú desplegable
   @ViewChild('profileMenu') profileMenuElement!: ElementRef;
-  
+
   userInitial = new BehaviorSubject<string>('U'); // Valor predeterminado mientras carga
   userEmail = new BehaviorSubject<string>(''); // Email completo para mostrar en el menú
   userRole = new BehaviorSubject<string>(''); // Rol del usuario para el mensaje de bienvenida
@@ -267,7 +283,7 @@ export class LayoutComponent implements OnInit {
     // Inicializar color y tema al cargar el componente de layout
     // Esto se asegura de que las variables CSS estén correctamente configuradas
     this.initializeTheme();
-    
+
     // Suscribirse a los cambios de color
     this.colorThemeService.colorChange$.subscribe(color => {
       if (color) {
@@ -276,11 +292,11 @@ export class LayoutComponent implements OnInit {
       }
     });
   }
-  
+
   ngOnInit(): void {
     // Verificar primero si hay una sesión guardada
     console.log('LayoutComponent ngOnInit - Verificando sesión...');
-    
+
     // Primero intentar obtener de la sesión local, luego del endpoint
     this.authService.getSession().subscribe({
       next: (session) => {
@@ -303,7 +319,7 @@ export class LayoutComponent implements OnInit {
       }
     });
   }
-  
+
   private getCurrentUserFromAPI(): void {
     // Obtener el usuario actual del endpoint y extraer la inicial del correo
     this.authService.getCurrentUser().subscribe({
@@ -325,23 +341,23 @@ export class LayoutComponent implements OnInit {
         console.error('Tipo de error:', error.constructor.name);
         console.error('Mensaje del error:', error.message);
         console.error('Status del error:', error.status || 'N/A');
-        
+
         // Verificar si hay datos en storage
         const token = this.storageService.getItem('guiders_auth_token');
         const session = this.storageService.getItem('guiders_session');
         console.log('Token en storage:', token ? 'SÍ existe' : 'NO existe');
         console.log('Sesión en storage:', session ? 'SÍ existe' : 'NO existe');
-        
+
         // En caso de error, dejamos el valor por defecto 'U'
       }
     });
   }
-  
+
   // Método para mostrar/ocultar el menú de perfil
   toggleProfileMenu(): void {
     this.showProfileMenu = !this.showProfileMenu;
   }
-  
+
   // Cerrar el menú al hacer clic fuera de él
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
@@ -349,7 +365,7 @@ export class LayoutComponent implements OnInit {
       this.showProfileMenu = false;
     }
   }
-  
+
   // Método para cerrar sesión
   logout(): void {
     this.authService.logout().subscribe({
@@ -362,28 +378,27 @@ export class LayoutComponent implements OnInit {
       }
     });
   }
-  
+
+  // Método para obtener el rol actual del usuario
+  currentUserRole(): string | null {
+    return this.userRole.value || null;
+  }
+
   // Método para generar un mensaje de bienvenida más humano y amigable
   getWelcomeMessage(role: string): string {
     const messages = {
-      'admin': '¡Hola! Tienes el control total',
-      'user': '¡Hola! Listo para explorar',
-      'guide': '¡Hola! Listo para guiar el camino',
-      'moderator': '¡Hola! Manteniendo todo en orden'
+      'admin': '¡Hola Administrador! Hoy vas a hacer cosas increíbles ✨',
+      'commercial': '¡Hola Comercial! Que tengas un día lleno de éxitos 🚀'
     };
 
-    return messages[role as keyof typeof messages] || messages['user'];
+    return messages[role as keyof typeof messages] || '';
   }
 
   // Método para obtener el nombre legible del rol del usuario
   getRoleDisplayName(role: string): string {
     const roleNames = {
       'admin': 'Administrador',
-      'user': 'Usuario',
-      'guide': 'Guía',
-      'moderator': 'Moderador',
-      'manager': 'Gerente',
-      'support': 'Soporte'
+      'commercial': 'Comercial'
     };
 
     return roleNames[role as keyof typeof roleNames] || 'Usuario';
