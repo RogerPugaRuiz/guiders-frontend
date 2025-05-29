@@ -1,4 +1,4 @@
-import { Component, OnInit, PLATFORM_ID, Inject, afterNextRender } from '@angular/core';
+import { Component, OnInit, PLATFORM_ID, Inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { LoaderService } from './core/services/loader.service';
@@ -21,15 +21,9 @@ export class AppComponent implements OnInit {
     private tokenRefreshService: TokenRefreshService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // Usar afterNextRender para asegurar que la inicialización ocurra después del renderizado completo
-    if (isPlatformBrowser(this.platformId)) {
-      afterNextRender(() => {
-        // Ocultar el loader después de que Angular esté completamente cargado
-        setTimeout(() => {
-          this.loaderService.hideLoader();
-        }, 1500);
-      });
-    }
+    // LOADER DESACTIVADO - No ejecutar lógica de ocultado
+    // El loader ya está desactivado por defecto
+    console.log('🚀 Aplicación iniciada sin loader');
   }
   
   ngOnInit(): void {
