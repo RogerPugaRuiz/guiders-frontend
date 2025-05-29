@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Router, RouterOutlet, RouterLink } from '@angular/router';
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { SideMenuComponent } from './side-menu/side-menu.component';
@@ -6,8 +6,9 @@ import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme
 import { ColorThemeService } from '../services/color-theme.service';
 import { AuthService } from '../services/auth.service';
 import { UserStatusService } from '../services/user-status.service';
-import { BehaviorSubject, combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { WebSocketService } from '../services/websocket.service';
+import { BehaviorSubject, combineLatest, Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
 import { StorageService } from '../services/storage.service';
 
 @Component({
@@ -31,15 +32,17 @@ import { StorageService } from '../services/storage.service';
             <div class="gh-avatar gh-avatar--sm">
               <span>{{ userInitial | async }}</span>
             </div>
-            <div *ngIf="showProfileMenu" class="gh-header__profile-menu">
-              <div class="gh-header__profile-info">
-                <span class="gh-header__profile-email">{{ userEmail | async }}</span>
+            @if (showProfileMenu) {
+              <div class="gh-header__profile-menu">
+                <div class="gh-header__profile-info">
+                  <span class="gh-header__profile-email">{{ userEmail | async }}</span>
+                </div>
+                <div class="gh-header__profile-actions">
+                  <a routerLink="/settings/profile" class="gh-header__profile-action">Perfil</a>
+                  <button class="gh-header__profile-action gh-header__profile-action--logout" (click)="logout()">Cerrar sesión</button>
+                </div>
               </div>
-              <div class="gh-header__profile-actions">
-                <a routerLink="/settings/profile" class="gh-header__profile-action">Perfil</a>
-                <button class="gh-header__profile-action gh-header__profile-action--logout" (click)="logout()">Cerrar sesión</button>
-              </div>
-            </div>
+            }
           </div>
         </div>
       </div>
@@ -261,9 +264,11 @@ import { StorageService } from '../services/storage.service';
     }
   `]
 })
-export class LayoutComponent implements OnInit {
+export class LayoutComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private websocketService = inject(WebSocketService);
+  private destroy$ = new Subject<void>();
 
   // Servicios públicos para usar en el template
   userStatusService = inject(UserStatusService);
@@ -296,6 +301,9 @@ export class LayoutComponent implements OnInit {
   ngOnInit(): void {
     // Verificar primero si hay una sesión guardada
     console.log('LayoutComponent ngOnInit - Verificando sesión...');
+
+    // Inicializar conexión WebSocket para comunicación en tiempo real
+    this.initializeWebSocket();
 
     // Primero intentar obtener de la sesión local, luego del endpoint
     this.authService.getSession().subscribe({
@@ -411,5 +419,81 @@ export class LayoutComponent implements OnInit {
     if (currentColor) {
       this.colorThemeService.applyPrimaryColor(currentColor);
     }
+  }
+
+  /**
+   * Inicializa la conexión WebSocket para comunicación en tiempo real
+   */
+  private initializeWebSocket(): void {
+    console.log('LayoutComponent: Inicializando WebSocket...');
+    
+    // Verificar la sesión de autenticación antes de conectar al WebSocket
+    this.authService.getSession().subscribe({
+      next: (session) => {
+        if (session?.token) {
+          this.websocketService.connect();
+          
+          // Suscribirse al estado de conexión para logs
+          this.websocketService.getConnectionState()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(state => {
+              console.log('WebSocket estado:', state);
+              
+              if (state.connected) {
+                console.log('✅ WebSocket conectado exitosamente');
+              } else if (state.error) {
+                console.warn('⚠️ WebSocket error:', state.error);
+              }
+            });
+
+          // Suscribirse a mensajes del WebSocket
+          this.websocketService.getMessages()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(message => {
+              console.log('📨 Mensaje WebSocket recibido:', message);
+              this.handleWebSocketMessage(message);
+            });
+        } else {
+          console.warn('LayoutComponent: No se puede inicializar WebSocket, no hay sesión de autenticación válida');
+        }
+      },
+      error: (error) => {
+        console.error('LayoutComponent: Error al verificar sesión para WebSocket:', error);
+      }
+    });
+  }
+
+  /**
+   * Maneja los mensajes recibidos del WebSocket
+   */
+  private handleWebSocketMessage(message: any): void {
+    switch (message.type) {
+      case 'user_status_change':
+        console.log('Estado de usuario cambiado:', message.data);
+        // Aquí se pueden manejar cambios de estado de usuarios
+        break;
+      
+      case 'notification':
+        console.log('Nueva notificación:', message.data);
+        // Aquí se pueden mostrar notificaciones en tiempo real
+        break;
+      
+      case 'chat_message':
+        console.log('Nuevo mensaje de chat:', message.data);
+        // Aquí se pueden manejar mensajes de chat en tiempo real
+        break;
+      
+      default:
+        console.log('Mensaje WebSocket no manejado:', message);
+    }
+  }
+
+  ngOnDestroy(): void {
+    console.log('LayoutComponent: Limpiando recursos...');
+    this.destroy$.next();
+    this.destroy$.complete();
+    
+    // Desconectar WebSocket al salir del layout
+    this.websocketService.disconnect();
   }
 }
