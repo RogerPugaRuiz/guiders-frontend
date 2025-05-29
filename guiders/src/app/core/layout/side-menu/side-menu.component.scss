@@ -56,7 +56,8 @@
 
 		&--active {
 			color: var(--color-primary);
-			font-weight: 600;
+			// Se elimina la modificación del peso de la fuente para mantener consistencia
+			// font-weight: 600;
 		}
 	}
 
