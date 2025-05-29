@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy } from '@a
 import { CommonModule } from '@angular/common';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { LoaderService } from '../services/loader.service';
+import { LoaderService } from '../../../core/services/loader.service';
 
 @Component({
   selector: 'app-loader',

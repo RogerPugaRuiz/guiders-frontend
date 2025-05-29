@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { LoaderService } from '../../core/services/loader.service';
 
 @Component({
   selector: 'app-loader-demo',
   standalone: true,
-  imports: [CommonModule, LoaderComponent],
+  imports: [CommonModule, FormsModule, LoaderComponent],
   template: `
     <div class="loader-demo-container">
       <h2>Demostración del Sistema de Loading Guiders</h2>
@@ -59,7 +60,7 @@ import { LoaderService } from '../../core/services/loader.service';
       <div class="demo-content">
         <div class="card">
           <h3>Estado del Loader</h3>
-          <p><strong>Loader Principal:</strong> {{ isMainLoading$ | async ? 'Activo' : 'Inactivo' }}</p>
+          <p><strong>Loader Principal:</strong> {{ (isMainLoading$ | async) ? 'Activo' : 'Inactivo' }}</p>
           <p><strong>Loader Overlay:</strong> {{ showOverlay ? 'Visible' : 'Oculto' }}</p>
           <p><strong>Progreso:</strong> {{ progressValue }}%</p>
         </div>
@@ -236,8 +237,8 @@ export class LoaderDemoComponent {
   customMainText = '';
   customSubText = '';
 
-  // Estado del loader principal
-  isMainLoading$ = this.loaderService.isLoading$;
+  // Estado del loader principal - se inicializa en el constructor
+  isMainLoading$: any;
 
   // Ejemplos de código para mostrar
   serviceExample = `// Uso del LoaderService
@@ -271,7 +272,9 @@ this.loaderService.isLoading$.subscribe(loading => {
   [transparent]="false">
 </app-loader>`;
 
-  constructor(private loaderService: LoaderService) {}
+  constructor(private loaderService: LoaderService) {
+    this.isMainLoading$ = this.loaderService.isLoading$;
+  }
 
   showMainLoader(): void {
     this.loaderService.showLoader();
