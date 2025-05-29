@@ -5,8 +5,8 @@ import { BehaviorSubject, Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class LoaderService {
-  private isLoadingSubject = new BehaviorSubject<boolean>(true);
-  private loaderHidden = false;
+  private isLoadingSubject = new BehaviorSubject<boolean>(false);
+  private loaderHidden = true;
 
   /**
    * Observable que indica si el loader está activo
@@ -26,10 +26,9 @@ export class LoaderService {
       return;
     }
 
-    // Detectar cuando Angular está completamente cargado
-    setTimeout(() => {
-      this.hideLoader();
-    }, 1000);
+    // LOADER DESACTIVADO - No inicializar
+    // El loader ya está oculto por defecto
+    console.log('📱 Loader desactivado - Inicio directo de aplicación');
   }
 
   /**

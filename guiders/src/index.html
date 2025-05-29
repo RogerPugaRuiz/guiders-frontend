@@ -386,8 +386,8 @@
 
 <body>
   <app-root>
-    <!-- LOADER PRINCIPAL - Técnica Gmail adaptada para Guiders -->
-    <div class="guiders-loader" id="guidersLoader">
+    <!-- LOADER PRINCIPAL - DESACTIVADO -->
+    <div class="guiders-loader" id="guidersLoader" style="display: none !important;">
       
       <!-- PARTÍCULAS FLOTANTES DE FONDO -->
       <div class="particles">
@@ -470,82 +470,15 @@
 
   </app-root>
 
-  <!-- SCRIPT OPTIMIZADO PARA INTEGRACIÓN CON ANGULAR -->
+  <!-- SCRIPT DESACTIVADO - LOADER DESHABILITADO -->
   <script>
     (function() {
-      // Variables para control del loader
-      let loaderHidden = false;
-      const loader = document.getElementById('guidersLoader');
+      // LOADER COMPLETAMENTE DESACTIVADO
+      console.log('⚡ Loader desactivado - Inicio directo sin animaciones de carga');
       
-      // Función para ocultar el loader
-      function hideLoader() {
-        if (!loaderHidden && loader) {
-          loaderHidden = true;
-          
-          // Añadir clase de fade out
-          loader.classList.add('fade-out');
-          document.body.classList.add('app-loaded');
-          
-          // Remover el tema initializing
-          document.documentElement.classList.remove('theme-initializing');
-          
-          // Ocultar completamente después de la transición
-          setTimeout(() => {
-            if (loader && loader.parentNode) {
-              loader.style.display = 'none';
-            }
-          }, 600);
-          
-          // Log para desarrollo
-          console.log('🚀 Guiders cargado exitosamente');
-        }
-      }
-      
-      // Detectar cuando Angular está listo
-      function checkAngularReady() {
-        // Verificar si Angular ha iniciado (ng namespace disponible)
-        if (typeof window !== 'undefined' && 
-            (window.ng || document.querySelector('app-root > *:not(.guiders-loader)'))) {
-          hideLoader();
-          return true;
-        }
-        return false;
-      }
-      
-      // Intentar detectar Angular cada 100ms
-      const angularCheckInterval = setInterval(() => {
-        if (checkAngularReady()) {
-          clearInterval(angularCheckInterval);
-        }
-      }, 100);
-      
-      // Fallback: ocultar después de 8 segundos máximo
-      setTimeout(() => {
-        clearInterval(angularCheckInterval);
-        if (!loaderHidden) {
-          console.warn('⚠️ Timeout del loader alcanzado, ocultando forzadamente');
-          hideLoader();
-        }
-      }, 8000);
-      
-      // Detectar cuando todos los recursos críticos han cargado
-      if (document.readyState === 'complete') {
-        setTimeout(checkAngularReady, 500);
-      } else {
-        window.addEventListener('load', () => {
-          setTimeout(checkAngularReady, 500);
-        });
-      }
-      
-      // Escuchar eventos personalizados de Angular si los hay
-      window.addEventListener('app:ready', hideLoader);
-      
-      // Optimización: precarga de fuentes si es necesario
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => {
-          // Código para optimizaciones adicionales si es necesario
-        });
-      }
+      // Remover la clase theme-initializing inmediatamente
+      document.documentElement.classList.remove('theme-initializing');
+      document.body.classList.add('app-loaded');
     })();
   </script>
 </body>
