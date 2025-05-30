@@ -5,19 +5,21 @@ Esta biblioteca implementa la funcionalidad de chat siguiendo los principios de 
 ## 🏗️ Estructura
 
 ```bash
-/libs/feature/chat/
-├── domain/                  # Casos de uso, entidades y puertos (sin Angular/RxJS)
+./libs/feature/chat/
+├── domain/                  # Entidades y puertos (sin Angular/RxJS)
 │   ├── entities/           # Chat, Message, PaginatedResponse, etc.
-│   ├── ports/              # ChatRepositoryPort
+│   └── ports/              # ChatRepositoryPort
+├── application/            # SOLO casos de uso (sin servicios)
 │   └── use-cases/          # GetChatsUseCase, GetMessagesUseCase, etc.
-├── application/            # Servicios de aplicación y orquestadores
-│   └── use-cases/          # ChatService
 └── index.ts               # Exportaciones públicas
 ```
 
+> **⚠️ IMPORTANTE**: Los **servicios son específicos de Angular** y deben ir en los proyectos `guiders/` o `backoffice/`, **NO en libs**.
+> La capa de aplicación en libs **SOLO puede contener casos de uso**.
+
 ## 🚀 Funcionalidades Implementadas
 
-### Casos de Uso del Dominio
+### Casos de Uso (Application Layer)
 
 1. **GetChatsUseCase**: Obtiene la lista de chats del usuario autenticado
 2. **GetMessagesUseCase**: Obtiene mensajes paginados de un chat específico  
@@ -47,17 +49,22 @@ Basado en el controlador NestJS del backend:
 
 ## 🎯 Implementación por Aplicación
 
-### Guiders (pendiente)
+### Guiders ✅ IMPLEMENTADO
 
-- Deberá implementar `HttpChatRepository` en `guiders/src/app/features/chat/infrastructure/`
-- Configurar endpoints: `/api/chat/*`
-- Definir tokens de inyección específicos
+**Angular Services (capa de presentación):**
+- `guiders/src/app/core/services/chat.service.ts` - Servicio Angular que orquesta los casos de uso
+
+**Infrastructure (capa de infraestructura):**
+- `guiders/src/app/features/chat/infrastructure/repositories/http-chat.repository.ts` - Implementación HTTP
+- `guiders/src/app/features/chat/infrastructure/chat-config.providers.ts` - Configuración de tokens de inyección
+- Endpoints: `/api/chat/*`
 
 ### Backoffice (futuro)
 
-- Podría tener su propia implementación con diferentes endpoints
-- Lógica específica para backoffice
-- Sus propios tokens de inyección
+**Deberá implementar su propia infraestructura:**
+- `backoffice/src/app/core/services/chat.service.ts` - Servicio Angular específico
+- `backoffice/src/app/features/chat/infrastructure/` - Su propia implementación de repositorio
+- Podría tener diferentes endpoints o lógica específica para backoffice
 
 ## ⚠️ Manejo de Errores
 
@@ -71,43 +78,60 @@ La implementación incluye errores específicos del dominio:
 - `UnauthorizedError`: Usuario no autenticado (401)
 - `NetworkError`: Errores de red (500)
 
-## 💡 Uso
+## 💡 Uso Correcto
 
+### En libs (SOLO casos de uso)
 ```typescript
-import { ChatService, ChatRepositoryPort } from '@libs/feature/chat';
+// ❌ INCORRECTO - No crear servicios en libs
+export class ChatService { ... }
 
-// En la capa de infraestructura de cada app
-class HttpChatRepository implements ChatRepositoryPort {
-  // implementación específica
+// ✅ CORRECTO - Solo casos de uso
+export class GetChatsUseCase {
+  constructor(private chatRepository: ChatRepositoryPort) {}
+  async execute(params?: GetChatsParams): Promise<ChatListResponse> { ... }
 }
+```
 
-// Uso del servicio
-const chatRepository = new HttpChatRepository();
-const chatService = new ChatService(chatRepository);
+### En guiders/backoffice (Servicios Angular)
+```typescript
+// ✅ CORRECTO - Servicios Angular en aplicaciones específicas
+@Injectable({ providedIn: 'root' })
+export class ChatService {
+  private getChatsUseCase = inject(GET_CHATS_USE_CASE_TOKEN);
+  
+  getChats(params?: GetChatsParams): Observable<ChatListResponse> {
+    return from(this.getChatsUseCase.execute(params));
+  }
+}
+```
 
-// Obtener chats
-const chats = await chatService.getChats({ limit: 20 });
-
-// Obtener mensajes
-const messages = await chatService.getMessages({ chatId: 'chat-id', limit: 10 });
-
-// Obtener chat por ID
-const chat = await chatService.getChatById({ chatId: 'chat-id' });
+### Implementación de repositorio
+```typescript
+// En guiders/infrastructure/repositories/
+@Injectable()
+export class HttpChatRepository implements ChatRepositoryPort {
+  async getChats(params?: GetChatsParams): Promise<ChatListResponse> {
+    // Implementación HTTP específica de Guiders
+  }
+}
 ```
 
 ## 📋 Próximos Pasos
 
-1. **Implementación Infrastructure**: Crear HttpChatRepository en guiders
-2. **Testing**: Implementar tests unitarios para casos de uso
-3. **Integración**: Integrar con componentes de chat existentes
-4. **WebSocket**: Añadir soporte para mensajes en tiempo real
+1. **Testing**: Implementar tests unitarios para casos de uso
+2. **Integración**: Integrar con componentes de chat existentes
+3. **WebSocket**: Añadir soporte para mensajes en tiempo real
+4. **Backoffice**: Implementar infraestructura para backoffice cuando sea necesario
 5. **Validaciones avanzadas**: Mejorar validaciones de dominio
 6. **Documentación API**: Documentar endpoints esperados
 
 ## 🔍 Beneficios de esta Arquitectura
 
-1. **Independencia de frameworks**: Lógica pura sin dependencias de Angular/RxJS
-2. **Portabilidad**: Puede reutilizarse en aplicaciones móviles, Node.js, etc.
-3. **Testabilidad**: Tests simples sin mocks complejos
-4. **Flexibilidad**: Cada app puede tener su implementación específica
-5. **Separación clara**: Dominio, aplicación e infraestructura bien definidos
+1. **Separación clara**: 
+   - **libs**: Solo lógica de negocio pura (casos de uso, entidades, puertos)
+   - **guiders/backoffice**: Implementaciones específicas (servicios Angular, repositorios HTTP)
+
+2. **Independencia de frameworks**: Lógica pura sin dependencias de Angular/RxJS en libs
+3. **Portabilidad**: Casos de uso pueden reutilizarse en aplicaciones móviles, Node.js, etc.
+4. **Testabilidad**: Tests simples sin mocks complejos para casos de uso
+5. **Flexibilidad**: Cada app puede tener su implementación específica de repositorio y servicios

@@ -1,6 +1,6 @@
-import { Chat } from '../entities/chat.entity';
-import { ChatRepositoryPort } from '../ports/chat-repository.port';
-import { ValidationError } from '../entities/chat-error.entity';
+import { Chat } from '../../domain/entities/chat.entity';
+import { ChatRepositoryPort } from '../../domain/ports/chat-repository.port';
+import { ValidationError } from '../../domain/entities/chat-error.entity';
 
 /**
  * Caso de uso para iniciar un chat (para visitantes)

@@ -1,6 +1,6 @@
-import { Chat, GetChatByIdParams } from '../entities/chat.entity';
-import { ChatRepositoryPort } from '../ports/chat-repository.port';
-import { ValidationError } from '../entities/chat-error.entity';
+import { Chat, GetChatByIdParams } from '../../domain/entities/chat.entity';
+import { ChatRepositoryPort } from '../../domain/ports/chat-repository.port';
+import { ValidationError } from '../../domain/entities/chat-error.entity';
 
 /**
  * Caso de uso para obtener información de un chat específico por ID
