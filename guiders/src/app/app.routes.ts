@@ -8,7 +8,7 @@ export const routes: Routes = [
     children: [
       {
         path: 'login',
-        loadComponent: () => import('./features/auth/infrastructure/components/login.component').then(c => c.LoginComponent),
+        loadComponent: () => import('./features/auth/login.component').then(c => c.LoginComponent),
         title: 'Iniciar Sesión - Guiders'
       },
       {
@@ -66,27 +66,27 @@ export const routes: Routes = [
           },
           {
             path: 'profile',
-            loadComponent: () => import('./features/settings/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
+            loadComponent: () => import('./features/settings/components/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
             title: 'Perfil - Configuración - Guiders'
           },
           {
             path: 'account',
-            loadComponent: () => import('./features/settings/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
+            loadComponent: () => import('./features/settings/components/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
             title: 'Cuenta - Configuración - Guiders'
           },
           {
             path: 'notifications',
-            loadComponent: () => import('./features/settings/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
+            loadComponent: () => import('./features/settings/components/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
             title: 'Notificaciones - Configuración - Guiders'
           },
           {
             path: 'appearance',
-            loadComponent: () => import('./features/settings/appearance-settings/appearance-settings.component').then(c => c.AppearanceSettingsComponent),
+            loadComponent: () => import('./features/settings/components/appearance-settings/appearance-settings.component').then(c => c.AppearanceSettingsComponent),
             title: 'Aspecto - Configuración - Guiders'
           },
           {
             path: 'privacy',
-            loadComponent: () => import('./features/settings/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
+            loadComponent: () => import('./features/settings/components/settings-placeholder/settings-placeholder.component').then(c => c.SettingsPlaceholderComponent),
             title: 'Privacidad - Configuración - Guiders'
           }
         ]
