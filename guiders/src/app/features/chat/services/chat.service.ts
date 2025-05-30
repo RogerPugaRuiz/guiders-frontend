@@ -17,7 +17,7 @@ import {
   GET_MESSAGES_USE_CASE_TOKEN,
   GET_CHAT_BY_ID_USE_CASE_TOKEN,
   START_CHAT_USE_CASE_TOKEN
-} from '../../features/chat/infrastructure/chat-config.providers';
+} from '../infrastructure/chat-config.providers';
 
 @Injectable({
   providedIn: 'root'
