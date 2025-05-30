@@ -6,74 +6,47 @@
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}=== Ejecutando tests unitarios para el proyecto Guiders ===${NC}"
-npm run test:jest:guiders
+# Ejecutar tests unitarios
+echo -e "${BLUE}===========================================${NC}"
+echo -e "${YELLOW}=== EJECUTANDO TESTS UNITARIOS ===${NC}"
+echo -e "${BLUE}===========================================${NC}"
+
+./run-unit-tests.sh
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Tests unitarios de Guiders fallaron${NC}"
+    echo -e "${RED}❌ Tests unitarios fallaron${NC}"
     exit 1
 else
-    echo -e "${GREEN}✅ Tests unitarios de Guiders completados correctamente${NC}"
+    echo -e "${GREEN}✅ Tests unitarios completados correctamente${NC}"
 fi
 
-echo -e "${YELLOW}=== Ejecutando tests unitarios para el proyecto Backoffice ===${NC}"
-npm run test:jest:backoffice
+echo ""
+echo -e "${BLUE}===========================================${NC}"
+echo -e "${YELLOW}=== EJECUTANDO TESTS E2E ===${NC}"
+echo -e "${BLUE}===========================================${NC}"
+
+# Ejecutar tests e2e
+./run-e2e-tests.sh
 if [ $? -ne 0 ]; then
-    echo -e "${RED}❌ Tests unitarios de Backoffice fallaron${NC}"
+    echo -e "${RED}❌ Tests e2e fallaron${NC}"
     exit 1
 else
-    echo -e "${GREEN}✅ Tests unitarios de Backoffice completados correctamente${NC}"
+    echo -e "${GREEN}✅ Tests e2e completados correctamente${NC}"
 fi
 
-# Iniciar el servidor de Guiders en segundo plano
-echo -e "${YELLOW}=== Iniciando servidor de Guiders para tests e2e ===${NC}"
-cd guiders && npm start &
-GUIDERS_PID=$!
-cd ..
+echo ""
+echo -e "${BLUE}===========================================${NC}"
+echo -e "${GREEN}✅ ¡TODOS LOS TESTS COMPLETADOS EXITOSAMENTE!${NC}"
+echo -e "${BLUE}===========================================${NC}"
 
-# Esperar a que el servidor esté disponible
-echo "Esperando a que el servidor de Guiders esté disponible..."
-npx wait-on http://localhost:4200 --timeout 60000
+# Generar un resumen consolidado
+echo -e "${YELLOW}Generando reporte consolidado...${NC}"
 
-# Ejecutar tests e2e de Guiders
-echo -e "${YELLOW}=== Ejecutando tests e2e para el proyecto Guiders ===${NC}"
-npm run test:cypress:headless:guiders
-if [ $? -ne 0 ]; then
-    # Detener el servidor
-    kill $GUIDERS_PID
-    echo -e "${RED}❌ Tests e2e de Guiders fallaron${NC}"
-    exit 1
-else
-    echo -e "${GREEN}✅ Tests e2e de Guiders completados correctamente${NC}"
+if [ -f "E2E-TEST-EXECUTION-REPORT.md" ]; then
+    echo "El reporte E2E-TEST-EXECUTION-REPORT.md existe."
+    # Aquí se podría añadir código para consolidar ambos reportes
 fi
 
-# Detener el servidor de Guiders
-kill $GUIDERS_PID
-
-# Iniciar el servidor de Backoffice en segundo plano
-echo -e "${YELLOW}=== Iniciando servidor de Backoffice para tests e2e ===${NC}"
-cd backoffice && npm start &
-BACKOFFICE_PID=$!
-cd ..
-
-# Esperar a que el servidor esté disponible
-echo "Esperando a que el servidor de Backoffice esté disponible..."
-npx wait-on http://localhost:4201 --timeout 60000
-
-# Ejecutar tests e2e de Backoffice
-echo -e "${YELLOW}=== Ejecutando tests e2e para el proyecto Backoffice ===${NC}"
-npm run test:cypress:headless:backoffice
-if [ $? -ne 0 ]; then
-    # Detener el servidor
-    kill $BACKOFFICE_PID
-    echo -e "${RED}❌ Tests e2e de Backoffice fallaron${NC}"
-    exit 1
-else
-    echo -e "${GREEN}✅ Tests e2e de Backoffice completados correctamente${NC}"
-fi
-
-# Detener el servidor de Backoffice
-kill $BACKOFFICE_PID
-
-echo -e "${GREEN}✅ ¡Todos los tests completados correctamente!${NC}"
+echo -e "${GREEN}✅ ¡Proceso de testing completado!${NC}"

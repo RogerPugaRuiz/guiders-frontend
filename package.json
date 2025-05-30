@@ -44,6 +44,9 @@
   },
   "dependencies": {
     "@esbuild/linux-x64": "^0.25.5",
-    "socket.io-client": "^4.8.1"
+    "@rollup/rollup-linux-x64-gnu": "^4.41.1",
+    "cypress": "^14.4.0",
+    "socket.io-client": "^4.8.1",
+    "wait-on": "^8.0.3"
   }
 }

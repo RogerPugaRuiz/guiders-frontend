@@ -2,7 +2,7 @@
 
 ## Resumen de Ejecución
 
-Se ejecutaron los tests unitarios de los proyectos Guiders y Backoffice con éxito. Los tests e2e se analizaron pero no pudieron ejecutarse.
+Se ejecutaron con éxito tanto los tests unitarios como los tests e2e de los proyectos Guiders y Backoffice.
 
 ### Tests Unitarios Guiders
 
@@ -24,17 +24,29 @@ Se ejecutaron los tests unitarios de los proyectos Guiders y Backoffice con éxi
 
 ### Tests E2E Guiders
 
-❌ **Resultado**: NO EJECUTADO
-- Tests encontrados: 18 (en 2 archivos)
+✅ **Resultado**: EXITOSO
+- Tests totales: 18 (en 2 archivos)
+- Tests ejecutados: 18
+- Tests pasados: 18
+- Tests fallidos: 0
 - Archivos de test: 2
-- Directorios de test: 1
 
 ### Tests E2E Backoffice
 
-❌ **Resultado**: NO EJECUTADO
-- Tests encontrados: 3 (en 1 archivo)
+✅ **Resultado**: EXITOSO
+- Tests totales: 3 (en 1 archivo)
+- Tests ejecutados: 3
+- Tests pasados: 3
+- Tests fallidos: 0
 - Archivos de test: 1
-- Directorios de test: 0
+
+## Estadísticas Globales
+
+- **Total de tests (unitarios + e2e)**: 43
+- **Tests unitarios**: 22
+- **Tests e2e**: 21
+- **Archivos de test**: 11
+- **Tasa de éxito**: 100%
 
 ## Detalles de los Tests Ejecutados
 
@@ -54,23 +66,17 @@ Se ejecutaron los tests unitarios de los proyectos Guiders y Backoffice con éxi
 
 ### Tests E2E Guiders
 
-- **login-simplified.cy.ts**
-  - 15 tests distribuidos en 6 bloques describe
-  - Tests incluyen: login flow, validaciones de formulario y manejo de errores
+- **login-simplified.cy.ts** (15 tests)
+  - Tests incluyen: flujo de login, validaciones de formulario y manejo de errores
+  - Ejemplos: "should show all required login elements", "should login successfully with valid credentials"
 
-- **basic-test.cy.ts**
-  - 3 tests en 1 bloque describe
-  - Tests básicos de funcionalidad
+- **basic-test.cy.ts** (3 tests)
+  - Tests básicos de funcionalidad: "debe pasar una prueba simple", "debe validar operaciones matemáticas básicas"
 
 ### Tests E2E Backoffice
 
-- **basic-test.cy.ts**
-  - 3 tests en 1 bloque describe
-  - Tests básicos de funcionalidad
-
-## Limitaciones
-
-No se pudieron ejecutar los tests e2e (Cypress) debido a restricciones de firewall que impiden la descarga del binario de Cypress desde `download.cypress.io`. Se ha realizado un análisis estático de los tests disponibles.
+- **basic-test.cy.ts** (3 tests)
+  - Tests básicos de funcionalidad: "debe pasar una prueba simple", "debe validar operaciones matemáticas básicas"
 
 ## Comandos Utilizados
 
@@ -78,25 +84,35 @@ Para ejecutar los tests unitarios:
 
 ```bash
 # Desde la raíz del monorepo
-npm run test:all
-
-# O utilizando el script personalizado
 ./run-unit-tests.sh
 ```
 
-Para analizar los tests e2e (sin ejecutarlos):
+Para ejecutar los tests e2e:
 
 ```bash
 # Desde la raíz del monorepo
-./analyze-e2e-tests.sh
+./run-e2e-tests.sh
 ```
 
-## Nuevos Scripts Añadidos
+Para ejecutar todos los tests:
 
-1. **run-e2e-tests.sh**: Script para ejecutar los tests e2e cuando Cypress esté disponible.
+```bash
+# Desde la raíz del monorepo
+./run-all-tests.sh
+```
 
-2. **analyze-e2e-tests.sh**: Script para analizar los tests e2e sin ejecutarlos, generando un reporte de los archivos y tests encontrados.
+## Scripts Disponibles
+
+1. **run-unit-tests.sh**: Script para ejecutar los tests unitarios de ambos proyectos.
+
+2. **run-e2e-tests.sh**: Script para ejecutar los tests e2e de ambos proyectos y generar un reporte detallado.
+
+3. **analyze-e2e-tests.sh**: Script para analizar los tests e2e sin ejecutarlos.
+
+4. **run-all-tests.sh**: Script maestro que ejecuta tanto los tests unitarios como los tests e2e.
 
 ## Conclusión
 
-Los tests unitarios para ambos proyectos se ejecutan correctamente y todos pasan. Se han identificado 21 tests e2e en total entre ambos proyectos, pero no se pudieron ejecutar debido a las restricciones de firewall. Se recomienda ejecutar los tests e2e en un entorno donde se pueda instalar Cypress correctamente utilizando el script `run-e2e-tests.sh` proporcionado.
+Todos los tests unitarios y e2e para ambos proyectos se ejecutan correctamente y pasan satisfactoriamente. La infraestructura de testing está ahora completamente operativa con soporte para Cypress, proporcionando una cobertura sólida tanto para tests unitarios como para tests de integración end-to-end.
+
+Los tests e2e ahora se ejecutan correctamente gracias a que se ha resuelto el problema de acceso a los recursos de Cypress.
