@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { ColorThemeService, ColorOption } from '../../../core/services/color-theme.service';
+import { Component, OnInit, inject } from '@angular/core';
+import { ColorThemeService, ColorOption } from '../../../../core/services/color-theme.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -106,10 +106,11 @@ import { FormsModule } from '@angular/forms';
 })
 export class AppearanceSettingsComponent implements OnInit {
   selectedPrimaryColor: string = '';
+  private colorThemeService = inject(ColorThemeService);
   
-  constructor(private colorThemeService: ColorThemeService) {
+  constructor() {
     // Suscribirse a cambios de color
-    this.colorThemeService.colorChange$.subscribe(color => {
+    this.colorThemeService.colorChange$.subscribe((color: string) => {
       if (color) {
         this.selectedPrimaryColor = color;
       }

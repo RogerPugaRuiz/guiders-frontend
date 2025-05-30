@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 
-import { AuthService } from '../../../../core/services/auth.service';
-import { StorageService } from '../../../../core/services/storage.service';
+import { AuthService } from '../../core/services/auth.service';
+import { StorageService } from '../../core/services/storage.service';
 import { 
   LoginCredentials,
   AuthenticationError, 
@@ -32,7 +32,7 @@ export class LoginComponent {
 
   constructor() {
     // Recuperar el email guardado si existe
-    const savedEmail = this.storageService.getItem('guiders_remembered_email');
+    const savedEmail = this.storageService.getItem('guiders_remembered_email') as string | null;
     
     this.loginForm = this.fb.group({
       email: [savedEmail || '', [Validators.required, Validators.email]],
@@ -70,12 +70,12 @@ export class LoginComponent {
 
     this.authService.login(credentials)
       .subscribe({
-        next: (response) => {
+        next: (response: any) => {
           console.log('Login exitoso:', response.user?.email || response.session?.user?.email || 'Usuario autenticado');
           this.router.navigate(['/dashboard']);
           this.isLoading = false;
         },
-        error: (error) => {
+        error: (error: any) => {
           console.error('Error en login:', error);
           
           if (error instanceof ValidationError) {
