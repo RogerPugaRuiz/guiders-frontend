@@ -3,7 +3,48 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { GhSelectComponent, GhSelectOption } from '../../shared/components/gh-select/gh-select.component';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from './services/chat.service';
-import { Chat, ChatListResponse } from '@libs/feature/chat';
+
+// Import types to avoid potential barrel export issues
+export interface Chat {
+  id: string;
+  participants: Participant[];
+  status: 'active' | 'inactive' | 'closed' | 'waiting';
+  lastMessage?: Message;
+  createdAt: Date;
+  updatedAt: Date;
+  metadata?: Record<string, any>;
+}
+
+export interface Participant {
+  id: string;
+  name: string;
+  role: 'visitor' | 'commercial';
+  isOnline: boolean;
+  joinedAt: Date;
+}
+
+export interface Message {
+  id: string;
+  chatId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  type: 'text' | 'image' | 'file' | 'system';
+  timestamp: Date;
+  isRead: boolean;
+  metadata?: Record<string, any>;
+}
+
+export interface ChatListResponse {
+  data: Chat[];
+  pagination: {
+    cursor?: string;
+    nextCursor?: string;
+    hasMore: boolean;
+    limit: number;
+    total?: number;
+  };
+}
 
 @Component({
   selector: 'app-chat',
@@ -36,7 +77,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private renderer: Renderer2,
-    private chatService: ChatService
+    @Inject('ChatService') private chatService: any
   ) {}
   
   ngOnInit(): void {
