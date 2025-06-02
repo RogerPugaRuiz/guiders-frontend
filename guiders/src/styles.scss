@@ -2,6 +2,7 @@
 :root {
   /* Colores principales de GitHub - Tema claro (default) */
   --color-primary: #0969da;        /* Azul GitHub para enlaces y acciones primarias */
+  --color-primary-hover: #0860ca;
   --color-primary-rgb: 9, 105, 218; /* Mismo color en formato RGB para opacidad */
   --color-secondary: #57606a;      /* Color secundario para textos menos importantes */
   --color-accent: #2da44e;         /* Verde GitHub para botones de acción */
@@ -25,6 +26,7 @@
 [data-theme="dark"] {
   /* Colores principales - Tema oscuro */
   --color-primary: #58a6ff;        /* Azul más claro para enlaces y acciones primarias */
+  --color-primary-hover: #4493f8;
   --color-primary-rgb: 88, 166, 255; /* Mismo color en formato RGB para opacidad */
   --color-secondary: #8b949e;      /* Color secundario para textos menos importantes */
   --color-accent: #3fb950;         /* Verde GitHub para botones de acción en modo oscuro */
@@ -37,7 +39,7 @@
   --color-surface: #161b22;        /* Superficie para componentes como menús y diálogos en modo oscuro */
   --color-active-bg: #21262d;      /* Fondo para elementos activos/seleccionados en modo oscuro */
   --color-hover: #202329;          /* Fondo para hover de elementos en modo oscuro */
-  --color-text: #c9d1d9;           /* Color de texto principal en modo oscuro */
+  --color-text: #ffffff;           /* Color de texto principal en modo oscuro */
   --color-text-light: #8b949e;     /* Color de texto secundario en modo oscuro */
   --color-border: #30363d;         /* Color de bordes en modo oscuro */
   --color-header-bg: #161b22;      /* Color de fondo para header en modo oscuro */
@@ -133,8 +135,10 @@ a {
     text-decoration: underline;
   }
 }
+/* Añadir al final de los estilos .gh-button existentes */
 
-/* Estilos de componentes comunes estilo GitHub */
+/* Estilos de botón completos - añadir después del .gh-button existente */
+
 .gh-button {
   display: inline-block;
   padding: var(--spacing-xs) var(--spacing-md);
@@ -150,7 +154,7 @@ a {
   background-color: var(--color-background-secondary);
   box-shadow: var(--shadow-sm);
   transition: .2s cubic-bezier(0.3, 0, 0.5, 1);
-  transition-property: color, background-color, border-color;
+  transition-property: color, background-color, border-color, transform, box-shadow;
   
   &:hover {
     background-color: var(--color-hover);
@@ -168,6 +172,7 @@ a {
     box-shadow: var(--shadow-focus);
   }
   
+  /* Botón primary existente */
   &--primary {
     color: #ffffff;
     background-color: var(--color-accent);
@@ -180,6 +185,58 @@ a {
     
     &:active {
       background-color: #298e46;
+    }
+  }
+  
+  /* Nuevo botón llamativo usando color primary */
+  &--accent {
+    color: #ffffff;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    
+    &:hover {
+      background-color: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+      // transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    &:active {
+      // transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+      background-color: var(--color-primary-hover);
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: var(--shadow-focus), var(--shadow-md);
+    }
+  }
+  
+  /* Alternativa más llamativa con gradiente sutil */
+  &--hero {
+    color: #ffffff;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-md);
+    font-weight: 600;
+    
+    &:hover {
+      background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary) 100%);
+      border-color: var(--color-primary-hover);
+      // transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    &:active {
+      // transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    &:focus {
+      outline: none;
+      box-shadow: var(--shadow-focus), var(--shadow-md);
     }
   }
 }
@@ -289,5 +346,73 @@ a {
   
   tr:hover {
     background-color: #f6f8fa;
+  }
+}
+
+// Definir la animación keyframes
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Clase para el contenedor que aplica el spin al SVG hijo
+.spinner {
+  display: inline-block;
+  color: var(--color-primary);
+  
+  svg {
+    animation: spin 2s linear infinite;
+    transform-origin: center;
+    display: block;
+  }
+}
+
+.spinner--hide {
+  display: none; // Oculta el spinner
+}
+
+// Variante que solo gira una vez durante 2 segundos
+.spinner--once {
+  svg {
+    animation: spin 2s linear;
+  }
+}
+
+// Variantes de tamaño usando variables
+.spinner--sm {
+  svg {
+    width: var(--spacing-lg); // 16px
+    height: var(--spacing-lg);
+  }
+}
+
+.spinner--md {
+  svg {
+    width: var(--spacing-xl); // 24px
+    height: var(--spacing-xl);
+  }
+}
+
+.spinner--lg {
+  svg {
+    width: var(--spacing-xxl); // 32px
+    height: var(--spacing-xxl);
+  }
+}
+
+// Variante con color secundario
+.spinner--secondary {
+  color: var(--color-secondary);
+}
+
+.spinner--white {
+  color: #ffffff;
+  
+  svg {
+    fill: currentColor; // Asegura que el SVG use el color del texto
   }
 }

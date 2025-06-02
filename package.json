@@ -30,7 +30,16 @@
     "test:full": "./run-all-tests.sh",
     "test:run-unit": "./run-unit-tests.sh",
     "test:run-e2e": "./run-e2e-tests.sh",
-    "install:all": "npm install && cd guiders && npm install && cd ../backoffice && npm install"
+    "install:all": "npm install && cd guiders && npm install && cd ../backoffice && npm install",
+    "start:guiders-20": "cd guiders-20 && npm start",
+    "start:guiders-20:hmr": "cd guiders-20 && npm run start:hmr",
+    "build:guiders-20": "cd guiders-20 && npm run build",
+    "test:guiders-20": "cd guiders-20 && npm run test",
+    "test:jest:guiders-20": "cd guiders-20 && npm run test:jest",
+    "test:cypress:guiders-20": "cd guiders-20 && npm run test:cypress",
+    "test:cypress:headless:guiders-20": "cd guiders-20 && npm run test:cypress:headless",
+    "test:cypress:open:guiders-20": "cd guiders-20 && npm run test:cypress:open",
+    "lint:guiders-20": "cd guiders-20 && npm run lint"
   },
   "private": true,
   "keywords": [

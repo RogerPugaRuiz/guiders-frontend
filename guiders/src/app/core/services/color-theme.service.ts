@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { ThemeService } from './theme.service';
+import { Injectable, Inject } from '@angular/core';
+import { ThemeStateService } from './theme-state.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { StorageService } from './storage.service';
 
@@ -35,15 +35,17 @@ export class ColorThemeService {
   private colorChange = new BehaviorSubject<string>('');
   public readonly colorChange$ = this.colorChange.asObservable();
 
+  private themeMode = new BehaviorSubject<boolean>(this.isDarkMode);
+  public readonly themeMode$ = this.themeMode.asObservable();
+
   constructor(
-    private themeService: ThemeService,
+    @Inject(ThemeStateService) private themeStateService: ThemeStateService,
     private storageService: StorageService
   ) {
     this.initializeColor();
-    
+
     // Suscribirse a cambios de tema para actualizar colores automáticamente
-    this.themeService.theme$.subscribe(() => {
-      // Cuando cambia el tema, actualizar color para mantener la categoría seleccionada
+    this.themeStateService.isDarkMode$.subscribe((isDarkMode) => {
       const colorName = this.getColorNameByValue(this.selectedPrimaryColor);
       if (colorName) {
         const newThemeOptions = this.getCurrentColorOptions();
@@ -84,7 +86,11 @@ export class ColorThemeService {
   }
   
   get isDarkMode(): boolean {
-    return this.themeService.isDarkMode();
+    if (!this.themeStateService) {
+      console.warn('ThemeStateService no está inicializado. Devolviendo valor predeterminado.');
+      return false; // Valor predeterminado
+    }
+    return this.themeStateService.isDarkMode;
   }
 
   getLightModeColorOptions(): ColorOption[] {
@@ -109,7 +115,7 @@ export class ColorThemeService {
       const colorName = this.getColorNameByValue(this.selectedPrimaryColor);
       console.log('Cambiando a tema claro. Color actual:', colorName);
       
-      this.themeService.toggleTheme();
+      this.themeStateService.setDarkMode(false);
       
       // Aplicar el color correspondiente en el nuevo tema
       if (colorName) {
@@ -129,7 +135,7 @@ export class ColorThemeService {
       const colorName = this.getColorNameByValue(this.selectedPrimaryColor);
       console.log('Cambiando a tema oscuro. Color actual:', colorName);
       
-      this.themeService.toggleTheme();
+      this.themeStateService.setDarkMode(true);
       
       // Aplicar el color correspondiente en el nuevo tema
       if (colorName) {
@@ -195,5 +201,10 @@ export class ColorThemeService {
     }
     
     return foundColor?.name;
+  }
+  
+  toggleTheme(): void {
+    const isCurrentlyDark = this.themeStateService.isDarkMode;
+    this.themeStateService.setDarkMode(!isCurrentlyDark);
   }
 }

@@ -145,7 +145,7 @@ import { StorageService } from '../services/storage.service';
 
       &__profile-email {
         font-size: var(--font-size-xs);
-        color: var(--color-text-secondary);
+        color: var(--color-text);
         word-break: break-all;
         display: block;
         margin-bottom: var(--spacing-xs);
@@ -276,7 +276,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   // ViewChild para el menú desplegable
   @ViewChild('profileMenu') profileMenuElement!: ElementRef;
 
-  userInitial = new BehaviorSubject<string>('U'); // Valor predeterminado mientras carga
+  userInitial = new BehaviorSubject<string>(''); // Valor predeterminado mientras carga
   userEmail = new BehaviorSubject<string>(''); // Email completo para mostrar en el menú
   userRole = new BehaviorSubject<string>(''); // Rol del usuario para el mensaje de bienvenida
   showProfileMenu = false; // Controla la visibilidad del menú desplegable

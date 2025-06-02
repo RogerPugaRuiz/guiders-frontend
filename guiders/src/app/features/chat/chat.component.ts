@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { GhSelectComponent, GhSelectOption } from '../../shared/components/gh-select/gh-select.component';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from './services/chat.service';
+import { CHAT_PROVIDERS } from './infrastructure/chat-config.providers';
 
 // Import types to avoid potential barrel export issues
 export interface Chat {
@@ -50,6 +51,7 @@ export interface ChatListResponse {
   selector: 'app-chat',
   standalone: true,
   imports: [CommonModule, GhSelectComponent, FormsModule],
+  providers: [CHAT_PROVIDERS, ChatService],
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss']
 })
@@ -64,6 +66,9 @@ export class ChatComponent implements OnInit, AfterViewInit {
   isLoading = false;
   error: string | null = null;
   
+  // Agregar una propiedad para manejar el estado de carga del botón Retry
+  isRetryLoading = false;
+
   // Opciones para el selector de filtro
   filterOptions: GhSelectOption[] = [
     { value: 'all', label: 'Todas' },
@@ -77,11 +82,11 @@ export class ChatComponent implements OnInit, AfterViewInit {
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private renderer: Renderer2,
-    @Inject('ChatService') private chatService: any
+    private chatService: ChatService
   ) {}
   
   ngOnInit(): void {
-    this.loadChats();
+    // this.loadChats();
   }
   
   ngAfterViewInit(): void {
@@ -94,16 +99,19 @@ export class ChatComponent implements OnInit, AfterViewInit {
   // Método para cargar los chats desde el servicio
   loadChats(): void {
     this.isLoading = true;
+    this.isRetryLoading = true; // Activar el spinner
     this.error = null;
-    
-    this.chatService.getChats({ include: ['participants', 'lastMessage'] }).subscribe({
+
+    this.chatService.getChats({ include: [] }).subscribe({
       next: (response: ChatListResponse) => {
         this.chats = response.data;
         this.isLoading = false;
+        this.isRetryLoading = false; // Desactivar el spinner
       },
-      error: (error) => {
+      error: (error: unknown) => {
         this.error = 'Error al cargar los chats. Por favor, intente nuevamente.';
         this.isLoading = false;
+        this.isRetryLoading = false; // Desactivar el spinner
         console.error('Error loading chats:', error);
       }
     });
@@ -220,4 +228,14 @@ export class ChatComponent implements OnInit, AfterViewInit {
   // - getDeviceInfo()
   // - getVisitorLocation()
   // - getSessionDuration()
+
+  retryLoadChats(): void {
+    this.isRetryLoading = true; // Mostrar el spinner
+    // this.loadChats();
+
+    // Ocultar el spinner después de 2 segundos
+    setTimeout(() => {
+      this.isRetryLoading = false;
+    }, 2000);
+  }
 }

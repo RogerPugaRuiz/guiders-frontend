@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ColorThemeService } from '../../../core/services/color-theme.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-theme-toggle',
@@ -57,19 +58,34 @@ import { ColorThemeService } from '../../../core/services/color-theme.service';
     }
   `]
 })
-export class ThemeToggleComponent {
-  
+export class ThemeToggleComponent implements OnInit, OnDestroy {
+  private themeSubscription!: Subscription;
+  isDarkMode: boolean = false;
+
   constructor(private colorThemeService: ColorThemeService) {}
-  
-  get isDarkMode(): boolean {
-    return this.colorThemeService.isDarkMode;
+
+  ngOnInit(): void {
+    // Sincronizar el estado inicial del tema
+    this.isDarkMode = this.colorThemeService.isDarkMode;
+
+    // Escuchar cambios en el tema
+    this.themeSubscription = this.colorThemeService.themeMode$.subscribe((isDark) => {
+      this.isDarkMode = isDark;
+    });
   }
-  
+
   toggleTheme(): void {
     if (this.isDarkMode) {
       this.colorThemeService.setLightTheme();
     } else {
       this.colorThemeService.setDarkTheme();
+    }
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar la suscripción para evitar fugas de memoria
+    if (this.themeSubscription) {
+      this.themeSubscription.unsubscribe();
     }
   }
 }

@@ -10,15 +10,25 @@ export class ChatError extends Error {
 }
 
 export class ChatNotFoundError extends ChatError {
-  constructor(chatId: string) {
-    super(`Chat with ID ${chatId} not found`, 'CHAT_NOT_FOUND', 404);
+  constructor(chatIdOrMessage: string) {
+    // Detectar si es un ID de chat o un mensaje completo
+    const message = chatIdOrMessage.includes('not found') 
+      ? chatIdOrMessage 
+      : `Chat with ID ${chatIdOrMessage} not found`;
+    
+    super(message, 'CHAT_NOT_FOUND', 404);
     this.name = 'ChatNotFoundError';
   }
 }
 
 export class ChatAccessDeniedError extends ChatError {
-  constructor(chatId: string) {
-    super(`Access denied to chat ${chatId}`, 'CHAT_ACCESS_DENIED', 403);
+  constructor(chatIdOrMessage: string) {
+    // Detectar si es un ID de chat o un mensaje completo
+    const message = chatIdOrMessage.includes('acceso') || chatIdOrMessage.includes('permisos')
+      ? chatIdOrMessage 
+      : `Access denied to chat ${chatIdOrMessage}`;
+    
+    super(message, 'CHAT_ACCESS_DENIED', 403);
     this.name = 'ChatAccessDeniedError';
   }
 }
@@ -31,8 +41,8 @@ export class MessageNotFoundError extends ChatError {
 }
 
 export class PaginationEndError extends ChatError {
-  constructor() {
-    super('No more messages available', 'PAGINATION_END', 204);
+  constructor(message: string = 'No more messages available') {
+    super(message, 'PAGINATION_END', 204);
     this.name = 'PaginationEndError';
   }
 }
@@ -45,16 +55,18 @@ export class ValidationError extends ChatError {
 }
 
 export class UnauthorizedError extends ChatError {
-  constructor() {
-    super('User is not authenticated', 'UNAUTHORIZED', 401);
+  constructor(message: string = 'User is not authenticated') {
+    super(message, 'UNAUTHORIZED', 401);
     this.name = 'UnauthorizedError';
   }
 }
 
 export class NetworkError extends ChatError {
-  constructor(originalError?: Error) {
+  constructor(originalError?: Error | string) {
     super(
-      `Network error: ${originalError?.message || 'Connection failed'}`,
+      typeof originalError === 'string' 
+        ? originalError
+        : `Network error: ${originalError?.message || 'Connection failed'}`,
       'NETWORK_ERROR',
       500
     );
