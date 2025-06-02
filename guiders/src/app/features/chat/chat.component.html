@@ -23,65 +23,48 @@
 						[options]="filterOptions" 
 						[size]="'sm'"
 						[(ngModel)]="selectedFilterValue"
-						(selectionChange)="onFilterChange($event)">
+						(selectionChange)="onFilterChange($event)"
+						data-cy="chat-filter">
 					</gh-select>
 				</div>
 			</div>
 			
-			<div class="chat-list">
-				<div class="chat-item chat-item--active">
-					<div class="chat-item__avatar">
-						<span>AR</span>
-						<span class="chat-item__status chat-item__status--online"></span>
-					</div>
-					<div class="chat-item__content">
-						<div class="chat-item__header">
-							<h4 class="chat-item__name">Ana Rodríguez</h4>
-							<span class="chat-item__time">12:45</span>
-						</div>
-						<p class="chat-item__preview">Hola, ¿podrían ayudarme con información sobre los servicios de guía turística?</p>
-					</div>
+			<div class="chat-list" data-cy="chat-list">
+				<!-- Loading state -->
+				<div *ngIf="isLoading" class="chat-loading" data-cy="chat-loading">
+					<p>Cargando chats...</p>
 				</div>
 				
-				<div class="chat-item">
-					<div class="chat-item__avatar">
-						<span>JL</span>
-						<span class="chat-item__status chat-item__status--offline"></span>
-					</div>
-					<div class="chat-item__content">
-						<div class="chat-item__header">
-							<h4 class="chat-item__name">José López</h4>
-							<span class="chat-item__time">Ayer</span>
-						</div>
-						<p class="chat-item__preview">Muchas gracias por la información. Estaré revisando las opciones.</p>
-					</div>
+				<!-- Error state -->
+				<div *ngIf="error && !isLoading" class="chat-error" data-cy="chat-error">
+					<p>{{ error }}</p>
+					<button type="button" (click)="loadChats()" class="retry-button" data-cy="retry-button">
+						Reintentar
+					</button>
 				</div>
 				
-				<div class="chat-item">
-					<div class="chat-item__avatar">
-						<span>MG</span>
-						<span class="chat-item__status chat-item__status--away"></span>
-					</div>
-					<div class="chat-item__content">
-						<div class="chat-item__header">
-							<h4 class="chat-item__name">María González</h4>
-							<span class="chat-item__time">Lun</span>
-						</div>
-						<p class="chat-item__preview">¿Cuáles son los precios para grupos de más de 15 personas?</p>
-					</div>
+				<!-- Empty state -->
+				<div *ngIf="!isLoading && !error && filteredChats.length === 0" class="chat-empty" data-cy="chat-empty">
+					<p>No hay chats disponibles.</p>
 				</div>
 				
-				<div class="chat-item">
+				<!-- Chat items -->
+				<div 
+					*ngFor="let chat of filteredChats; trackBy: trackByChat; first as isFirst" 
+					class="chat-item"
+					[class.chat-item--active]="isFirst"
+					[attr.data-chat-id]="chat.id"
+					data-cy="chat-item">
 					<div class="chat-item__avatar">
-						<span>PF</span>
-						<span class="chat-item__status chat-item__status--offline"></span>
+						<span>{{ getParticipantInitials(chat) }}</span>
+						<span class="chat-item__status" [ngClass]="getParticipantStatusClass(chat)"></span>
 					</div>
 					<div class="chat-item__content">
 						<div class="chat-item__header">
-							<h4 class="chat-item__name">Pedro Fernández</h4>
-							<span class="chat-item__time">23/05</span>
+							<h4 class="chat-item__name">{{ getVisitorName(chat) }}</h4>
+							<span class="chat-item__time">{{ formatLastMessageTime(chat) }}</span>
 						</div>
-						<p class="chat-item__preview">Necesito cancelar mi reserva por motivos personales. ¿Cómo puedo hacerlo?</p>
+						<p class="chat-item__preview">{{ getLastMessagePreview(chat) }}</p>
 					</div>
 				</div>
 			</div>
