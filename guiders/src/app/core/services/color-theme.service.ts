@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { ThemeService } from './theme.service';
+import { Injectable, Inject } from '@angular/core';
+import { ThemeStateService } from './theme-state.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { StorageService } from './storage.service';
 
@@ -35,15 +35,17 @@ export class ColorThemeService {
   private colorChange = new BehaviorSubject<string>('');
   public readonly colorChange$ = this.colorChange.asObservable();
 
+  private themeMode = new BehaviorSubject<boolean>(this.isDarkMode);
+  public readonly themeMode$ = this.themeMode.asObservable();
+
   constructor(
-    private themeService: ThemeService,
+    @Inject(ThemeStateService) private themeStateService: ThemeStateService,
     private storageService: StorageService
   ) {
     this.initializeColor();
-    
+
     // Suscribirse a cambios de tema para actualizar colores automáticamente
-    this.themeService.theme$.subscribe(() => {
-      // Cuando cambia el tema, actualizar color para mantener la categoría seleccionada
+    this.themeStateService.isDarkMode$.subscribe((isDarkMode) => {
       const colorName = this.getColorNameByValue(this.selectedPrimaryColor);
       if (colorName) {
         const newThemeOptions = this.getCurrentColorOptions();
@@ -84,7 +86,11 @@ export class ColorThemeService {
   }
   
   get isDarkMode(): boolean {
-    return this.themeService.isDarkMode();
+    if (!this.themeStateService) {
+      console.warn('ThemeStateService no está inicializado. Devolviendo valor predeterminado.');
+      return false; // Valor predeterminado
+    }
+    return this.themeStateService.isDarkMode;
   }
 
   getLightModeColorOptions(): ColorOption[] {
@@ -109,7 +115,7 @@ export class ColorThemeService {
       const colorName = this.getColorNameByValue(this.selectedPrimaryColor);
       console.log('Cambiando a tema claro. Color actual:', colorName);
       
-      this.themeService.toggleTheme();
+      this.themeStateService.setDarkMode(false);
       
       // Aplicar el color correspondiente en el nuevo tema
       if (colorName) {
@@ -129,7 +135,7 @@ export class ColorThemeService {
       const colorName = this.getColorNameByValue(this.selectedPrimaryColor);
       console.log('Cambiando a tema oscuro. Color actual:', colorName);
       
-      this.themeService.toggleTheme();
+      this.themeStateService.setDarkMode(true);
       
       // Aplicar el color correspondiente en el nuevo tema
       if (colorName) {
@@ -150,6 +156,37 @@ export class ColorThemeService {
     this.colorChange.next(color);
   }
   
+  /**
+   * Calcula un color hover basado en el color primario
+   * En modo claro, oscurece el color. En modo oscuro, lo aclara.
+   */
+  private calculateHoverColor(hexColor: string): string {
+    // Convertir hex a RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    let newR: number, newG: number, newB: number;
+    
+    if (this.isDarkMode) {
+      // En modo oscuro, aclarar el color (aumentar valores RGB)
+      const lightening = 0.15; // 15% más claro
+      newR = Math.min(255, Math.round(r + (255 - r) * lightening));
+      newG = Math.min(255, Math.round(g + (255 - g) * lightening));
+      newB = Math.min(255, Math.round(b + (255 - b) * lightening));
+    } else {
+      // En modo claro, oscurecer el color (reducir valores RGB)
+      const darkening = 0.1; // 10% más oscuro
+      newR = Math.max(0, Math.round(r * (1 - darkening)));
+      newG = Math.max(0, Math.round(g * (1 - darkening)));
+      newB = Math.max(0, Math.round(b * (1 - darkening)));
+    }
+    
+    // Convertir de vuelta a hex
+    const toHex = (n: number) => n.toString(16).padStart(2, '0');
+    return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
+  }
+  
   applyPrimaryColor(hexColor: string): void {
     // Solo ejecutar en el navegador
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -163,6 +200,10 @@ export class ColorThemeService {
         const b = parseInt(hexColor.slice(5, 7), 16);
         
         document.documentElement.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
+        
+        // Calcular y aplicar el color hover
+        const hoverColor = this.calculateHoverColor(hexColor);
+        document.documentElement.style.setProperty('--color-primary-hover', hoverColor);
         
         // Guardar la preferencia de color
         this.storageService.setItem('primaryColor', hexColor);
@@ -195,5 +236,10 @@ export class ColorThemeService {
     }
     
     return foundColor?.name;
+  }
+  
+  toggleTheme(): void {
+    const isCurrentlyDark = this.themeStateService.isDarkMode;
+    this.themeStateService.setDarkMode(!isCurrentlyDark);
   }
 }

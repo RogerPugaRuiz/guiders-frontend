@@ -1,0 +1,130 @@
+{
+  "data": [
+    {
+      "id": "chat1",
+      "participants": [
+        {
+          "id": "1",
+          "name": "Ana Rodríguez",
+          "role": "visitor",
+          "isOnline": true,
+          "joinedAt": "2024-01-15T10:30:00Z"
+        },
+        {
+          "id": "2",
+          "name": "Agent Smith",
+          "role": "commercial",
+          "isOnline": true,
+          "joinedAt": "2024-01-15T10:31:00Z"
+        }
+      ],
+      "status": "active",
+      "lastMessage": {
+        "id": "msg1",
+        "chatId": "chat1",
+        "senderId": "1",
+        "senderName": "Ana Rodríguez",
+        "content": "Hola, ¿podrían ayudarme con información sobre los servicios de guía turística?",
+        "type": "text",
+        "timestamp": "2024-01-15T12:45:00Z",
+        "isRead": false
+      },
+      "createdAt": "2024-01-15T10:30:00Z",
+      "updatedAt": "2024-01-15T12:45:00Z"
+    },
+    {
+      "id": "chat2",
+      "participants": [
+        {
+          "id": "3",
+          "name": "José López",
+          "role": "visitor",
+          "isOnline": false,
+          "joinedAt": "2024-01-14T15:20:00Z"
+        },
+        {
+          "id": "4",
+          "name": "Agent Johnson",
+          "role": "commercial",
+          "isOnline": true,
+          "joinedAt": "2024-01-14T15:21:00Z"
+        }
+      ],
+      "status": "closed",
+      "lastMessage": {
+        "id": "msg2",
+        "chatId": "chat2",
+        "senderId": "3",
+        "senderName": "José López",
+        "content": "Muchas gracias por la información. Estaré revisando las opciones.",
+        "type": "text",
+        "timestamp": "2024-01-14T16:30:00Z",
+        "isRead": true
+      },
+      "createdAt": "2024-01-14T15:20:00Z",
+      "updatedAt": "2024-01-14T16:30:00Z"
+    },
+    {
+      "id": "chat3",
+      "participants": [
+        {
+          "id": "5",
+          "name": "María González",
+          "role": "visitor",
+          "isOnline": false,
+          "joinedAt": "2024-01-13T09:15:00Z"
+        }
+      ],
+      "status": "waiting",
+      "lastMessage": {
+        "id": "msg3",
+        "chatId": "chat3",
+        "senderId": "5",
+        "senderName": "María González",
+        "content": "¿Cuáles son los precios para grupos de más de 15 personas?",
+        "type": "text",
+        "timestamp": "2024-01-13T09:15:00Z",
+        "isRead": false
+      },
+      "createdAt": "2024-01-13T09:15:00Z",
+      "updatedAt": "2024-01-13T09:15:00Z"
+    },
+    {
+      "id": "chat4",
+      "participants": [
+        {
+          "id": "6",
+          "name": "Pedro Fernández",
+          "role": "visitor",
+          "isOnline": false,
+          "joinedAt": "2024-01-10T14:45:00Z"
+        },
+        {
+          "id": "7",
+          "name": "Agent Brown",
+          "role": "commercial",
+          "isOnline": false,
+          "joinedAt": "2024-01-10T14:46:00Z"
+        }
+      ],
+      "status": "closed",
+      "lastMessage": {
+        "id": "msg4",
+        "chatId": "chat4",
+        "senderId": "6",
+        "senderName": "Pedro Fernández",
+        "content": "Necesito cancelar mi reserva por motivos personales. ¿Cómo puedo hacerlo?",
+        "type": "text",
+        "timestamp": "2024-01-10T15:00:00Z",
+        "isRead": true
+      },
+      "createdAt": "2024-01-10T14:45:00Z",
+      "updatedAt": "2024-01-10T15:00:00Z"
+    }
+  ],
+  "pagination": {
+    "hasMore": false,
+    "limit": 50,
+    "total": 4
+  }
+}

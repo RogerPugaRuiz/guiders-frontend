@@ -1,0 +1,38 @@
+<header class="gh-header">
+	<div class="gh-header__container">
+		<div class="gh-header__logo">
+			<h1>Guiders</h1>
+			<span class="gh-header__welcome">
+				{{ getWelcomeMessage(currentUserRole()) }}
+			</span>
+		</div>
+		<div class="gh-header__nav">
+			<a href="#" class="gh-header__nav-item">Documentación</a>
+			<a href="#" class="gh-header__nav-item">Soporte</a>
+			<!-- <app-theme-toggle></app-theme-toggle> -->
+			<div class="gh-header__profile" (click)="toggleProfileMenu()" #profileMenu>
+				<div class="gh-avatar gh-avatar--sm">
+					<span>{{ userInitial() }}</span>
+				</div>
+				@if (showProfileMenu()) {
+				<div class="gh-header__profile-menu">
+					<div class="gh-header__profile-info">
+						<span class="gh-header__profile-email">{{ userEmail() }}</span>
+					</div>
+					<div class="gh-header__profile-actions">
+						<a routerLink="/settings/profile" class="gh-header__profile-action">Perfil</a>
+						<button class="gh-header__profile-action gh-header__profile-action--logout" (click)="logout()">Cerrar
+							sesión</button>
+					</div>
+				</div>
+				}
+			</div>
+		</div>
+	</div>
+</header>
+<div class="gh-layout">
+	<app-side-menu class="gh-layout__sidebar"></app-side-menu>
+	<main class="gh-layout__main">
+		<router-outlet></router-outlet>
+	</main>
+</div>

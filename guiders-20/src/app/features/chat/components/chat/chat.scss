@@ -1,0 +1,667 @@
+/* filepath: /Users/rogerpugaruiz/Proyectos/guiders-frontend/guiders-20/src/app/features/chat/components/chat/chat.scss */
+
+/* Animaciones para la interfaz del chat */
+@keyframes fadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+
+@keyframes slideFromRight {
+	from { transform: translateX(20px); opacity: 0; }
+	to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideFromLeft {
+	from { transform: translateX(-20px); opacity: 0; }
+	to { transform: translateX(0); opacity: 1; }
+}
+
+/* Animación específica para elementos activos que necesitan ser visibles de inmediato */
+@keyframes activeItemAppear {
+	0% { opacity: 0.8; }
+	100% { opacity: 1; }
+}
+
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.chat-container {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+
+	.start-conversation{
+		margin-top: auto;
+	}
+	
+	.gh-page-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: flex-start;
+		margin-bottom: var(--spacing-lg);
+		padding-bottom: var(--spacing-lg);
+		border-bottom: 1px solid var(--color-border);
+		
+		&__title {
+			margin-top: 0;
+			margin-bottom: var(--spacing-xs);
+			font-size: var(--font-size-xl);
+		}
+		
+		&__description {
+			color: var(--color-text-light);
+			margin-bottom: 0;
+		}
+		
+		&__actions {
+			display: flex;
+			gap: var(--spacing-md);
+		}
+	}
+	
+	.chat-workspace {
+		flex: 1;
+		display: flex;
+		overflow: hidden;
+		border: 1px solid var(--color-border);
+		border-radius: var(--border-radius);
+		background-color: var(--color-background-secondary);
+	}
+	
+	/* Panel lateral de conversaciones */
+	.chat-sidebar {
+		width: 320px;
+		display: flex;
+		flex-direction: column;
+		border-right: 1px solid var(--color-border);
+		
+		&__header {
+			padding: var(--spacing-md);
+			border-bottom: 1px solid var(--color-border);
+		}
+	}
+	
+	.chat-search {
+		position: relative;
+		margin-bottom: var(--spacing-md);
+		
+		&__icon {
+			position: absolute;
+			left: var(--spacing-md);
+			top: 50%;
+			transform: translateY(-50%);
+			opacity: 0.6;
+			transition: opacity 0.2s ease;
+		}
+		
+		&__input {
+			width: 100%;
+			padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 36px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--border-radius);
+			background-color: var(--color-background);
+			font-size: var(--font-size-sm);
+			transition: all 0.2s ease;
+			color: var(--color-text);
+			
+			&:focus {
+				outline: none;
+				box-shadow: var(--shadow-focus);
+				border-color: var(--color-primary);
+				
+				/* Cuando el input tiene foco, el icono se oscurece */
+				+ .chat-search__icon {
+					opacity: 1;
+					color: var(--color-primary);
+				}
+			}
+			
+			&::placeholder {
+				transition: opacity 0.2s ease;
+			}
+			
+			&:focus::placeholder {
+				opacity: 0.7;
+			}
+		}
+	}
+	
+	.chat-filter {
+		color: var(--color-text);
+		
+		select {
+			width: 100%;
+			padding: var(--spacing-sm) var(--spacing-md);
+			border: 1px solid var(--color-border);
+			border-radius: var(--border-radius);
+			background-color: var(--color-background);
+			font-size: var(--font-size-sm);
+			transition: all 0.2s ease;
+			color: var(--color-text);
+			
+			&:focus {
+				outline: none;
+				box-shadow: var(--shadow-focus);
+				border-color: var(--color-primary);
+			}
+			
+			&:hover {
+				border-color: var(--color-border-hover);
+			}
+		}
+	}
+	
+	.chat-list {
+		flex: 1;
+		overflow-y: auto;
+		
+		@keyframes fadeSlideIn {
+			from {
+				opacity: 0;
+				transform: translateY(10px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+		
+		/* Asegurarnos de que cualquier elemento activo sea visible de inmediato */
+		.chat-item.chat-item--active {
+			opacity: 1;
+			animation: activeItemAppear 0.3s ease-out forwards;
+			animation-delay: 0s !important; /* Prioridad para mostrar el elemento activo */
+		}
+	}
+	
+	.chat-item {
+		display: flex;
+		align-items: center;
+		padding: var(--spacing-md);
+		border-bottom: 1px solid var(--color-border);
+		cursor: pointer;
+		animation: fadeSlideIn 0.4s ease-out forwards;
+		opacity: 0; /* Inicialmente invisible para animar */
+		transition: all 0.2s ease;
+		
+		/* Efecto escalonado para la aparición de cada elemento */
+		&:nth-child(1):not(.chat-item--active) { animation-delay: 0.1s; }
+		&:nth-child(2):not(.chat-item--active) { animation-delay: 0.2s; }
+		&:nth-child(3):not(.chat-item--active) { animation-delay: 0.3s; }
+		&:nth-child(4):not(.chat-item--active) { animation-delay: 0.4s; }
+		&:nth-child(5):not(.chat-item--active) { animation-delay: 0.5s; }
+		&:nth-child(6):not(.chat-item--active) { animation-delay: 0.6s; }
+		&:nth-child(7):not(.chat-item--active) { animation-delay: 0.7s; }
+		&:nth-child(8):not(.chat-item--active) { animation-delay: 0.8s; }
+		
+		&:hover {
+			background-color: var(--color-hover);
+			transform: translateX(3px);
+		}
+		
+		/* Necesitamos asegurarnos de que el elemento activo siempre sea visible */
+		&--active {
+			background-color: var(--color-active-bg);
+			border-left: 3px solid var(--color-primary);
+			opacity: 1 !important; /* Forzamos visibilidad independiente de la animación */
+			transform: translateX(0) !important; /* Anulamos cualquier transform */
+			animation: none !important; /* Desactivamos animación para elementos activos */
+			
+			/* Aplicamos un efecto de pulso en lugar de la animación completa */
+			&::after {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background-color: rgba(var(--color-primary-rgb), 0.1);
+				animation: pulse 1s ease-out;
+				opacity: 0;
+				pointer-events: none;
+			}
+			
+			.chat-item__name {
+				color: var(--color-primary);
+				font-weight: 600;
+			}
+		}
+		
+		/* Definimos un efecto de pulso para el elemento activo */
+		@keyframes pulse {
+			0% { opacity: 0.3; }
+			100% { opacity: 0; }
+		}
+		
+		@keyframes pulseHighlight {
+			0% { background-color: rgba(var(--color-primary-rgb), 0.1); }
+			50% { background-color: rgba(var(--color-primary-rgb), 0.15); }
+			100% { background-color: var(--color-active-bg); }
+		}
+		
+		&__avatar {
+			position: relative;
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			background-color: var(--color-primary);
+			color: white;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: var(--spacing-md);
+			flex-shrink: 0;
+			font-weight: 500;
+		}
+		
+		&__status {
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			border: 2px solid var(--color-background-secondary);
+			
+			&--online {
+				background-color: #3fb950;
+			}
+			
+			&--offline {
+				background-color: #8b949e;
+			}
+			
+			&--away {
+				background-color: #f6a33a;
+			}
+		}
+		
+		&__content {
+			flex: 1;
+			overflow: hidden;
+		}
+		
+		&__header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 2px;
+		}
+		
+		&__name {
+			margin: 0;
+			font-size: var(--font-size-sm);
+			font-weight: 600;
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+		
+		&__time {
+			font-size: var(--font-size-xs);
+			color: var(--color-text-light);
+		}
+		
+		&__preview {
+			margin: 0;
+			font-size: var(--font-size-xs);
+			color: var(--color-text-light);
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+	}
+	
+	/* Área principal del chat */
+	.chat-main {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+	
+	.chat-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: var(--spacing-md) var(--spacing-lg);
+		border-bottom: 1px solid var(--color-border);
+	}
+	
+	.chat-contact {
+		display: flex;
+		align-items: center;
+		
+		&__avatar {
+			position: relative;
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			background-color: var(--color-primary);
+			color: white;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin-right: var(--spacing-md);
+			font-weight: 500;
+		}
+		
+		&__status {
+			position: absolute;
+			bottom: 0;
+			right: 0;
+			width: 12px;
+			height: 12px;
+			border-radius: 50%;
+			border: 2px solid var(--color-background-secondary);
+			
+			&--online {
+				background-color: #3fb950;
+			}
+			
+			&--offline {
+				background-color: #8b949e;
+			}
+			
+			&--away {
+				background-color: #f6a33a;
+			}
+		}
+		
+		&__name {
+			margin: 0;
+			font-size: var(--font-size-md);
+			font-weight: 600;
+		}
+		
+		&__metadata {
+			margin: 0;
+			font-size: var(--font-size-xs);
+			color: var(--color-text-light);
+		}
+	}
+	
+	.chat-actions {
+		display: flex;
+		gap: var(--spacing-md);
+	}
+	
+	.chat-messages {
+		flex: 1;
+		padding: var(--spacing-lg);
+		overflow-y: auto;
+		background-color: var(--color-background);
+		display: flex;
+		flex-direction: column;
+	}
+	
+	.chat-date-separator {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: var(--spacing-lg) 0;
+		
+		span {
+			background-color: var(--color-background);
+			color: var(--color-text-light);
+			font-size: var(--font-size-xs);
+			padding: 0 var(--spacing-md);
+			position: relative;
+			
+			&:before {
+				content: '';
+				position: absolute;
+				left: -50px;
+				right: -50px;
+				top: 50%;
+				height: 1px;
+				background-color: var(--color-border);
+				z-index: -1;
+			}
+		}
+	}
+	
+	.chat-message {
+		display: flex;
+		flex-direction: column;
+		max-width: 70%;
+		margin-bottom: var(--spacing-md);
+		
+		&--sent {
+			align-self: flex-end;
+			margin-left: auto;
+			animation: slideFromRight 0.3s ease-out;
+			
+			.chat-message__content {
+				background-color: var(--color-primary);
+				color: white;
+				border-radius: var(--border-radius) 0 var(--border-radius) var(--border-radius);
+				box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+			}
+			
+			.chat-message__time {
+				align-self: flex-end;
+			}
+		}
+		
+		&--received {
+			align-self: flex-start;
+			animation: slideFromLeft 0.3s ease-out;
+			
+			.chat-message__content {
+				background-color: var(--color-background-secondary);
+				border-radius: 0 var(--border-radius) var(--border-radius) var(--border-radius);
+				box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+			}
+			
+			.chat-message__time {
+				align-self: flex-start;
+			}
+		}
+		
+		&__content {
+			padding: var(--spacing-md);
+			border-radius: var(--border-radius);
+			
+			p {
+				margin: 0;
+				font-size: var(--font-size-sm);
+			}
+		}
+		
+		&__time {
+			font-size: var(--font-size-xs);
+			color: var(--color-text-light);
+			margin-top: 4px;
+		}
+	}
+	
+	.chat-input {
+		display: flex;
+		align-items: flex-end;
+		padding: var(--spacing-md);
+		border-top: 1px solid var(--color-border);
+		
+		&__field {
+			flex: 1;
+			padding: var(--spacing-md);
+			margin: 0 var(--spacing-md);
+			border: 1px solid var(--color-border);
+			border-radius: var(--border-radius);
+			background-color: var(--color-background);
+			font-size: var(--font-size-sm);
+			color: var(--color-text);
+			resize: none;
+			min-height: 40px;
+			max-height: 120px;
+			overflow-y: auto;
+			font-family: inherit;
+			line-height: 1.4;
+			transition: height 0.2s ease;
+			
+			&:focus {
+				outline: none;
+				box-shadow: var(--shadow-focus);
+				border-color: var(--color-primary);
+			}
+			
+			&::placeholder {
+				color: var(--color-text-muted);
+			}
+		}
+	}
+	
+	.gh-button {
+		&--icon {
+			padding: var(--spacing-sm);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			color: var(--color-text);
+			justify-content: center;
+			min-width: 36px;
+			height: 36px;
+			transition: all 0.2s ease;
+			
+			&.tracking-btn {
+				position: relative;
+				overflow: hidden;
+				
+				&::before {
+					content: '';
+					position: absolute;
+					top: 0;
+					left: 0;
+					right: 0;
+					bottom: 0;
+					background-color: var(--color-primary);
+					opacity: 0;
+					border-radius: 50%;
+					transform: scale(0);
+					transition: transform 0.3s ease, opacity 0.3s ease;
+				}
+				
+				&.active {
+					color: var(--color-primary);
+					
+					&::before {
+						opacity: 0.15;
+						transform: scale(1);
+					}
+					
+					svg {
+						transform: scale(1.1);
+					}
+				}
+				
+				svg {
+					position: relative;
+					z-index: 1;
+					transition: transform 0.2s ease;
+				}
+			}
+		}
+	}
+	
+	/* Panel de información de tracking */
+	.tracking-info-panel {
+		position: absolute;
+		top: 40px;
+		right: 0;
+		height: 100%;
+		width: 300px;
+		background-color: var(--color-background);
+		border-left: 1px solid var(--color-border);
+		transform: translateX(100%);
+		transition: transform 0.3s ease;
+		z-index: 10;
+		overflow-y: auto;
+		
+		&.show {
+			transform: translateX(0);
+		}
+		
+		.tracking-info-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: var(--spacing-md);
+			border-bottom: 1px solid var(--color-border);
+			
+			h4 {
+				margin: 0;
+				font-size: 1rem;
+				font-weight: 500;
+			}
+		}
+		
+		.tracking-info-content {
+			padding: var(--spacing-md);
+		}
+		
+		.tracking-info-item {
+			margin-bottom: var(--spacing-md);
+			font-size: 0.875rem;
+			
+			strong {
+				display: block;
+				margin-bottom: 0.25rem;
+				color: var(--color-text-light);
+			}
+			
+			span {
+				color: var(--color-text);
+			}
+			
+			.tracking-pages-list {
+				margin: 0.5rem 0 0 0;
+				padding: 0;
+				list-style: none;
+				
+				li {
+					display: flex;
+					justify-content: space-between;
+					padding: 0.25rem 0;
+					border-bottom: 1px solid var(--color-border);
+					
+					&:last-child {
+						border-bottom: none;
+					}
+					
+					.page-title {
+						font-size: 0.875rem;
+					}
+					
+					.page-time {
+						font-size: 0.75rem;
+						color: var(--color-text-light);
+					}
+				}
+			}
+		}
+	}
+	
+	/* Estilos para el spinner */
+	.spinner {
+		display: inline-block;
+		
+		svg {
+			animation: spin 1s linear infinite;
+		}
+		
+		&--sm svg {
+			width: 16px;
+			height: 16px;
+		}
+		
+		&--white {
+			color: white;
+		}
+	}
+}

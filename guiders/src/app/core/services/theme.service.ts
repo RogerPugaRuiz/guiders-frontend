@@ -2,6 +2,7 @@ import { Injectable, Renderer2, RendererFactory2, PLATFORM_ID, Inject } from '@a
 import { BehaviorSubject } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { StorageService } from './storage.service';
+import { ThemeStateService } from './theme-state.service';
 
 enum Theme {
   Light = 'light',
@@ -20,7 +21,8 @@ export class ThemeService {
   constructor(
     rendererFactory: RendererFactory2,
     @Inject(PLATFORM_ID) private platformId: Object,
-    private storageService: StorageService
+    private storageService: StorageService,
+    @Inject(ThemeStateService) private themeStateService: ThemeStateService
   ) {
     this.renderer = rendererFactory.createRenderer(null, null);
     this.isBrowser = isPlatformBrowser(this.platformId);
@@ -57,7 +59,9 @@ export class ThemeService {
         } else {
           // Detectar preferencia del sistema
           const prefersDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-          this.setTheme(prefersDarkMode ? Theme.Dark : Theme.Light);
+          const initialTheme = prefersDarkMode ? Theme.Dark : Theme.Light;
+          this.setTheme(initialTheme);
+          this.themeStateService.setDarkMode(prefersDarkMode);
         }
       }
       
@@ -102,6 +106,7 @@ export class ThemeService {
   public setTheme(theme: Theme): void {
     // Actualizar el subject (esto funciona tanto en el servidor como en el cliente)
     this.theme.next(theme);
+    this.themeStateService.setDarkMode(theme === Theme.Dark);
     
     if (this.isBrowser) {
       try {
