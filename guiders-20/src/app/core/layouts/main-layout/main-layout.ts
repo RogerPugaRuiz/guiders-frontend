@@ -54,7 +54,7 @@ export class MainLayout implements OnInit, OnDestroy {
     this.initializeTheme();
     
     // Verificar el estado de autenticación al inicializar
-    this.authService.checkAuthStatus().pipe(
+    this.authService.checkAuthenticationStatus().pipe(
       takeUntil(this.destroy$)
     ).subscribe();
 

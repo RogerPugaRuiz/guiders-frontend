@@ -1,145 +1,168 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, from, tap } from 'rxjs';
 
 import { 
   AuthResponse, 
+  AuthSession,
   LoginCredentials, 
-  User, 
-  AuthenticationError, 
-  ValidationError 
-} from '../models/auth.models';
-import { StorageService } from './storage.service';
+  User
+} from '@libs/feature/auth';
+
+import {
+  LoginUseCase,
+  LogoutUseCase,
+  GetCurrentUserUseCase,
+  GetSessionUseCase,
+  IsAuthenticatedUseCase,
+  ValidateTokenUseCase,
+  RefreshTokenUseCase
+} from '@libs/feature/auth';
+
+import {
+  LOGIN_USE_CASE_TOKEN,
+  LOGOUT_USE_CASE_TOKEN,
+  GET_CURRENT_USER_USE_CASE_TOKEN,
+  GET_SESSION_USE_CASE_TOKEN,
+  IS_AUTHENTICATED_USE_CASE_TOKEN,
+  VALIDATE_TOKEN_USE_CASE_TOKEN,
+  REFRESH_TOKEN_USE_CASE_TOKEN
+} from '../config/auth-config.providers';
 
 /**
- * Servicio para manejar la autenticación de usuarios
+ * Servicio para manejar la autenticación de usuarios usando arquitectura hexagonal
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private http = inject(HttpClient);
-  private storageService = inject(StorageService);
+  // Inyección de casos de uso
+  private loginUseCase: LoginUseCase = inject(LOGIN_USE_CASE_TOKEN);
+  private logoutUseCase: LogoutUseCase = inject(LOGOUT_USE_CASE_TOKEN);
+  private getCurrentUserUseCase: GetCurrentUserUseCase = inject(GET_CURRENT_USER_USE_CASE_TOKEN);
+  private getSessionUseCase: GetSessionUseCase = inject(GET_SESSION_USE_CASE_TOKEN);
+  private isAuthenticatedUseCase: IsAuthenticatedUseCase = inject(IS_AUTHENTICATED_USE_CASE_TOKEN);
+  private validateTokenUseCase: ValidateTokenUseCase = inject(VALIDATE_TOKEN_USE_CASE_TOKEN);
+  private refreshTokenUseCase: RefreshTokenUseCase = inject(REFRESH_TOKEN_USE_CASE_TOKEN);
   
-  // URL base para las peticiones de autenticación
-  private baseUrl = '/api/auth';
-  
-  // Signal para el usuario actual
+  // Signals para el estado de la aplicación
   currentUser = signal<User | null>(null);
-  // Signal para el estado de autenticación
   isAuthenticated = signal<boolean>(false);
-  // Signal para el token de autenticación
   authToken = signal<string | null>(null);
 
   constructor() {
-    // Intentar recuperar la sesión al iniciar el servicio
-    this.checkAuthStatus();
+    // Inicializar el estado de autenticación al cargar el servicio
+    this.initializeAuthState();
   }
 
   /**
-   * Verifica el estado de autenticación actual
-   * @returns Observable con el estado de autenticación
+   * Inicializa el estado de autenticación desde la sesión guardada
    */
-  checkAuthStatus(): Observable<boolean> {
-    const token = this.storageService.getItem('auth_token');
-    
-    if (!token) {
-      this.resetAuth();
-      return of(false);
-    }
-    
-    // En un entorno real, aquí se haría una petición al servidor para validar el token
-    // Por ahora, simplemente simulamos que el token es válido
+  private async initializeAuthState(): Promise<void> {
     try {
-      const userDataStr = this.storageService.getItem('user_data');
-      
-      if (userDataStr) {
-        const userData: User = JSON.parse(userDataStr);
-        this.setAuth(userData, token);
-        return of(true);
-      }
-      
-      return of(false);
+      const [currentUser, session, authenticated] = await Promise.all([
+        this.getCurrentUserUseCase.execute(),
+        this.getSessionUseCase.execute(),
+        this.isAuthenticatedUseCase.execute()
+      ]);
+
+      this.currentUser.set(currentUser);
+      this.isAuthenticated.set(authenticated);
+      this.authToken.set(session?.token || null);
     } catch (error) {
-      console.error('Error al analizar los datos del usuario:', error);
-      this.resetAuth();
-      return of(false);
+      console.error('Error initializing auth state:', error);
+      this.resetSignals();
     }
   }
 
   /**
    * Realiza el proceso de inicio de sesión
-   * @param credentials Credenciales de usuario
-   * @returns Observable con la respuesta de autenticación
    */
   login(credentials: LoginCredentials): Observable<AuthResponse> {
-    // En un entorno real, aquí se haría una petición al servidor
-    // Por ahora, simulamos el comportamiento
-    
-    // Simulamos validaciones básicas
-    if (!credentials.email) {
-      return throwError(() => new ValidationError('email', 'El email es requerido'));
-    }
-    
-    if (!credentials.password) {
-      return throwError(() => new ValidationError('password', 'La contraseña es requerida'));
-    }
-    
-    // Simulación de credenciales incorrectas para pruebas
-    if (credentials.email === 'error@test.com') {
-      return throwError(() => new AuthenticationError('Credenciales inválidas'));
-    }
-    
-    // Simulamos una respuesta exitosa después de un delay
-    return of({
-      user: {
-        id: 'user-1',
-        email: credentials.email,
-        name: 'Usuario Demo',
-        role: 'user'
-      },
-      token: 'jwt-token-demo-123456'
-    }).pipe(
+    return from(this.loginUseCase.execute(credentials)).pipe(
       tap(response => {
-        // Guardar datos en local storage
-        this.storageService.setItem('auth_token', response.token || '');
-        this.storageService.setItem('user_data', JSON.stringify(response.user));
-        
-        // Actualizar signals
-        this.setAuth(response.user, response.token || null);
+        // Actualizar signals después del login exitoso
+        if (response.success && response.user && response.session) {
+          this.currentUser.set(response.user);
+          this.isAuthenticated.set(true);
+          this.authToken.set(response.session.token);
+        }
       })
     );
   }
 
   /**
    * Cierra la sesión del usuario
-   * @returns Observable que indica éxito o fracaso
    */
-  logout(): Observable<boolean> {
-    // En un entorno real, aquí se haría una petición al servidor
-    this.resetAuth();
-    return of(true);
+  logout(): Observable<void> {
+    return from(this.logoutUseCase.execute()).pipe(
+      tap(() => {
+        // Limpiar signals después del logout
+        this.resetSignals();
+      })
+    );
   }
 
   /**
-   * Establece la información de autenticación
-   * @param user Información del usuario
-   * @param token Token de autenticación
+   * Obtiene el usuario actual
    */
-  private setAuth(user: User, token: string | null): void {
-    this.currentUser.set(user);
-    this.authToken.set(token);
-    this.isAuthenticated.set(!!user && !!token);
+  getCurrentUser(): Observable<User | null> {
+    return from(this.getCurrentUserUseCase.execute());
   }
 
   /**
-   * Reinicia toda la información de autenticación
+   * Obtiene la sesión actual
    */
-  private resetAuth(): void {
-    this.storageService.removeItem('auth_token');
-    this.storageService.removeItem('user_data');
+  getSession(): Observable<AuthSession | null> {
+    return from(this.getSessionUseCase.execute());
+  }
+
+  /**
+   * Verifica si el usuario está autenticado
+   */
+  checkAuthenticationStatus(): Observable<boolean> {
+    return from(this.isAuthenticatedUseCase.execute()).pipe(
+      tap(authenticated => {
+        this.isAuthenticated.set(authenticated);
+        if (!authenticated) {
+          this.resetSignals();
+        }
+      })
+    );
+  }
+
+  /**
+   * Valida el token actual
+   */
+  validateToken(): Observable<boolean> {
+    return from(this.validateTokenUseCase.execute()).pipe(
+      tap(isValid => {
+        if (!isValid) {
+          this.resetSignals();
+        }
+      })
+    );
+  }
+
+  /**
+   * Actualiza el token usando el refresh token
+   */
+  refreshToken(): Observable<AuthSession> {
+    return from(this.refreshTokenUseCase.execute()).pipe(
+      tap(session => {
+        // Actualizar signals con la nueva sesión
+        this.authToken.set(session.token);
+        this.currentUser.set(session.user);
+        this.isAuthenticated.set(true);
+      })
+    );
+  }
+
+  /**
+   * Reinicia todos los signals de autenticación
+   */
+  private resetSignals(): void {
     this.currentUser.set(null);
-    this.authToken.set(null);
     this.isAuthenticated.set(false);
+    this.authToken.set(null);
   }
 }

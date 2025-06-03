@@ -157,6 +157,37 @@ export class ColorThemeService {
     this.applyPrimaryColor(color);
   }
   
+  /**
+   * Calcula un color hover basado en el color primario
+   * En modo claro, oscurece el color. En modo oscuro, lo aclara.
+   */
+  private calculateHoverColor(hexColor: string): string {
+    // Convertir hex a RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    let newR: number, newG: number, newB: number;
+    
+    if (this.isDarkMode()) {
+      // En modo oscuro, aclarar el color (aumentar valores RGB)
+      const lightening = 0.15; // 15% más claro
+      newR = Math.min(255, Math.round(r + (255 - r) * lightening));
+      newG = Math.min(255, Math.round(g + (255 - g) * lightening));
+      newB = Math.min(255, Math.round(b + (255 - b) * lightening));
+    } else {
+      // En modo claro, oscurecer el color (reducir valores RGB)
+      const darkening = 0.1; // 10% más oscuro
+      newR = Math.max(0, Math.round(r * (1 - darkening)));
+      newG = Math.max(0, Math.round(g * (1 - darkening)));
+      newB = Math.max(0, Math.round(b * (1 - darkening)));
+    }
+    
+    // Convertir de vuelta a hex
+    const toHex = (n: number) => n.toString(16).padStart(2, '0');
+    return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
+  }
+  
   applyPrimaryColor(hexColor: string): void {
     // Solo ejecutar en el navegador
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -170,6 +201,10 @@ export class ColorThemeService {
         const b = parseInt(hexColor.slice(5, 7), 16);
         
         document.documentElement.style.setProperty('--color-primary-rgb', `${r}, ${g}, ${b}`);
+        
+        // Calcular y aplicar el color hover
+        const hoverColor = this.calculateHoverColor(hexColor);
+        document.documentElement.style.setProperty('--color-primary-hover', hoverColor);
         
         // Guardar la preferencia de color
         this.storageService.setItem('primaryColor', hexColor);

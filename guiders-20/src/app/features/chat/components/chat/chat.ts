@@ -2,12 +2,12 @@ import { Component, ElementRef, OnInit, viewChild, inject, signal, computed } fr
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
 import { ChatData, ChatListResponse, SelectOption } from '../../models/chat.models';
+import { ChatListComponent } from '../chat-list/chat-list';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [FormsModule],
-  providers: [ChatService],
+  imports: [FormsModule, ChatListComponent],
   templateUrl: './chat.html',
   styleUrls: ['./chat.scss']
 })
