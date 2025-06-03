@@ -48,6 +48,11 @@ export class ChatListComponent implements OnInit {
     const search = this.searchTerm().toLowerCase().trim();
     const filter = this.selectedFilter();
 
+    // Validación defensiva para evitar errores con chats undefined
+    if (!chats || !Array.isArray(chats)) {
+      return [];
+    }
+
     return chats.filter(chat => {
       // Filtro por estado
       const matchesFilter = filter === 'all' || chat.status === filter;
@@ -61,9 +66,11 @@ export class ChatListComponent implements OnInit {
     });
   });
 
-  showEmptyState = computed(() => 
-    !this.isLoading() && !this.error() && this.chats().length === 0
-  );
+  showEmptyState = computed(() => {
+    const chats = this.chats();
+    // Validación defensiva para evitar errores con chats undefined
+    return !this.isLoading() && !this.error() && (!chats || chats.length === 0);
+  });
 
   showErrorState = computed(() => 
     !this.isLoading() && this.error() !== null

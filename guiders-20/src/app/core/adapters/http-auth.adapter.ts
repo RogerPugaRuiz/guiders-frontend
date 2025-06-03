@@ -23,7 +23,7 @@ import { decodeJwtPayload, extractUserFromToken, isTokenExpired, JwtPayload } fr
  */
 @Injectable()
 export class HttpAuthAdapter implements AuthRepositoryPort {
-  private readonly API_BASE_URL = `${environment.apiUrl || '/api'}/auth`;
+  private readonly API_BASE_URL = `${environment.apiUrl || '/api'}/user/auth`;
   private readonly STORAGE_KEYS = {
     TOKEN: 'guiders20_auth_token',
     REFRESH_TOKEN: 'guiders20_refresh_token',

@@ -86,7 +86,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
   ) {}
   
   ngOnInit(): void {
-    // this.loadChats();
+    this.loadChats();
   }
   
   ngAfterViewInit(): void {
@@ -231,7 +231,7 @@ export class ChatComponent implements OnInit, AfterViewInit {
 
   retryLoadChats(): void {
     this.isRetryLoading = true; // Mostrar el spinner
-    // this.loadChats();
+    this.loadChats();
 
     // Ocultar el spinner después de 2 segundos
     setTimeout(() => {

@@ -4,7 +4,7 @@ import {
   HttpInterceptorFn,
   HttpErrorResponse 
 } from '@angular/common/http';
-import { throwError, catchError } from 'rxjs';
+import { throwError, catchError, switchMap, from } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { isTokenNearExpiration, isTokenExpired } from '../utils/jwt.utils';
@@ -55,9 +55,23 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Verificar si el token está próximo a expirar
   if (isTokenNearExpiration(token)) {
-    // En una implementación real, aquí se intentaría refrescar el token
-    // Por ahora, simplemente continuamos con el token actual
-    console.warn('Token próximo a expirar. En una implementación real, se refrescaría automáticamente.');
+    console.log('Token próximo a expirar. Intentando refrescar automáticamente...');
+    
+    // Intentar refrescar el token y continuar con la petición original
+    return from(authService.refreshToken()).pipe(
+      switchMap(newSession => {
+        console.log('Token refrescado exitosamente.');
+        // Continuar con la petición original usando el nuevo token
+        const authReq = addAuthHeader(req, newSession.token);
+        return next(authReq);
+      }),
+      catchError((refreshError: HttpErrorResponse) => {
+        console.error('Error al refrescar el token:', refreshError);
+        // Si el refresh falla, limpiar sesión y manejar como error de auth
+        handleAuthError(authService, router);
+        return throwError(() => refreshError);
+      })
+    );
   }
 
   // Añadir token de autorización a la petición
@@ -99,7 +113,8 @@ function shouldSkipAuth(url: string): boolean {
  */
 function addAuthHeader(req: any, token: string): any {
   // En entorno de tests, usar un valor fijo para el token
-  const isTest = process.env['NODE_ENV'] === 'test' || process.env['JEST_WORKER_ID'];
+  const isTest = (typeof process !== 'undefined' && process.env) ? 
+    (process.env['NODE_ENV'] === 'test' || process.env['JEST_WORKER_ID']) : false;
   const tokenValue = isTest ? '******' : `Bearer ${token}`;
   
   return req.clone({
