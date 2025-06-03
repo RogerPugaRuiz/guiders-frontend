@@ -71,7 +71,18 @@ export class HttpChatAdapter implements ChatRepositoryPort {
         // Transformar la respuesta al formato esperado
         let transformedResponse: ChatListResponse;
         
-        if (response.data && Array.isArray(response.data)) {
+        if (response.chats && Array.isArray(response.chats)) {
+          // Formato de API real con chats, total, hasMore, nextCursor
+          transformedResponse = {
+            data: response.chats,
+            pagination: {
+              hasMore: response.hasMore ?? false,
+              limit: limit,
+              total: response.total,
+              nextCursor: response.nextCursor
+            }
+          };
+        } else if (response.data && Array.isArray(response.data)) {
           // Formato estándar con data y pagination
           transformedResponse = response;
         } else if (response.chats && Array.isArray(response.chats)) {

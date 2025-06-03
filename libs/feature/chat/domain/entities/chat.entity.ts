@@ -2,18 +2,21 @@ export interface Chat {
   id: string;
   participants: Participant[];
   status: ChatStatus;
-  lastMessage?: Message;
-  createdAt: Date;
-  updatedAt: Date;
-  metadata?: Record<string, any>;
+  lastMessage?: Message | null;
+  lastMessageAt: string | null;
+  createdAt: string;
 }
 
 export interface Participant {
   id: string;
   name: string;
-  role: 'visitor' | 'commercial';
+  isCommercial: boolean;
+  isVisitor: boolean;
   isOnline: boolean;
-  joinedAt: Date;
+  assignedAt: string;
+  lastSeenAt: string | null;
+  isViewing: boolean;
+  isTyping: boolean;
 }
 
 export interface Message {
@@ -23,12 +26,12 @@ export interface Message {
   senderName: string;
   content: string;
   type: MessageType;
-  timestamp: Date;
+  timestamp: string;
   isRead: boolean;
   metadata?: Record<string, any>;
 }
 
-export type ChatStatus = 'active' | 'inactive' | 'closed' | 'waiting';
+export type ChatStatus = 'active' | 'inactive' | 'closed' | 'waiting' | 'pending';
 export type MessageType = 'text' | 'image' | 'file' | 'system';
 
 export interface PaginatedResponse<T> {
@@ -40,6 +43,13 @@ export interface PaginatedResponse<T> {
     limit: number;
     total?: number;
   };
+}
+
+export interface RealChatListResponse {
+  chats: Chat[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
 }
 
 export interface ChatListResponse extends PaginatedResponse<Chat> {}

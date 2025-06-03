@@ -78,15 +78,28 @@
            [attr.data-chat-id]="chat.id" 
            data-cy="chat-item">
         <div class="chat-item__avatar">
-          <span>{{ getParticipantInitials(chat) }}</span>
-          <span class="chat-item__status" [class]="getParticipantStatusClass(chat)"></span>
+          <img [src]="getParticipantAvatarUrl(chat)" 
+               [alt]="getVisitorName(chat)"
+               class="chat-item__avatar-image"
+               (error)="onAvatarError($event, chat)">
+          <span class="chat-item__avatar-fallback">{{ getParticipantInitials(chat) }}</span>
+          <span class="chat-item__status" [class]="getParticipantStatusClass(chat)" [title]="getParticipantStatusText(chat)"></span>
         </div>
         <div class="chat-item__content">
           <div class="chat-item__header">
             <h4 class="chat-item__name">{{ getVisitorName(chat) }}</h4>
             <span class="chat-item__time">{{ formatLastMessageTime(chat) }}</span>
           </div>
-          <p class="chat-item__preview">{{ getLastMessagePreview(chat) }}</p>
+          <div class="chat-item__info">
+            <p class="chat-item__preview">{{ getLastMessagePreview(chat) }}</p>
+            @if (getVisitor(chat)?.isTyping) {
+              <p class="chat-item__status-text typing">Escribiendo...</p>
+            } @else if (getVisitor(chat)?.isViewing) {
+              <p class="chat-item__status-text viewing">Viendo la página</p>
+            } @else if (getParticipantStatusClass(chat) === 'chat-item__status--inactive') {
+              <p class="chat-item__status-text inactive">Inactivo</p>
+            }
+          </div>
         </div>
       </div>
     }

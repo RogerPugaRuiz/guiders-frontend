@@ -1,7 +1,7 @@
 import { Component, ElementRef, OnInit, viewChild, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
-import { ChatData, ChatListResponse, SelectOption } from '../../models/chat.models';
+import { ChatData, ChatListResponse, SelectOption, Participant } from '../../models/chat.models';
 import { ChatListComponent } from '../chat-list/chat-list';
 
 @Component({
@@ -89,7 +89,7 @@ export class ChatComponent implements OnInit {
   
   // Método para obtener las iniciales de un participante
   getParticipantInitials(chat: ChatData): string {
-    const visitor = chat.participants.find(p => p.role === 'visitor');
+    const visitor = chat.participants.find(p => p.isVisitor);
     if (visitor?.name) {
       return visitor.name
         .split(' ')
@@ -103,7 +103,7 @@ export class ChatComponent implements OnInit {
   
   // Método para obtener el nombre del participante visitante
   getVisitorName(chat: ChatData): string {
-    const visitor = chat.participants.find(p => p.role === 'visitor');
+    const visitor = chat.participants.find(p => p.isVisitor);
     return visitor?.name || 'Visitante';
   }
   
@@ -114,7 +114,7 @@ export class ChatComponent implements OnInit {
   
   // Método para obtener el estado CSS del participante
   getParticipantStatusClass(chat: ChatData): string {
-    const visitor = chat.participants.find(p => p.role === 'visitor');
+    const visitor = chat.participants.find(p => p.isVisitor);
     if (visitor?.isOnline) {
       return 'chat-item__status--online';
     }
@@ -123,9 +123,12 @@ export class ChatComponent implements OnInit {
   
   // Método para formatear la fecha del último mensaje
   formatLastMessageTime(chat: ChatData): string {
-    if (!chat.lastMessage) return '';
+    // Usar lastMessage.timestamp si existe, o lastMessageAt si no
+    const timestamp = chat.lastMessage?.timestamp || chat.lastMessageAt;
     
-    const messageDate = new Date(chat.lastMessage.timestamp);
+    if (!timestamp) return '';
+    
+    const messageDate = new Date(timestamp);
     const now = new Date();
     const diffInDays = Math.floor((now.getTime() - messageDate.getTime()) / (1000 * 60 * 60 * 24));
     

@@ -1,19 +1,22 @@
 export interface ChatData {
   id: string;
   participants: Participant[];
-  status: 'active' | 'inactive' | 'closed' | 'waiting';
-  lastMessage?: Message;
-  createdAt: Date;
-  updatedAt: Date;
-  metadata?: Record<string, any>;
+  status: 'active' | 'inactive' | 'closed' | 'waiting' | 'pending';
+  lastMessage?: Message | null;
+  lastMessageAt: string | null;
+  createdAt: string;
 }
 
 export interface Participant {
   id: string;
   name: string;
-  role: 'visitor' | 'commercial';
+  isCommercial: boolean;
+  isVisitor: boolean;
   isOnline: boolean;
-  joinedAt: Date;
+  assignedAt: string;
+  lastSeenAt: string | null;
+  isViewing: boolean;
+  isTyping: boolean;
 }
 
 export interface Message {
@@ -23,25 +26,27 @@ export interface Message {
   senderName: string;
   content: string;
   type: 'text' | 'image' | 'file' | 'system';
-  timestamp: Date;
+  timestamp: string;
   isRead: boolean;
   metadata?: Record<string, any>;
 }
 
 export interface ChatListResponse {
-  data?: ChatData[];
-  chats?: ChatData[];
-  pagination?: {
+  data: ChatData[];
+  pagination: {
     cursor?: string;
-    nextCursor?: string;
+    nextCursor?: string | null;
     hasMore: boolean;
     limit: number;
     total?: number;
   };
-  // Para compatibilidad con respuesta directa del servidor
-  total?: number;
-  hasMore?: boolean;
-  nextCursor?: string | null;
+}
+
+export interface RealChatListResponse {
+  chats: ChatData[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
 }
 
 // Opciones para el selector
