@@ -20,7 +20,12 @@ export class StartChatUseCase {
     }
 
     // Delegar al repositorio la implementación específica
-    return await this.chatRepository.startChat(chatId);
+    const result =  await this.chatRepository.startChat(chatId);
+    if (!result) {
+      throw new Error('No se pudo iniciar el chat');
+    }
+
+    return result;
   }
 
   private isValidUUID(uuid: string): boolean {

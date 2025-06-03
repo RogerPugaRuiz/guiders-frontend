@@ -16,23 +16,23 @@ export interface ChatRepositoryPort {
    * Obtiene la lista de chats del usuario autenticado
    * Requiere rol 'commercial'
    */
-  getChats(params: GetChatsParams): Promise<ChatListResponse>;
+  getChats(params: GetChatsParams): Promise<ChatListResponse | null>;
 
   /**
    * Obtiene los mensajes paginados de un chat específico
    * Requiere rol 'visitor' o 'commercial'
    */
-  getMessages(params: GetMessagesParams): Promise<MessageListResponse>;
+  getMessages(params: GetMessagesParams): Promise<MessageListResponse | null>;
 
   /**
    * Obtiene la información de un chat específico por ID
    * Requiere rol 'visitor' o 'commercial'
    */
-  getChatById(params: GetChatByIdParams): Promise<Chat>;
+  getChatById(params: GetChatByIdParams): Promise<Chat | null>;
 
   /**
    * Inicia un chat (para visitantes)
    * Requiere rol 'visitor'
    */
-  startChat(chatId: string): Promise<Chat>;
+  startChat(chatId: string): Promise<Chat | null>;
 }

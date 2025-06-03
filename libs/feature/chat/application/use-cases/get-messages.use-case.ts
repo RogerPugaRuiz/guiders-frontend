@@ -33,7 +33,11 @@ export class GetMessagesUseCase {
     };
 
     // Delegar al repositorio la implementación específica
-    return await this.chatRepository.getMessages(normalizedParams);
+    const result =  await this.chatRepository.getMessages(normalizedParams);
+    if (!result) {
+      throw new Error('No se pudieron obtener los mensajes del chat');
+    }
+    return result;
   }
 
   private isValidUUID(uuid: string): boolean {

@@ -6,6 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 import { Chat, ChatStatus } from '../../../../../../../libs/feature/chat/domain/entities/chat.entity';
 import { ChatService } from '../../services/chat.service';
+import { HttpClient } from '@angular/common/http';
 
 interface FilterOption {
   value: string;

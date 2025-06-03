@@ -18,6 +18,7 @@ import {
   GET_CHAT_BY_ID_USE_CASE_TOKEN,
   START_CHAT_USE_CASE_TOKEN
 } from '../../../core/providers';
+import { HttpClient } from '@angular/common/http';
 
 /**
  * Servicio Angular para gestión de chat que usa los casos de uso inyectados
@@ -32,7 +33,8 @@ export class ChatService {
   private getMessagesUseCase = inject(GET_MESSAGES_USE_CASE_TOKEN);
   private getChatByIdUseCase = inject(GET_CHAT_BY_ID_USE_CASE_TOKEN);
   private startChatUseCase = inject(START_CHAT_USE_CASE_TOKEN);
-  
+
+
   // Signals para estado reactivo
   private loading = signal(false);
   private error = signal<string | null>(null);

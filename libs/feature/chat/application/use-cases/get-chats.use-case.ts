@@ -33,6 +33,11 @@ export class GetChatsUseCase {
     };
 
     // Delegar al repositorio la implementación específica
-    return await this.chatRepository.getChats(normalizedParams);
+    const result =  await this.chatRepository.getChats(normalizedParams);
+    if (!result) {
+      throw new Error('No se pudieron obtener los chats');
+    }
+
+    return result;
   }
 }

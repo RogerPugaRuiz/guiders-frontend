@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { 
   ChatRepositoryPort,
   Chat,
@@ -17,110 +16,210 @@ import {
   PaginationEndError
 } from '../../../../../libs/feature/chat';
 import { environment } from '../../../environments/environment';
+import { firstValueFrom, catchError, throwError } from 'rxjs';
+import { CacheStore } from '../services/cache.store';
 
 /**
  * Adaptador HTTP que implementa ChatRepositoryPort usando HttpClient
- * para todas las operaciones HTTP con manejo de errores apropiado
+ * para operaciones HTTP con manejo de errores reactivo y CacheStore externo
  */
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class HttpChatAdapter implements ChatRepositoryPort {
-  private readonly http = inject(HttpClient);
-  private readonly API_BASE_URL = `${environment.apiUrl}`;
+  private readonly httpClient = inject(HttpClient);
+  private readonly cacheStore = inject(CacheStore);
+  private readonly API_BASE_URL = `${environment.apiUrl}/chats`;
 
-  /**
-   * ✅ HttpClient para GET - Simple y confiable
-   */
-  async getChats(params?: GetChatsParams): Promise<ChatListResponse> {
+  async getChats(params?: GetChatsParams): Promise<ChatListResponse | null> {
     try {
-      const url = this.buildChatsUrl(params);
+      // Usar valores por defecto si no se proporcionan parámetros
+      const limit = params?.limit ?? 10;
+      const cursor = params?.cursor ?? "";
+      const include = params?.include ?? [];
+
+      // Generar clave de caché basada en los parámetros
+      const cacheParams = { limit, cursor, include };
+      const cacheKey = this.cacheStore.generateKey('getChats', cacheParams);
       
-      return await firstValueFrom(
-        this.http.get<ChatListResponse>(url)
-      );
-    } catch (error) {
-      console.error('Error al obtener chats:', error);
-      throw this.handleHttpError(error);
-    }
-  }
+      console.log('🔑 Cache key generada:', cacheKey);
 
-  /**
-   * ✅ HttpClient para GET - Simple y confiable
-   */
-  async getMessages(params: GetMessagesParams): Promise<MessageListResponse> {
-    try {
-      const url = this.buildMessagesUrl(params);
+      // Usar getOrSet para evitar múltiples peticiones simultáneas
+      return await this.cacheStore.getOrSet(cacheKey, async () => {
+        console.log('🌐 Realizando petición HTTP...');
+        
+        // Construir parámetros HTTP
+        let httpParams = new HttpParams()
+          .set('limit', limit.toString())
+          .set('cursor', cursor);
+
+        // Agregar parámetros de inclusión si existen
+        if (include.length > 0) {
+          httpParams = httpParams.set('include', include.join(','));
+        }
+
+        // Realizar petición HTTP
+        const response = await firstValueFrom(
+          this.httpClient.get<ChatListResponse>(this.API_BASE_URL, { params: httpParams })
+            .pipe(
+              catchError(error => throwError(() => this.handleHttpError(error)))
+            )
+        );
+
+        console.log('✅ Petición HTTP completada');
+        return response;
+      });
+    } catch (error) {
+      // Re-lanzar errores de dominio o crear error de red genérico
+      if (error instanceof ValidationError || 
+          error instanceof UnauthorizedError ||
+          error instanceof ChatAccessDeniedError ||
+          error instanceof ChatNotFoundError ||
+          error instanceof PaginationEndError ||
+          error instanceof NetworkError) {
+        throw error;
+      }
       
-      return await firstValueFrom(
-        this.http.get<MessageListResponse>(url)
-      );
-    } catch (error) {
-      throw this.handleHttpError(error);
+      throw new NetworkError('Ocurrió un error inesperado al obtener los chats.');
     }
   }
 
-  /**
-   * ✅ HttpClient para GET - Simple y confiable
-   */
-  async getChatById(params: GetChatByIdParams): Promise<Chat> {
+  async getMessages(params: GetMessagesParams): Promise<MessageListResponse | null> {
     try {
-      const url = `${this.API_BASE_URL}/${params.chatId}`;
+      // Generar clave de caché basada en los parámetros
+      const cacheKey = this.cacheStore.generateKey('getMessages', params);
+
+      // Verificar si existe en caché
+      const cachedResult = this.cacheStore.get<MessageListResponse>(cacheKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+
+      return null;
+
+      // Construir parámetros HTTP
+      // let httpParams = new HttpParams();
       
-      return await firstValueFrom(
-        this.http.get<Chat>(url)
-      );
+      // if (params.chatId) {
+      //   httpParams = httpParams.set('chatId', params.chatId);
+      // }
+      // if (params.limit) {
+      //   httpParams = httpParams.set('limit', params.limit.toString());
+      // }
+      // if (params.cursor) {
+      //   httpParams = httpParams.set('cursor', params.cursor);
+      // }
+
+      // // Realizar petición HTTP
+      // const response = await firstValueFrom(
+      //   this.httpClient.get<MessageListResponse>(`${this.API_BASE_URL}/messages`, { params: httpParams })
+      //     .pipe(
+      //       catchError(error => throwError(() => this.handleHttpError(error)))
+      //     )
+      // );
+
+      // // Almacenar en caché antes de retornar
+      // this.cacheStore.set(cacheKey, response);
+
+      // return response;
     } catch (error) {
-      throw this.handleHttpError(error);
+      // Re-lanzar errores de dominio o crear error de red genérico
+      if (error instanceof ValidationError || 
+          error instanceof UnauthorizedError ||
+          error instanceof ChatAccessDeniedError ||
+          error instanceof ChatNotFoundError ||
+          error instanceof PaginationEndError ||
+          error instanceof NetworkError) {
+        throw error;
+      }
+      
+      throw new NetworkError('Ocurrió un error inesperado al obtener los mensajes.');
     }
   }
 
-  /**
-   * ✅ HttpClient para POST - Operación de escritura/transaccional
-   */
-  async startChat(chatId: string): Promise<Chat> {
+  async getChatById(params: GetChatByIdParams): Promise<Chat | null> {
     try {
-      // HttpClient es mejor para operaciones POST/PUT/DELETE
-      // Son transaccionales y no necesitan cacheo
-      return await firstValueFrom(
-        this.http.post<Chat>(`${this.API_BASE_URL}/${chatId}`, {})
-      );
+      // Generar clave de caché basada en los parámetros
+      const cacheKey = this.cacheStore.generateKey('getChatById', params);
+
+      // Verificar si existe en caché
+      const cachedResult = this.cacheStore.get<Chat>(cacheKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+
+      return null;
+
+      // Realizar petición HTTP
+      // const response = await firstValueFrom(
+      //   this.httpClient.get<Chat>(`${this.API_BASE_URL}/${params.chatId}`)
+      //     .pipe(
+      //       catchError(error => throwError(() => this.handleHttpError(error)))
+      //     )
+      // );
+
+      // // Almacenar en caché antes de retornar
+      // this.cacheStore.set(cacheKey, response);
+
+      // return response;
     } catch (error) {
-      throw this.handleHttpError(error);
+      // Re-lanzar errores de dominio o crear error de red genérico
+      if (error instanceof ValidationError || 
+          error instanceof UnauthorizedError ||
+          error instanceof ChatAccessDeniedError ||
+          error instanceof ChatNotFoundError ||
+          error instanceof PaginationEndError ||
+          error instanceof NetworkError) {
+        throw error;
+      }
+      
+      throw new NetworkError('Ocurrió un error inesperado al obtener el chat.');
+    }
+  }
+
+  async startChat(chatId: string): Promise<Chat | null> {
+    try {
+      // Para operaciones POST normalmente no usamos caché, pero invalidamos caché relacionada
+      // Limpiar caché relacionada con este chat específico
+      this.cacheStore.invalidatePattern(chatId);
+      this.cacheStore.invalidatePattern('getChats');
+      return null;
+      // Realizar petición HTTP POST
+      const response = await firstValueFrom(
+        this.httpClient.post<Chat>(`${this.API_BASE_URL}/${chatId}/start`, {})
+          .pipe(
+            catchError(error => throwError(() => this.handleHttpError(error)))
+          )
+      );
+
+      return response;
+    } catch (error) {
+      // Re-lanzar errores de dominio o crear error de red genérico
+      if (error instanceof ValidationError || 
+          error instanceof UnauthorizedError ||
+          error instanceof ChatAccessDeniedError ||
+          error instanceof ChatNotFoundError ||
+          error instanceof PaginationEndError ||
+          error instanceof NetworkError) {
+        throw error;
+      }
+      
+      throw new NetworkError('Ocurrió un error inesperado al iniciar el chat.');
     }
   }
 
   /**
-   * Construye la URL para obtener chats con parámetros de consulta
+   * Obtiene estadísticas de la caché
    */
-  private buildChatsUrl(params?: GetChatsParams): string {
-    const queryParams = new URLSearchParams();
-    
-    if (params?.limit) {
-      queryParams.append('limit', params.limit.toString());
-    }
-    if (params?.cursor) {
-      queryParams.append('cursor', params.cursor);
-    }
-    if (params?.include && params.include.length > 0) {
-      queryParams.append('include', params.include.join(','));
-    }
-
-    return `${this.API_BASE_URL}/chats${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  public getCacheStats() {
+    return this.cacheStore.getStats();
   }
 
   /**
-   * Construye la URL para obtener mensajes con parámetros de consulta
+   * Limpia toda la caché manualmente
    */
-  private buildMessagesUrl(params: GetMessagesParams): string {
-    const queryParams = new URLSearchParams();
-    
-    if (params.limit) {
-      queryParams.append('limit', params.limit.toString());
-    }
-    if (params.cursor) {
-      queryParams.append('cursor', params.cursor);
-    }
-
-    return `${this.API_BASE_URL}/${params.chatId}/messages${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+  public clearCache(): void {
+    this.cacheStore.clear();
   }
 
   /**

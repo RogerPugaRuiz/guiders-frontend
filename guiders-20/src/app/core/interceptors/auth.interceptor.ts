@@ -4,10 +4,14 @@ import {
   HttpInterceptorFn,
   HttpErrorResponse 
 } from '@angular/common/http';
-import { throwError, catchError, switchMap, from } from 'rxjs';
+import { throwError, catchError, switchMap, from, Observable, EMPTY, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { isTokenNearExpiration, isTokenExpired } from '../utils/jwt.utils';
+
+// Variable global para controlar el refresh en progreso
+let refreshInProgress = false;
+let refreshPromise: Promise<any> | null = null;
 
 /**
  * Interceptor funcional HTTP para añadir automáticamente el token de autenticación JWT
@@ -55,18 +59,45 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   // Verificar si el token está próximo a expirar
   if (isTokenNearExpiration(token)) {
-    console.log('Token próximo a expirar. Intentando refrescar automáticamente...');
+    console.log('Token próximo a expirar. Verificando si refresh está en progreso...');
     
-    // Intentar refrescar el token y continuar con la petición original
-    return from(authService.refreshToken()).pipe(
+    // Si ya hay un refresh en progreso, esperar a que termine
+    if (refreshInProgress && refreshPromise) {
+      console.log('Refresh en progreso, esperando...');
+      return from(refreshPromise).pipe(
+        switchMap(newSession => {
+          console.log('Usando token refrescado de operación en progreso.');
+          const authReq = addAuthHeader(req, newSession.token);
+          return next(authReq);
+        }),
+        catchError((refreshError: HttpErrorResponse) => {
+          console.error('Error en el refresh en progreso:', refreshError);
+          handleAuthError(authService, router);
+          return throwError(() => refreshError);
+        })
+      );
+    }
+
+    // Iniciar el proceso de refresh
+    console.log('Iniciando refresh de token...');
+    refreshInProgress = true;
+    refreshPromise = authService.refreshToken().toPromise();
+    
+    return from(refreshPromise).pipe(
       switchMap(newSession => {
         console.log('Token refrescado exitosamente.');
+        refreshInProgress = false;
+        refreshPromise = null;
+        
         // Continuar con la petición original usando el nuevo token
         const authReq = addAuthHeader(req, newSession.token);
         return next(authReq);
       }),
       catchError((refreshError: HttpErrorResponse) => {
         console.error('Error al refrescar el token:', refreshError);
+        refreshInProgress = false;
+        refreshPromise = null;
+        
         // Si el refresh falla, limpiar sesión y manejar como error de auth
         handleAuthError(authService, router);
         return throwError(() => refreshError);
@@ -102,6 +133,12 @@ function shouldSkipAuth(url: string): boolean {
     // También incluir rutas públicas si las hay
     '/api/public'
   ];
+  
+  // También saltar si hay un refresh en progreso y es una petición de refresh
+  if (refreshInProgress && url.includes('/auth/refresh')) {
+    return true;
+  }
+  
   return skipPaths.some(path => url.includes(path));
 }
 

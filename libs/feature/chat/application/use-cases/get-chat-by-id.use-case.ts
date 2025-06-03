@@ -20,7 +20,12 @@ export class GetChatByIdUseCase {
     }
 
     // Delegar al repositorio la implementación específica
-    return await this.chatRepository.getChatById(params);
+    const result = await this.chatRepository.getChatById(params);
+    if (!result) {
+      throw new Error('No se pudo obtener el chat');
+    }
+
+    return result;
   }
 
   private isValidUUID(uuid: string): boolean {
