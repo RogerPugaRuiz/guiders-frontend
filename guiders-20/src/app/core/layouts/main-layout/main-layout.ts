@@ -7,6 +7,7 @@ import { AuthService } from '../../services/auth.service';
 import { StorageService } from '../../services/storage.service';
 import { ColorThemeService } from '../../services/color-theme.service';
 import { ThemeStateService } from '../../services/theme-state.service';
+import { WebSocketService } from '../../services/websocket.service';
 import { SideMenu } from '../../components/side-menu/side-menu';
 
 @Component({
@@ -21,6 +22,7 @@ export class MainLayout implements OnInit, OnDestroy {
   private storageService = inject(StorageService);
   private colorThemeService = inject(ColorThemeService);
   private themeStateService = inject(ThemeStateService);
+  private webSocketService = inject(WebSocketService);
   private destroy$ = new Subject<void>();
 
   // ViewChild moderno con signals
@@ -37,6 +39,11 @@ export class MainLayout implements OnInit, OnDestroy {
     return email ? email.charAt(0).toUpperCase() : 'U';
   });
   currentUserRole = computed(() => this.currentUser()?.role || '');
+
+  // Computed signals para el estado del WebSocket
+  isWebSocketConnected = computed(() => this.webSocketService.isConnected());
+  webSocketError = computed(() => this.webSocketService.connectionError());
+  isWebSocketConnecting = computed(() => this.webSocketService.isConnecting());
   
   constructor() {
     // Effect para manejar cambios de tema
@@ -45,6 +52,18 @@ export class MainLayout implements OnInit, OnDestroy {
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
         this.storageService.setItem('theme', isDarkMode ? 'dark' : 'light');
+      }
+    });
+
+    // Effect para monitorear el estado del WebSocket
+    effect(() => {
+      const connected = this.isWebSocketConnected();
+      const error = this.webSocketError();
+      
+      if (connected) {
+        console.log('✅ WebSocket conectado en MainLayout');
+      } else if (error) {
+        console.warn('⚠️ Error en WebSocket:', error);
       }
     });
   }
@@ -57,6 +76,21 @@ export class MainLayout implements OnInit, OnDestroy {
     this.authService.checkAuthenticationStatus().pipe(
       takeUntil(this.destroy$)
     ).subscribe();
+
+    // Suscribirse a los mensajes del WebSocket
+    this.webSocketService.getMessages().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(message => {
+      this.handleWebSocketMessage(message);
+    });
+
+    // Suscribirse a notificaciones específicas
+    this.webSocketService.getMessagesByType('notification').pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(notification => {
+      console.log('🔔 Notificación recibida en MainLayout:', notification);
+      // Aquí puedes agregar lógica para mostrar notificaciones en la UI
+    });
 
     // Remover la clase que oculta el contenido una vez inicializado
     if (typeof document !== 'undefined') {
@@ -151,6 +185,28 @@ export class MainLayout implements OnInit, OnDestroy {
       if (currentColor) {
         this.colorThemeService.applyPrimaryColor(currentColor);
       }
+    }
+  }
+
+  /**
+   * Maneja los mensajes recibidos del WebSocket
+   */
+  private handleWebSocketMessage(message: any): void {
+    console.log('📨 Mensaje WebSocket recibido en MainLayout:', message);
+    
+    switch (message.type) {
+      case 'user_status_change':
+        console.log('👤 Cambio de estado de usuario:', message.data);
+        break;
+      case 'notification':
+        console.log('🔔 Notificación:', message.data);
+        // Aquí puedes agregar lógica para mostrar notificaciones en la UI
+        break;
+      case 'chat_message':
+        console.log('💬 Mensaje de chat:', message.data);
+        break;
+      default:
+        console.log('📝 Mensaje genérico:', message);
     }
   }
 }

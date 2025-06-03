@@ -197,3 +197,59 @@
     }
   }
 }
+
+// Estilos para el indicador de WebSocket
+.gh-websocket-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  cursor: help;
+  
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #6b7280; // gris por defecto (desconectado)
+    transition: all 0.3s ease;
+  }
+  
+  // Estado conectado
+  &--connected {
+    .gh-websocket-indicator__dot {
+      background-color: #10b981; // verde
+      box-shadow: 0 0 4px rgba(16, 185, 129, 0.4);
+    }
+  }
+  
+  // Estado conectando
+  &--connecting {
+    .gh-websocket-indicator__dot {
+      background-color: #f59e0b; // amarillo/naranja
+      animation: pulse-glow 1.5s infinite;
+    }
+  }
+  
+  // Estado con error
+  &--error {
+    .gh-websocket-indicator__dot {
+      background-color: #ef4444; // rojo
+      box-shadow: 0 0 4px rgba(239, 68, 68, 0.4);
+    }
+  }
+}
+
+@keyframes pulse-glow {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}

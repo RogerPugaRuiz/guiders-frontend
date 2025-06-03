@@ -29,14 +29,19 @@ export interface Message {
 }
 
 export interface ChatListResponse {
-  data: ChatData[];
-  pagination: {
+  data?: ChatData[];
+  chats?: ChatData[];
+  pagination?: {
     cursor?: string;
     nextCursor?: string;
     hasMore: boolean;
     limit: number;
     total?: number;
   };
+  // Para compatibilidad con respuesta directa del servidor
+  total?: number;
+  hasMore?: boolean;
+  nextCursor?: string | null;
 }
 
 // Opciones para el selector

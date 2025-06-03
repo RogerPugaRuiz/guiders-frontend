@@ -9,6 +9,18 @@
 		<div class="gh-header__nav">
 			<a href="#" class="gh-header__nav-item">Documentación</a>
 			<a href="#" class="gh-header__nav-item">Soporte</a>
+			
+			<!-- Indicador de estado WebSocket -->
+			<div class="gh-websocket-indicator" 
+				 [class.gh-websocket-indicator--connected]="isWebSocketConnected()"
+				 [class.gh-websocket-indicator--connecting]="isWebSocketConnecting()"
+				 [class.gh-websocket-indicator--error]="webSocketError()"
+				 [title]="isWebSocketConnected() ? 'WebSocket conectado' : 
+				          isWebSocketConnecting() ? 'Conectando WebSocket...' : 
+				          webSocketError() ? 'Error en WebSocket: ' + webSocketError() : 'WebSocket desconectado'">
+				<div class="gh-websocket-indicator__dot"></div>
+			</div>
+			
 			<!-- <app-theme-toggle></app-theme-toggle> -->
 			<div class="gh-header__profile" (click)="toggleProfileMenu()" #profileMenu>
 				<div class="gh-avatar gh-avatar--sm">

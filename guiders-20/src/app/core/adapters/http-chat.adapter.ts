@@ -60,14 +60,47 @@ export class HttpChatAdapter implements ChatRepositoryPort {
 
         // Realizar petición HTTP
         const response = await firstValueFrom(
-          this.httpClient.get<ChatListResponse>(this.API_BASE_URL, { params: httpParams })
+          this.httpClient.get<any>(this.API_BASE_URL, { params: httpParams })
             .pipe(
               catchError(error => throwError(() => this.handleHttpError(error)))
             )
         );
 
+        console.log('📨 Respuesta cruda recibida:', response);
+        
+        // Transformar la respuesta al formato esperado
+        let transformedResponse: ChatListResponse;
+        
+        if (response.data && Array.isArray(response.data)) {
+          // Formato estándar con data y pagination
+          transformedResponse = response;
+        } else if (response.chats && Array.isArray(response.chats)) {
+          // Formato con chats directamente
+          transformedResponse = {
+            data: response.chats,
+            pagination: {
+              hasMore: response.hasMore ?? false,
+              limit: limit,
+              total: response.total,
+              nextCursor: response.nextCursor
+            }
+          };
+        } else {
+          // Fallback: respuesta vacía
+          transformedResponse = {
+            data: [],
+            pagination: {
+              hasMore: false,
+              limit: limit,
+              total: 0
+            }
+          };
+        }
+        
+        console.log('🔄 Respuesta transformada:', transformedResponse);
+
         console.log('✅ Petición HTTP completada');
-        return response;
+        return transformedResponse;
       });
     } catch (error) {
       // Re-lanzar errores de dominio o crear error de red genérico

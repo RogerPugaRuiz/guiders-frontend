@@ -47,16 +47,29 @@ export class ChatService {
    * Obtiene la lista de chats usando el caso de uso
    */
   getChats(params?: GetChatsParams): Observable<ChatListResponse> {
+    console.log('🚀 [ChatService] getChats llamado con params:', params);
     this.loading.set(true);
     this.error.set(null);
+    
+    console.log('🔧 [ChatService] Ejecutando getChatsUseCase...');
     
     return from(
       this.getChatsUseCase.execute(params)
         .then((response: ChatListResponse) => {
+          console.log('✅ [ChatService] getChatsUseCase.execute completado. Respuesta:', {
+            response,
+            hasData: !!response.data,
+            dataLength: response.data?.length,
+            dataType: typeof response.data,
+            isArray: Array.isArray(response.data)
+          });
+          
           this.loading.set(false);
+          console.log('📤 [ChatService] Retornando respuesta al componente:', response);
           return response;
         })
         .catch((error: any) => {
+          console.error('❌ [ChatService] Error en getChatsUseCase.execute:', error);
           this.loading.set(false);
           this.error.set(error.message || 'Error al cargar los chats');
           throw error;

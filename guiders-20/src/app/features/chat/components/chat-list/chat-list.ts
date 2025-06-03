@@ -1,11 +1,11 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed, effect, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, catchError, of, map, startWith } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Observable, catchError, of, map, startWith, Subject, takeUntil } from 'rxjs';
 
 import { Chat, ChatStatus } from '../../../../../../../libs/feature/chat/domain/entities/chat.entity';
 import { ChatService } from '../../services/chat.service';
+import { WebSocketService } from '../../../../core/services/websocket.service';
 import { HttpClient } from '@angular/common/http';
 
 interface FilterOption {
@@ -20,8 +20,10 @@ interface FilterOption {
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss'
 })
-export class ChatListComponent implements OnInit {
+export class ChatListComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatService);
+  private cdr = inject(ChangeDetectorRef);
+  private destroy$ = new Subject<void>();
 
   // Signals para el estado
   searchTerm = signal('');
@@ -39,9 +41,8 @@ export class ChatListComponent implements OnInit {
     { value: 'closed', label: 'Cerrados' }
   ];
 
-  // Observable de chats convertido a signal
-  private chats$ = this.loadChats();
-  chats = toSignal(this.chats$, { initialValue: [] });
+  // Signal para almacenar los chats
+  chats = signal<Chat[]>([]);
 
   // Computed signals
   filteredChats = computed(() => {
@@ -79,34 +80,92 @@ export class ChatListComponent implements OnInit {
 
   selectedFilterValue = computed(() => this.selectedFilter());
 
+  constructor() {
+    // Effect para debugging - monitora cambios en el signal de chats
+    effect(() => {
+      const chats = this.chats();
+      console.log('🔄 Effect: Chats signal changed:', {
+        count: chats?.length || 0,
+        chats: chats,
+        isArray: Array.isArray(chats)
+      });
+    });
+
+    // Effect para debugging - monitora el estado de loading
+    effect(() => {
+      const loading = this.isLoading();
+      console.log('🔄 Effect: Loading state changed:', loading);
+    });
+
+    // Effect para debugging - monitora el estado de error
+    effect(() => {
+      const error = this.error();
+      console.log('🔄 Effect: Error state changed:', error);
+    });
+
+    // Effect para debugging - monitora los chats filtrados
+    effect(() => {
+      const filtered = this.filteredChats();
+      console.log('🔄 Effect: Filtered chats changed:', {
+        count: filtered?.length || 0,
+        filtered: filtered
+      });
+    });
+  }
+
   ngOnInit() {
-    this.loadInitialChats();
+    this.loadChats();
   }
 
-  private loadChats(): Observable<Chat[]> {
-    return this.chatService.getChats({ limit: 50 }).pipe(
-      map(response => response.data),
-      catchError(error => {
-        console.error('Error loading chats:', error);
-        this.error.set('Error al cargar los chats. Por favor, inténtalo de nuevo.');
-        return of([]);
-      }),
-      startWith([])
-    );
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private loadInitialChats() {
+  private loadChats() {
+    console.log('🚀 [ChatList] Iniciando carga de chats...');
     this.isLoading.set(true);
     this.error.set(null);
     
+    console.log('🔧 [ChatList] Llamando chatService.getChats...');
     this.chatService.getChats({ limit: 50 }).subscribe({
       next: (response) => {
+        console.log('📨 [ChatList] Respuesta recibida del servicio:', {
+          response,
+          responseType: typeof response,
+          hasResponse: !!response,
+          responseKeys: response ? Object.keys(response) : 'No response'
+        });
+        
+        // Extraer los chats de la respuesta normalizada
+        const chats = response.data || [];
+        console.log('📝 [ChatList] Chats extraídos:', {
+          chats,
+          length: chats.length,
+          isArray: Array.isArray(chats),
+          firstItem: chats[0]
+        });
+        
+        // Asignar los chats al signal
+        this.chats.set(chats);
+        
+        console.log('✅ [ChatList] Chats asignados al signal. Verificando estado:', {
+          signalValue: this.chats(),
+          signalLength: this.chats().length,
+          signalIsArray: Array.isArray(this.chats())
+        });
+        
         this.isLoading.set(false);
+        
+        // Forzar detección de cambios
+        this.cdr.detectChanges();
+        console.log('🔄 [ChatList] Detección de cambios forzada');
       },
       error: (error) => {
-        console.error('Error loading initial chats:', error);
+        console.error('❌ [ChatList] Error loading chats:', error);
         this.error.set('Error al cargar los chats. Por favor, inténtalo de nuevo.');
         this.isLoading.set(false);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -128,12 +187,17 @@ export class ChatListComponent implements OnInit {
     
     this.chatService.getChats({ limit: 50 }).subscribe({
       next: (response) => {
+        console.log('Chats recargados:', response);
+        const chats = response.data || [];
+        this.chats.set(chats);
         this.isRetryLoading.set(false);
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Error retrying chats:', error);
         this.error.set('Error al cargar los chats. Por favor, inténtalo de nuevo.');
         this.isRetryLoading.set(false);
+        this.cdr.detectChanges();
       }
     });
   }

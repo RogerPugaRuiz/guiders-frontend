@@ -73,7 +73,8 @@ export class ChatComponent implements OnInit {
     
     this.chatService.getChats(params).subscribe({
       next: (response: ChatListResponse) => {
-        this.chats.set(response.data);
+        const chats = response.data || [];
+        this.chats.set(chats);
         this.isLoading.set(false);
         this.isRetryLoading.set(false);
       },

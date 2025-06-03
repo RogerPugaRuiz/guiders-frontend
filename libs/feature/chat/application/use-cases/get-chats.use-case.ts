@@ -35,9 +35,10 @@ export class GetChatsUseCase {
     // Delegar al repositorio la implementación específica
     const result =  await this.chatRepository.getChats(normalizedParams);
     if (!result) {
+      console.error('Error al obtener los chats: resultado nulo o indefinido');
       throw new Error('No se pudieron obtener los chats');
     }
-
+    console.log('Chats obtenidos correctamente:', result);
     return result;
   }
 }
