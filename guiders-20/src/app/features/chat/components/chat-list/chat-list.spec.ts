@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { of } from 'rxjs';
 
 import { ChatListComponent } from './chat-list';
 import { ChatService } from '../../services/chat.service';
@@ -9,13 +8,13 @@ import { WebSocketService } from '../../../../core/services/websocket.service';
 // Mock services
 class MockChatService {
   getChats() {
-    return Promise.resolve({ data: [] });
+    return of({ data: [], pagination: { hasMore: false, limit: 50 } });
   }
 }
 
 class MockWebSocketService {
   getMessagesByType() {
-    return Promise.resolve();
+    return of();
   }
   connect() {}
   disconnect() {}
@@ -28,9 +27,8 @@ describe('ChatListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ChatListComponent, HttpClientTestingModule],
+      imports: [ChatListComponent],
       providers: [
-        provideHttpClient(),
         { provide: ChatService, useClass: MockChatService },
         { provide: WebSocketService, useClass: MockWebSocketService }
       ]
