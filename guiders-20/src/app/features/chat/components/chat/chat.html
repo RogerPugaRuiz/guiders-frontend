@@ -10,21 +10,47 @@
 
 	<div class="chat-workspace">
 		<!-- Panel lateral de conversaciones -->
-		<app-chat-list></app-chat-list>
+		<app-chat-list 
+			[chats]="chats()"
+			[filteredChats]="filteredChats()"
+			[searchTerm]="searchTerm()"
+			[selectedFilter]="selectedFilterValue()"
+			[isLoading]="isLoading()"
+			[error]="error()"
+			[isRetryLoading]="isRetryLoading()"
+			[selectedChatId]="selectedChatId()"
+			(searchChange)="onSearchChange($event)"
+			(filterChange)="onFilterChange($event)"
+			(chatSelection)="onChatSelection($event)"
+			(retryLoad)="onRetryLoad($event)">
+		</app-chat-list>
 
 		<!-- Área principal del chat -->
 		<div class="chat-main">
 			<div class="chat-header">
-				<div class="chat-contact">
-					<div class="chat-contact__avatar">
-						<span>AR</span>
-						<span class="chat-contact__status chat-contact__status--online"></span>
+				@if (hasSelectedChat()) {
+					<div class="chat-contact">
+						<div class="chat-contact__avatar">
+							<span>{{ selectedChatInitials() }}</span>
+							<span class="chat-contact__status" [class]="selectedChatStatusClass()"></span>
+						</div>
+						<div class="chat-contact__info">
+							<h3 class="chat-contact__name">{{ selectedChatName() }}</h3>
+							<p class="chat-contact__metadata">{{ selectedChatStatusText() }}</p>
+						</div>
 					</div>
-					<div class="chat-contact__info">
-						<h3 class="chat-contact__name">Ana Rodríguez</h3>
-						<p class="chat-contact__metadata">Barcelona, España • En línea</p>
+				} @else {
+					<div class="chat-contact">
+						<div class="chat-contact__avatar">
+							<span>?</span>
+							<span class="chat-contact__status chat-contact__status--offline"></span>
+						</div>
+						<div class="chat-contact__info">
+							<h3 class="chat-contact__name">Selecciona un chat</h3>
+							<p class="chat-contact__metadata">Elige una conversación de la lista</p>
+						</div>
 					</div>
-				</div>
+				}
 				<div class="chat-actions">
 					<button class="gh-button gh-button--icon tracking-btn" [class.active]="showTrackingPanel()"
 						title="Actividad del visitante" (click)="toggleTrackingInfo()">
@@ -109,165 +135,106 @@
 			</div>
 
 			<div class="chat-messages">
-				<div class="start-conversation"></div>
-				<div class="chat-date-separator">
-					<span>Hoy</span>
-				</div>
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Hola, ¿podrían ayudarme con información sobre los servicios de guía turística?</p>
+				@if (hasSelectedChat()) {
+					<div class="start-conversation"></div>
+					<div class="chat-date-separator">
+						<span>Hoy</span>
 					</div>
-					<span class="chat-message__time">12:30</span>
-				</div>
 
-				<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
-				<div class="chat-message chat-message--sent">
-					<div class="chat-message__content">
-						<p>¡Hola Ana! Claro, estaré encantado de ayudarte. ¿Qué tipo de tour estás buscando?</p>
+					<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
+					<div class="chat-message chat-message--received">
+						<div class="chat-message__content">
+							<p>Hola, ¿podrían ayudarme con información sobre los servicios de guía turística?</p>
+						</div>
+						<span class="chat-message__time">12:30</span>
 					</div>
-					<span class="chat-message__time">12:32</span>
-				</div>
 
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Estoy interesada en tours culturales y gastronómicos. Viajaré a Barcelona el próximo mes.</p>
+					<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
+					<div class="chat-message chat-message--sent">
+						<div class="chat-message__content">
+							<p>¡Hola Ana! Claro, estaré encantado de ayudarte. ¿Qué tipo de tour estás buscando?</p>
+						</div>
+						<span class="chat-message__time">12:32</span>
 					</div>
-					<span class="chat-message__time">12:35</span>
-				</div>
 
-				<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
-				<div class="chat-message chat-message--sent">
-					<div class="chat-message__content">
-						<p>¡Genial! Barcelona tiene mucho que ofrecer en ese sentido. Tenemos tours diarios que combinan visitas a
-							monumentos históricos con degustaciones de la gastronomía local. ¿Te gustaría recibir más detalles sobre
-							estos tours?</p>
+					<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
+					<div class="chat-message chat-message--received">
+						<div class="chat-message__content">
+							<p>Estoy interesada en tours culturales y gastronómicos. Viajaré a Barcelona el próximo mes.</p>
+						</div>
+						<span class="chat-message__time">12:35</span>
 					</div>
-					<span class="chat-message__time">12:40</span>
-				</div>
 
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
+					<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
+					<div class="chat-message chat-message--sent">
+						<div class="chat-message__content">
+							<p>¡Genial! Barcelona tiene mucho que ofrecer en ese sentido. Tenemos tours diarios que combinan visitas a
+								monumentos históricos con degustaciones de la gastronomía local. ¿Te gustaría recibir más detalles sobre
+								estos tours?</p>
+						</div>
+						<span class="chat-message__time">12:40</span>
+					</div>
+
+					<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
+					<div class="chat-message chat-message--received">
+						<div class="chat-message__content">
+							<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.</p>
+						</div>
+						<span class="chat-message__time">12:45</span>
+					</div>
+				} @else {
+					<!-- Estado vacío cuando no hay chat seleccionado -->
+					<div class="chat-empty-state">
+						<div class="chat-empty-state__icon">
+							<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+								stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+								<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z"/>
+								<path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+							</svg>
+						</div>
+						<h3 class="chat-empty-state__title">Selecciona una conversación</h3>
+						<p class="chat-empty-state__description">
+							Elige un chat de la lista de la izquierda para ver los mensajes y poder responder a tus visitantes.
 						</p>
 					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
-
-				<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-				<div class="chat-message chat-message--received">
-					<div class="chat-message__content">
-						<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.
-						</p>
-					</div>
-					<span class="chat-message__time">12:45</span>
-				</div>
+				}
 			</div>
 
-			<div class="chat-input">
-				<button class="gh-button gh-button--icon" title="Adjuntar archivo">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-						class="lucide lucide-paperclip-icon lucide-paperclip">
-						<path d="M13.234 20.252 21 12.3" />
-						<path
-							d="m16 6-8.414 8.586a2 2 0 0 0 0 2.828 2 2 0 0 0 2.828 0l8.414-8.586a4 4 0 0 0 0-5.656 4 4 0 0 0-5.656 0l-8.415 8.585a6 6 0 1 0 8.486 8.486" />
-					</svg>
-				</button>
-				<textarea 
-					#messageTextarea
-					class="chat-input__field" 
-					placeholder="Escribe tu mensaje aquí..."
-					rows="1"
-					[value]="currentMessage()"
-					(input)="onMessageInput($event)"
-					(keydown)="onKeyDown($event)">
-				</textarea>
-				<button 
-					class="gh-button gh-button--icon" 
-					title="Enviar mensaje" 
-					(click)="sendMessage()"
-					[disabled]="!canSendMessage()">
-					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-						class="lucide lucide-send-horizontal-icon lucide-send-horizontal">
-						<path
-							d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z" />
-						<path d="M6 12h16" />
-					</svg>
-				</button>
-			</div>
+			@if (hasSelectedChat()) {
+				<div class="chat-input">
+					<button class="gh-button gh-button--icon" title="Adjuntar archivo">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+							class="lucide lucide-paperclip-icon lucide-paperclip">
+							<path d="M13.234 20.252 21 12.3" />
+							<path
+								d="m16 6-8.414 8.586a2 2 0 0 0 0 2.828 2 2 0 0 0 2.828 0l8.414-8.586a4 4 0 0 0 0-5.656 4 4 0 0 0-5.656 0l-8.415 8.585a6 6 0 1 0 8.486 8.486" />
+						</svg>
+					</button>
+					<textarea 
+						#messageTextarea
+						class="chat-input__field" 
+						placeholder="Escribe tu mensaje aquí..."
+						rows="1"
+						[value]="currentMessage()"
+						(input)="onMessageInput($event)"
+						(keydown)="onKeyDown($event)">
+					</textarea>
+					<button 
+						class="gh-button gh-button--icon" 
+						title="Enviar mensaje" 
+						(click)="sendMessage()"
+						[disabled]="!canSendMessage()">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+							class="lucide lucide-send-horizontal-icon lucide-send-horizontal">
+							<path
+								d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z" />
+							<path d="M6 12h16" />
+						</svg>
+					</button>
+				</div>
+			}
 		</div>
 	</div>
 </div>

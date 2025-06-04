@@ -1,4 +1,14 @@
-<!-- Panel lateral de conversaciones -->
+<!-- Panel      <input type="text" 
+             class="chat-search__input" 
+             placeholder="Buscar conversaciones..."
+             [value]="searchTerm()"
+             (input)="onSearchChange($event)">
+    </div>
+    <div class="chat-filter">
+      <select class="form-select form-select-sm" 
+              [ngModel]="selectedFilter()" 
+              (change)="onFilterChange($event)"
+              data-cy="chat-filter">\ conversaciones -->
 <div class="chat-sidebar">
   <div class="chat-sidebar__header">
     <div class="chat-search">
@@ -11,12 +21,12 @@
       <input type="text" 
              class="chat-search__input" 
              placeholder="Buscar conversaciones..."
-             [value]="searchTerm()"
+             [value]="searchTerm"
              (input)="onSearchChange($event)">
     </div>
     <div class="chat-filter">
       <select class="form-select form-select-sm" 
-              [ngModel]="selectedFilterValue()" 
+              [ngModel]="selectedFilter" 
               (change)="onFilterChange($event)"
               data-cy="chat-filter">
         @for (option of filterOptions; track option.value) {
@@ -35,7 +45,7 @@
     }
 
     <!-- Error state -->
-    @if (showErrorState()) {
+    @if (error() && !isLoading()) {
       <div class="chat-error" data-cy="chat-error">
         <div class="chat-error__content">
           <p class="chat-error__message">{{ error() }}</p>
@@ -65,7 +75,7 @@
     }
 
     <!-- Empty state -->
-    @if (showEmptyState()) {
+    @if (!isLoading() && !error() && filteredChats().length === 0) {
       <div class="chat-empty" data-cy="chat-empty">
         <p>No hay chats disponibles.</p>
       </div>
@@ -74,9 +84,10 @@
     <!-- Chat items -->
     @for (chat of filteredChats(); track chat.id; let isFirst = $first) {
       <div class="chat-item"
-           [class.chat-item--active]="isFirst" 
+           [class.chat-item--active]="isChatSelected(chat.id)" 
            [attr.data-chat-id]="chat.id" 
-           data-cy="chat-item">
+           data-cy="chat-item"
+           (click)="selectChat(chat)">
         <div class="chat-item__avatar">
           <img [src]="getParticipantAvatarUrl(chat)" 
                [alt]="getVisitorName(chat)"
@@ -100,7 +111,7 @@
             @if (getVisitor(chat)?.isTyping) {
               <p class="chat-item__status-text typing">Escribiendo...</p>
             } @else if (getVisitor(chat)?.isViewing) {
-              <p class="chat-item__status-text viewing">Esta en la conversación</p>
+              <!-- <p class="chat-item__status-text viewing">Esta en la conversación</p> -->
             } @else if (getParticipantStatusClass(chat) === 'chat-item__status--inactive') {
               <!-- <p class="chat-item__status-text inactive">Inactivo</p> -->
             }

@@ -7,6 +7,9 @@ export interface ChatStatusUpdatedData extends Record<string, unknown> {
 export interface ParticipantOnlineStatusUpdatedData extends Record<string, unknown> {
   isOnline: boolean;
   participantId: string;
+  isTyping?: boolean;
+  isViewing?: boolean;
+  lastSeenAt?: string;
 }
 
 export interface ChatLastMessageUpdatedData extends Record<string, unknown> {
@@ -41,6 +44,9 @@ export interface ChatStatusUpdatedData {
 export interface ParticipantOnlineStatusUpdatedData {
   isOnline: boolean;
   participantId: string;
+  isTyping?: boolean;
+  isViewing?: boolean;
+  lastSeenAt?: string;
 }
 
 export interface ChatLastMessageUpdatedData {

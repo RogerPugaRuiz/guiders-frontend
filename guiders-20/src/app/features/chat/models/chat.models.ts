@@ -17,6 +17,7 @@ export interface Participant {
   lastSeenAt: string | null;
   isViewing: boolean;
   isTyping: boolean;
+  isAnonymous?: boolean;
 }
 
 export interface Message {

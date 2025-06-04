@@ -7,6 +7,7 @@ import { provideClientHydration, withEventReplay } from '@angular/platform-brows
 import { allAdapterProviders, allUseCaseProviders } from './core/providers';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { GUIDERS20_AUTH_PROVIDERS } from './core/config/auth-config.providers';
+import { WEBSOCKET_PROVIDERS } from './core/providers/websocket.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,5 +26,7 @@ export const appConfig: ApplicationConfig = {
     ...allUseCaseProviders,
     // Configuración de auth con arquitectura hexagonal
     ...GUIDERS20_AUTH_PROVIDERS,
+    // Configuración de WebSocket
+    ...WEBSOCKET_PROVIDERS,
   ]
 };
