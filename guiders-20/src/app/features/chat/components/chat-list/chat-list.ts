@@ -1,11 +1,17 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Observable, catchError, of, map, startWith } from 'rxjs';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Observable, catchError, of, map, startWith, Subject, takeUntil } from 'rxjs';
 
 import { Chat, ChatStatus } from '../../../../../../../libs/feature/chat/domain/entities/chat.entity';
 import { ChatService } from '../../services/chat.service';
+import { WebSocketService } from '../../../../core/services/websocket.service';
+import { 
+  Response, 
+  ChatStatusUpdatedData, 
+  ParticipantOnlineStatusUpdatedData, 
+  ChatLastMessageUpdatedData 
+} from '../../../../core/models/websocket.models';
 
 interface FilterOption {
   value: string;
@@ -19,8 +25,10 @@ interface FilterOption {
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss'
 })
-export class ChatListComponent implements OnInit {
+export class ChatListComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatService);
+  private websocketService = inject(WebSocketService);
+  private destroy$ = new Subject<void>();
 
   // Signals para el estado
   searchTerm = signal('');
@@ -28,6 +36,7 @@ export class ChatListComponent implements OnInit {
   isLoading = signal(false);
   error = signal<string | null>(null);
   isRetryLoading = signal(false);
+  private chatsSignal = signal<Chat[]>([]);
 
   // Opciones de filtro
   filterOptions: FilterOption[] = [
@@ -40,7 +49,7 @@ export class ChatListComponent implements OnInit {
 
   // Observable de chats convertido a signal
   private chats$ = this.loadChats();
-  chats = toSignal(this.chats$, { initialValue: [] });
+  chats = computed(() => this.chatsSignal());
 
   // Computed signals
   filteredChats = computed(() => {
@@ -73,6 +82,12 @@ export class ChatListComponent implements OnInit {
 
   ngOnInit() {
     this.loadInitialChats();
+    this.setupWebSocketListeners();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private loadChats(): Observable<Chat[]> {
@@ -93,6 +108,7 @@ export class ChatListComponent implements OnInit {
     
     this.chatService.getChats({ limit: 50 }).subscribe({
       next: (response) => {
+        this.chatsSignal.set(response.data);
         this.isLoading.set(false);
       },
       error: (error) => {
@@ -101,6 +117,128 @@ export class ChatListComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  /**
+   * Configura los listeners de WebSocket para eventos de chat
+   */
+  private setupWebSocketListeners() {
+    // Escuchar cambios de estado de chat
+    this.websocketService.getMessagesByType('chat:status-updated')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(message => {
+        this.handleChatStatusUpdated(message.data);
+      });
+
+    // Escuchar cambios de estado online de participantes
+    this.websocketService.getMessagesByType('participant:online-status-updated')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(message => {
+        this.handleParticipantOnlineStatusUpdated(message.data);
+      });
+
+    // Escuchar actualizaciones de último mensaje
+    this.websocketService.getMessagesByType('chat:last-message-updated')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(message => {
+        this.handleLastMessageUpdated(message.data);
+      });
+  }
+
+  /**
+   * Maneja eventos de actualización de estado de chat
+   */
+  private handleChatStatusUpdated(data: Response<ChatStatusUpdatedData>) {
+    console.log('📝 Chat status updated event received:', data);
+    
+    // Verificar si es una respuesta exitosa
+    if ('data' in data) {
+      const { chatId, status } = data.data;
+      const currentChats = this.chats();
+      const updatedChats = currentChats.map(chat => 
+        chat.id === chatId 
+          ? { ...chat, status: status as ChatStatus, updatedAt: new Date() }
+          : chat
+      );
+      
+      // Actualizar el signal de chats
+      this.updateChatsSignal(updatedChats);
+    } else {
+      // Manejar error
+      console.error('Error in chat status update:', data.error);
+    }
+  }
+
+  /**
+   * Maneja eventos de actualización de estado online de participantes
+   */
+  private handleParticipantOnlineStatusUpdated(data: Response<ParticipantOnlineStatusUpdatedData>) {
+    console.log('👤 Participant online status updated event received:', data);
+    
+    // Verificar si es una respuesta exitosa
+    if ('data' in data) {
+      const { participantId, isOnline } = data.data;
+      const currentChats = this.chats();
+      const updatedChats = currentChats.map(chat => ({
+        ...chat,
+        participants: chat.participants?.map(participant =>
+          participant.id === participantId
+            ? { ...participant, isOnline }
+            : participant
+        )
+      }));
+      
+      // Actualizar el signal de chats
+      this.updateChatsSignal(updatedChats);
+    } else {
+      // Manejar error
+      console.error('Error in participant online status update:', data.error);
+    }
+  }
+
+  /**
+   * Maneja eventos de actualización de último mensaje
+   */
+  private handleLastMessageUpdated(data: Response<ChatLastMessageUpdatedData>) {
+    console.log('📨 Last message updated event received:', data);
+    
+    // Verificar si es una respuesta exitosa
+    if ('data' in data) {
+      const { chatId, lastMessage, lastMessageAt, senderId } = data.data;
+      const currentChats = this.chats();
+      const updatedChats = currentChats.map(chat => 
+        chat.id === chatId 
+          ? { 
+              ...chat, 
+              lastMessage: {
+                id: Date.now().toString(), // Temporal ID
+                chatId,
+                senderId,
+                senderName: 'Unknown', // No tenemos el nombre en el evento
+                content: lastMessage,
+                type: 'text' as const,
+                timestamp: new Date(lastMessageAt),
+                isRead: false
+              },
+              updatedAt: new Date(lastMessageAt)
+            }
+          : chat
+      );
+      
+      // Actualizar el signal de chats
+      this.updateChatsSignal(updatedChats);
+    } else {
+      // Manejar error
+      console.error('Error in last message update:', data.error);
+    }
+  }
+
+  /**
+   * Actualiza el signal de chats de manera reactiva
+   */
+  private updateChatsSignal(updatedChats: Chat[]) {
+    console.log('📊 Updating chats with WebSocket data:', updatedChats.length, 'chats');
+    this.chatsSignal.set(updatedChats);
   }
 
   // Métodos para el template
@@ -120,6 +258,7 @@ export class ChatListComponent implements OnInit {
     
     this.chatService.getChats({ limit: 50 }).subscribe({
       next: (response) => {
+        this.chatsSignal.set(response.data);
         this.isRetryLoading.set(false);
       },
       error: (error) => {
