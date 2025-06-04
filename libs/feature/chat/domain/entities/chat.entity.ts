@@ -32,7 +32,7 @@ export interface Message {
   metadata?: Record<string, any>;
 }
 
-export type ChatStatus = 'active' | 'inactive' | 'closed' | 'waiting' | 'pending';
+export type ChatStatus = 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
 export type MessageType = 'text' | 'image' | 'file' | 'system';
 
 export interface PaginatedResponse<T> {

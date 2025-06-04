@@ -1,7 +1,7 @@
 export interface ChatData {
   id: string;
   participants: Participant[];
-  status: 'active' | 'inactive' | 'closed' | 'waiting' | 'pending';
+  status: 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
   lastMessage?: Message | null;
   lastMessageAt: string | null;
   createdAt: string;

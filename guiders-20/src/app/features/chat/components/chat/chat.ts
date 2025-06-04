@@ -42,7 +42,7 @@ export class ChatComponent implements OnInit {
     
     switch (this.selectedFilterValue()) {
       case 'unassigned':
-        return this.chats().filter(chat => chat.status === 'waiting');
+        return this.chats().filter(chat => chat.status === 'pending');
       case 'active':
         return this.chats().filter(chat => chat.status === 'active');
       case 'closed':

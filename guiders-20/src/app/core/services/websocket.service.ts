@@ -354,6 +354,34 @@ export class WebSocketService implements OnDestroy {
       });
     });
 
+    // Eventos específicos para chat-list
+    this.socket.on('chat:status-updated', (data: any) => {
+      console.log('📝 WebSocket: Estado de chat actualizado:', data);
+      this.messages$.next({
+        type: 'chat:status-updated',
+        data,
+        timestamp: Date.now()
+      });
+    });
+
+    this.socket.on('participant:online-status-updated', (data: any) => {
+      console.log('👤 WebSocket: Estado online de participante actualizado:', data);
+      this.messages$.next({
+        type: 'participant:online-status-updated',
+        data,
+        timestamp: Date.now()
+      });
+    });
+
+    this.socket.on('chat:last-message-updated', (data: any) => {
+      console.log('💬 WebSocket: Último mensaje de chat actualizado:', data);
+      this.messages$.next({
+        type: 'chat:last-message-updated',
+        data,
+        timestamp: Date.now()
+      });
+    });
+
     // Eventos de ping/pong para heartbeat
     this.socket.on('ping', (data: any) => {
       console.log('🏓 WebSocket: Ping recibido, enviando pong');
