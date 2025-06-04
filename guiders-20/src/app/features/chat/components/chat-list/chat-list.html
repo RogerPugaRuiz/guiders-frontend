@@ -87,7 +87,12 @@
         </div>
         <div class="chat-item__content">
           <div class="chat-item__header">
-            <h4 class="chat-item__name">{{ getVisitorName(chat) }}</h4>
+            <h4 class="chat-item__name">
+              <span class="chat-item__name-text">{{ getVisitorName(chat) }}</span>
+              @if (isAnonymousVisitor(chat)) {
+                <span class="chat-item__anonymous-tag">Anónimo</span>
+              }
+            </h4>
             <span class="chat-item__time">{{ formatLastMessageTime(chat) }}</span>
           </div>
           <div class="chat-item__info">
@@ -95,7 +100,7 @@
             @if (getVisitor(chat)?.isTyping) {
               <p class="chat-item__status-text typing">Escribiendo...</p>
             } @else if (getVisitor(chat)?.isViewing) {
-              <p class="chat-item__status-text viewing">Viendo la página</p>
+              <p class="chat-item__status-text viewing">Esta en la conversación</p>
             } @else if (getParticipantStatusClass(chat) === 'chat-item__status--inactive') {
               <p class="chat-item__status-text inactive">Inactivo</p>
             }

@@ -328,11 +328,12 @@
     font-weight: 500;
     color: var(--color-text);
     margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     flex: 1;
     transition: color 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0; // Para permitir que el texto se corte correctamente
     
     .chat-item:hover & {
       color: var(--color-primary);
@@ -340,6 +341,34 @@
     
     .chat-item--active & {
       font-weight: 600;
+    }
+  }
+
+  &__name-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__anonymous-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.625rem;
+    font-weight: 500;
+    line-height: 1;
+    border-radius: 0.75rem;
+    background-color: var(--warning-light);
+    color: var(--warning-primary);
+    border: 1px solid var(--border-color);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+    
+    .chat-item:hover & {
+      opacity: 0.9;
     }
   }
 

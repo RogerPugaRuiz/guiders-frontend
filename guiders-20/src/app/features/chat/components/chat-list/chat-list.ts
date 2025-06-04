@@ -218,6 +218,11 @@ export class ChatListComponent implements OnInit, OnDestroy {
     return visitor?.name || 'Visitante Anónimo';
   }
 
+  isAnonymousVisitor(chat: Chat): boolean {
+    const visitor = this.getVisitor(chat);
+    return visitor?.isAnonymous ?? false;
+  }
+
   getParticipantInitials(chat: Chat): string {
     const name = this.getVisitorName(chat);
     return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
