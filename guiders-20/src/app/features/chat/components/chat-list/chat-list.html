@@ -21,7 +21,7 @@
       <input type="text" 
              class="chat-search__input" 
              placeholder="Buscar conversaciones..."
-             [value]="searchTerm"
+             [value]="searchTerm()"
              (input)="onSearchChange($event)">
     </div>
     <div class="chat-filter">
@@ -84,12 +84,12 @@
     <!-- Chat items -->
     @for (chat of filteredChats(); track chat.id; let isFirst = $first) {
       <div class="chat-item"
-           [class.chat-item--active]="isChatSelected(chat.id)" 
+           [class.chat-item--active]="isChatSelected(chat)" 
            [attr.data-chat-id]="chat.id" 
            data-cy="chat-item"
            (click)="selectChat(chat)">
         <div class="chat-item__avatar">
-          <img [src]="getParticipantAvatarUrl(chat)" 
+          <img [src]="getChatAvatar(chat)" 
                [alt]="getVisitorName(chat)"
                class="chat-item__avatar-image"
                (error)="onAvatarError($event, chat)">

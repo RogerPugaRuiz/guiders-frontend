@@ -43,6 +43,8 @@ export interface ChatListResponse {
   };
 }
 
+export type ChatStatus = 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
+
 export interface RealChatListResponse {
   chats: ChatData[];
   total: number;

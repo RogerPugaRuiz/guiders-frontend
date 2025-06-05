@@ -10,33 +10,19 @@
 
 	<div class="chat-workspace">
 		<!-- Panel lateral de conversaciones -->
-		<app-chat-list 
-			[chats]="chats()"
-			[filteredChats]="filteredChats()"
-			[searchTerm]="searchTerm()"
-			[selectedFilter]="selectedFilterValue()"
-			[isLoading]="isLoading()"
-			[error]="error()"
-			[isRetryLoading]="isRetryLoading()"
-			[selectedChatId]="selectedChatId()"
-			(searchChange)="onSearchChange($event)"
-			(filterChange)="onFilterChange($event)"
-			(chatSelection)="onChatSelection($event)"
-			(retryLoad)="onRetryLoad($event)">
-		</app-chat-list>
-
+		<app-chat-list ></app-chat-list>
 		<!-- Área principal del chat -->
 		<div class="chat-main">
 			<div class="chat-header">
-				@if (hasSelectedChat()) {
+				@if (selectedChat()) {
 					<div class="chat-contact">
 						<div class="chat-contact__avatar">
 							<span>{{ selectedChatInitials() }}</span>
 							<span class="chat-contact__status" [class]="selectedChatStatusClass()"></span>
 						</div>
 						<div class="chat-contact__info">
-							<h3 class="chat-contact__name">{{ selectedChatName() }}</h3>
-							<p class="chat-contact__metadata">{{ selectedChatStatusText() }}</p>
+							<h3 class="chat-contact__name">{{ visitor() }}</h3>
+							<p class="chat-contact__metadata">{{ visitorStatus() }}</p>
 						</div>
 					</div>
 				} @else {
@@ -135,7 +121,7 @@
 			</div>
 
 			<div class="chat-messages">
-				@if (hasSelectedChat()) {
+				@if (selectedChat()) {
 					<div class="start-conversation"></div>
 					<div class="chat-date-separator">
 						<span>Hoy</span>
@@ -200,7 +186,7 @@
 				}
 			</div>
 
-			@if (hasSelectedChat()) {
+			@if (selectedChat()) {
 				<div class="chat-input">
 					<button class="gh-button gh-button--icon" title="Adjuntar archivo">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
