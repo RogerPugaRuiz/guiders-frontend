@@ -1,0 +1,587 @@
+// Variables CSS para temas
+:host {
+  --loader-bg: rgba(255, 255, 255, 0.95);
+  --loader-text: #374151;
+  --loader-shadow: rgba(0, 0, 0, 0.1);
+  
+  // Transiciones suaves para cambios de tema
+  transition: 
+    --loader-bg 0.3s ease,
+    --loader-text 0.3s ease,
+    --loader-shadow 0.3s ease;
+}
+
+// Dark theme support
+@media (prefers-color-scheme: dark) {
+  :host {
+    --loader-bg: rgba(17, 24, 39, 0.95);
+    --loader-text: #d1d5db;
+    --loader-shadow: rgba(0, 0, 0, 0.3);
+  }
+}
+
+.loader-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  
+  // Transición suave para el fondo
+  transition: 
+    background 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    backdrop-filter 0.4s ease;
+
+  &.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--loader-bg);
+    backdrop-filter: blur(10px);
+  }
+  
+  // Animación de aparición
+  animation: fadeInLoader 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+}
+
+@keyframes fadeInLoader {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  
+  // Transición suave para la aparición del contenido
+  transition: 
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  // Retraso en la aparición del contenido
+  animation: slideInContent 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.2s forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+@keyframes slideInContent {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.circular-loader {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  // Transición suave para el contenedor del loader
+  transition: 
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+.dots-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  animation: rotate 4s linear infinite;
+  
+  // Transición suave para la rotación
+  transition: 
+    animation-duration 0.3s ease,
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dot {
+  position: absolute;
+  border-radius: 50%;
+  
+  // Transiciones mucho más suaves para todos los cambios
+  transition: 
+    background 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease,
+    scale 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    height 0.8s cubic-bezier(0.4, 0, 0.2, 1),
+    border-radius 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Posicionamiento base en círculo - radio de 40px */
+  top: calc(50% - 6px);
+  left: calc(50% - 6px);
+  
+  // Efecto hover sutil
+  &:hover {
+    scale: 1.1;
+    transition-duration: 0.2s;
+  }
+  
+  // Animación de entrada escalonada para cada punto
+  opacity: 0;
+  animation: 
+    colorShift 3s ease-in-out infinite,
+    dotFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    
+  // Retraso escalonado para cada punto
+  &:nth-child(1) { animation-delay: 0.3s, 0.3s; }
+  &:nth-child(2) { animation-delay: 0.4s, 0.4s; }
+  &:nth-child(3) { animation-delay: 0.5s, 0.5s; }
+  &:nth-child(4) { animation-delay: 0.6s, 0.6s; }
+  &:nth-child(5) { animation-delay: 0.7s, 0.7s; }
+  &:nth-child(6) { animation-delay: 0.8s, 0.8s; }
+  &:nth-child(7) { animation-delay: 0.9s, 0.9s; }
+  &:nth-child(8) { animation-delay: 1.0s, 1.0s; }
+}
+
+// === ESTILOS PARA FASE DE CÍRCULOS ===
+.dot-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  
+  background: linear-gradient(45deg, 
+    #3b82f6,  /* Azul inicial */
+    #60a5fa,  /* Azul claro */
+    #93c5fd   /* Azul muy claro */
+  );
+  
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+  
+  top: calc(50% - 6px);
+  left: calc(50% - 6px);
+}
+
+// === ESTILOS PARA FASE DE PÍLDORAS ===
+.dot-pill {
+  width: 32px;
+  height: 12px;
+  border-radius: 16px;
+  
+  background: linear-gradient(45deg, 
+    #ec4899,  /* Rosa */
+    #f472b6,  /* Rosa claro */
+    #f9a8d4   /* Rosa muy claro */
+  );
+  
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
+  
+  top: calc(50% - 6px);
+  left: calc(50% - 16px); /* Centrar la píldora más ancha */
+  
+  // Las píldoras no rotan, mantienen su orientación
+  animation: pillGlow 2s ease-in-out infinite;
+}
+
+// === ANIMACIÓN DE EXPANSIÓN DURANTE LA TRANSICIÓN ===
+.expanding {
+  animation: 
+    expandTransition 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards,
+    colorShift 3s ease-in-out infinite;
+}
+
+@keyframes expandTransition {
+  0% {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #3b82f6, #60a5fa, #93c5fd);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    scale: 1;
+    left: calc(50% - 6px);
+  }
+  
+  50% {
+    scale: 1.5;
+    background: linear-gradient(45deg, #8b5cf6, #a78bfa, #c4b5fd);
+    box-shadow: 0 0 25px rgba(139, 92, 246, 0.9);
+  }
+  
+  100% {
+    width: 32px;
+    height: 12px;
+    border-radius: 16px;
+    background: linear-gradient(45deg, #ec4899, #f472b6, #f9a8d4);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
+    scale: 1;
+    left: calc(50% - 16px);
+  }
+}
+
+// === ANIMACIÓN ESPECÍFICA PARA PÍLDORAS ===
+@keyframes pillGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+    background: linear-gradient(45deg, #ec4899, #f472b6, #f9a8d4);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(236, 72, 153, 1);
+    background: linear-gradient(45deg, #f472b6, #ec4899, #f472b6);
+  }
+}
+
+// === CONTROL DE ROTACIÓN ===
+.dots-container {
+  // ...existing code...
+  
+  &.stopped {
+    animation-play-state: paused;
+  }
+}
+
+// === ESTILOS PARA DIFERENTES FASES DEL LOADER ===
+.circular-loader {
+  // ...existing code...
+  
+  &.phase-transition {
+    // Durante la transición, el contenedor puede crecer ligeramente
+    scale: 1.1;
+    transition: scale 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &.phase-pills {
+    // En la fase de píldoras, volver al tamaño normal
+    scale: 1;
+    transition: scale 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+// Variables CSS personalizadas para cada punto
+.dot:nth-child(1) { --dot-rotation: 0deg; }
+.dot:nth-child(2) { --dot-rotation: 45deg; }
+.dot:nth-child(3) { --dot-rotation: 90deg; }
+.dot:nth-child(4) { --dot-rotation: 135deg; }
+.dot:nth-child(5) { --dot-rotation: 180deg; }
+.dot:nth-child(6) { --dot-rotation: 225deg; }
+.dot:nth-child(7) { --dot-rotation: 270deg; }
+.dot:nth-child(8) { --dot-rotation: 315deg; }
+
+@keyframes dotFadeIn {
+  from {
+    opacity: 0;
+    transform: rotate(var(--dot-rotation, 0deg)) translateY(-40px) rotate(calc(-1 * var(--dot-rotation, 0deg))) scale(0.3);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--dot-rotation, 0deg)) translateY(-40px) rotate(calc(-1 * var(--dot-rotation, 0deg))) scale(1);
+  }
+}
+
+/* Posicionar cada punto en el círculo usando las variables personalizadas */
+.dot:nth-child(1) { 
+  transform: rotate(0deg) translateY(-40px) rotate(0deg);
+}
+.dot:nth-child(2) { 
+  transform: rotate(45deg) translateY(-40px) rotate(-45deg); 
+}
+.dot:nth-child(3) { 
+  transform: rotate(90deg) translateY(-40px) rotate(-90deg);
+}
+.dot:nth-child(4) { 
+  transform: rotate(135deg) translateY(-40px) rotate(-135deg);
+}
+.dot:nth-child(5) { 
+  transform: rotate(180deg) translateY(-40px) rotate(-180deg);
+}
+.dot:nth-child(6) { 
+  transform: rotate(225deg) translateY(-40px) rotate(-225deg);
+}
+.dot:nth-child(7) { 
+  transform: rotate(270deg) translateY(-40px) rotate(-270deg);
+}
+.dot:nth-child(8) { 
+  transform: rotate(315deg) translateY(-40px) rotate(-315deg);
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes colorShift {
+  0% {
+    background: linear-gradient(45deg, 
+      #3b82f6,  /* Azul */
+      #60a5fa,
+      #93c5fd
+    );
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+  }
+  
+  25% {
+    background: linear-gradient(45deg, 
+      #8b5cf6,  /* Violeta */
+      #a78bfa,  /* Violeta claro */
+      #c4b5fd   /* Violeta muy claro */
+    );
+    box-shadow: 0 0 18px rgba(139, 92, 246, 0.7);
+  }
+  
+  50% {
+    background: linear-gradient(45deg, 
+      #ec4899,  /* Rosa */
+      #f472b6,  /* Rosa claro */
+      #f9a8d4   /* Rosa muy claro */
+    );
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.8);
+  }
+  
+  75% {
+    background: linear-gradient(45deg, 
+      #06b6d4,  /* Cian */
+      #22d3ee,  /* Cian claro */
+      #67e8f9   /* Cian muy claro */
+    );
+    box-shadow: 0 0 18px rgba(6, 182, 212, 0.7);
+  }
+  
+  100% {
+    background: linear-gradient(45deg, 
+      #3b82f6,  /* Azul */
+      #60a5fa,
+      #93c5fd
+    );
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+  }
+}
+
+.loader-message {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--loader-text);
+  text-align: center;
+  animation: textPulse 3s ease-in-out infinite;
+  letter-spacing: 0.5px;
+  
+  // Transición suave para cambios de color del texto
+  transition: 
+    color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease,
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes textPulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.02);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .circular-loader {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .dot-circle {
+    width: 10px;
+    height: 10px;
+    top: calc(50% - 5px);
+    left: calc(50% - 5px);
+  }
+  
+  .dot-pill {
+    width: 24px;
+    height: 10px;
+    border-radius: 12px;
+    top: calc(50% - 5px);
+    left: calc(50% - 12px);
+  }
+  
+  /* Reducir el radio del círculo para pantallas medianas */
+  .dot:nth-child(1) { transform: rotate(0deg) translateY(-32px) rotate(0deg); }
+  .dot:nth-child(2) { transform: rotate(45deg) translateY(-32px) rotate(-45deg); }
+  .dot:nth-child(3) { transform: rotate(90deg) translateY(-32px) rotate(-90deg); }
+  .dot:nth-child(4) { transform: rotate(135deg) translateY(-32px) rotate(-135deg); }
+  .dot:nth-child(5) { transform: rotate(180deg) translateY(-32px) rotate(-180deg); }
+  .dot:nth-child(6) { transform: rotate(225deg) translateY(-32px) rotate(-225deg); }
+  .dot:nth-child(7) { transform: rotate(270deg) translateY(-32px) rotate(-270deg); }
+  .dot:nth-child(8) { transform: rotate(315deg) translateY(-32px) rotate(-315deg); }
+  
+  // Ajustar animación de expansión para tablets
+  @keyframes expandTransition {
+    0% {
+      width: 10px;
+      height: 10px;
+      left: calc(50% - 5px);
+    }
+    50% {
+      scale: 1.4;
+    }
+    100% {
+      width: 24px;
+      height: 10px;
+      left: calc(50% - 12px);
+    }
+  }
+  
+  .loader-message {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .circular-loader {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .dot-circle {
+    width: 8px;
+    height: 8px;
+    top: calc(50% - 4px);
+    left: calc(50% - 4px);
+  }
+  
+  .dot-pill {
+    width: 20px;
+    height: 8px;
+    border-radius: 10px;
+    top: calc(50% - 4px);
+    left: calc(50% - 10px);
+  }
+  
+  /* Reducir aún más el radio del círculo para móviles */
+  .dot:nth-child(1) { transform: rotate(0deg) translateY(-24px) rotate(0deg); }
+  .dot:nth-child(2) { transform: rotate(45deg) translateY(-24px) rotate(-45deg); }
+  .dot:nth-child(3) { transform: rotate(90deg) translateY(-24px) rotate(-90deg); }
+  .dot:nth-child(4) { transform: rotate(135deg) translateY(-24px) rotate(-135deg); }
+  .dot:nth-child(5) { transform: rotate(180deg) translateY(-24px) rotate(-180deg); }
+  .dot:nth-child(6) { transform: rotate(225deg) translateY(-24px) rotate(-225deg); }
+  .dot:nth-child(7) { transform: rotate(270deg) translateY(-24px) rotate(-270deg); }
+  .dot:nth-child(8) { transform: rotate(315deg) translateY(-24px) rotate(-315deg); }
+  
+  // Ajustar animación de expansión para móviles
+  @keyframes expandTransition {
+    0% {
+      width: 8px;
+      height: 8px;
+      left: calc(50% - 4px);
+    }
+    50% {
+      scale: 1.3;
+    }
+    100% {
+      width: 20px;
+      height: 8px;
+      left: calc(50% - 10px);
+    }
+  }
+  
+  .loader-message {
+    font-size: 0.8rem;
+  }
+}
+
+// Accessibility improvements
+@media (prefers-reduced-motion: reduce) {
+  // Ralentizar todas las animaciones
+  .dots-container {
+    animation-duration: 8s;
+  }
+  
+  .dot {
+    animation-duration: 6s;
+  }
+  
+  .loader-message {
+    animation: none;
+    opacity: 1;
+  }
+  
+  // Simplificar animaciones de entrada
+  .loader-container {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .loader-content {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  
+  .dot {
+    animation: colorShift 6s ease-in-out infinite;
+  }
+  
+  // Eliminar el efecto ripple para usuarios sensibles al movimiento
+  .circular-loader::before {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+  .dot {
+    background: #000 !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8) !important;
+  }
+  
+  .loader-message {
+    color: #000 !important;
+    font-weight: 600;
+  }
+}
+
+// Enhanced animation for better visual appeal
+.circular-loader::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 120px;
+  height: 120px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(59, 130, 246, 0.1);
+  border-radius: 50%;
+  animation: ripple 4s ease-in-out infinite;
+  
+  // Transición suave para el efecto ripple
+  transition: 
+    border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+@keyframes ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0;
+  }
+}

@@ -1,1 +1,10 @@
-<router-outlet />
+
+@defer {
+	<router-outlet />
+} @placeholder (minimum 1000) {
+	<app-loader 
+		message="Cargando aplicación..." 
+		variant="pulse" 
+		[fullscreen]="true" />
+}
+
