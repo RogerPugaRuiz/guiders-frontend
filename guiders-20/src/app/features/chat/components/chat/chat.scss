@@ -379,23 +379,56 @@
 			width: 40px;
 			height: 40px;
 			border-radius: 50%;
-			background-color: var(--color-primary);
+			background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
 			color: white;
 			display: flex;
 			align-items: center;
 			justify-content: center;
 			margin-right: var(--spacing-md);
 			font-weight: 500;
+			flex-shrink: 0;
+			overflow: visible;
+			isolation: isolate; /* Crea un nuevo contexto de apilamiento */
+			
+			&-image {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				border-radius: 50%;
+				display: block;
+				position: relative;
+				z-index: -1; /* Pone la imagen detrás del contenedor */
+			}
+			
+			&-fallback {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				display: none;
+				align-items: center;
+				justify-content: center;
+				background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+				border-radius: 50%;
+				color: white;
+				font-size: 0.875rem;
+				font-weight: 500;
+				z-index: -1; /* Pone el fallback detrás del contenedor */
+			}
 		}
 		
 		&__status {
 			position: absolute;
-			bottom: 0;
-			right: 0;
+			bottom: -2px;
+			right: -2px;
 			width: 12px;
 			height: 12px;
 			border-radius: 50%;
 			border: 2px solid var(--color-background-secondary);
+			z-index: 10; /* Valor alto para estar por encima de todo */
+			box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+			pointer-events: none; /* Evita que interfiera con clics */
 			
 			&--online {
 				background-color: #3fb950;

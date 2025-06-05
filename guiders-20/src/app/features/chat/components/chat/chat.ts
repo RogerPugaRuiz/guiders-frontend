@@ -7,6 +7,7 @@ import { ChatListComponent, ChatSearchEvent, ChatFilterEvent, ChatSelectionEvent
 import { ChatSelectionService } from '../../services/chat-selection.service';
 import { ChatWebSocketService } from '../../services/chat-websocket.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
+import { AvatarService } from 'src/app/core/services/avatar.service';
 
 @Component({
   selector: 'app-chat',
@@ -16,6 +17,8 @@ import { WebSocketService } from '../../../../core/services/websocket.service';
   styleUrls: ['./chat.scss']
 })
 export class ChatComponent {
+  private avatarService = inject(AvatarService);
+
   // Referencias a elementos del template usando viewChild signal
   trackingInfoPanel = viewChild<ElementRef>('trackingInfoPanel');
   messageTextarea = viewChild<ElementRef<HTMLTextAreaElement>>('messageTextarea');
@@ -39,6 +42,20 @@ export class ChatComponent {
 
   canSendMessage() {
     return this.selectedChat() !== null && this.currentMessageText().trim().length > 0;
+  }
+
+  getChatAvatarUrl(): string {
+    const chat = this.selectedChat();
+    if (!chat) return '';
+    
+    const visitor = chat.participants.find(p => p.isVisitor)?.name;
+    return this.avatarService.generateVisitorAvatar(visitor || '');
+  }
+
+  onAvatarError($event: Event): void {
+    const img = $event.target as HTMLImageElement;
+    img.style.display = 'none';
+    // El fallback text se mostrará automáticamente
   }
 
   sendMessage() {

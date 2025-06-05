@@ -17,8 +17,12 @@
 				@if (selectedChat()) {
 					<div class="chat-contact">
 						<div class="chat-contact__avatar">
-							<span>{{ selectedChatInitials() }}</span>
 							<span class="chat-contact__status" [class]="selectedChatStatusClass()"></span>
+							<img [src]="getChatAvatarUrl()" 
+								 [alt]="visitor()"
+								 class="chat-contact__avatar-image"
+								 (error)="onAvatarError($event)">
+							<span class="chat-contact__avatar-fallback">{{ selectedChatInitials() }}</span>
 						</div>
 						<div class="chat-contact__info">
 							<h3 class="chat-contact__name">{{ visitor() }}</h3>
