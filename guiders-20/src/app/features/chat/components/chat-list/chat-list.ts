@@ -48,7 +48,8 @@ export class ChatListComponent  implements OnInit {
 
   // Output events
   chatSelected = output<ChatSelectionEvent>();
-  
+  participantStatusUpdated = output<{ participantId: string; isOnline: boolean }>();
+
   // Signals
   searchTerm = signal('');
   selectedFilter = signal<ChatStatus | 'all'>('all');
@@ -74,6 +75,13 @@ export class ChatListComponent  implements OnInit {
       const status = this.wsConnected();
       if (status.connected && this.chatsResource.status() === 'idle') {
         this.chatsResource.reload();
+      }
+    });
+
+    effect(() => {
+      const participantStatus = this.participantStatusUpdate();
+      if (participantStatus) {
+        this.participantStatusUpdated.emit(participantStatus.data.data as { participantId: string; isOnline: boolean });
       }
     });
   }
@@ -300,19 +308,41 @@ export class ChatListComponent  implements OnInit {
     return chat.participants.some(participant => participant.isVisitor && participant.isAnonymous);
   }
 
-  formatLastMessageTime(chat: ChatData): string { 
-    const lastMessage = chat.lastMessage;
-    if (!lastMessage) return '';
-    
-    const date = new Date(lastMessage.timestamp);
+  formatLastMessageTime(chat: ChatData): string {
+    const lastMessageAt = chat.lastMessageAt;
+    if (!lastMessageAt) return '';
+
+    const date = new Date(lastMessageAt);
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    
-    if (diff < 60000) return 'Hace menos de un minuto';
-    if (diff < 3600000) return `Hace ${Math.floor(diff / 60000)} minutos`;
-    if (diff < 86400000) return `Hace ${Math.floor(diff / 3600000)} horas`;
-    
-    return date.toLocaleDateString();
+
+    const isToday =
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday =
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear();
+
+    if (isToday) {
+      // Formato HH:MM con ceros a la izquierda
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      return `${hours}:${minutes}`;
+    }
+
+    if (isYesterday) {
+      return 'ayer';
+    }
+
+    // Formato dd/mm/yy
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString().slice(-2);
+    return `${day}/${month}/${year}`;
   }
 
   getLastMessagePreview(chat: ChatData): string {

@@ -4,6 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../services/chat.service';
 import { ChatData, SelectOption } from '../../models/chat.models';
 import { ChatListComponent, ChatSearchEvent, ChatFilterEvent, ChatSelectionEvent, ChatRetryEvent } from '../chat-list/chat-list';
+import { ChatMessages } from '../chat-messages/chat-messages';
 import { ChatSelectionService } from '../../services/chat-selection.service';
 import { ChatWebSocketService } from '../../services/chat-websocket.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
@@ -12,11 +13,12 @@ import { AvatarService } from 'src/app/core/services/avatar.service';
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [FormsModule, ChatListComponent],
+  imports: [FormsModule, ChatListComponent, ChatMessages],
   templateUrl: './chat.html',
   styleUrls: ['./chat.scss']
 })
 export class ChatComponent {
+
 
   private avatarService = inject(AvatarService);
 
@@ -43,6 +45,18 @@ export class ChatComponent {
 
   canSendMessage() {
     return this.selectedChat() !== null && this.currentMessageText().trim().length > 0;
+  }
+
+  onParticipantStatusUpdated($event: { participantId: string; isOnline: boolean; }) {
+    console.log('🔄 [Chat] Participant status updated:', $event);
+    this.selectedChat.update(chat => {
+      if (!chat) return chat;
+      const participant = chat.participants.find(p => p.id === $event.participantId);
+      if (participant) {
+        participant.isOnline = $event.isOnline;
+      }
+      return chat;
+    });
   }
 
   getChatAvatarUrl(): string {

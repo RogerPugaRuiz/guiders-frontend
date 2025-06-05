@@ -1,0 +1,65 @@
+<div class="chat-messages">
+	@if (selectedChat()) {
+		<div class="start-conversation"></div>
+		<div class="chat-date-separator">
+			<span>Hoy</span>
+		</div>
+
+		<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
+		<div class="chat-message chat-message--received">
+			<div class="chat-message__content">
+				<p>Hola, ¿podrían ayudarme con información sobre los servicios de guía turística?</p>
+			</div>
+			<span class="chat-message__time">12:30</span>
+		</div>
+
+		<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
+		<div class="chat-message chat-message--sent">
+			<div class="chat-message__content">
+				<p>¡Hola Ana! Claro, estaré encantado de ayudarte. ¿Qué tipo de tour estás buscando?</p>
+			</div>
+			<span class="chat-message__time">12:32</span>
+		</div>
+
+		<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
+		<div class="chat-message chat-message--received">
+			<div class="chat-message__content">
+				<p>Estoy interesada en tours culturales y gastronómicos. Viajaré a Barcelona el próximo mes.</p>
+			</div>
+			<span class="chat-message__time">12:35</span>
+		</div>
+
+		<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
+		<div class="chat-message chat-message--sent">
+			<div class="chat-message__content">
+				<p>¡Genial! Barcelona tiene mucho que ofrecer en ese sentido. Tenemos tours diarios que combinan visitas a
+					monumentos históricos con degustaciones de la gastronomía local. ¿Te gustaría recibir más detalles sobre
+					estos tours?</p>
+			</div>
+			<span class="chat-message__time">12:40</span>
+		</div>
+
+		<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
+		<div class="chat-message chat-message--received">
+			<div class="chat-message__content">
+				<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.</p>
+			</div>
+			<span class="chat-message__time">12:45</span>
+		</div>
+	} @else {
+		<!-- Estado vacío cuando no hay chat seleccionado -->
+		<div class="chat-empty-state">
+			<div class="chat-empty-state__icon">
+				<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
+					stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M14 9a2 2 0 0 1-2 2H6l-4 4V4c0-1.1.9-2 2-2h8a2 2 0 0 1 2 2v5Z"/>
+					<path d="M18 9h2a2 2 0 0 1 2 2v11l-4-4h-6a2 2 0 0 1-2-2v-1"/>
+				</svg>
+			</div>
+			<h3 class="chat-empty-state__title">Selecciona una conversación</h3>
+			<p class="chat-empty-state__description">
+				Elige un chat de la lista de la izquierda para ver los mensajes y poder responder a tus visitantes.
+			</p>
+		</div>
+	}
+</div>
