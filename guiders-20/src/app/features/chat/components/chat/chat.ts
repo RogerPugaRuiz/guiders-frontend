@@ -30,6 +30,8 @@ export class ChatComponent {
   selectedChat = signal<ChatData | null>(null);
   currentMessageText = signal('');
   isTrackingPanelVisible = signal(false);
+  textareaRows = signal(1);
+  readonly maxTextareaRows = 5;
 
   // Métodos implementados con signals
   visitorStatus() {
@@ -82,24 +84,61 @@ export class ChatComponent {
     // Aquí se implementaría el envío del mensaje
     console.log('Enviando mensaje:', message, 'al chat:', chat.id);
     
-    // Limpiar el campo de mensaje
+    // Limpiar el campo de mensaje y resetear altura
     this.currentMessageText.set('');
+    this.textareaRows.set(1);
   }
 
   onKeyDown($event: KeyboardEvent) {
-    if ($event.key === 'Enter' && !$event.shiftKey) {
-      $event.preventDefault();
-      this.sendMessage();
+    if ($event.key === 'Enter') {
+      if (!$event.shiftKey) {
+        // Enter sin Shift: enviar mensaje
+        $event.preventDefault();
+        this.sendMessage();
+      } else {
+        // Shift+Enter: nueva línea - el textarea se expandirá automáticamente con adjustTextareaHeight
+        // No necesitamos prevenir el evento porque queremos que se agregue el salto de línea
+        // La expansión se manejará en onMessageInput cuando se actualice el contenido
+      }
     }
+  }
+
+  private adjustTextareaHeight() {
+    const textarea = this.messageTextarea()?.nativeElement;
+    if (!textarea) return;
+
+    const text = this.currentMessageText();
+    
+    // Si el texto está completamente vacío (sin saltos de línea), resetear a 1 fila
+    if (text === '') {
+      this.textareaRows.set(1);
+      return;
+    }
+    
+    // Contar líneas basándose en saltos de línea, considerando líneas vacías
+    const lines = text.split('\n').length;
+    const newRows = Math.min(Math.max(1, lines), this.maxTextareaRows);
+    
+    this.textareaRows.set(newRows);
   }
 
   onMessageInput($event: Event) {
     const target = $event.target as HTMLTextAreaElement;
     this.currentMessageText.set(target.value);
+    
+    // Debug logging para verificar el comportamiento
+    console.log('💬 Contenido textarea:', JSON.stringify(target.value));
+    console.log('📏 Líneas detectadas:', target.value.split('\n').length);
+    
+    this.adjustTextareaHeight();
   }
 
   currentMessage() {
     return this.currentMessageText();
+  }
+
+  getCurrentTextareaRows() {
+    return this.textareaRows();
   }
 
   closeTrackingInfo() {

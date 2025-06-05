@@ -494,11 +494,17 @@
 			color: var(--color-text);
 			resize: none;
 			min-height: 40px;
-			max-height: 120px;
-			overflow-y: auto;
+			max-height: none; /* Permitir que crezca libremente */
+			overflow-y: hidden; /* Ocultar scroll vertical cuando no es necesario */
 			font-family: inherit;
 			line-height: 1.4;
-			transition: height 0.2s ease;
+			transition: all 0.2s ease;
+			
+			/* Solo mostrar scroll cuando llegue al máximo de filas */
+			&[rows="5"] {
+				overflow-y: auto;
+				max-height: 120px;
+			}
 			
 			&:focus {
 				outline: none;

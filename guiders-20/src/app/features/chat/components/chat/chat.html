@@ -142,7 +142,7 @@
 						#messageTextarea
 						class="chat-input__field" 
 						placeholder="Escribe tu mensaje aquí..."
-						rows="1"
+						[attr.rows]="textareaRows()"
 						[value]="currentMessage()"
 						(input)="onMessageInput($event)"
 						(keydown)="onKeyDown($event)">
