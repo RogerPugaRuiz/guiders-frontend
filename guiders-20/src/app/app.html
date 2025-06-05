@@ -1,10 +1,16 @@
 
 @defer {
 	<router-outlet />
-} @placeholder (minimum 1000) {
-	<app-loader 
-		message="Cargando aplicación..." 
-		variant="pulse" 
-		[fullscreen]="true" />
+} @placeholder (minimum 250) {
+	<!-- Loader minimalista estilo GitHub -->
+	<div class="github-loader-overlay">
+		<div class="github-loader-content">
+			<svg class="github-loader-spinner" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+				<path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" opacity="0.25"/>
+				<path d="M14.5 8a6.5 6.5 0 0 0-6.5-6.5v1.5a5 5 0 0 1 5 5h1.5z" class="github-loader-path"/>
+			</svg>
+			<span class="github-loader-message">Cargando aplicación...</span>
+		</div>
+	</div>
 }
 
