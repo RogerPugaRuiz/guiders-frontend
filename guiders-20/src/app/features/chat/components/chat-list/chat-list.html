@@ -26,7 +26,7 @@
     </div>
     <div class="chat-filter">
       <select class="form-select form-select-sm" 
-              [ngModel]="selectedFilter" 
+              [ngModel]="selectedFilter()" 
               (change)="onFilterChange($event)"
               data-cy="chat-filter">
         @for (option of filterOptions; track option.value) {
@@ -82,19 +82,19 @@
     }
 
     <!-- Chat items -->
-    @for (chat of filteredChats(); track chat.id; let isFirst = $first) {
+    @for (chat of filteredChats(); track chat.id) {
       <div class="chat-item"
            [class.chat-item--active]="isChatSelected(chat)" 
            [attr.data-chat-id]="chat.id" 
            data-cy="chat-item"
            (click)="selectChat(chat)">
         <div class="chat-item__avatar">
+          <span class="chat-item__status" [class]="getParticipantStatusClass(chat)" [title]="getParticipantStatusText(chat)"></span>
           <img [src]="getChatAvatar(chat)" 
                [alt]="getVisitorName(chat)"
                class="chat-item__avatar-image"
                (error)="onAvatarError($event, chat)">
           <span class="chat-item__avatar-fallback">{{ getParticipantInitials(chat) }}</span>
-          <span class="chat-item__status" [class]="getParticipantStatusClass(chat)" [title]="getParticipantStatusText(chat)"></span>
         </div>
         <div class="chat-item__content">
           <div class="chat-item__header">

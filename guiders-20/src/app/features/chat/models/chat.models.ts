@@ -33,7 +33,7 @@ export interface Message {
 }
 
 export interface ChatListResponse {
-  data: ChatData[];
+  chats: ChatData[];
   pagination: {
     cursor?: string;
     nextCursor?: string | null;

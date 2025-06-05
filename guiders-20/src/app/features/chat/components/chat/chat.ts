@@ -113,4 +113,9 @@ export class ChatComponent {
   showTrackingPanel() {
     return this.isTrackingPanelVisible();
   }
+
+  onChatSelected(event: ChatSelectionEvent) {
+    this.selectedChat.set(event.chat);
+    console.log('🎯 [Chat] Chat seleccionado desde chat-list:', event.chat.id, event.chat);
+  }
 }

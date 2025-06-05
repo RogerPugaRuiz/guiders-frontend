@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { AvatarService } from '../../../../core/services/avatar.service';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { ChatData, ChatListResponse, ChatStatus, Participant } from '../../models/chat.models';
-import { url } from 'inspector';
 import { environment } from 'src/environments/environment';
 
 interface FilterOption {
@@ -42,6 +41,9 @@ export class ChatListComponent {
   private avatarService = inject(AvatarService);
   private http = inject(HttpClient);
 
+  // Output events
+  chatSelected = output<ChatSelectionEvent>();
+  
   // Signals
   searchTerm = signal('');
   selectedFilter = signal<ChatStatus | 'all'>('all');
@@ -55,9 +57,12 @@ export class ChatListComponent {
 
   constructor() {
     effect(() => {
-      console.log('Chats loaded:', this.chatsResource.value());
-      console.log('Loading:', this.chatsResource.isLoading());
-      console.log('Error:', this.chatsResource.error());
+      console.log('🔄 Resource Status:', this.chatsResource.status());
+      console.log('📊 Resource Value:', this.chatsResource.value());
+      console.log('🔄 Is Loading:', this.chatsResource.isLoading());
+      console.log('❌ Error:', this.chatsResource.error());
+      console.log('📦 Chats computed:', this.chats());
+      console.log('🎯 Filtered chats:', this.filteredChats());
     });
   }
   
@@ -79,7 +84,6 @@ export class ChatListComponent {
   chatsResource = httpResource<ChatListResponse>(()=>(
     { 
       url: `${environment.apiUrl}/chats`, 
-      method: 'GET',
       params: {
         limit: this.limit(),
         cursor: this.cursor(),
@@ -89,12 +93,13 @@ export class ChatListComponent {
   ));
 
   chats = computed(() => {
-    const allChats = this.chatsResource.value()?.data || [];
+    const allChats = this.chatsResource.value()?.chats || [];
+    console.log('All chats:', allChats);
     return allChats
   });
 
   filteredChats = computed(() => {
-    const allChats = this.chats();
+    const allChats = this.chatsResource.value()?.chats || [];
     if (this.selectedFilter() === 'all') return allChats;
     return allChats.filter(chat => chat.status === this.selectedFilter());
   });
@@ -106,10 +111,19 @@ export class ChatListComponent {
     return this.selectedChat()?.id === chat.id;
   }
 
-  selectChat(chat: ChatData): void {}
+  selectChat(chat: ChatData): void {
+    // Usar signal local para mantener el estado seleccionado
+    this.selectedChat.set(chat);
+    
+    // Emitir evento al componente padre
+    this.chatSelected.emit({ chat });
+    
+    console.log('✅ [ChatList] Chat seleccionado mediante signal y output:', chat.id, chat);
+  }
 
   getChatAvatar(chat: ChatData): string {
-    return ""
+    const visitor = this.getVisitorName(chat);
+    return this.avatarService.generateVisitorAvatar(visitor);
   }
 
   getVisitorName(chat: ChatData): string {
@@ -131,11 +145,74 @@ export class ChatListComponent {
   }
 
   getParticipantStatusClass(chat: ChatData): string {
-    return ""
+    const visitor = this.getVisitor(chat);
+    if (!visitor) return 'chat-item__status--offline';
+    
+    if (visitor.isTyping) {
+      return 'chat-item__status--typing';
+    }
+    
+    if (visitor.isViewing) {
+      return 'chat-item__status--viewing';
+    }
+    
+    if (visitor.isOnline) {
+      return 'chat-item__status--online';
+    }
+    
+    // Si no está online, verificar si ha estado activo recientemente
+    if (visitor.lastSeenAt) {
+      const lastSeen = new Date(visitor.lastSeenAt);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
+      
+      // Si estuvo activo en los últimos 5 minutos, considerarlo inactivo, sino offline
+      if (diffMinutes <= 5) {
+        return 'chat-item__status--inactive';
+      }
+    }
+    
+    return 'chat-item__status--offline';
   }
 
   getParticipantStatusText(chat: ChatData): string {
-    return ""
+    const visitor = this.getVisitor(chat);
+    if (!visitor) return 'Usuario no disponible';
+    
+    if (visitor.isTyping) {
+      return 'Escribiendo...';
+    }
+    
+    if (visitor.isViewing) {
+      return 'Viendo la conversación';
+    }
+    
+    if (visitor.isOnline) {
+      return 'En línea';
+    }
+    
+    // Si no está online, verificar cuándo fue la última vez que estuvo activo
+    if (visitor.lastSeenAt) {
+      const lastSeen = new Date(visitor.lastSeenAt);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
+      
+      if (diffMinutes <= 1) {
+        return 'Activo hace menos de un minuto';
+      } else if (diffMinutes <= 5) {
+        return `Activo hace ${Math.floor(diffMinutes)} minutos`;
+      } else if (diffMinutes <= 60) {
+        return `Visto hace ${Math.floor(diffMinutes)} minutos`;
+      } else if (diffMinutes <= 1440) { // 24 horas
+        const hours = Math.floor(diffMinutes / 60);
+        return `Visto hace ${hours} ${hours === 1 ? 'hora' : 'horas'}`;
+      } else {
+        const days = Math.floor(diffMinutes / 1440);
+        return `Visto hace ${days} ${days === 1 ? 'día' : 'días'}`;
+      }
+    }
+    
+    return 'Fuera de línea';
   }
 
   isAnonymousVisitor(chat: ChatData): boolean {
@@ -144,7 +221,7 @@ export class ChatListComponent {
 
   formatLastMessageTime(chat: ChatData): string { 
     const lastMessage = chat.lastMessage;
-    if (!lastMessage) return 'Sin mensajes';
+    if (!lastMessage) return '';
     
     const date = new Date(lastMessage.timestamp);
     const now = new Date();

@@ -10,7 +10,7 @@
 
 	<div class="chat-workspace">
 		<!-- Panel lateral de conversaciones -->
-		<app-chat-list ></app-chat-list>
+		<app-chat-list (chatSelected)="onChatSelected($event)"></app-chat-list>
 		<!-- Área principal del chat -->
 		<div class="chat-main">
 			<div class="chat-header">
