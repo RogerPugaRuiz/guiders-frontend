@@ -105,6 +105,9 @@ export class MainLayout implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+
+    // Desconectar el WebSocket al destruir el componente
+    this.webSocketService.disconnect();
   }
 
   // Método para mostrar/ocultar el menú de perfil
