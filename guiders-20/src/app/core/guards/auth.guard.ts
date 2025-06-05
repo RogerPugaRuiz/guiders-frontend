@@ -3,6 +3,7 @@ import { CanActivate, CanActivateChild, Router, UrlTree } from '@angular/router'
 import { Observable, map, tap, defer, of } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../services/auth.service';
+import { WebSocketService } from '../services';
 
 /**
  * Guard de autenticación para proteger rutas en Guiders-20

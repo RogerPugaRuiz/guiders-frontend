@@ -562,7 +562,7 @@ export class WebSocketService implements OnDestroy {
    * Actualiza el token de autenticación sin reconstruir la conexión Socket.IO
    * Útil cuando el token se renueva pero queremos mantener la conexión activa
    */
-  updateAuthToken(newToken: string): void {
+  setAuthToken(newToken: string): void {
     if (!this.socket) {
       console.warn('WebSocket: No hay conexión activa para actualizar el token');
       return;
@@ -674,7 +674,7 @@ export class WebSocketService implements OnDestroy {
           const currentAuth = this.socket?.auth?.token;
           if (currentAuth && currentAuth !== session.token) {
             console.log('WebSocket: Token renovado detectado, actualizando...');
-            this.updateAuthToken(session.token);
+            this.setAuthToken(session.token);
           }
         } else if (session?.token && !this.isConnected()) {
           this.connect();

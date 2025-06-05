@@ -8,6 +8,7 @@ import { throwError, catchError, switchMap, from, Observable, EMPTY, of } from '
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { isTokenNearExpiration, isTokenExpired } from '../utils/jwt.utils';
+import { WebSocketService } from '../services';
 
 // Variable global para controlar el refresh en progreso
 let refreshInProgress = false;
@@ -20,6 +21,8 @@ let refreshPromise: Promise<any> | null = null;
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const ws = inject(WebSocketService);
+
   const platformId = inject(PLATFORM_ID);
 
   // Saltar procesamiento de auth en el servidor durante SSR/hidratación
