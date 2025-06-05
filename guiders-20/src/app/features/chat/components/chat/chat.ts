@@ -17,6 +17,7 @@ import { AvatarService } from 'src/app/core/services/avatar.service';
   styleUrls: ['./chat.scss']
 })
 export class ChatComponent {
+
   private avatarService = inject(AvatarService);
 
   // Referencias a elementos del template usando viewChild signal

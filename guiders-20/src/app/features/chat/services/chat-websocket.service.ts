@@ -2,9 +2,15 @@ import { Injectable, inject, signal, computed, OnDestroy } from '@angular/core';
 import { Subject, takeUntil, filter, Observable } from 'rxjs';
 import { WebSocketService, WebSocketMessage } from '../../../core/services/websocket.service';
 import { ChatData } from '../models/chat.models';
+import { 
+  WebSocketMessageType, 
+  ChatWebSocketEventType,
+  isChatRelatedMessageType,
+  mapWebSocketMessageTypeToChatEventType
+} from '../../../core/enums/websocket-message-types.enum';
 
 export interface ChatWebSocketEvent {
-  type: 'message' | 'status_change' | 'typing' | 'participant_joined' | 'participant_left';
+  type: ChatWebSocketEventType;
   chatId: string;
   data: any;
   timestamp: number;
@@ -102,7 +108,7 @@ export class ChatWebSocketService implements OnDestroy {
    */
   private setupSpecificEventListeners(): void {
     // Escuchar eventos de estado de participantes
-    this.webSocketService.getMessagesByType('participant:online-status-updated')
+    this.webSocketService.getMessagesByType(WebSocketMessageType.PARTICIPANT_ONLINE_STATUS_UPDATED)
       .pipe(takeUntil(this.destroy$))
       .subscribe(message => {
         const participantData: ParticipantStatusData = {
@@ -116,7 +122,7 @@ export class ChatWebSocketService implements OnDestroy {
       });
 
     // Escuchar eventos de estado de escritura
-    this.webSocketService.getMessagesByType('chat:typing-status-updated')
+    this.webSocketService.getMessagesByType(WebSocketMessageType.CHAT_TYPING_STATUS_UPDATED)
       .pipe(takeUntil(this.destroy$))
       .subscribe(message => {
         const typingData: TypingStatusData = {
@@ -129,7 +135,7 @@ export class ChatWebSocketService implements OnDestroy {
       });
 
     // Escuchar eventos de actualización de chat
-    this.webSocketService.getMessagesByType('chat:status-updated')
+    this.webSocketService.getMessagesByType(WebSocketMessageType.CHAT_STATUS_UPDATED)
       .pipe(takeUntil(this.destroy$))
       .subscribe(message => {
         const chatUpdateData: ChatUpdateData = {
@@ -146,8 +152,7 @@ export class ChatWebSocketService implements OnDestroy {
    * Verifica si un mensaje de WebSocket está relacionado con el chat
    */
   private isChatRelatedMessage(message: WebSocketMessage): boolean {
-    const chatEventTypes = ['chat_message', 'chat_status_change', 'chat_typing', 'chat_participant_update'];
-    return chatEventTypes.includes(message.type);
+    return isChatRelatedMessageType(message.type as string);
   }
 
   /**
@@ -156,7 +161,7 @@ export class ChatWebSocketService implements OnDestroy {
   private handleChatWebSocketMessage(message: WebSocketMessage): void {
     try {
       const chatEvent: ChatWebSocketEvent = {
-        type: this.mapMessageTypeToChatEventType(message.type, message.data),
+        type: mapWebSocketMessageTypeToChatEventType(message.type as string, message.data),
         chatId: message.data?.chatId || '',
         data: message.data,
         timestamp: message.timestamp || Date.now()
@@ -175,35 +180,17 @@ export class ChatWebSocketService implements OnDestroy {
   }
 
   /**
-   * Mapea los tipos de mensaje de WebSocket a tipos de eventos de chat
-   */
-  private mapMessageTypeToChatEventType(messageType: string, data?: any): ChatWebSocketEvent['type'] {
-    switch (messageType) {
-      case 'chat_message':
-        return 'message';
-      case 'chat_status_change':
-        return 'status_change';
-      case 'chat_typing':
-        return 'typing';
-      case 'chat_participant_update':
-        return data?.action === 'joined' ? 'participant_joined' : 'participant_left';
-      default:
-        return 'message';
-    }
-  }
-
-  /**
    * Maneja eventos específicos del chat
    */
   private handleSpecificChatEvent(event: ChatWebSocketEvent): void {
     switch (event.type) {
-      case 'typing':
+      case ChatWebSocketEventType.TYPING:
         this.handleTypingEvent(event);
         break;
-      case 'message':
+      case ChatWebSocketEventType.MESSAGE:
         this.handleNewMessage(event);
         break;
-      case 'status_change':
+      case ChatWebSocketEventType.STATUS_CHANGE:
         this.handleStatusChange(event);
         break;
     }
@@ -248,7 +235,7 @@ export class ChatWebSocketService implements OnDestroy {
    */
   sendTypingEvent(chatId: string, isTyping: boolean): void {
     if (this.webSocketService.isConnected()) {
-      this.webSocketService.sendMessage('chat_typing', {
+      this.webSocketService.sendMessage(WebSocketMessageType.CHAT_TYPING, {
         chatId,
         isTyping,
         timestamp: Date.now()
@@ -261,7 +248,7 @@ export class ChatWebSocketService implements OnDestroy {
    */
   sendChatMessage(chatId: string, message: string, attachments?: any[]): void {
     if (this.webSocketService.isConnected()) {
-      this.webSocketService.sendMessage('chat_message', {
+      this.webSocketService.sendMessage(WebSocketMessageType.CHAT_MESSAGE, {
         chatId,
         message,
         attachments,

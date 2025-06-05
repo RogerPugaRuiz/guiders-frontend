@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, inject, effect } from '@angular/core';
+import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -6,6 +6,8 @@ import { AvatarService } from '../../../../core/services/avatar.service';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { ChatData, ChatListResponse, ChatStatus, Participant } from '../../models/chat.models';
 import { environment } from 'src/environments/environment';
+import { WebSocketConnectionStateDefault, WebSocketMessage, WebSocketService } from 'src/app/core/services';
+import { toSignal } from '@angular/core/rxjs-interop';
 
 interface FilterOption {
   value: string;
@@ -36,9 +38,10 @@ export interface ChatRetryEvent {
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss'
 })
-export class ChatListComponent {
+export class ChatListComponent  implements OnInit {
   // Injection of services
   private avatarService = inject(AvatarService);
+  private ws = inject(WebSocketService);
   private http = inject(HttpClient);
 
   // Output events
@@ -64,6 +67,15 @@ export class ChatListComponent {
       console.log('📦 Chats computed:', this.chats());
       console.log('🎯 Filtered chats:', this.filteredChats());
     });
+
+    effect(() => {
+      const status = this.wsConnected();
+      if (status.connected && this.chatsResource.status() === 'idle') {
+        this.chatsResource.reload();
+      }
+    });
+  }
+  ngOnInit(): void {
   }
   
 
@@ -80,17 +92,52 @@ export class ChatListComponent {
     { value: 'inactive', label: 'Inactivos' }
   ];
 
-  // resources
-  chatsResource = httpResource<ChatListResponse>(()=>(
-    { 
-      url: `${environment.apiUrl}/chats`, 
+  connectionTrigger = toSignal(
+    this.ws.getConnectionStatus(),
+    { initialValue: null }
+  );
+  // Convierte el observable del WebSocket a signal
+  wsConnected = toSignal(this.ws.getConnectionStatus(), {
+    initialValue: {
+      connected: false,
+      connecting: false,
+      error: null,
+      lastConnected: null,
+      reconnectAttempts: 0
+    }
+  });
+
+
+  chatsResource = httpResource<ChatListResponse>(() => {
+    // Solo ejecuta la petición si el WebSocket está conectado
+    if (!this.wsConnected().connected) return undefined;
+
+    return {
+      url: `${environment.apiUrl}/chats`,
       params: {
         limit: this.limit(),
         cursor: this.cursor(),
         include: this.include().join(',')
       }
-    }
-  ));
+    };
+  });
+
+
+
+
+
+
+  chatStatusUpdateResource = resource({
+    stream: () => {
+      return new Promise<Signal<ResourceStreamItem<WebSocketMessage>>>((resolve, reject) => {
+        
+
+        reject(new Error('WebSocket stream not implemented yet'));
+      });
+    },
+  });
+
+
 
   chats = computed(() => {
     const allChats = this.chatsResource.value()?.chats || [];

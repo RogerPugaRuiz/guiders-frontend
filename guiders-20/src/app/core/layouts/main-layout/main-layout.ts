@@ -68,15 +68,22 @@ export class MainLayout implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     // Inicializar el sistema de temas
     this.initializeTheme();
+
     
     // Verificar el estado de autenticación al inicializar
     this.authService.checkAuthenticationStatus().pipe(
       takeUntil(this.destroy$)
     ).subscribe();
 
+    // Remover la clase que oculta el contenido una vez inicializado
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('theme-initializing');
+    }
+    
+    await this.webSocketService.connectAsync()
     // Suscribirse a los mensajes del WebSocket
     this.webSocketService.getMessages().pipe(
       takeUntil(this.destroy$)
@@ -92,10 +99,7 @@ export class MainLayout implements OnInit, OnDestroy {
       // Aquí puedes agregar lógica para mostrar notificaciones en la UI
     });
 
-    // Remover la clase que oculta el contenido una vez inicializado
-    if (typeof document !== 'undefined') {
-      document.documentElement.classList.remove('theme-initializing');
-    }
+
   }
 
   ngOnDestroy(): void {
