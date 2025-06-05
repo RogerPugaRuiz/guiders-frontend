@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit } from '@angular/core';
+import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit, linkedSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,7 +7,9 @@ import { HttpClient, httpResource } from '@angular/common/http';
 import { ChatData, ChatListResponse, ChatStatus, Participant } from '../../models/chat.models';
 import { environment } from 'src/environments/environment';
 import { WebSocketConnectionStateDefault, WebSocketMessage, WebSocketService } from 'src/app/core/services';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { WebSocketMessageType } from 'src/app/core/enums';
+import { catchError, EMPTY, filter, tap } from 'rxjs';
 
 interface FilterOption {
   value: string;
@@ -122,31 +124,63 @@ export class ChatListComponent  implements OnInit {
     };
   });
 
+  participantStatusUpdate = toSignal(
+    this.ws.getMessagesByType(WebSocketMessageType.PARTICIPANT_ONLINE_STATUS_UPDATED)
+      .pipe(
+        // Añadir console.log para ver el contenido del observable
+        tap(message => {
+        }),
+        filter(message => message && message.data),
+        catchError(err => {
+          console.error('❌ Error in chat status update stream:', err);
+          return EMPTY;
+        })
+      ),
+    { initialValue: null }
+  );
 
 
-
-
-
-  chatStatusUpdateResource = resource({
-    stream: () => {
-      return new Promise<Signal<ResourceStreamItem<WebSocketMessage>>>((resolve, reject) => {
-        
-
-        reject(new Error('WebSocket stream not implemented yet'));
-      });
-    },
-  });
-
-
-
-  chats = computed(() => {
+  chats = linkedSignal(() => {
     const allChats = this.chatsResource.value()?.chats || [];
-    console.log('All chats:', allChats);
-    return allChats
+    const participantStatusUpdate = this.participantStatusUpdate();
+
+    if (!participantStatusUpdate?.data?.data) { // 👈 Nota el .data.data
+      return allChats;
+    }
+
+    console.log('🔄 [ChatList] Participant status update:', participantStatusUpdate);
+
+    // Acceder al nivel correcto de datos
+    const { isOnline, participantId } = participantStatusUpdate.data.data as {
+      isOnline: boolean;
+      participantId: string;
+    };
+
+    console.log('🔍 Debug - participantId:', participantId, 'isOnline:', isOnline);
+
+    const newAllChats = allChats.map(chat => {
+      console.log('🔍 Processing chat:', chat.id);
+      const updatedParticipants = chat.participants.map(participant => {
+        console.log('🔍 Checking participant:', participant.id, 'against:', participantId);
+        if (participant.id === participantId) {
+          console.log('✅ Found matching participant, updating isOnline to:', isOnline);
+          return { ...participant, isOnline };
+        }
+        return participant;
+      });
+
+      return {
+        ...chat,
+        participants: updatedParticipants
+      };
+    });
+
+    console.log('🔄 [ChatList] Updated chats with participant status:', newAllChats);
+    return newAllChats;
   });
 
   filteredChats = computed(() => {
-    const allChats = this.chatsResource.value()?.chats || [];
+    const allChats = this.chats() || [];
     if (this.selectedFilter() === 'all') return allChats;
     return allChats.filter(chat => chat.status === this.selectedFilter());
   });
