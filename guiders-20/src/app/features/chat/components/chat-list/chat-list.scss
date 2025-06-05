@@ -255,10 +255,6 @@
       background: #bf8700;
       animation: pulsate 1.5s infinite;
     }
-    
-    &--viewing {
-      background: #0969da;
-    }
   }
   
   &__status-text {
@@ -288,18 +284,6 @@
     
     &.inactive {
       color: #bf8700;
-      display: inline-flex;
-      align-items: center;
-      
-      &::before {
-        content: "•";
-        font-style: normal;
-        margin-right: 0.25em;
-      }
-    }
-    
-    &.viewing {
-      color: #0969da;
       display: inline-flex;
       align-items: center;
       

@@ -241,10 +241,6 @@ export class ChatListComponent  implements OnInit {
       return 'chat-item__status--typing';
     }
     
-    if (visitor.isViewing) {
-      return 'chat-item__status--viewing';
-    }
-    
     if (visitor.isOnline) {
       return 'chat-item__status--online';
     }
@@ -270,10 +266,6 @@ export class ChatListComponent  implements OnInit {
     
     if (visitor.isTyping) {
       return 'Escribiendo...';
-    }
-    
-    if (visitor.isViewing) {
-      return 'Viendo la conversación';
     }
     
     if (visitor.isOnline) {

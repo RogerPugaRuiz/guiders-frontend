@@ -110,8 +110,6 @@
             <p class="chat-item__preview">{{ getLastMessagePreview(chat) }}</p>
             @if (getVisitor(chat)?.isTyping) {
               <p class="chat-item__status-text typing">Escribiendo...</p>
-            } @else if (getVisitor(chat)?.isViewing) {
-              <!-- <p class="chat-item__status-text viewing">Esta en la conversación</p> -->
             } @else if (getParticipantStatusClass(chat) === 'chat-item__status--inactive') {
               <!-- <p class="chat-item__status-text inactive">Inactivo</p> -->
             }
