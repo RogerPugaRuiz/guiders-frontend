@@ -1,51 +1,39 @@
 <div class="chat-messages">
 	@if (selectedChat()) {
 		<div class="start-conversation"></div>
-		<div class="chat-date-separator">
-			<span>Hoy</span>
-		</div>
+		
+		@if (message().length > 0) {
+			<!-- Renderizar mensajes agrupados por fecha -->
+			@for (group of getGroupedMessages(); track group.date) {
+				<!-- Separador de fecha dinámico -->
+				<div class="chat-date-separator">
+					<span>{{ group.dateLabel }}</span>
+				</div>
 
-		<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-		<div class="chat-message chat-message--received">
-			<div class="chat-message__content">
-				<p>Hola, ¿podrían ayudarme con información sobre los servicios de guía turística?</p>
-			</div>
-			<span class="chat-message__time">12:30</span>
-		</div>
-
-		<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
-		<div class="chat-message chat-message--sent">
-			<div class="chat-message__content">
-				<p>¡Hola Ana! Claro, estaré encantado de ayudarte. ¿Qué tipo de tour estás buscando?</p>
-			</div>
-			<span class="chat-message__time">12:32</span>
-		</div>
-
-		<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-		<div class="chat-message chat-message--received">
-			<div class="chat-message__content">
-				<p>Estoy interesada en tours culturales y gastronómicos. Viajaré a Barcelona el próximo mes.</p>
-			</div>
-			<span class="chat-message__time">12:35</span>
-		</div>
-
-		<!-- Tú (operador) - Mensaje enviado, aparece a la derecha -->
-		<div class="chat-message chat-message--sent">
-			<div class="chat-message__content">
-				<p>¡Genial! Barcelona tiene mucho que ofrecer en ese sentido. Tenemos tours diarios que combinan visitas a
-					monumentos históricos con degustaciones de la gastronomía local. ¿Te gustaría recibir más detalles sobre
-					estos tours?</p>
-			</div>
-			<span class="chat-message__time">12:40</span>
-		</div>
-
-		<!-- Cliente (Ana) - Mensaje recibido, aparece a la izquierda -->
-		<div class="chat-message chat-message--received">
-			<div class="chat-message__content">
-				<p>Sí, por favor. También me gustaría saber los precios y disponibilidad para la primera semana de junio.</p>
-			</div>
-			<span class="chat-message__time">12:45</span>
-		</div>
+				<!-- Mensajes del grupo -->
+				@for (msg of group.messages; track msg.id) {
+					<div class="chat-message" 
+						 [class.chat-message--sent]="isMessageSent(msg.senderId)"
+						 [class.chat-message--received]="!isMessageSent(msg.senderId)">
+						<div class="chat-message__content">
+							<p>{{ msg.content }}</p>
+						</div>
+						<span class="chat-message__time">{{ formatMessageTime(msg.createdAt) }}</span>
+					</div>
+				}
+			}
+		} @else {
+			<!-- Estado de carga o sin mensajes -->
+			@if (messagesResource.isLoading()) {
+				<div class="chat-loading">
+					<p>Cargando mensajes...</p>
+				</div>
+			} @else {
+				<div class="chat-no-messages">
+					<p>Aún no hay mensajes en esta conversación.</p>
+				</div>
+			}
+		}
 	} @else {
 		<!-- Estado vacío cuando no hay chat seleccionado -->
 		<div class="chat-empty-state">

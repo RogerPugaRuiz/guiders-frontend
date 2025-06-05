@@ -346,7 +346,7 @@ export class ChatListComponent  implements OnInit {
   }
 
   getLastMessagePreview(chat: ChatData): string {
-    return chat.lastMessage ? chat.lastMessage.content : 'Sin mensajes';
+    return chat.lastMessage ? chat.lastMessage : 'Sin mensajes';
   }
 
   getVisitor(chat: ChatData): Participant | null {

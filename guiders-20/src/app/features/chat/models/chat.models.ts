@@ -2,7 +2,7 @@ export interface ChatData {
   id: string;
   participants: Participant[];
   status: 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
-  lastMessage?: Message | null;
+  lastMessage?: string | null;
   lastMessageAt: string | null;
   createdAt: string;
 }
@@ -24,12 +24,17 @@ export interface Message {
   id: string;
   chatId: string;
   senderId: string;
-  senderName: string;
   content: string;
   type: 'text' | 'image' | 'file' | 'system';
-  timestamp: string;
+  createdAt: string; // ISO 8601 format ej: "2023-10-01T12:00:00Z"
   isRead: boolean;
   metadata?: Record<string, any>;
+}
+
+export interface MessagesListResponse {
+  messages: Message[];
+  nextCursor?: string | null;
+  hasMore: boolean;
 }
 
 export interface ChatListResponse {

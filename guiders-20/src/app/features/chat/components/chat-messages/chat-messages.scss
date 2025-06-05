@@ -14,6 +14,12 @@
 	to { opacity: 1; }
 }
 
+@keyframes spin {
+	to {
+		transform: translateY(-50%) rotate(360deg);
+	}
+}
+
 .chat-messages {
 	flex: 1;
 	padding: var(--spacing-lg);
@@ -143,5 +149,42 @@
 		line-height: 1.5;
 		color: var(--color-text-light);
 		font-size: 0.95rem;
+	}
+}
+
+// Estados de carga y sin mensajes
+.chat-loading, .chat-no-messages {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: var(--spacing-xl);
+	text-align: center;
+	
+	p {
+		margin: 0;
+		color: var(--color-text-light);
+		font-size: 0.95rem;
+		animation: fadeIn 0.3s ease-in-out;
+	}
+}
+
+.chat-loading {
+	p {
+		position: relative;
+		
+		&::after {
+			content: '';
+			position: absolute;
+			right: -20px;
+			top: 50%;
+			transform: translateY(-50%);
+			width: 12px;
+			height: 12px;
+			border: 2px solid var(--color-primary);
+			border-top-color: transparent;
+			border-radius: 50%;
+			animation: spin 1s linear infinite;
+		}
 	}
 }
