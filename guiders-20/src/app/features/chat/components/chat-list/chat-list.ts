@@ -327,7 +327,7 @@ export class ChatListComponent  implements OnInit {
     }
 
     if (isYesterday) {
-      return 'ayer';
+      return 'Ayer';
     }
 
     // Formato dd/mm/yy
