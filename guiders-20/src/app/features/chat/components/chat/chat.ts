@@ -17,10 +17,11 @@ import { AvatarService } from 'src/app/core/services/avatar.service';
   templateUrl: './chat.html',
   styleUrls: ['./chat.scss']
 })
-export class ChatComponent {
-
+export class ChatComponent implements OnInit, OnDestroy {
 
   private avatarService = inject(AvatarService);
+  public webSocketService = inject(WebSocketService);
+  private destroy$ = new Subject<void>();
 
   // Referencias a elementos del template usando viewChild signal
   trackingInfoPanel = viewChild<ElementRef>('trackingInfoPanel');
@@ -32,6 +33,7 @@ export class ChatComponent {
   isTrackingPanelVisible = signal(false);
   textareaRows = signal(1);
   readonly maxTextareaRows = 5;
+  isSendingMessage = signal(false);
 
   // Métodos implementados con signals
   visitorStatus() {
@@ -46,7 +48,14 @@ export class ChatComponent {
   }
 
   canSendMessage() {
-    return this.selectedChat() !== null && this.currentMessageText().trim().length > 0;
+    return this.selectedChat() !== null && 
+           this.currentMessageText().trim().length > 0 && 
+           !this.isSendingMessage() &&
+           this.webSocketService.isConnected();
+  }
+
+  getSendingStatus() {
+    return this.isSendingMessage();
   }
 
   onParticipantStatusUpdated($event: { participantId: string; isOnline: boolean; }) {
@@ -79,14 +88,67 @@ export class ChatComponent {
     const message = this.currentMessageText().trim();
     const chat = this.selectedChat();
     
-    if (!message || !chat) return;
+    if (!message || !chat || this.isSendingMessage()) return;
     
-    // Aquí se implementaría el envío del mensaje
-    console.log('Enviando mensaje:', message, 'al chat:', chat.id);
+    // Verificar que hay conexión WebSocket
+    if (!this.webSocketService.isConnected()) {
+      console.warn('💬 [Chat] No hay conexión WebSocket activa, no se puede enviar el mensaje');
+      return;
+    }
     
-    // Limpiar el campo de mensaje y resetear altura
-    this.currentMessageText.set('');
-    this.textareaRows.set(1);
+    // Activar indicador de envío
+    this.isSendingMessage.set(true);
+    
+    // Generar ID único para el mensaje
+    const messageId = this.generateMessageId();
+    const timestamp = Date.now();
+    
+    console.log('📤 [Chat] Enviando mensaje vía WebSocket:', {
+      id: messageId,
+      message,
+      chatId: chat.id,
+      timestamp
+    });
+    
+    try {
+      // Enviar el mensaje usando acknowledgment para obtener respuesta del servidor
+      this.webSocketService.emitEventWithAck('commercial:send-message', {
+        id: messageId,
+        message,
+        timestamp,
+        chatId: chat.id
+      }).then((response) => {
+        // Respuesta exitosa del servidor
+        console.log('✅ [Chat] Mensaje enviado exitosamente, respuesta del servidor:', response);
+        
+        // Limpiar el campo de mensaje y resetear altura
+        this.currentMessageText.set('');
+        this.textareaRows.set(1);
+        this.isSendingMessage.set(false);
+        
+      }).catch((error) => {
+        // Error del servidor o timeout
+        console.error('❌ [Chat] Error al enviar mensaje:', error);
+        this.isSendingMessage.set(false);
+        
+        // Mostrar mensaje de error al usuario (opcional)
+        if ('error' in error) {
+          console.error('Error del servidor:', error.error);
+          // Aquí podrías mostrar una notificación al usuario
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ [Chat] Error al enviar mensaje:', error);
+      this.isSendingMessage.set(false);
+    }
+  }
+
+  /**
+   * Genera un ID único para el mensaje
+   */
+  private generateMessageId(): string {
+    return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   onKeyDown($event: KeyboardEvent) {
@@ -188,5 +250,42 @@ export class ChatComponent {
   onChatSelected(event: ChatSelectionEvent) {
     this.selectedChat.set(event.chat);
     console.log('🎯 [Chat] Chat seleccionado desde chat-list:', event.chat.id, event.chat);
+  }
+
+  ngOnInit() {
+    this.setupWebSocketListeners();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private setupWebSocketListeners() {
+    // Escuchar respuestas exitosas del servidor
+    this.webSocketService.getMessagesByType('commercial:message-sent')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          console.log('✅ [Chat] Mensaje confirmado por el servidor:', response);
+          // Aquí podrías mostrar un indicador visual de éxito
+          this.isSendingMessage.set(false);
+        },
+        error: (error: any) => {
+          console.error('❌ [Chat] Error en confirmación del mensaje:', error);
+          this.isSendingMessage.set(false);
+        }
+      });
+
+    // Escuchar errores del servidor
+    this.webSocketService.getMessagesByType('commercial:message-error')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (error: any) => {
+          console.error('❌ [Chat] Error del servidor al enviar mensaje:', error);
+          this.isSendingMessage.set(false);
+          // Aquí podrías mostrar un mensaje de error al usuario
+        }
+      });
   }
 }

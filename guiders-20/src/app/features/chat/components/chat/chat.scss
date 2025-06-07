@@ -651,6 +651,49 @@
 		}
 	}
 	
+	/* Estilos para el indicador de conexión WebSocket */
+	.connection-status {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing-xs);
+		padding: var(--spacing-xs) var(--spacing-sm);
+		border-radius: var(--border-radius);
+		font-size: var(--font-size-sm);
+		font-weight: 500;
+		transition: all 0.3s ease;
+		
+		.connection-indicator {
+			font-size: 10px;
+			transition: all 0.3s ease;
+		}
+		
+		.connection-text {
+			transition: all 0.3s ease;
+		}
+		
+		&.connected {
+			background-color: rgba(63, 185, 80, 0.1);
+			color: #3fb950;
+			border: 1px solid rgba(63, 185, 80, 0.2);
+			
+			.connection-indicator {
+				color: #3fb950;
+				animation: pulsate 2s infinite;
+			}
+		}
+		
+		&.disconnected {
+			background-color: rgba(218, 54, 51, 0.1);
+			color: #da3633;
+			border: 1px solid rgba(218, 54, 51, 0.2);
+			
+			.connection-indicator {
+				color: #da3633;
+				animation: pulsate 1s infinite;
+			}
+		}
+	}
+
 	/* Estilos para el spinner */
 	.spinner {
 		display: inline-block;
@@ -666,6 +709,28 @@
 		
 		&--white {
 			color: white;
+		}
+	}
+
+	/* Animación de spinning para el icono de carga */
+	.spinning {
+		animation: spin 1s linear infinite;
+	}
+
+	/* Estilos específicos para el botón de envío */
+	.chat-input button {
+		&.sending {
+			opacity: 0.7;
+			cursor: not-allowed;
+			
+			.spinning {
+				color: var(--color-primary);
+			}
+		}
+		
+		&:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
 		}
 	}
 }

@@ -6,6 +6,7 @@ import * as io from 'socket.io-client';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { WebSocketMessageType } from '../enums/websocket-message-types.enum';
+import { Event, ErrorResponse, SuccessResponse } from '../models/websocket-response.models';
 
 export interface WebSocketMessage {
   type: WebSocketMessageType | string;
@@ -327,6 +328,88 @@ export class WebSocketService implements OnDestroy {
 
     console.log('WebSocket: Enviando mensaje:', message);
     this.socket.emit('message', message);
+  }
+
+  /**
+   * Envía un evento específico al servidor usando Socket.IO
+   * Útil para eventos que no siguen el formato estándar de mensaje
+   */
+  emitEvent(eventName: string, data?: Record<string, unknown>): void {
+    if (!this.socket || !this.socket.connected) {
+      console.warn('WebSocket: No se puede enviar evento, no hay conexión activa');
+      return;
+    }
+
+    // Estructurar el payload según el interface Event requerido
+    const eventPayload: Event = {
+      type: eventName,
+      data: data || {},
+      metadata: {
+        clientId: this.socket.id || 'unknown',
+        userAgent: isPlatformBrowser(this.platformId) ? navigator.userAgent : 'server',
+        origin: isPlatformBrowser(this.platformId) ? window.location.origin : 'server'
+      },
+      timestamp: Date.now()
+    };
+
+    console.log(`WebSocket: Enviando evento '${eventName}' con estructura Event:`, eventPayload);
+    this.socket.emit(eventName, eventPayload);
+  }
+
+  /**
+   * Envía un evento específico al servidor usando Socket.IO con acknowledgment
+   * Retorna una Promise que se resuelve con la respuesta del servidor
+   */
+  emitEventWithAck<T extends Record<string, unknown>>(
+    eventName: string, 
+    data?: Record<string, unknown>
+  ): Promise<ErrorResponse | SuccessResponse<T>> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket || !this.socket.connected) {
+        const error: ErrorResponse = {
+          error: 'No hay conexión WebSocket activa',
+          timestamp: Date.now()
+        };
+        reject(error);
+        return;
+      }
+
+      // Estructurar el payload según el interface Event requerido
+      const eventPayload: Event = {
+        type: eventName,
+        data: data || {},
+        metadata: {
+          clientId: this.socket.id || 'unknown',
+          userAgent: isPlatformBrowser(this.platformId) ? navigator.userAgent : 'server',
+          origin: isPlatformBrowser(this.platformId) ? window.location.origin : 'server'
+        },
+        timestamp: Date.now()
+      };
+
+      console.log(`WebSocket: Enviando evento '${eventName}' con ACK:`, eventPayload);
+
+      // Enviar con timeout para el acknowledgment
+      const timeout = setTimeout(() => {
+        const timeoutError: ErrorResponse = {
+          error: 'Timeout al esperar respuesta del servidor',
+          timestamp: Date.now()
+        };
+        reject(timeoutError);
+      }, 10000); // 10 segundos de timeout
+
+      // Emitir evento con callback para acknowledgment
+      this.socket.emit(eventName, eventPayload, (response: ErrorResponse | SuccessResponse<T>) => {
+        clearTimeout(timeout);
+        
+        if ('error' in response) {
+          console.error(`WebSocket: Error del servidor para '${eventName}':`, response);
+          reject(response);
+        } else {
+          console.log(`WebSocket: Respuesta exitosa para '${eventName}':`, response);
+          resolve(response);
+        }
+      });
+    });
   }
 
   /**

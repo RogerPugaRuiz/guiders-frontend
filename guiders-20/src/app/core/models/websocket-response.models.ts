@@ -1,4 +1,16 @@
-// Interfaces para// Interfaces específicas para eventos de chat
+// Interfaces para eventos WebSocket
+
+/**
+ * Interface principal para eventos WebSocket
+ */
+export interface Event {
+  type?: string;
+  data: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  timestamp: number;
+}
+
+// Interfaces específicas para eventos de chat
 export interface ChatStatusUpdatedData extends Record<string, unknown> {
   status: string;
   chatId: string;
