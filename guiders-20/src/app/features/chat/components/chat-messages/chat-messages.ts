@@ -1,4 +1,4 @@
-import { Component, inject, input, linkedSignal, signal, computed, viewChild, ElementRef, effect, AfterViewInit } from '@angular/core';
+import { Component, inject, input, linkedSignal, signal, computed, viewChild, ElementRef, effect, AfterViewInit, OnDestroy } from '@angular/core';
 import { ChatData, Message, MessagesListResponse } from '../../models/chat.models';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
@@ -11,7 +11,7 @@ import { ChatStateService } from '../../services/chat-state.service';
   templateUrl: './chat-messages.html',
   styleUrl: './chat-messages.scss'
 })
-export class ChatMessages implements AfterViewInit {
+export class ChatMessages implements AfterViewInit, OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly chatStateService = inject(ChatStateService);
 
@@ -25,14 +25,25 @@ export class ChatMessages implements AfterViewInit {
   private savedScrollPosition = 0;
   private savedScrollHeight = 0;
   private shouldMaintainScrollPosition = false;
+  private scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private loadMoreThrottleTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Signal para mostrar el indicador de carga de scroll infinito
   isLoadingHistory = signal(false);
+  
+  // Configuración para el scroll infinito más fluido
+  private readonly SCROLL_THRESHOLD = 100; // Distancia del top para activar carga
+  private readonly DEBOUNCE_DELAY = 150; // Delay para debounce del scroll
+  private readonly THROTTLE_DELAY = 300; // Delay para throttle de cargas
+  private readonly BOTTOM_THRESHOLD = 100; // Distancia del bottom para auto-scroll
+  
+  // Signal para detectar si el usuario está cerca del final
+  private isNearBottom = signal(true);
 
   // Input usando signals (Angular 20)
   selectedChat = input<ChatData | null>(null);
 
-  limit = signal(100);
+  limit = signal(10);
   cursor = signal<string>('');
 
   // Signal para acumular todos los mensajes HTTP
@@ -118,6 +129,23 @@ export class ChatMessages implements AfterViewInit {
     }
   }
 
+  /**
+   * Método público para forzar scroll al final
+   * Útil para cuando llegan mensajes nuevos
+   */
+  public forceScrollToBottom(): void {
+    this.isNearBottom.set(true);
+    this.scrollToBottom();
+  }
+
+  /**
+   * Método público para verificar si se puede cargar más mensajes
+   */
+  public canLoadMore(): boolean {
+    const messagesResponse = this.messagesResource.value();
+    return !!(messagesResponse && messagesResponse.hasMore && !this.isLoadingMore);
+  }
+
   // Método para resetear mensajes (útil al cambiar de chat)
   resetMessages() {
     this.cursor.set('');
@@ -127,6 +155,17 @@ export class ChatMessages implements AfterViewInit {
     this.savedScrollPosition = 0;
     this.savedScrollHeight = 0;
     this.isLoadingHistory.set(false);
+    
+    // Limpiar timers para evitar memory leaks
+    if (this.scrollDebounceTimer) {
+      clearTimeout(this.scrollDebounceTimer);
+      this.scrollDebounceTimer = null;
+    }
+    if (this.loadMoreThrottleTimer) {
+      clearTimeout(this.loadMoreThrottleTimer);
+      this.loadMoreThrottleTimer = null;
+    }
+    
     console.log('📜 [ChatMessages] Mensajes reseteados');
   }
 
@@ -240,33 +279,41 @@ export class ChatMessages implements AfterViewInit {
       const currentChat = this.selectedChat();
 
       if (newData?.messages && currentChat) {
-        if (isFirst) {
-          // Primera carga: reemplazar todos los mensajes
-          this.allMessages.set(newData.messages);
-          console.log('📜 [ChatMessages] Primera carga:', newData.messages.length, 'mensajes');
-        } else {
-          // Cargas posteriores: acumular mensajes (añadir al principio para orden cronológico)
-          this.allMessages.update(current => {
-            const existingIds = new Set(current.map(msg => msg.id));
-            const newMessages = newData.messages.filter(msg => !existingIds.has(msg.id));
+        // Usar requestAnimationFrame para renderizado más fluido
+        requestAnimationFrame(() => {
+          if (isFirst) {
+            // Primera carga: reemplazar todos los mensajes
+            this.allMessages.set(newData.messages);
+            console.log('📜 [ChatMessages] Primera carga:', newData.messages.length, 'mensajes');
+          } else {
+            // Cargas posteriores: acumular mensajes (añadir al principio para orden cronológico)
+            this.allMessages.update(current => {
+              const existingIds = new Set(current.map(msg => msg.id));
+              const newMessages = newData.messages.filter(msg => !existingIds.has(msg.id));
 
-            // Añadir nuevos mensajes al principio (son más antiguos)
-            const combined = [...newMessages, ...current];
-            console.log('📜 [ChatMessages] Mensajes acumulados:', newMessages.length, 'nuevos,', combined.length, 'total');
-            return combined;
-          });
-          
-          // Si estamos cargando más mensajes, mantener la posición de scroll
-          if (this.shouldMaintainScrollPosition) {
-            this.maintainScrollPosition();
+              // Añadir nuevos mensajes al principio (son más antiguos)
+              const combined = [...newMessages, ...current];
+              console.log('📜 [ChatMessages] Mensajes acumulados:', newMessages.length, 'nuevos,', combined.length, 'total');
+              return combined;
+            });
+            
+            // Si estamos cargando más mensajes, mantener la posición de scroll
+            if (this.shouldMaintainScrollPosition) {
+              // Usar doble requestAnimationFrame para asegurar que el DOM se actualice
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  this.maintainScrollPosition();
+                });
+              });
+            }
           }
-        }
-        
-        // Si no hay más mensajes para cargar, ocultar el indicador
-        if (!newData.hasMore && this.isLoadingHistory()) {
-          this.isLoadingHistory.set(false);
-          this.isLoadingMore = false;
-        }
+          
+          // Si no hay más mensajes para cargar, ocultar el indicador
+          if (!newData.hasMore && this.isLoadingHistory()) {
+            this.isLoadingHistory.set(false);
+            this.isLoadingMore = false;
+          }
+        });
       }
     });
 
@@ -284,11 +331,13 @@ export class ChatMessages implements AfterViewInit {
       const messages = this.message();
       const chat = this.selectedChat();
 
-      if (messages.length > 0 && chat && this.isFirstLoad()) {
-        // Solo hacer scroll automático en la primera carga, no al cargar más mensajes históricos
-        setTimeout(() => {
-          this.scrollToBottom();
-        }, 0);
+      if (messages.length > 0 && chat) {
+        // Solo hacer scroll automático si es la primera carga o si el usuario está cerca del final
+        if (this.isFirstLoad() || this.isNearBottom()) {
+          setTimeout(() => {
+            this.scrollToBottom();
+          }, 0);
+        }
       }
     });
   }
@@ -303,13 +352,24 @@ export class ChatMessages implements AfterViewInit {
 
   /**
    * Hace scroll automático hacia abajo en el contenedor de mensajes
+   * Mejorado para mayor fluidez
    */
   private scrollToBottom(): void {
     try {
       const container = this.messagesContainer()?.nativeElement;
       if (container) {
-        container.scrollTop = container.scrollHeight;
-        console.log('📜 [ChatMessages] Scroll automático hacia abajo ejecutado');
+        // Usar requestAnimationFrame para scroll más fluido
+        requestAnimationFrame(() => {
+          if (container.scrollTo) {
+            container.scrollTo({
+              top: container.scrollHeight,
+              behavior: 'smooth'
+            });
+          } else {
+            container.scrollTop = container.scrollHeight;
+          }
+          console.log('📜 [ChatMessages] Scroll automático hacia abajo ejecutado');
+        });
       }
     } catch (error) {
       console.error('❌ [ChatMessages] Error al hacer scroll automático:', error);
@@ -318,44 +378,81 @@ export class ChatMessages implements AfterViewInit {
 
   /**
    * Configura el listener para detectar scroll al top y cargar más mensajes
+   * Mejorado con debounce y throttle para mayor fluidez
    */
   private setupScrollListener(): void {
     const container = this.messagesContainer()?.nativeElement;
     if (!container) return;
 
     let lastScrollTop = 0;
-    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isScrolling = false;
+    let ticking = false;
 
-    container.addEventListener('scroll', () => {
-      const currentScrollTop = container.scrollTop;
-      
-      // Detectar cuando el scroll está cerca del top (tolerancia de 50px)
-      // Y asegurar que el usuario está scrolleando hacia arriba
-      if (currentScrollTop <= 50 && 
-          currentScrollTop < lastScrollTop && 
-          !this.isLoadingMore && 
-          !this.shouldMaintainScrollPosition) {
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollTop = container.scrollTop;
+          const scrollHeight = container.scrollHeight;
+          const clientHeight = container.clientHeight;
+          
+          // Detectar dirección del scroll
+          const isScrollingUp = currentScrollTop < lastScrollTop;
+          
+          // Detectar si el usuario está cerca del final
+          const distanceFromBottom = scrollHeight - clientHeight - currentScrollTop;
+          this.isNearBottom.set(distanceFromBottom <= this.BOTTOM_THRESHOLD);
+          
+          // Detectar cuando el scroll está cerca del top y el usuario está scrolleando hacia arriba
+          if (currentScrollTop <= this.SCROLL_THRESHOLD && 
+              isScrollingUp && 
+              !this.isLoadingMore && 
+              !this.shouldMaintainScrollPosition &&
+              !isScrolling) {
+            
+            isScrolling = true;
+            
+            // Debounce para evitar múltiples cargas rápidas
+            if (this.scrollDebounceTimer) {
+              clearTimeout(this.scrollDebounceTimer);
+            }
+            
+            this.scrollDebounceTimer = setTimeout(() => {
+              console.log('📜 [ChatMessages] Scroll detectado en el top, cargando más mensajes...');
+              this.loadMoreMessages();
+              isScrolling = false;
+            }, this.DEBOUNCE_DELAY);
+          }
+          
+          lastScrollTop = currentScrollTop;
+          ticking = false;
+        });
         
-        // Debounce para evitar múltiples cargas rápidas
-        if (scrollTimeout) {
-          clearTimeout(scrollTimeout);
-        }
-        
-        scrollTimeout = setTimeout(() => {
-          console.log('📜 [ChatMessages] Scroll detectado en el top, cargando más mensajes...');
-          this.loadMoreMessages();
-          scrollTimeout = null;
-        }, 100);
+        ticking = true;
       }
-      
-      lastScrollTop = currentScrollTop;
-    });
+    };
+
+    // Listener optimizado para mejor rendimiento
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Guardar referencia para cleanup si es necesario
+    this.cleanupScrollListener = () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
   }
+
+  private cleanupScrollListener: (() => void) | null = null;
 
   /**
    * Carga más mensajes históricos cuando el usuario hace scroll al top
+   * Mejorado con throttle para evitar cargas excesivas
    */
   private loadMoreMessages(): void {
+    // Throttle para evitar cargas muy frecuentes
+    if (this.loadMoreThrottleTimer) {
+      console.log('📜 [ChatMessages] Carga throttleada, ignorando...');
+      return;
+    }
+
     const messagesResponse = this.messagesResource.value();
     const container = this.messagesContainer()?.nativeElement;
 
@@ -378,7 +475,12 @@ export class ChatMessages implements AfterViewInit {
     this.isLoadingHistory.set(true);
     console.log('📜 [ChatMessages] Iniciando carga de más mensajes históricos...');
 
-    // Guardar la posición de scroll actual para mantenerla después de cargar
+    // Aplicar throttle
+    this.loadMoreThrottleTimer = setTimeout(() => {
+      this.loadMoreThrottleTimer = null;
+    }, this.THROTTLE_DELAY);
+
+    // Guardar la posición de scroll actual de manera más precisa
     this.savedScrollHeight = container.scrollHeight;
     this.savedScrollPosition = container.scrollTop;
 
@@ -388,34 +490,82 @@ export class ChatMessages implements AfterViewInit {
 
   /**
    * Mantiene la posición de scroll después de cargar nuevos mensajes históricos
+   * Mejorado con múltiples requestAnimationFrame para mayor fluidez
    */
   private maintainScrollPosition(): void {
     const container = this.messagesContainer()?.nativeElement;
     if (!container || !this.shouldMaintainScrollPosition) return;
 
-    // Usar requestAnimationFrame para asegurar que el DOM se haya actualizado
-    requestAnimationFrame(() => {
-      if (!container) return;
-
+    const performScrollAdjustment = () => {
       const newScrollHeight = container.scrollHeight;
       const heightDifference = newScrollHeight - this.savedScrollHeight;
       
       // Calcular la nueva posición de scroll manteniendo la posición relativa
       const newScrollTop = this.savedScrollPosition + heightDifference;
       
-      // Aplicar el nuevo scroll de forma suave
-      container.scrollTop = Math.max(newScrollTop, 50); // Mínimo 50px del top
+      // Aplicar el nuevo scroll de forma más suave con un mínimo más alto
+      const finalScrollPosition = Math.max(newScrollTop, this.SCROLL_THRESHOLD + 20);
+      
+      // Aplicar scroll de forma más suave usando scrollTo con behavior smooth si está disponible
+      if (container.scrollTo) {
+        container.scrollTo({
+          top: finalScrollPosition,
+          behavior: 'auto' // Usar 'auto' para mayor rendimiento en scroll infinito
+        });
+      } else {
+        container.scrollTop = finalScrollPosition;
+      }
       
       console.log('📜 [ChatMessages] Posición de scroll mantenida de forma fluida');
       console.log('📜 [ChatMessages] Altura anterior:', this.savedScrollHeight, 'Nueva altura:', newScrollHeight);
-      console.log('📜 [ChatMessages] Scroll anterior:', this.savedScrollPosition, 'Nuevo scroll:', container.scrollTop);
+      console.log('📜 [ChatMessages] Scroll anterior:', this.savedScrollPosition, 'Nuevo scroll:', finalScrollPosition);
       
-      // Resetear flags con un pequeño delay para mostrar el resultado de la carga
-      setTimeout(() => {
-        this.shouldMaintainScrollPosition = false;
-        this.isLoadingMore = false;
-        this.isLoadingHistory.set(false);
-      }, 300); // 300ms para mostrar brevemente el resultado antes de ocultar el loader
+      // Resetear flags con transición más suave
+      this.animateLoadingCompletion();
+    };
+
+    // Triple requestAnimationFrame para máxima fluidez
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(performScrollAdjustment);
+      });
     });
+  }
+
+  /**
+   * Anima la finalización de la carga para una transición más suave
+   */
+  private animateLoadingCompletion(): void {
+    // Delay progresivo para una transición más natural
+    setTimeout(() => {
+      this.shouldMaintainScrollPosition = false;
+      this.isLoadingMore = false;
+      
+      // Delay adicional para ocultar el indicador de carga
+      setTimeout(() => {
+        this.isLoadingHistory.set(false);
+      }, 100);
+    }, 200);
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar todos los timers
+    if (this.scrollDebounceTimer) {
+      clearTimeout(this.scrollDebounceTimer);
+      this.scrollDebounceTimer = null;
+    }
+    
+    if (this.loadMoreThrottleTimer) {
+      clearTimeout(this.loadMoreThrottleTimer);
+      this.loadMoreThrottleTimer = null;
+    }
+    
+    // Limpiar listener de scroll
+    if (this.cleanupScrollListener) {
+      this.cleanupScrollListener();
+      this.cleanupScrollListener = null;
+    }
+    
+    console.log('📜 [ChatMessages] Componente destruido, timers y listeners limpiados');
   }
 }
