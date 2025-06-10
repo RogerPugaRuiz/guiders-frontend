@@ -1,10 +1,11 @@
-import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit, linkedSignal } from '@angular/core';
+import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit, OnDestroy, linkedSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { AvatarService } from '../../../../core/services/avatar.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { ChatData, ChatListResponse, ChatStatus, Participant } from '../../models/chat.models';
+import { ChatData, ChatListResponse, ChatStatus, Participant, MessagesListResponse } from '../../models/chat.models';
 import { ChatLastMessageUpdatedData } from '../../../../core/models/websocket-response.models';
 import { environment } from 'src/environments/environment';
 import { WebSocketConnectionStateDefault, WebSocketMessage, WebSocketService } from 'src/app/core/services';
@@ -41,9 +42,10 @@ export interface ChatRetryEvent {
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss'
 })
-export class ChatListComponent  implements OnInit {
+export class ChatListComponent  implements OnInit, OnDestroy {
   // Injection of services
   private avatarService = inject(AvatarService);
+  private authService = inject(AuthService);
   private ws = inject(WebSocketService);
   private http = inject(HttpClient);
 
@@ -61,6 +63,9 @@ export class ChatListComponent  implements OnInit {
   limit = signal(20);
   cursor = signal<string>("");
   include = signal<string[]>([]);
+  
+  // Signal para mantener el conteo de mensajes no leídos por chat ID
+  unreadCountsMap = signal<Map<string, number>>(new Map());
 
   constructor() {
     effect(() => {
@@ -85,8 +90,56 @@ export class ChatListComponent  implements OnInit {
         this.participantStatusUpdated.emit(participantStatus.data.data as { participantId: string; isOnline: boolean });
       }
     });
+
+    // Effect para cargar conteos de mensajes no leídos cuando cambien los chats
+    effect(() => {
+      const chats = this.filteredChats();
+      if (chats.length > 0) {
+        // Usar setTimeout para evitar cargas síncronas que puedan bloquear la UI
+        setTimeout(() => {
+          this.loadUnreadCountsForVisibleChats();
+        }, 100);
+      }
+    });
+
+    // Effect para manejar actualizaciones de último mensaje
+    effect(() => {
+      const lastMessageUpdate = this.lastMessageUpdate();
+      
+      if (lastMessageUpdate?.data?.data) {
+        // Usar setTimeout para evitar modificaciones síncronas de signals
+        setTimeout(() => {
+          const updateData = lastMessageUpdate.data.data as ChatLastMessageUpdatedData;
+          const { chatId, senderId } = updateData;
+          const currentUser = this.authService.currentUser();
+
+          // Si el mensaje no es del usuario actual, incrementar el conteo
+          if (currentUser && senderId !== currentUser.id) {
+            const currentCount = this.unreadCountsMap().get(chatId) || 0;
+            this.updateUnreadCount(chatId, currentCount + 1);
+            console.log('📨 [ChatList] Incrementando conteo de mensajes no leídos para chat:', chatId, 'nuevo conteo:', currentCount + 1);
+          }
+
+          // Verificar si el chat está seleccionado actualmente y emitir mensaje de visualización
+          const selectedChatId = this.selectedChat()?.id;
+          if (selectedChatId === chatId) {
+            this.emitViewingChatMessage(chatId, true);
+            console.log('👁️ [ChatList] Mensaje de visualización enviado para chat activo:', chatId);
+          }
+        }, 0);
+      }
+    });
   }
   ngOnInit(): void {
+  }
+  
+  ngOnDestroy(): void {
+    // Enviar mensaje de que ya no se está visualizando ningún chat al destruir el componente
+    const currentSelectedChat = this.selectedChat();
+    if (currentSelectedChat) {
+      this.emitViewingChatMessage(currentSelectedChat.id, false);
+      console.log('👁️ [ChatList] Componente destruido, enviando mensaje de no visualización para chat:', currentSelectedChat.id);
+    }
   }
   
 
@@ -248,11 +301,26 @@ export class ChatListComponent  implements OnInit {
   }
 
   selectChat(chat: ChatData): void {
+    // Verificar si hay un chat anteriormente seleccionado
+    const previousChat = this.selectedChat();
+    
+    // Si había un chat seleccionado anteriormente, enviar mensaje de que ya no se está visualizando
+    if (previousChat && previousChat.id !== chat.id) {
+      this.emitViewingChatMessage(previousChat.id, false);
+      console.log('👁️ [ChatList] Chat anterior deseleccionado:', previousChat.id);
+    }
+    
     // Usar signal local para mantener el estado seleccionado
     this.selectedChat.set(chat);
     
+    // Limpiar el conteo de mensajes no leídos para este chat
+    this.clearUnreadCount(chat.id);
+    
     // Emitir evento al componente padre
     this.chatSelected.emit({ chat });
+    
+    // Emitir mensaje WebSocket para indicar que se está visualizando el chat
+    this.emitViewingChatMessage(chat.id, true);
     
     console.log('✅ [ChatList] Chat seleccionado mediante signal y output:', chat.id, chat);
   }
@@ -390,6 +458,186 @@ export class ChatListComponent  implements OnInit {
 
   getVisitor(chat: ChatData): Participant | null {
     return chat.participants.find(participant => participant.isVisitor) || null;
+  }
+
+  /**
+   * Verifica si el chat tiene mensajes no leídos para el usuario actual
+   * Compara el lastSeenAt del participante (usuario actual) con el lastMessageAt del chat
+   */
+  hasUnreadMessages(chat: ChatData): boolean {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return false;
+
+    // Buscar el participante que corresponde al usuario actual (no es visitante y tiene el mismo ID)
+    const currentUserParticipant = chat.participants.find(
+      participant => !participant.isVisitor && participant.id === currentUser.id
+    );
+
+    if (!currentUserParticipant) return false;
+
+    // Si no hay último mensaje en el chat, no hay mensajes no leídos
+    if (!chat.lastMessageAt) return false;
+
+    // Si el participante nunca ha visto el chat, hay mensajes no leídos
+    if (!currentUserParticipant.lastSeenAt) return true;
+
+    // Comparar fechas: si el último mensaje es posterior a cuando el usuario vio por última vez
+    const lastMessageTime = new Date(chat.lastMessageAt).getTime();
+    const lastSeenTime = new Date(currentUserParticipant.lastSeenAt).getTime();
+
+    return lastMessageTime > lastSeenTime;
+  }
+
+  /**
+   * Obtiene el número de mensajes no leídos para un chat específico
+   * Usa el signal unreadCountsMap para obtener el conteo cached
+   */
+  getUnreadCount(chat: ChatData): number {
+    if (!this.hasUnreadMessages(chat)) return 0;
+    
+    const cachedCount = this.unreadCountsMap().get(chat.id);
+    if (cachedCount !== undefined) {
+      // Limitar el conteo mostrado a 99 máximo
+      return Math.min(cachedCount, 99);
+    }
+
+    // Si no está en cache, iniciar carga async y retornar 1 como placeholder
+    this.loadUnreadCountForChat(chat);
+    return 1;
+  }
+
+  /**
+   * Obtiene el texto a mostrar en el badge de notificación
+   * Muestra "99+" si hay más de 99 mensajes no leídos
+   */
+  getUnreadCountText(chat: ChatData): string {
+    const count = this.getUnreadCount(chat);
+    if (count === 0) return '';
+    if (count > 99) return '99+';
+    return count.toString();
+  }
+
+  /**
+   * Carga el conteo de mensajes no leídos para un chat específico de forma asíncrona
+   */
+  private async loadUnreadCountForChat(chat: ChatData): Promise<void> {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) return;
+
+    const currentUserParticipant = chat.participants.find(
+      participant => !participant.isVisitor && participant.id === currentUser.id
+    );
+
+    if (!currentUserParticipant) return;
+
+    try {
+      // Hacer petición para obtener mensajes del chat
+      const response = await this.http.get<MessagesListResponse>(
+        `${environment.apiUrl}/chats/${chat.id}/messages`,
+        {
+          params: {
+            limit: '50', // Obtener mensajes recientes suficientes
+            cursor: '' // Desde el más reciente
+          }
+        }
+      ).toPromise();
+
+      if (!response?.messages) {
+        this.updateUnreadCount(chat.id, 0);
+        return;
+      }
+
+      // Filtrar mensajes posteriores al lastSeenAt del usuario
+      const lastSeenTime = currentUserParticipant.lastSeenAt ? 
+        new Date(currentUserParticipant.lastSeenAt).getTime() : 0;
+
+      const unreadMessages = response.messages.filter(message => {
+        const messageTime = new Date(message.createdAt).getTime();
+        // Contar mensajes que son posteriores al lastSeenAt y que NO son del usuario actual
+        return messageTime > lastSeenTime && message.senderId !== currentUser.id;
+      });
+
+      this.updateUnreadCount(chat.id, unreadMessages.length);
+    } catch (error) {
+      console.error('Error al cargar conteo de mensajes no leídos para chat', chat.id, ':', error);
+      this.updateUnreadCount(chat.id, 0);
+    }
+  }
+
+  /**
+   * Actualiza el conteo de mensajes no leídos para un chat específico
+   */
+  private updateUnreadCount(chatId: string, count: number): void {
+    this.unreadCountsMap.update(currentMap => {
+      const newMap = new Map(currentMap);
+      newMap.set(chatId, count);
+      return newMap;
+    });
+  }
+
+  /**
+   * Carga los conteos de mensajes no leídos para todos los chats visibles
+   */
+  private loadUnreadCountsForVisibleChats(): void {
+    const visibleChats = this.filteredChats();
+    visibleChats.forEach(chat => {
+      if (this.hasUnreadMessages(chat) && !this.unreadCountsMap().has(chat.id)) {
+        this.loadUnreadCountForChat(chat);
+      }
+    });
+  }
+
+  /**
+   * Limpia el conteo de mensajes no leídos para un chat específico
+   * Útil cuando el usuario selecciona un chat (marca como leído)
+   */
+  clearUnreadCount(chatId: string): void {
+    this.updateUnreadCount(chatId, 0);
+  }
+
+  /**
+   * Limpia todos los conteos de mensajes no leídos
+   */
+  clearAllUnreadCounts(): void {
+    this.unreadCountsMap.set(new Map());
+  }
+
+  /**
+   * Emite un mensaje WebSocket para indicar que se está visualizando un chat
+   */
+  private emitViewingChatMessage(chatId: string, isViewing: boolean): void {
+    if (!this.ws.isConnected()) {
+      console.warn('👁️ [ChatList] No hay conexión WebSocket activa, no se puede enviar mensaje de visualización');
+      return;
+    }
+
+    try {
+      this.ws.emitEvent('commercial:viewing-chat', {
+        chatId,
+        isViewing
+      });
+      
+      console.log('👁️ [ChatList] Mensaje de visualización enviado:', {
+        chatId,
+        isViewing,
+        timestamp: Date.now()
+      });
+    } catch (error) {
+      console.error('❌ [ChatList] Error al enviar mensaje de visualización:', error);
+    }
+  }
+
+  /**
+   * Método público para deseleccionar el chat actual
+   * Útil cuando se necesita deseleccionar desde el componente padre
+   */
+  public deselectCurrentChat(): void {
+    const currentChat = this.selectedChat();
+    if (currentChat) {
+      this.emitViewingChatMessage(currentChat.id, false);
+      this.selectedChat.set(null);
+      console.log('👁️ [ChatList] Chat deseleccionado:', currentChat.id);
+    }
   }
 
 }

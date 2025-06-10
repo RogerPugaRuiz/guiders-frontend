@@ -103,6 +103,11 @@
               @if (isAnonymousVisitor(chat)) {
                 <span class="chat-item__anonymous-tag">Anónimo</span>
               }
+              @if (hasUnreadMessages(chat)) {
+                <span class="chat-item__notification-badge" [title]="getUnreadCount(chat) + ' mensaje(s) sin leer'">
+                  {{ getUnreadCountText(chat) }}
+                </span>
+              }
             </h4>
             <span class="chat-item__time">{{ formatLastMessageTime(chat) }}</span>
           </div>
