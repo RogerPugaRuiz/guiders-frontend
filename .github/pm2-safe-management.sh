@@ -33,25 +33,25 @@ error() {
 
 # Función para verificar si la app existe en PM2
 app_exists() {
-    pm2 list | grep -q "$APP_NAME"
+    timeout 10 pm2 list | grep -q "$APP_NAME"
 }
 
 # Función para verificar si la app está corriendo
 app_running() {
-    pm2 list | grep -q "$APP_NAME.*online"
+    timeout 10 pm2 list | grep -q "$APP_NAME.*online"
 }
 
 # Función para mostrar estado de todas las apps (sin modificarlas)
 show_all_status() {
     log "Estado de todas las aplicaciones PM2:"
-    pm2 status || warning "No se pudo obtener el estado de PM2"
+    timeout 15 pm2 status || warning "No se pudo obtener el estado de PM2"
 }
 
 # Función para mostrar estado específico de nuestra app
 show_app_status() {
     log "Estado específico de $APP_NAME:"
     if app_exists; then
-        pm2 describe "$APP_NAME" | grep -E "(name|status|pid|uptime|memory|cpu)"
+        timeout 10 pm2 describe "$APP_NAME" | grep -E "(name|status|pid|uptime|memory|cpu)"
     else
         warning "La aplicación $APP_NAME no existe en PM2"
     fi
@@ -82,41 +82,41 @@ start_app() {
     # Si existe pero no está corriendo, eliminarla primero
     if app_exists; then
         log "Eliminando instancia anterior de $APP_NAME..."
-        pm2 delete "$APP_NAME" || warning "No se pudo eliminar la instancia anterior"
+        timeout 15 pm2 delete "$APP_NAME" || warning "No se pudo eliminar la instancia anterior"
     fi
     
     # Iniciar aplicación
-    pm2 start "$ECOSYSTEM_FILE" --env production
+    timeout 30 pm2 start "$ECOSYSTEM_FILE" --env production
     
     if app_running; then
         success "Aplicación $APP_NAME iniciada exitosamente"
         
         # Guardar configuración PM2
-        pm2 save
+        timeout 10 pm2 save || warning "No se pudo guardar la configuración PM2"
         
         # Esperar un momento y verificar estado
-        sleep 5
+        sleep 3
         show_app_status
         
-        # Verificar respuesta HTTP
+        # Verificar respuesta HTTP con timeout más corto
         log "Verificando respuesta HTTP en puerto 4000..."
-        for i in {1..6}; do
-            if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+        for i in {1..3}; do
+            if timeout 5 curl -f -s http://localhost:4000 > /dev/null 2>&1; then
                 success "Aplicación respondiendo correctamente en puerto 4000"
                 return 0
             else
-                warning "Intento $i/6 - Esperando respuesta del servidor..."
-                sleep 5
+                warning "Intento $i/3 - Esperando respuesta del servidor..."
+                sleep 3
             fi
         done
         
-        warning "La aplicación no responde en puerto 4000"
+        warning "La aplicación no responde en puerto 4000 después de 3 intentos"
         log "Mostrando logs recientes:"
-        pm2 logs "$APP_NAME" --lines 10 --nostream
+        timeout 10 pm2 logs "$APP_NAME" --lines 10 --nostream || warning "Timeout en logs"
         return 1
     else
         error "No se pudo iniciar la aplicación $APP_NAME"
-        pm2 logs "$APP_NAME" --lines 10 --nostream
+        timeout 10 pm2 logs "$APP_NAME" --lines 10 --nostream || warning "Timeout en logs de error"
         return 1
     fi
 }
@@ -130,8 +130,8 @@ stop_app() {
         return 0
     fi
     
-    pm2 stop "$APP_NAME"
-    pm2 delete "$APP_NAME"
+    timeout 15 pm2 stop "$APP_NAME" || warning "Timeout al detener aplicación"
+    timeout 15 pm2 delete "$APP_NAME" || warning "Timeout al eliminar aplicación"
     
     if ! app_exists; then
         success "Aplicación $APP_NAME detenida y eliminada exitosamente"
@@ -153,7 +153,7 @@ restart_app() {
 show_logs() {
     log "Mostrando logs de $APP_NAME..."
     if app_exists; then
-        pm2 logs "$APP_NAME" --lines 50
+        timeout 15 pm2 logs "$APP_NAME" --lines 50 || warning "Timeout al mostrar logs"
     else
         warning "La aplicación $APP_NAME no existe en PM2"
     fi

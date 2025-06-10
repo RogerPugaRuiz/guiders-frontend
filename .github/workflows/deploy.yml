@@ -268,53 +268,60 @@ jobs:
       - name: ⚡ Start/Restart Angular SSR server (Safe PM2 Management)
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        timeout-minutes: 10
         run: |
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
             cd ${{ env.DEPLOY_PATH }}
             
             echo "🔄 Gestionando aplicación PM2 de forma segura..."
             
+            # Verificar estructura del deployment
+            echo "📁 Verificando estructura del deployment..."
+            ls -la ./dist/
+            
             # Verificar que el archivo server.mjs existe
             if [ ! -f "./dist/server/server.mjs" ]; then
               echo "❌ Error: ./dist/server/server.mjs no encontrado"
-              echo "📁 Contenido de ./dist/:"
-              ls -la ./dist/
-              if [ -d "./dist/server/" ]; then
-                echo "📁 Contenido de ./dist/server/:"
-                ls -la ./dist/server/
-              fi
+              echo "📁 Contenido completo de ./dist/:"
+              find ./dist/ -type f -name "*.mjs" -o -name "*.js" | head -10
+              echo ""
+              echo "📁 Buscando server.mjs en cualquier ubicación:"
+              find ./dist/ -name "server.mjs" -type f
               exit 1
             fi
+            
+            echo "✅ server.mjs encontrado, procediendo con PM2..."
             
             # Hacer el script ejecutable
             chmod +x pm2-safe-management.sh
             
-            # Mostrar estado actual de PM2 antes del deployment
-            echo "📊 Estado PM2 antes del deployment:"
-            ./pm2-safe-management.sh status
+            # Reinicio simple y directo con timeouts
+            echo "🔄 Deteniendo aplicación anterior si existe..."
+            timeout 20 pm2 stop guiders-ssr 2>/dev/null || echo "⚠️ No había aplicación anterior corriendo"
+            timeout 15 pm2 delete guiders-ssr 2>/dev/null || echo "⚠️ No había aplicación anterior para eliminar"
             
-            echo ""
-            echo "🔄 Reiniciando aplicación guiders-ssr..."
-            
-            # Usar el script seguro para reiniciar solo nuestra aplicación
-            if ./pm2-safe-management.sh restart; then
-              echo "✅ Aplicación guiders-ssr reiniciada exitosamente"
+            echo "🚀 Iniciando nueva aplicación..."
+            if timeout 30 pm2 start ecosystem.config.js --env production; then
+              echo "✅ Aplicación iniciada con PM2"
               
-              # Configurar PM2 para arranque automático (solo si no está configurado)
-              if ! pm2 startup | grep -q "already setup"; then
-                pm2 startup || echo "⚠️ No se pudo configurar startup automático"
+              # Verificar que está corriendo
+              sleep 5
+              if timeout 10 pm2 list | grep -q "guiders-ssr.*online"; then
+                echo "✅ Aplicación está corriendo correctamente"
+                
+                # Guardar configuración
+                timeout 10 pm2 save || echo "⚠️ No se pudo guardar la configuración PM2"
+                
+                # Estado final
+                echo "📊 Estado final:"
+                timeout 10 pm2 status || echo "⚠️ No se pudo mostrar el estado"
               else
-                echo "ℹ️ PM2 startup ya está configurado"
+                echo "❌ La aplicación no está corriendo después del inicio"
+                timeout 10 pm2 logs guiders-ssr --lines 10 --nostream || echo "⚠️ No se pudieron mostrar los logs"
+                exit 1
               fi
-              
-              echo ""
-              echo "📊 Estado final de todas las aplicaciones PM2:"
-              ./pm2-safe-management.sh status
-              
             else
-              echo "❌ Error al reiniciar la aplicación"
-              echo "📋 Mostrando logs para diagnóstico:"
-              ./pm2-safe-management.sh logs
+              echo "❌ Error al iniciar la aplicación con PM2"
               exit 1
             fi
           EOF
