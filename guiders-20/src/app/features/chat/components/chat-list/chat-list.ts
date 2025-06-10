@@ -9,6 +9,7 @@ import { environment } from 'src/environments/environment';
 import { WebSocketConnectionStateDefault, WebSocketMessage, WebSocketService } from 'src/app/core/services';
 import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { WebSocketMessageType } from 'src/app/core/enums';
+import { ChatLastMessageUpdatedData } from 'src/app/core/models/websocket-response.models';
 import { catchError, EMPTY, filter, tap } from 'rxjs';
 
 interface FilterOption {
@@ -147,44 +148,85 @@ export class ChatListComponent  implements OnInit {
     { initialValue: null }
   );
 
+  lastMessageUpdate = toSignal(
+    this.ws.getMessagesByType(WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED)
+      .pipe(
+        tap(message => {
+          console.log('📨 [ChatList] Last message update received:', message);
+        }),
+        filter(message => message && message.data),
+        catchError(err => {
+          console.error('❌ Error in last message update stream:', err);
+          return EMPTY;
+        })
+      ),
+    { initialValue: null }
+  );
+
 
   chats = linkedSignal(() => {
     const allChats = this.chatsResource.value()?.chats || [];
     const participantStatusUpdate = this.participantStatusUpdate();
+    const lastMessageUpdate = this.lastMessageUpdate();
 
-    if (!participantStatusUpdate?.data?.data) { // 👈 Nota el .data.data
-      return allChats;
-    }
+    // Start with the original chats
+    let updatedChats = allChats;
 
-    console.log('🔄 [ChatList] Participant status update:', participantStatusUpdate);
+    // Handle participant status updates
+    if (participantStatusUpdate?.data?.data) {
+      console.log('🔄 [ChatList] Participant status update:', participantStatusUpdate);
 
-    // Acceder al nivel correcto de datos
-    const { isOnline, participantId } = participantStatusUpdate.data.data as {
-      isOnline: boolean;
-      participantId: string;
-    };
+      const { isOnline, participantId } = participantStatusUpdate.data.data as {
+        isOnline: boolean;
+        participantId: string;
+      };
 
-    console.log('🔍 Debug - participantId:', participantId, 'isOnline:', isOnline);
+      console.log('🔍 Debug - participantId:', participantId, 'isOnline:', isOnline);
 
-    const newAllChats = allChats.map(chat => {
-      console.log('🔍 Processing chat:', chat.id);
-      const updatedParticipants = chat.participants.map(participant => {
-        console.log('🔍 Checking participant:', participant.id, 'against:', participantId);
-        if (participant.id === participantId) {
-          console.log('✅ Found matching participant, updating isOnline to:', isOnline);
-          return { ...participant, isOnline };
-        }
-        return participant;
+      updatedChats = updatedChats.map(chat => {
+        console.log('🔍 Processing chat:', chat.id);
+        const updatedParticipants = chat.participants.map(participant => {
+          console.log('🔍 Checking participant:', participant.id, 'against:', participantId);
+          if (participant.id === participantId) {
+            console.log('✅ Found matching participant, updating isOnline to:', isOnline);
+            return { ...participant, isOnline };
+          }
+          return participant;
+        });
+
+        return {
+          ...chat,
+          participants: updatedParticipants
+        };
       });
 
-      return {
-        ...chat,
-        participants: updatedParticipants
-      };
-    });
+      console.log('🔄 [ChatList] Updated chats with participant status:', updatedChats);
+    }
 
-    console.log('🔄 [ChatList] Updated chats with participant status:', newAllChats);
-    return newAllChats;
+    // Handle last message updates
+    if (lastMessageUpdate?.data?.data) {
+      console.log('🔄 [ChatList] Last message update:', lastMessageUpdate);
+
+      const { lastMessage, lastMessageAt, chatId, senderId } = lastMessageUpdate.data.data as ChatLastMessageUpdatedData;
+
+      console.log('🔍 Debug - chatId:', chatId, 'lastMessage:', lastMessage, 'lastMessageAt:', lastMessageAt);
+
+      updatedChats = updatedChats.map(chat => {
+        if (chat.id === chatId) {
+          console.log('✅ Found matching chat, updating last message');
+          return {
+            ...chat,
+            lastMessage,
+            lastMessageAt
+          };
+        }
+        return chat;
+      });
+
+      console.log('🔄 [ChatList] Updated chats with last message:', updatedChats);
+    }
+
+    return updatedChats;
   });
 
   filteredChats = computed(() => {
