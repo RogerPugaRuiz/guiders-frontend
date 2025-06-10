@@ -1,7 +1,8 @@
-import { Component, inject, input, linkedSignal, signal } from '@angular/core';
+import { Component, inject, input, linkedSignal, signal, computed } from '@angular/core';
 import { ChatData, MessagesListResponse } from '../../models/chat.models';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { ChatStateService } from '../../services/chat-state.service';
 
 @Component({
   selector: 'app-chat-messages',
@@ -12,6 +13,8 @@ import { environment } from 'src/environments/environment';
 })
 export class ChatMessages {
   private readonly http = inject(HttpClient);
+  private readonly chatStateService = inject(ChatStateService);
+  
   // Input usando signals (Angular 20)
   selectedChat = input<ChatData | null>(null);
 
@@ -30,7 +33,18 @@ export class ChatMessages {
     };
   });
 
-  message = linkedSignal(() => {
+  message = computed(() => {
+    // Primero intentar obtener mensajes del estado en tiempo real
+    const stateMessages = this.chatStateService.messages();
+    if (stateMessages.length > 0) {
+      // Convertir mensajes del estado para que sean compatibles con el template
+      return stateMessages.map(msg => ({
+        ...msg,
+        createdAt: msg.timestamp || msg.createdAt || new Date().toISOString()
+      }));
+    }
+    
+    // Si no hay mensajes en el estado, usar los del HTTP resource
     const chat = this.selectedChat();
     if (!chat) return [];
     return this.messagesResource.value()?.messages || [];

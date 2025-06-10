@@ -616,6 +616,16 @@ export class WebSocketService implements OnDestroy {
       console.log('🏓 WebSocket: Ping recibido, enviando pong');
       this.socket?.emit('pong', data);
     });
+
+    // Escuchar mensajes entrantes del tipo 'receive-message'
+    this.socket.on('receive-message', (data: any) => {
+      console.log('📨 WebSocket: Mensaje recibido del tipo receive-message:', data);
+      this.messages$.next({
+        type: 'receive-message',
+        data,
+        timestamp: Date.now()
+      });
+    });
   }
 
   /**
