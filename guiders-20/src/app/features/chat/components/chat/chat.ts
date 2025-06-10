@@ -9,6 +9,7 @@ import { ChatSelectionService } from '../../services/chat-selection.service';
 import { ChatWebSocketService } from '../../services/chat-websocket.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
 import { AvatarService } from 'src/app/core/services/avatar.service';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-chat',
@@ -145,10 +146,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Genera un ID único para el mensaje
+   * Genera un UUID v4 válido para el ID del mensaje
+   * Esta función asegura que se use el formato esperado por el backend
    */
   private generateMessageId(): string {
-    return `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return uuidv4();
   }
 
   onKeyDown($event: KeyboardEvent) {
