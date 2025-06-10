@@ -212,16 +212,10 @@ PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" > "backup_${TIMESTAMP}.sql"
 
-# 7. Analizar tablas
-./clean-database-entities.sh --analyze-only
-
-# 8. Ejecutar limpieza
-./clean-database-entities.sh
-
-# 9. Reiniciar aplicación
+# 7. Reiniciar aplicación
 ./pm2-safe-management.sh start
 
-# 10. Verificar
+# 8. Verificar
 ./verify-deployment-safe.sh
 ```
 

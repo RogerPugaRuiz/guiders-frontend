@@ -265,59 +265,7 @@ jobs:
           
           echo "✅ Archivos PM2 ecosystem y script de gestión copiados al servidor"
 
-      - name: 🗄️ Deploy database cleanup scripts
-        env:
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-        run: |
-          echo "📦 Copiando scripts de limpieza de base de datos al servidor..."
-          
-          # Copiar script principal de limpieza basado en entidades
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            clean-database-entities.sh \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          # Copiar script de limpieza general
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            clean-database.sh \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          # Copiar script de configuración rápida
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            setup-database-cleanup.sh \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          # Copiar documentación y guías
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            DATABASE-CLEANUP-README.md \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            PRODUCTION-DATABASE-CLEANUP-GUIDE.md \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            SERVIDOR-PRODUCCION-PASOS.md \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            QUICK-START-CLEANUP.md \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
-          
-          # Hacer los scripts ejecutables en el servidor
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
-            cd ${{ env.DEPLOY_PATH }}
-            chmod +x clean-database-entities.sh
-            chmod +x clean-database.sh
-            chmod +x setup-database-cleanup.sh
-            echo "✅ Scripts de limpieza de base de datos configurados y ejecutables"
-            
-            # Mostrar archivos disponibles
-            echo "📁 Archivos de limpieza de base de datos disponibles:"
-            ls -la *.sh *.md 2>/dev/null | grep -E "(clean|setup|DATABASE|SERVIDOR|QUICK)" || echo "  (Scripts copiados correctamente)"
-          EOF
-          
-          echo "✅ Scripts de limpieza de base de datos desplegados exitosamente"
-
+  
       - name: ⚡ Start/Restart Angular SSR server (Safe PM2 Management)
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
