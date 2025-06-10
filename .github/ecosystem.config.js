@@ -44,20 +44,10 @@ module.exports = {
     kill_timeout: 5000,
     
     // Source maps support for better error tracking
-    source_map_support: true
-  }],
-  
-  // Deployment configuration (opcional)
-  deploy: {
-    production: {
-      user: 'root',
-      host: '10.8.0.1',
-      ref: 'origin/main',
-      repo: 'git@github.com:tu-usuario/guiders-frontend.git',
-      path: '/var/www/guiders',
-      'pre-deploy-local': '',
-      'post-deploy': 'cd guiders-20 && npm ci && npm run build:prod && pm2 reload ecosystem.config.js --env production',
-      'pre-setup': ''
-    }
-  }
+    source_map_support: true,
+    
+    // Startup options
+    wait_ready: true,
+    listen_timeout: 10000
+  }]
 };

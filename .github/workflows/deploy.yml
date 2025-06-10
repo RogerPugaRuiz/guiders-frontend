@@ -59,11 +59,21 @@ jobs:
             ls -la guiders-20/dist/guiders-20/
             if [ -d "guiders-20/dist/guiders-20/browser" ]; then
               echo "✅ Cliente (browser) generado"
-              ls -la guiders-20/dist/guiders-20/browser/
+              ls -la guiders-20/dist/guiders-20/browser/ | head -10
             fi
             if [ -d "guiders-20/dist/guiders-20/server" ]; then
               echo "✅ Servidor (SSR) generado"
-              ls -la guiders-20/dist/guiders-20/server/
+              ls -la guiders-20/dist/guiders-20/server/ | head -10
+              # Verificar que server.mjs existe
+              if [ -f "guiders-20/dist/guiders-20/server/server.mjs" ]; then
+                echo "✅ server.mjs encontrado"
+              else
+                echo "❌ Error: server.mjs no encontrado"
+                exit 1
+              fi
+            else
+              echo "❌ Error: No se encontró el directorio server"
+              exit 1
             fi
           else
             echo "❌ Error: No se encontró el directorio de build"
@@ -127,6 +137,10 @@ jobs:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         run: |
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            # Esperar un momento para evitar conflictos con actualizaciones del OS
+            echo "⏳ Esperando estabilización del sistema..."
+            sleep 30
+            
             # Verificar/instalar Node.js si no existe
             if ! command -v node &> /dev/null; then
               echo "📥 Instalando Node.js..."
@@ -147,6 +161,8 @@ jobs:
               echo "⚡ Instalando PM2..."
               npm install -g pm2
             fi
+            
+            echo "🟢 PM2 version: $(pm2 --version)"
           EOF
 
       - name: 🚀 Deploy Angular SSR application
@@ -168,10 +184,20 @@ jobs:
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         run: |
-          # Copiar package.json para las dependencias de producción
+          # Copiar package.json y package-lock.json para las dependencias de producción
           sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
             guiders-20/package.json \
             ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          # Copiar package-lock.json si existe
+          if [ -f guiders-20/package-lock.json ]; then
+            sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+              guiders-20/package-lock.json \
+              ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+            echo "✅ package.json y package-lock.json copiados"
+          else
+            echo "⚠️ package-lock.json no encontrado, solo package.json copiado"
+          fi
 
       - name: 🔧 Install production dependencies
         env:
@@ -180,7 +206,21 @@ jobs:
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
             cd ${{ env.DEPLOY_PATH }}
             echo "📦 Instalando dependencias de producción..."
-            npm ci --only=production --omit=dev
+            
+            # Verificar que package.json existe
+            if [ ! -f package.json ]; then
+              echo "❌ Error: package.json no encontrado"
+              exit 1
+            fi
+            
+            # Instalar dependencias con fallback
+            if [ -f package-lock.json ]; then
+              npm ci --only=production --omit=dev --legacy-peer-deps
+            else
+              echo "⚠️ package-lock.json no encontrado, usando npm install"
+              npm install --only=production --legacy-peer-deps
+            fi
+            
             echo "✅ Dependencias instaladas"
           EOF
 
@@ -202,26 +242,69 @@ jobs:
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
             cd ${{ env.DEPLOY_PATH }}
             
-            echo "🔄 Reiniciando aplicación..."
+            echo "🔄 Gestionando aplicación PM2..."
             
-            # Detener aplicación existente
-            pm2 stop guiders-ssr || echo "⚠️ La aplicación no estaba ejecutándose"
-            pm2 delete guiders-ssr || echo "⚠️ La aplicación no existía en PM2"
+            # Verificar que el archivo server.mjs existe
+            if [ ! -f "./dist/server/server.mjs" ]; then
+              echo "❌ Error: ./dist/server/server.mjs no encontrado"
+              echo "📁 Contenido de ./dist/:"
+              ls -la ./dist/
+              if [ -d "./dist/server/" ]; then
+                echo "📁 Contenido de ./dist/server/:"
+                ls -la ./dist/server/
+              fi
+              exit 1
+            fi
+            
+            # Detener aplicación existente de forma segura
+            if pm2 list | grep -q "guiders-ssr"; then
+              echo "🛑 Deteniendo aplicación existente..."
+              pm2 stop guiders-ssr || echo "⚠️ No se pudo detener la aplicación"
+              pm2 delete guiders-ssr || echo "⚠️ No se pudo eliminar la aplicación"
+            else
+              echo "ℹ️ No hay aplicación PM2 previa ejecutándose"
+            fi
+            
+            # Limpiar procesos PM2 si es necesario
+            pm2 kill || echo "ℹ️ No había procesos PM2 para limpiar"
+            
+            # Esperar un momento para que los procesos se liberen
+            sleep 3
             
             # Iniciar aplicación
-            pm2 start ecosystem.config.js
+            echo "🚀 Iniciando aplicación..."
+            pm2 start ecosystem.config.js --env production
+            
+            # Guardar configuración PM2
             pm2 save
+            
+            # Configurar PM2 para arranque automático
+            pm2 startup || echo "⚠️ No se pudo configurar startup automático"
             
             echo "✅ Aplicación iniciada con PM2"
             echo "📊 Estado de la aplicación:"
             pm2 status
             
+            # Esperar a que la aplicación arranque
+            echo "⏳ Esperando que la aplicación arranque..."
+            sleep 10
+            
             # Verificar que la aplicación está respondiendo
-            sleep 5
-            if curl -f http://localhost:4000 > /dev/null 2>&1; then
-              echo "✅ Aplicación respondiendo correctamente en puerto 4000"
-            else
-              echo "⚠️ La aplicación podría tardar un momento en estar disponible"
+            echo "🔍 Verificando respuesta de la aplicación..."
+            for i in {1..6}; do
+              if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+                echo "✅ Aplicación respondiendo correctamente en puerto 4000"
+                break
+              else
+                echo "⏳ Intento $i/6 - Esperando respuesta del servidor..."
+                sleep 5
+              fi
+            done
+            
+            # Mostrar logs recientes si hay problemas
+            if ! curl -f -s http://localhost:4000 > /dev/null 2>&1; then
+              echo "⚠️ La aplicación no responde, mostrando logs:"
+              pm2 logs guiders-ssr --lines 20 --nostream || echo "No se pudieron obtener los logs"
             fi
           EOF
 

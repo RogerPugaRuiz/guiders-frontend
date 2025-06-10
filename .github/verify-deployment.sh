@@ -35,13 +35,20 @@ check_pm2_status() {
     fi
     
     # Verificar estado de la aplicación
-    pm2_status=$(pm2 jlist | jq -r ".[] | select(.name==\"$app_name\") | .pm2_env.status" 2>/dev/null)
+    if command -v jq &> /dev/null; then
+        pm2_status=$(pm2 jlist | jq -r ".[] | select(.name==\"$app_name\") | .pm2_env.status" 2>/dev/null)
+    else
+        # Fallback sin jq
+        pm2_status=$(pm2 list | grep "$app_name" | awk '{print $10}' 2>/dev/null)
+    fi
     
     if [ "$pm2_status" = "online" ]; then
         echo "✅ PM2: Aplicación '$app_name' está en línea"
         return 0
     else
         echo "❌ PM2: Aplicación '$app_name' no está en línea (status: $pm2_status)"
+        echo "📊 Estado completo de PM2:"
+        pm2 status
         return 1
     fi
 }
