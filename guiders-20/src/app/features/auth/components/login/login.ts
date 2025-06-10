@@ -6,10 +6,10 @@ import { CommonModule } from '@angular/common';
 // Importamos los servicios reales
 import { AuthService, StorageService } from '../../../../core/services';
 import { 
-  AuthenticationError, 
-  LoginCredentials,
-  ValidationError 
-} from '../../../../core/models/auth.models';
+  ValidationError,
+  UnauthorizedError, 
+  LoginCredentials
+} from '../../models/auth.models';
 
 @Component({
   selector: 'app-login',
@@ -81,7 +81,7 @@ export class Login {
         
         if (error instanceof ValidationError) {
           this.setFieldError(error.field, error.message);
-        } else if (error instanceof AuthenticationError) {
+        } else if (error instanceof UnauthorizedError) {
           this.errorMessage.set(error.message);
         } else {
           this.errorMessage.set('No pudimos iniciar tu sesión. ¿Podrías intentarlo de nuevo?');

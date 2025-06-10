@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, from, catchError, throwError, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { 
   AuthResponse, 
   AuthSession,
@@ -10,8 +10,8 @@ import {
   ValidationError,
   UnauthorizedError,
   NetworkError
-} from '../../features/auth/models/auth.models';
-import { StorageService } from './storage.service';
+} from '../models/auth.models';
+import { StorageService } from '../../../core/services/storage.service';
 
 /**
  * Servicio Angular simple para autenticación sin arquitectura hexagonal
