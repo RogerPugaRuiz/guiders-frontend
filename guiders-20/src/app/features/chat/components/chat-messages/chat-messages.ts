@@ -1,4 +1,4 @@
-import { Component, inject, input, linkedSignal, signal, computed } from '@angular/core';
+import { Component, inject, input, linkedSignal, signal, computed, viewChild, ElementRef, effect, AfterViewInit } from '@angular/core';
 import { ChatData, MessagesListResponse } from '../../models/chat.models';
 import { HttpClient, httpResource } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
@@ -11,9 +11,12 @@ import { ChatStateService } from '../../services/chat-state.service';
   templateUrl: './chat-messages.html',
   styleUrl: './chat-messages.scss'
 })
-export class ChatMessages {
+export class ChatMessages implements AfterViewInit {
   private readonly http = inject(HttpClient);
   private readonly chatStateService = inject(ChatStateService);
+  
+  // Referencia al contenedor de mensajes para el scroll
+  messagesContainer = viewChild<ElementRef>('messagesContainer');
   
   // Input usando signals (Angular 20)
   selectedChat = input<ChatData | null>(null);
@@ -187,5 +190,40 @@ export class ChatMessages {
   // Método para determinar si un mensaje está confirmado
   isMessageConfirmed(message: any): boolean {
     return message.metadata?.isPending === false && message.metadata?.isTemporary === false;
+  }
+
+  constructor() {
+    // Effect para hacer scroll automático cuando cambian los mensajes
+    effect(() => {
+      const messages = this.message();
+      const chat = this.selectedChat();
+      
+      if (messages.length > 0 && chat) {
+        // Usar setTimeout para asegurar que el DOM se ha actualizado
+        setTimeout(() => {
+          this.scrollToBottom();
+        }, 0);
+      }
+    });
+  }
+
+  ngAfterViewInit() {
+    // Scroll inicial cuando se carga el componente
+    this.scrollToBottom();
+  }
+
+  /**
+   * Hace scroll automático hacia abajo en el contenedor de mensajes
+   */
+  private scrollToBottom(): void {
+    try {
+      const container = this.messagesContainer()?.nativeElement;
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+        console.log('📜 [ChatMessages] Scroll automático hacia abajo ejecutado');
+      }
+    } catch (error) {
+      console.error('❌ [ChatMessages] Error al hacer scroll automático:', error);
+    }
   }
 }
