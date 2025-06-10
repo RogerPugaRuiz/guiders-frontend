@@ -328,26 +328,3 @@ jobs:
           echo "- Verificar que la aplicación responde correctamente" >> $GITHUB_STEP_SUMMARY
           echo "- Configurar proxy reverso (Nginx) si es necesario" >> $GITHUB_STEP_SUMMARY
           echo "- Configurar SSL/HTTPS" >> $GITHUB_STEP_SUMMARY
-
-      - name: 📢 Update Deployment Status
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const deploymentState = '${{ job.status }}' === 'success' ? 'success' : 'failure';
-            const description = '${{ job.status }}' === 'success' 
-              ? '✅ Deployment completado exitosamente' 
-              : '❌ Deployment falló';
-            
-            // Crear deployment status
-            await github.rest.repos.createDeploymentStatus({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              deployment_id: context.payload.deployment?.id || 0,
-              state: deploymentState,
-              description: description,
-              environment: 'deploy',
-              environment_url: 'http://${{ env.SSH_HOST }}:4000'
-            });
-            
-            console.log(`Deployment status updated: ${deploymentState}`);
