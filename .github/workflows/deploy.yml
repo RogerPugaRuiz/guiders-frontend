@@ -245,13 +245,17 @@ jobs:
             echo "🔄 Gestionando aplicación PM2..."
             
             # Verificar que el archivo server.mjs existe
-            if [ ! -f "./dist/server/server.mjs" ]; then
-              echo "❌ Error: ./dist/server/server.mjs no encontrado"
+            if [ ! -f "./dist/guiders-20/server/server.mjs" ]; then
+              echo "❌ Error: ./dist/guiders-20/server/server.mjs no encontrado"
               echo "📁 Contenido de ./dist/:"
               ls -la ./dist/
-              if [ -d "./dist/server/" ]; then
-                echo "📁 Contenido de ./dist/server/:"
-                ls -la ./dist/server/
+              if [ -d "./dist/guiders-20/" ]; then
+                echo "📁 Contenido de ./dist/guiders-20/:"
+                ls -la ./dist/guiders-20/
+                if [ -d "./dist/guiders-20/server/" ]; then
+                  echo "📁 Contenido de ./dist/guiders-20/server/:"
+                  ls -la ./dist/guiders-20/server/
+                fi
               fi
               exit 1
             fi

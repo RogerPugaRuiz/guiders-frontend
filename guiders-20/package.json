@@ -7,6 +7,7 @@
     "start:hmr": "ng serve --hmr",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
+    "build:ssr": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:jest": "jest",
@@ -15,7 +16,8 @@
     "test:cypress:open": "cypress open",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "serve:ssr:guiders-20": "node dist/guiders-20/server/server.mjs"
+    "serve:ssr:guiders-20": "node dist/guiders-20/server/server.mjs",
+    "serve:ssr": "node dist/guiders-20/server/server.mjs"
   },
   "private": true,
   "dependencies": {
