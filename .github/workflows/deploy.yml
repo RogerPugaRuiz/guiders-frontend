@@ -1,0 +1,278 @@
+# Workflow para deployment de Angular SSR a producción
+# .github/workflows/deploy.yml
+name: Deploy Angular SSR to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Permite ejecutar manualmente
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    env:
+      NODE_VERSION: '20'
+      SSH_HOST: '10.8.0.1'
+      SSH_USER: 'root'
+      DEPLOY_PATH: '/var/www/guiders'
+      BACKUP_PATH: '/tmp/guiders-backup'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install root dependencies
+        run: npm ci
+
+      - name: 📦 Install Guiders-20 dependencies
+        run: |
+          cd guiders-20
+          npm ci
+
+      - name: 🏗️ Build Angular SSR application
+        run: |
+          cd guiders-20
+          npm run build:prod
+
+      - name: 📁 Verify build output
+        run: |
+          echo "Verificando estructura de build..."
+          ls -la guiders-20/dist/
+          if [ -d "guiders-20/dist/guiders-20" ]; then
+            echo "✅ Build exitoso"
+            echo "📁 Contenido del build:"
+            ls -la guiders-20/dist/guiders-20/
+            if [ -d "guiders-20/dist/guiders-20/browser" ]; then
+              echo "✅ Cliente (browser) generado"
+              ls -la guiders-20/dist/guiders-20/browser/
+            fi
+            if [ -d "guiders-20/dist/guiders-20/server" ]; then
+              echo "✅ Servidor (SSR) generado"
+              ls -la guiders-20/dist/guiders-20/server/
+            fi
+          else
+            echo "❌ Error: No se encontró el directorio de build"
+            exit 1
+          fi
+
+      - name: 🔒 Install OpenVPN
+        run: sudo apt-get update && sudo apt-get install -y openvpn sshpass
+
+      - name: 🔧 Setup OpenVPN config
+        run: |
+          echo "${{ secrets.OVPN_CONFIG }}" > vpn.conf
+          chmod 600 vpn.conf
+
+      - name: 🌐 Connect to VPN
+        run: |
+          sudo openvpn --config vpn.conf --daemon
+          sleep 20
+          echo "🔍 Verificando conexión VPN..."
+          ping -c 3 ${{ env.SSH_HOST }} || echo "⚠️ Ping falló, continuando..."
+
+      - name: 🔑 Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ env.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🧪 Test SSH connection
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} \
+            "echo '✅ Conexión SSH exitosa'"
+
+      - name: 🛡️ Create backup of current deployment
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            # Crear backup con timestamp
+            TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+            BACKUP_DIR="${{ env.BACKUP_PATH }}_${TIMESTAMP}"
+            
+            echo "📦 Creando backup en ${BACKUP_DIR}..."
+            
+            if [ -d "${{ env.DEPLOY_PATH }}" ]; then
+              mkdir -p "${BACKUP_DIR}"
+              cp -r ${{ env.DEPLOY_PATH }}/* "${BACKUP_DIR}/" || true
+              echo "✅ Backup creado exitosamente"
+              
+              # Mantener solo los últimos 5 backups
+              ls -dt ${{ env.BACKUP_PATH }}_* | tail -n +6 | xargs rm -rf || true
+            else
+              echo "⚠️ No existe deployment anterior, creando directorio..."
+              mkdir -p ${{ env.DEPLOY_PATH }}
+            fi
+          EOF
+
+      - name: 🛠️ Prepare server environment
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            # Verificar/instalar Node.js si no existe
+            if ! command -v node &> /dev/null; then
+              echo "📥 Instalando Node.js..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+            
+            # Verificar versión de Node.js
+            echo "🟢 Node.js version: $(node --version)"
+            echo "📦 NPM version: $(npm --version)"
+            
+            # Crear directorios necesarios
+            mkdir -p ${{ env.DEPLOY_PATH }}/dist
+            mkdir -p ${{ env.DEPLOY_PATH }}/logs
+            
+            # Instalar PM2 si no existe (para gestión de procesos)
+            if ! command -v pm2 &> /dev/null; then
+              echo "⚡ Instalando PM2..."
+              npm install -g pm2
+            fi
+          EOF
+
+      - name: 🚀 Deploy Angular SSR application
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          echo "🚀 Iniciando deployment..."
+          
+          # Sync del build completo (cliente + servidor)
+          sshpass -p "$SSH_PASSWORD" rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --progress \
+            guiders-20/dist/guiders-20/ \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/dist/
+          
+          echo "✅ Archivos sincronizados exitosamente"
+
+      - name: 📋 Deploy package.json and dependencies
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          # Copiar package.json para las dependencias de producción
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            guiders-20/package.json \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+
+      - name: 🔧 Install production dependencies
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            echo "📦 Instalando dependencias de producción..."
+            npm ci --only=production --omit=dev
+            echo "✅ Dependencias instaladas"
+          EOF
+
+      - name: 🔄 Create PM2 ecosystem file
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          # Crear archivo ecosystem.config.js en local primero
+          cat > ecosystem.config.js << 'EOF'
+          module.exports = {
+            apps: [{
+              name: 'guiders-ssr',
+              script: './dist/server/server.mjs',
+              cwd: '${{ env.DEPLOY_PATH }}',
+              instances: 'max',
+              exec_mode: 'cluster',
+              env: {
+                NODE_ENV: 'production',
+                PORT: 4000
+              },
+              error_file: './logs/err.log',
+              out_file: './logs/out.log',
+              log_file: './logs/combined.log',
+              time: true,
+              max_memory_restart: '1G',
+              restart_delay: 4000,
+              autorestart: true,
+              watch: false
+            }]
+          };
+          EOF
+          
+          # Copiar archivo al servidor
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            ecosystem.config.js \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          echo "✅ Archivo PM2 ecosystem creado y copiado"
+
+      - name: ⚡ Start/Restart Angular SSR server
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            
+            echo "🔄 Reiniciando aplicación..."
+            
+            # Detener aplicación existente
+            pm2 stop guiders-ssr || echo "⚠️ La aplicación no estaba ejecutándose"
+            pm2 delete guiders-ssr || echo "⚠️ La aplicación no existía en PM2"
+            
+            # Iniciar aplicación
+            pm2 start ecosystem.config.js
+            pm2 save
+            
+            echo "✅ Aplicación iniciada con PM2"
+            echo "📊 Estado de la aplicación:"
+            pm2 status
+            
+            # Verificar que la aplicación está respondiendo
+            sleep 5
+            if curl -f http://localhost:4000 > /dev/null 2>&1; then
+              echo "✅ Aplicación respondiendo correctamente en puerto 4000"
+            else
+              echo "⚠️ La aplicación podría tardar un momento en estar disponible"
+            fi
+          EOF
+
+      - name: 🧹 Cleanup and final verification
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            echo "🧹 Limpieza final..."
+            
+            # Verificar estructura final
+            echo "📁 Estructura del deployment:"
+            ls -la ${{ env.DEPLOY_PATH }}/
+            echo "📁 Contenido de dist:"
+            ls -la ${{ env.DEPLOY_PATH }}/dist/
+            
+            # Mostrar logs recientes
+            echo "📋 Últimas líneas de log:"
+            pm2 logs guiders-ssr --lines 10 --nostream || echo "No hay logs disponibles aún"
+            
+            echo "🎉 Deployment completado exitosamente!"
+          EOF
+
+      - name: 🎉 Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Build**: Angular SSR aplicación compilada" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Deploy**: Archivos sincronizados a servidor" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Dependencies**: Dependencias de producción instaladas" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Server**: Aplicación SSR iniciada con PM2" >> $GITHUB_STEP_SUMMARY
+          echo "- 🌐 **URL**: http://${{ env.SSH_HOST }}:4000" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "- Verificar que la aplicación responde correctamente" >> $GITHUB_STEP_SUMMARY
+          echo "- Configurar proxy reverso (Nginx) si es necesario" >> $GITHUB_STEP_SUMMARY
+          echo "- Configurar SSL/HTTPS" >> $GITHUB_STEP_SUMMARY
