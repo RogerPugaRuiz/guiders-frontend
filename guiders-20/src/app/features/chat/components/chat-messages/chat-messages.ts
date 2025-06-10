@@ -28,6 +28,11 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
   private scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private loadMoreThrottleTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // Variables para controlar el tiempo mínimo de visualización del mensaje de carga
+  private loadingStartTime = 0;
+  private minimumLoadingTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly MINIMUM_LOADING_DURATION = 1500; // 1.5 segundos mínimo
+
   // Signal para mostrar el indicador de carga de scroll infinito
   isLoadingHistory = signal(false);
   
@@ -164,6 +169,10 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
     if (this.loadMoreThrottleTimer) {
       clearTimeout(this.loadMoreThrottleTimer);
       this.loadMoreThrottleTimer = null;
+    }
+    if (this.minimumLoadingTimer) {
+      clearTimeout(this.minimumLoadingTimer);
+      this.minimumLoadingTimer = null;
     }
     
     console.log('📜 [ChatMessages] Mensajes reseteados');
@@ -473,6 +482,9 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
     this.isLoadingMore = true;
     this.shouldMaintainScrollPosition = true;
     this.isLoadingHistory.set(true);
+    
+    // Guardar el momento en que inicia la carga para tiempo mínimo
+    this.loadingStartTime = Date.now();
     console.log('📜 [ChatMessages] Iniciando carga de más mensajes históricos...');
 
     // Aplicar throttle
@@ -534,18 +546,35 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
 
   /**
    * Anima la finalización de la carga para una transición más suave
+   * Ahora incluye tiempo mínimo de visualización del mensaje de carga
    */
   private animateLoadingCompletion(): void {
-    // Delay progresivo para una transición más natural
-    setTimeout(() => {
-      this.shouldMaintainScrollPosition = false;
-      this.isLoadingMore = false;
-      
-      // Delay adicional para ocultar el indicador de carga
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - this.loadingStartTime;
+    const remainingTime = Math.max(0, this.MINIMUM_LOADING_DURATION - elapsedTime);
+
+    console.log('📜 [ChatMessages] Tiempo transcurrido:', elapsedTime, 'ms, tiempo restante:', remainingTime, 'ms');
+
+    // Limpiar timer anterior si existe
+    if (this.minimumLoadingTimer) {
+      clearTimeout(this.minimumLoadingTimer);
+      this.minimumLoadingTimer = null;
+    }
+
+    // Esperar el tiempo restante antes de ocultar el mensaje
+    this.minimumLoadingTimer = setTimeout(() => {
+      // Delay progresivo para una transición más natural
       setTimeout(() => {
-        this.isLoadingHistory.set(false);
-      }, 100);
-    }, 200);
+        this.shouldMaintainScrollPosition = false;
+        this.isLoadingMore = false;
+        
+        // Delay adicional para ocultar el indicador de carga
+        setTimeout(() => {
+          this.isLoadingHistory.set(false);
+          console.log('📜 [ChatMessages] Mensaje de carga ocultado después del tiempo mínimo');
+        }, 100);
+      }, 200);
+    }, remainingTime);
   }
 
   ngOnDestroy(): void {
@@ -558,6 +587,11 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
     if (this.loadMoreThrottleTimer) {
       clearTimeout(this.loadMoreThrottleTimer);
       this.loadMoreThrottleTimer = null;
+    }
+
+    if (this.minimumLoadingTimer) {
+      clearTimeout(this.minimumLoadingTimer);
+      this.minimumLoadingTimer = null;
     }
     
     // Limpiar listener de scroll
