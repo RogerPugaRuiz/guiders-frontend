@@ -33,7 +33,7 @@ export interface Message {
 
 export interface MessagesListResponse {
   messages: Message[];
-  nextCursor?: string | null;
+  cursor?: string | null;
   hasMore: boolean;
 }
 

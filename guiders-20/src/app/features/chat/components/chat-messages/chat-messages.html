@@ -1,5 +1,13 @@
 <div class="chat-messages" #messagesContainer>
 	@if (selectedChat()) {
+		<!-- Indicador de carga para scroll infinito -->
+		@if (isLoadingHistory()) {
+			<div class="loading-history-indicator">
+				<div class="loading-spinner"></div>
+				<span class="loading-text">Cargando mensajes anteriores...</span>
+			</div>
+		}
+		
 		<div class="start-conversation"></div>
 		
 		@if (message().length > 0) {
