@@ -4,9 +4,7 @@ import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/
 
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
-import { allAdapterProviders, allUseCaseProviders } from './core/providers';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
-import { GUIDERS20_AUTH_PROVIDERS } from './core/config/auth-config.providers';
 import { WEBSOCKET_PROVIDERS } from './core/providers/websocket.providers';
 
 export const appConfig: ApplicationConfig = {
@@ -20,12 +18,6 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor])
     ),
-    // Configuración de adaptadores (infraestructura)
-    ...allAdapterProviders,
-    // Configuración de casos de uso (aplicación)
-    ...allUseCaseProviders,
-    // Configuración de auth con arquitectura hexagonal
-    ...GUIDERS20_AUTH_PROVIDERS,
     // Configuración de WebSocket
     ...WEBSOCKET_PROVIDERS,
   ]
