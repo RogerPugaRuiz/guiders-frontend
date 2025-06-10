@@ -43,7 +43,7 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
   // Input usando signals (Angular 20)
   selectedChat = input<ChatData | null>(null);
 
-  limit = signal(10);
+  limit = signal(50);
   cursor = signal<string>('');
 
   // Signal para acumular todos los mensajes HTTP
