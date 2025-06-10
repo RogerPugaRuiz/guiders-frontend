@@ -3,7 +3,7 @@
 module.exports = {
   apps: [{
     name: 'guiders-ssr',
-    script: './dist/guiders-20/server/server.mjs',
+    script: './dist/server/server.mjs',
     instances: 'max',
     exec_mode: 'cluster',
     cwd: '/var/www/guiders',
