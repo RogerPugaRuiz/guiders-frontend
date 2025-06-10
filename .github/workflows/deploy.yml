@@ -53,30 +53,32 @@ jobs:
         run: |
           echo "Verificando estructura de build..."
           ls -la guiders-20/dist/
-          if [ -d "guiders-20/dist/guiders-20" ]; then
-            echo "✅ Build exitoso"
-            echo "📁 Contenido del build:"
-            ls -la guiders-20/dist/guiders-20/
-            if [ -d "guiders-20/dist/guiders-20/browser" ]; then
-              echo "✅ Cliente (browser) generado"
-              ls -la guiders-20/dist/guiders-20/browser/ | head -10
-            fi
-            if [ -d "guiders-20/dist/guiders-20/server" ]; then
-              echo "✅ Servidor (SSR) generado"
-              ls -la guiders-20/dist/guiders-20/server/ | head -10
-              # Verificar que server.mjs existe
-              if [ -f "guiders-20/dist/guiders-20/server/server.mjs" ]; then
-                echo "✅ server.mjs encontrado"
-              else
-                echo "❌ Error: server.mjs no encontrado"
-                exit 1
-              fi
+          if [ -d "guiders-20/dist/browser" ] && [ -d "guiders-20/dist/server" ]; then
+            echo "✅ Build exitoso - estructura Angular 20 SSR correcta"
+            echo "📁 Contenido del build cliente (browser):"
+            ls -la guiders-20/dist/browser/ | head -10
+            echo "📁 Contenido del build servidor (server):"
+            ls -la guiders-20/dist/server/ | head -10
+            # Verificar que server.mjs existe
+            if [ -f "guiders-20/dist/server/server.mjs" ]; then
+              echo "✅ server.mjs encontrado en la ubicación correcta"
             else
-              echo "❌ Error: No se encontró el directorio server"
+              echo "❌ Error: server.mjs no encontrado en guiders-20/dist/server/"
+              echo "📁 Archivos en dist/server/:"
+              ls -la guiders-20/dist/server/
+              exit 1
+            fi
+            # Verificar archivos principales del cliente
+            if [ -f "guiders-20/dist/browser/index.html" ]; then
+              echo "✅ index.html encontrado en el cliente"
+            else
+              echo "❌ Error: index.html no encontrado en el cliente"
               exit 1
             fi
           else
-            echo "❌ Error: No se encontró el directorio de build"
+            echo "❌ Error: Estructura de build incorrecta"
+            echo "📁 Contenido actual de dist/:"
+            ls -la guiders-20/dist/
             exit 1
           fi
 
@@ -224,7 +226,7 @@ jobs:
             echo "✅ Dependencias instaladas"
           EOF
 
-      - name: 🔄 Deploy PM2 ecosystem configuration
+      - name: 🔄 Deploy PM2 ecosystem and management scripts
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         run: |
@@ -233,16 +235,21 @@ jobs:
             .github/ecosystem.config.js \
             ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
           
-          echo "✅ Archivo PM2 ecosystem copiado al servidor"
+          # Copiar script de gestión segura de PM2
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            .github/pm2-safe-management.sh \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          echo "✅ Archivos PM2 ecosystem y script de gestión copiados al servidor"
 
-      - name: ⚡ Start/Restart Angular SSR server
+      - name: ⚡ Start/Restart Angular SSR server (Safe PM2 Management)
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         run: |
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
             cd ${{ env.DEPLOY_PATH }}
             
-            echo "🔄 Gestionando aplicación PM2..."
+            echo "🔄 Gestionando aplicación PM2 de forma segura..."
             
             # Verificar que el archivo server.mjs existe
             if [ ! -f "./dist/server/server.mjs" ]; then
@@ -256,55 +263,36 @@ jobs:
               exit 1
             fi
             
-            # Detener aplicación existente de forma segura
-            if pm2 list | grep -q "guiders-ssr"; then
-              echo "🛑 Deteniendo aplicación existente..."
-              pm2 stop guiders-ssr || echo "⚠️ No se pudo detener la aplicación"
-              pm2 delete guiders-ssr || echo "⚠️ No se pudo eliminar la aplicación"
-            else
-              echo "ℹ️ No hay aplicación PM2 previa ejecutándose"
-            fi
+            # Hacer el script ejecutable
+            chmod +x pm2-safe-management.sh
             
-            # Limpiar procesos PM2 si es necesario
-            pm2 kill || echo "ℹ️ No había procesos PM2 para limpiar"
+            # Mostrar estado actual de PM2 antes del deployment
+            echo "📊 Estado PM2 antes del deployment:"
+            ./pm2-safe-management.sh status
             
-            # Esperar un momento para que los procesos se liberen
-            sleep 3
+            echo ""
+            echo "🔄 Reiniciando aplicación guiders-ssr..."
             
-            # Iniciar aplicación
-            echo "🚀 Iniciando aplicación..."
-            pm2 start ecosystem.config.js --env production
-            
-            # Guardar configuración PM2
-            pm2 save
-            
-            # Configurar PM2 para arranque automático
-            pm2 startup || echo "⚠️ No se pudo configurar startup automático"
-            
-            echo "✅ Aplicación iniciada con PM2"
-            echo "📊 Estado de la aplicación:"
-            pm2 status
-            
-            # Esperar a que la aplicación arranque
-            echo "⏳ Esperando que la aplicación arranque..."
-            sleep 10
-            
-            # Verificar que la aplicación está respondiendo
-            echo "🔍 Verificando respuesta de la aplicación..."
-            for i in {1..6}; do
-              if curl -f -s http://localhost:4000 > /dev/null 2>&1; then
-                echo "✅ Aplicación respondiendo correctamente en puerto 4000"
-                break
+            # Usar el script seguro para reiniciar solo nuestra aplicación
+            if ./pm2-safe-management.sh restart; then
+              echo "✅ Aplicación guiders-ssr reiniciada exitosamente"
+              
+              # Configurar PM2 para arranque automático (solo si no está configurado)
+              if ! pm2 startup | grep -q "already setup"; then
+                pm2 startup || echo "⚠️ No se pudo configurar startup automático"
               else
-                echo "⏳ Intento $i/6 - Esperando respuesta del servidor..."
-                sleep 5
+                echo "ℹ️ PM2 startup ya está configurado"
               fi
-            done
-            
-            # Mostrar logs recientes si hay problemas
-            if ! curl -f -s http://localhost:4000 > /dev/null 2>&1; then
-              echo "⚠️ La aplicación no responde, mostrando logs:"
-              pm2 logs guiders-ssr --lines 20 --nostream || echo "No se pudieron obtener los logs"
+              
+              echo ""
+              echo "📊 Estado final de todas las aplicaciones PM2:"
+              ./pm2-safe-management.sh status
+              
+            else
+              echo "❌ Error al reiniciar la aplicación"
+              echo "📋 Mostrando logs para diagnóstico:"
+              ./pm2-safe-management.sh logs
+              exit 1
             fi
           EOF
 
@@ -312,16 +300,16 @@ jobs:
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
         run: |
-          # Copiar script de verificación al servidor
+          # Copiar script de verificación segura al servidor
           sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            .github/verify-deployment.sh \
+            .github/verify-deployment-safe.sh \
             ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
           
-          # Ejecutar verificación post-deployment
+          # Ejecutar verificación post-deployment segura
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
             cd ${{ env.DEPLOY_PATH }}
-            chmod +x verify-deployment.sh
-            ./verify-deployment.sh
+            chmod +x verify-deployment-safe.sh
+            ./verify-deployment-safe.sh
           EOF
 
       - name: 🎉 Deployment Summary
