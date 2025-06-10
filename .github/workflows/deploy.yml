@@ -265,6 +265,49 @@ jobs:
           
           echo "✅ Archivos PM2 ecosystem y script de gestión copiados al servidor"
 
+      - name: 🗄️ Deploy database cleanup scripts
+        env:
+          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          echo "📦 Copiando scripts de limpieza de base de datos al servidor..."
+          
+          # Copiar script principal de limpieza basado en entidades
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            clean-database-entities.sh \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          # Copiar script de limpieza general
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            clean-database.sh \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          # Copiar documentación y guías
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            DATABASE-CLEANUP-README.md \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            PRODUCTION-DATABASE-CLEANUP-GUIDE.md \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            SERVIDOR-PRODUCCION-PASOS.md \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            QUICK-START-CLEANUP.md \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
+          # Hacer los scripts ejecutables en el servidor
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+            cd ${{ env.DEPLOY_PATH }}
+            chmod +x clean-database-entities.sh
+            chmod +x clean-database.sh
+            echo "✅ Scripts de limpieza de base de datos configurados y ejecutables"
+          EOF
+          
+          echo "✅ Scripts de limpieza de base de datos desplegados exitosamente"
+
       - name: ⚡ Start/Restart Angular SSR server (Safe PM2 Management)
         env:
           SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
@@ -349,6 +392,7 @@ jobs:
           echo "- ✅ **Deploy**: Archivos sincronizados a servidor" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ **Dependencies**: Dependencias de producción instaladas" >> $GITHUB_STEP_SUMMARY
           echo "- ✅ **Server**: Aplicación SSR iniciada con PM2" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Database Scripts**: Scripts de limpieza de BD desplegados" >> $GITHUB_STEP_SUMMARY
           echo "- 🌐 **URL**: http://${{ env.SSH_HOST }}:4000" >> $GITHUB_STEP_SUMMARY
           echo "- 🏷️ **Environment**: deploy" >> $GITHUB_STEP_SUMMARY
           echo "- 📅 **Deployed at**: $(date)" >> $GITHUB_STEP_SUMMARY
@@ -358,3 +402,11 @@ jobs:
           echo "- Verificar que la aplicación responde correctamente" >> $GITHUB_STEP_SUMMARY
           echo "- Configurar proxy reverso (Nginx) si es necesario" >> $GITHUB_STEP_SUMMARY
           echo "- Configurar SSL/HTTPS" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🗄️ Database Management" >> $GITHUB_STEP_SUMMARY
+          echo "Scripts de limpieza de base de datos disponibles en el servidor:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`./clean-database-entities.sh --analyze-only\` - Analizar tablas" >> $GITHUB_STEP_SUMMARY
+          echo "- \`./clean-database-entities.sh\` - Limpiar base de datos" >> $GITHUB_STEP_SUMMARY
+          echo "- Ver guías: \`DATABASE-CLEANUP-README.md\`, \`SERVIDOR-PRODUCCION-PASOS.md\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ **Importante**: Crear backup antes de usar scripts de limpieza" >> $GITHUB_STEP_SUMMARY
