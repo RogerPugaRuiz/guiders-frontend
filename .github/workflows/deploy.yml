@@ -281,6 +281,11 @@ jobs:
             clean-database.sh \
             ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
           
+          # Copiar script de configuración rápida
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            setup-database-cleanup.sh \
+            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+          
           # Copiar documentación y guías
           sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
             DATABASE-CLEANUP-README.md \
@@ -303,7 +308,12 @@ jobs:
             cd ${{ env.DEPLOY_PATH }}
             chmod +x clean-database-entities.sh
             chmod +x clean-database.sh
+            chmod +x setup-database-cleanup.sh
             echo "✅ Scripts de limpieza de base de datos configurados y ejecutables"
+            
+            # Mostrar archivos disponibles
+            echo "📁 Archivos de limpieza de base de datos disponibles:"
+            ls -la *.sh *.md 2>/dev/null | grep -E "(clean|setup|DATABASE|SERVIDOR|QUICK)" || echo "  (Scripts copiados correctamente)"
           EOF
           
           echo "✅ Scripts de limpieza de base de datos desplegados exitosamente"
@@ -405,6 +415,7 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### 🗄️ Database Management" >> $GITHUB_STEP_SUMMARY
           echo "Scripts de limpieza de base de datos disponibles en el servidor:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`./setup-database-cleanup.sh\` - Configurar variables de BD" >> $GITHUB_STEP_SUMMARY
           echo "- \`./clean-database-entities.sh --analyze-only\` - Analizar tablas" >> $GITHUB_STEP_SUMMARY
           echo "- \`./clean-database-entities.sh\` - Limpiar base de datos" >> $GITHUB_STEP_SUMMARY
           echo "- Ver guías: \`DATABASE-CLEANUP-README.md\`, \`SERVIDOR-PRODUCCION-PASOS.md\`" >> $GITHUB_STEP_SUMMARY
