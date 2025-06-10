@@ -53,32 +53,55 @@ jobs:
         run: |
           echo "Verificando estructura de build..."
           ls -la guiders-20/dist/
-          if [ -d "guiders-20/dist/browser" ] && [ -d "guiders-20/dist/server" ]; then
-            echo "✅ Build exitoso - estructura Angular 20 SSR correcta"
-            echo "📁 Contenido del build cliente (browser):"
-            ls -la guiders-20/dist/browser/ | head -10
-            echo "📁 Contenido del build servidor (server):"
-            ls -la guiders-20/dist/server/ | head -10
-            # Verificar que server.mjs existe
-            if [ -f "guiders-20/dist/server/server.mjs" ]; then
-              echo "✅ server.mjs encontrado en la ubicación correcta"
+          
+          # Verificar estructura Angular 20 (siempre tiene el subdirectorio del proyecto)
+          if [ -d "guiders-20/dist/guiders-20" ]; then
+            echo "✅ Build exitoso - encontrado subdirectorio del proyecto"
+            echo "📁 Contenido del build principal:"
+            ls -la guiders-20/dist/guiders-20/
+            
+            # Verificar que existen las carpetas browser y server
+            if [ -d "guiders-20/dist/guiders-20/browser" ] && [ -d "guiders-20/dist/guiders-20/server" ]; then
+              echo "✅ Directorios browser y server encontrados"
+              
+              echo "📁 Contenido del cliente (browser):"
+              ls -la guiders-20/dist/guiders-20/browser/ | head -10
+              
+              echo "📁 Contenido del servidor (server):"
+              ls -la guiders-20/dist/guiders-20/server/ | head -10
+              
+              # Verificar que server.mjs existe
+              if [ -f "guiders-20/dist/guiders-20/server/server.mjs" ]; then
+                echo "✅ server.mjs encontrado"
+              else
+                echo "❌ Error: server.mjs no encontrado"
+                echo "📁 Archivos en server/:"
+                ls -la guiders-20/dist/guiders-20/server/
+                exit 1
+              fi
+              
+              # Verificar index.html en browser (puede tener diferentes nombres)
+              if [ -f "guiders-20/dist/guiders-20/browser/index.csr.html" ] || [ -f "guiders-20/dist/guiders-20/browser/index.html" ]; then
+                echo "✅ Archivo index HTML encontrado en el cliente"
+              else
+                echo "❌ Error: No se encontró archivo index HTML en el cliente"
+                echo "📁 Archivos HTML en browser/:"
+                ls -la guiders-20/dist/guiders-20/browser/*.html 2>/dev/null || echo "No se encontraron archivos HTML"
+                exit 1
+              fi
             else
-              echo "❌ Error: server.mjs no encontrado en guiders-20/dist/server/"
-              echo "📁 Archivos en dist/server/:"
-              ls -la guiders-20/dist/server/
-              exit 1
-            fi
-            # Verificar archivos principales del cliente
-            if [ -f "guiders-20/dist/browser/index.html" ]; then
-              echo "✅ index.html encontrado en el cliente"
-            else
-              echo "❌ Error: index.html no encontrado en el cliente"
+              echo "❌ Error: No se encontraron directorios browser/server"
+              echo "📁 Contenido disponible:"
+              ls -la guiders-20/dist/guiders-20/
               exit 1
             fi
           else
-            echo "❌ Error: Estructura de build incorrecta"
-            echo "📁 Contenido actual de dist/:"
-            ls -la guiders-20/dist/
+            echo "❌ Error: No se encontró el subdirectorio del proyecto en dist/"
+            echo "📁 Explorando estructura completa:"
+            find guiders-20/dist/ -type d 2>/dev/null | head -10
+            echo ""
+            echo "📁 Buscando archivos importantes:"
+            find guiders-20/dist/ -name "server.mjs" -o -name "*.html" -o -name "main*.js" 2>/dev/null | head -10
             exit 1
           fi
 
