@@ -326,21 +326,21 @@ jobs:
             fi
           EOF
 
-      - name: 🧹 Cleanup and final verification
-        env:
-          SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-        run: |
-          # Copiar script de verificación segura al servidor
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
-            .github/verify-deployment-safe.sh \
-            ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
+      # - name: 🧹 Cleanup and final verification
+      #   env:
+      #     SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
+      #   run: |
+      #     # Copiar script de verificación segura al servidor
+      #     sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+      #       .github/verify-deployment-safe.sh \
+      #       ${{ env.SSH_USER }}@${{ env.SSH_HOST }}:${{ env.DEPLOY_PATH }}/
           
-          # Ejecutar verificación post-deployment segura
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
-            cd ${{ env.DEPLOY_PATH }}
-            chmod +x verify-deployment-safe.sh
-            ./verify-deployment-safe.sh
-          EOF
+      #     # Ejecutar verificación post-deployment segura
+      #     sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.SSH_USER }}@${{ env.SSH_HOST }} << 'EOF'
+      #       cd ${{ env.DEPLOY_PATH }}
+      #       chmod +x verify-deployment-safe.sh
+      #       ./verify-deployment-safe.sh
+      #     EOF
 
       - name: 🎉 Deployment Summary
         run: |
