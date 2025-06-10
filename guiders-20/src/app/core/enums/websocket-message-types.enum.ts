@@ -99,7 +99,8 @@ export const WEBSOCKET_TO_CHAT_EVENT_MAP: Record<WebSocketMessageType, ChatWebSo
   [WebSocketMessageType.AUTH_ERROR]: ChatWebSocketEventType.STATUS_CHANGE,
   [WebSocketMessageType.RECONNECT]: ChatWebSocketEventType.STATUS_CHANGE,
   [WebSocketMessageType.RECONNECT_ATTEMPT]: ChatWebSocketEventType.STATUS_CHANGE,
-  [WebSocketMessageType.RECONNECT_FAILED]: ChatWebSocketEventType.STATUS_CHANGE
+  [WebSocketMessageType.RECONNECT_FAILED]: ChatWebSocketEventType.STATUS_CHANGE,
+  [WebSocketMessageType.RECEIVE_MESSAGE]: ChatWebSocketEventType.MESSAGE
 };
 
 /**

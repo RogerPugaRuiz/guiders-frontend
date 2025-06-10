@@ -40,7 +40,7 @@ export class ChatMessages {
       // Convertir mensajes del estado para que sean compatibles con el template
       return stateMessages.map(msg => ({
         ...msg,
-        createdAt: msg.timestamp || msg.createdAt || new Date().toISOString()
+        createdAt: msg.timestamp || new Date().toISOString()
       }));
     }
     
