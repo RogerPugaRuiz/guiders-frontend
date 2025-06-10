@@ -37,12 +37,12 @@ jobs:
           cache: 'npm'
 
       - name: 📦 Install root dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: 📦 Install Guiders-20 dependencies
         run: |
           cd guiders-20
-          npm ci
+          npm ci --legacy-peer-deps
 
       - name: 🏗️ Build Angular SSR application
         run: |
