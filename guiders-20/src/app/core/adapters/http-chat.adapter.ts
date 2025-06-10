@@ -133,39 +133,33 @@ export class HttpChatAdapter implements ChatRepositoryPort {
       // Generar clave de caché basada en los parámetros
       const cacheKey = this.cacheStore.generateKey('getMessages', params);
 
-      // Verificar si existe en caché
-      const cachedResult = this.cacheStore.get<MessageListResponse>(cacheKey);
-      if (cachedResult) {
-        return cachedResult;
-      }
+      // Usar getOrSet para evitar múltiples peticiones simultáneas
+      return await this.cacheStore.getOrSet(cacheKey, async () => {
+        console.log('🌐 Realizando petición HTTP para obtener mensajes...');
+        
+        // Construir parámetros HTTP
+        let httpParams = new HttpParams();
+        
+        if (params.limit) {
+          httpParams = httpParams.set('limit', params.limit.toString());
+        }
+        if (params.cursor) {
+          httpParams = httpParams.set('cursor', params.cursor);
+        }
 
-      return null;
+        // Realizar petición HTTP usando el chatId en la URL
+        const response = await firstValueFrom(
+          this.httpClient.get<MessageListResponse>(`${this.API_BASE_URL}/${params.chatId}/messages`, { params: httpParams })
+            .pipe(
+              catchError(error => throwError(() => this.handleHttpError(error)))
+            )
+        );
 
-      // Construir parámetros HTTP
-      // let httpParams = new HttpParams();
-      
-      // if (params.chatId) {
-      //   httpParams = httpParams.set('chatId', params.chatId);
-      // }
-      // if (params.limit) {
-      //   httpParams = httpParams.set('limit', params.limit.toString());
-      // }
-      // if (params.cursor) {
-      //   httpParams = httpParams.set('cursor', params.cursor);
-      // }
-
-      // // Realizar petición HTTP
-      // const response = await firstValueFrom(
-      //   this.httpClient.get<MessageListResponse>(`${this.API_BASE_URL}/messages`, { params: httpParams })
-      //     .pipe(
-      //       catchError(error => throwError(() => this.handleHttpError(error)))
-      //     )
-      // );
-
-      // // Almacenar en caché antes de retornar
-      // this.cacheStore.set(cacheKey, response);
-
-      // return response;
+        console.log('📨 Respuesta de mensajes recibida:', response);
+        console.log('✅ Petición HTTP de mensajes completada');
+        
+        return response;
+      });
     } catch (error) {
       // Re-lanzar errores de dominio o crear error de red genérico
       if (error instanceof ValidationError || 
@@ -186,26 +180,23 @@ export class HttpChatAdapter implements ChatRepositoryPort {
       // Generar clave de caché basada en los parámetros
       const cacheKey = this.cacheStore.generateKey('getChatById', params);
 
-      // Verificar si existe en caché
-      const cachedResult = this.cacheStore.get<Chat>(cacheKey);
-      if (cachedResult) {
-        return cachedResult;
-      }
+      // Usar getOrSet para evitar múltiples peticiones simultáneas
+      return await this.cacheStore.getOrSet(cacheKey, async () => {
+        console.log('🌐 Realizando petición HTTP para obtener chat por ID...');
+        
+        // Realizar petición HTTP
+        const response = await firstValueFrom(
+          this.httpClient.get<Chat>(`${this.API_BASE_URL}/${params.chatId}`)
+            .pipe(
+              catchError(error => throwError(() => this.handleHttpError(error)))
+            )
+        );
 
-      return null;
-
-      // Realizar petición HTTP
-      // const response = await firstValueFrom(
-      //   this.httpClient.get<Chat>(`${this.API_BASE_URL}/${params.chatId}`)
-      //     .pipe(
-      //       catchError(error => throwError(() => this.handleHttpError(error)))
-      //     )
-      // );
-
-      // // Almacenar en caché antes de retornar
-      // this.cacheStore.set(cacheKey, response);
-
-      // return response;
+        console.log('📨 Respuesta de chat por ID recibida:', response);
+        console.log('✅ Petición HTTP de chat por ID completada');
+        
+        return response;
+      });
     } catch (error) {
       // Re-lanzar errores de dominio o crear error de red genérico
       if (error instanceof ValidationError || 
@@ -227,7 +218,9 @@ export class HttpChatAdapter implements ChatRepositoryPort {
       // Limpiar caché relacionada con este chat específico
       this.cacheStore.invalidatePattern(chatId);
       this.cacheStore.invalidatePattern('getChats');
-      return null;
+      
+      console.log('🌐 Realizando petición HTTP para iniciar chat...');
+      
       // Realizar petición HTTP POST
       const response = await firstValueFrom(
         this.httpClient.post<Chat>(`${this.API_BASE_URL}/${chatId}/start`, {})
@@ -236,6 +229,9 @@ export class HttpChatAdapter implements ChatRepositoryPort {
           )
       );
 
+      console.log('📨 Respuesta de iniciar chat recibida:', response);
+      console.log('✅ Petición HTTP de iniciar chat completada');
+      
       return response;
     } catch (error) {
       // Re-lanzar errores de dominio o crear error de red genérico

@@ -247,4 +247,44 @@ export class ChatStateService {
       isLoading: this.isLoading()
     }));
   }
+  
+  /**
+   * Actualiza el último mensaje de un chat específico
+   */
+  updateLastMessage(chatId: string, lastMessage: string, lastMessageAt: string, senderId: string): void {
+    console.log('📝 [ChatStateService] Actualizando último mensaje del chat:', {
+      chatId,
+      lastMessage,
+      lastMessageAt,
+      senderId
+    });
+    
+    this._chats.update(chats => 
+      chats.map(chat => {
+        if (chat.id === chatId) {
+          // Crear un objeto Message temporal para cumplir con la interfaz Chat
+          const messageObject: Message = {
+            id: `temp-${Date.now()}`, // ID temporal
+            chatId,
+            senderId,
+            senderName: '', // Nombre temporal vacío
+            content: lastMessage,
+            type: 'text',
+            timestamp: lastMessageAt,
+            isRead: false,
+            metadata: {}
+          };
+
+          return {
+            ...chat,
+            lastMessage: messageObject,
+            lastMessageAt
+          };
+        }
+        return chat;
+      })
+    );
+    
+    console.log('✅ [ChatStateService] Último mensaje actualizado en el estado');
+  }
 }

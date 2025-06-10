@@ -11,7 +11,7 @@ import { WebSocketService } from '../../../../core/services/websocket.service';
 import { AvatarService } from 'src/app/core/services/avatar.service';
 import { v4 as uuidv4 } from 'uuid';
 import { WebSocketMessageType } from 'src/app/core/enums/websocket-message-types.enum';
-import { ReceiveMessageData } from 'src/app/core/models/websocket-response.models';
+import { ReceiveMessageData, ChatLastMessageUpdatedData } from 'src/app/core/models/websocket-response.models';
 import { ChatStateService } from '../../services/chat-state.service';
 import { Message } from '@libs/feature/chat';
 
@@ -346,6 +346,75 @@ export class ChatComponent implements OnInit, OnDestroy {
     return participant?.name || 'Usuario desconocido';
   }
 
+  /**
+   * Procesa actualizaciones del último mensaje del chat del WebSocket tipo 'chat:last-message-updated'
+   */
+  private handleLastMessageUpdate(payload: any): void {
+    try {
+      const updateData = payload?.data;
+      
+      // Validar estructura del payload
+      if (!this.isValidLastMessageUpdatePayload(updateData)) {
+        console.error('❌ [Chat] Payload de actualización de último mensaje inválido:', payload);
+        return;
+      }
+
+      const currentChat = this.selectedChat();
+
+      // Solo procesar si es para el chat seleccionado actualmente
+      if (!currentChat || currentChat.id !== updateData.chatId) {
+        console.log('📝 [Chat] Actualización de último mensaje para chat no seleccionado:', {
+          receivedChatId: updateData.chatId,
+          currentChatId: currentChat?.id || 'ninguno'
+        });
+        return;
+      }
+
+      // Actualizar la información del último mensaje en el chat seleccionado
+      this.selectedChat.update(chat => {
+        if (!chat || chat.id !== updateData.chatId) return chat;
+        
+        return {
+          ...chat,
+          lastMessage: updateData.lastMessage,
+          lastMessageAt: updateData.lastMessageAt
+        };
+      });
+
+      // Actualizar también en el servicio de estado global
+      this.chatStateService.updateLastMessage(
+        updateData.chatId,
+        updateData.lastMessage,
+        updateData.lastMessageAt,
+        updateData.senderId
+      );
+
+      console.log('✅ [Chat] Último mensaje actualizado para el chat:', {
+        chatId: updateData.chatId,
+        lastMessage: updateData.lastMessage,
+        lastMessageAt: updateData.lastMessageAt,
+        senderId: updateData.senderId
+      });
+
+    } catch (error) {
+      console.error('❌ [Chat] Error al procesar actualización de último mensaje:', error);
+    }
+  }
+
+  /**
+   * Valida la estructura del payload de chat:last-message-updated
+   */
+  private isValidLastMessageUpdatePayload(payload: any): payload is ChatLastMessageUpdatedData {
+    return payload &&
+           typeof payload.lastMessage === 'string' &&
+           typeof payload.lastMessageAt === 'string' &&
+           typeof payload.chatId === 'string' &&
+           typeof payload.senderId === 'string' &&
+           payload.lastMessage.trim() !== '' &&
+           payload.chatId.trim() !== '' &&
+           payload.senderId.trim() !== '';
+  }
+
   ngOnInit() {
     this.setupWebSocketListeners();
   }
@@ -392,6 +461,19 @@ export class ChatComponent implements OnInit, OnDestroy {
         },
         error: (error: any) => {
           console.error('❌ [Chat] Error al procesar mensaje entrante:', error);
+        }
+      });
+
+    // Escuchar actualizaciones del último mensaje del chat
+    this.webSocketService.getMessagesByType(WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updateEvent: any) => {
+          console.log('📝 [Chat] Actualización de último mensaje recibida:', updateEvent);
+          this.handleLastMessageUpdate(updateEvent);
+        },
+        error: (error: any) => {
+          console.error('❌ [Chat] Error al procesar actualización de último mensaje:', error);
         }
       });
   }
