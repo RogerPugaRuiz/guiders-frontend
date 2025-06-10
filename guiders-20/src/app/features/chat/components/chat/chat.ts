@@ -9,11 +9,13 @@ import { ChatSelectionService } from '../../services/chat-selection.service';
 import { ChatWebSocketService } from '../../services/chat-websocket.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
 import { AvatarService } from 'src/app/core/services/avatar.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { v4 as uuidv4 } from 'uuid';
 import { WebSocketMessageType } from 'src/app/core/enums/websocket-message-types.enum';
 import { ReceiveMessageData, ChatLastMessageUpdatedData } from 'src/app/core/models/websocket-response.models';
 import { ChatStateService } from '../../services/chat-state.service';
 import { Message } from '@libs/feature/chat';
+import { User } from '@libs/feature/auth';
 
 @Component({
   selector: 'app-chat',
@@ -27,6 +29,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   private avatarService = inject(AvatarService);
   public webSocketService = inject(WebSocketService);
   private chatStateService = inject(ChatStateService);
+  private authService = inject(AuthService);
   private destroy$ = new Subject<void>();
 
   // Referencias a elementos del template usando viewChild signal
@@ -115,39 +118,99 @@ export class ChatComponent implements OnInit, OnDestroy {
       chatId: chat.id,
       timestamp
     });
-    
-    try {
-      // Enviar el mensaje usando acknowledgment para obtener respuesta del servidor
-      this.webSocketService.emitEventWithAck('commercial:send-message', {
-        id: messageId,
-        message,
-        timestamp,
-        chatId: chat.id
-      }).then((response) => {
-        // Respuesta exitosa del servidor
-        console.log('✅ [Chat] Mensaje enviado exitosamente, respuesta del servidor:', response);
-        
-        // Limpiar el campo de mensaje y resetear altura
+
+    // PROGRAMACIÓN POSITIVA: Crear mensaje temporal y agregarlo inmediatamente
+    this.authService.getCurrentUser().subscribe({
+      next: (currentUser: User | null) => {
+        if (!currentUser) {
+          console.error('❌ [Chat] No se pudo obtener el usuario actual');
+          this.isSendingMessage.set(false);
+          return;
+        }
+
+        // Crear mensaje temporal con estado 'pending'
+        const temporaryMessage: Message = {
+          id: messageId,
+          chatId: chat.id,
+          senderId: currentUser.id,
+          senderName: currentUser.name || currentUser.email,
+          content: message,
+          type: 'text',
+          timestamp: new Date(timestamp).toISOString(),
+          isRead: false,
+          metadata: {
+            isPending: true, // Marcador para UI optimistic
+            isTemporary: true
+          }
+        };
+
+        // Agregar mensaje inmediatamente al estado (UI optimistic)
+        console.log('✨ [Chat] Agregando mensaje temporal para UI optimistic:', temporaryMessage.id);
+        this.chatStateService.addMessage(temporaryMessage);
+
+        // Limpiar el campo de mensaje inmediatamente para mejor UX
         this.currentMessageText.set('');
         this.textareaRows.set(1);
-        this.isSendingMessage.set(false);
         
-      }).catch((error) => {
-        // Error del servidor o timeout
-        console.error('❌ [Chat] Error al enviar mensaje:', error);
-        this.isSendingMessage.set(false);
-        
-        // Mostrar mensaje de error al usuario (opcional)
-        if ('error' in error) {
-          console.error('Error del servidor:', error.error);
-          // Aquí podrías mostrar una notificación al usuario
+        try {
+          // Enviar el mensaje usando acknowledgment para obtener respuesta del servidor
+          this.webSocketService.emitEventWithAck('commercial:send-message', {
+            id: messageId,
+            message,
+            timestamp,
+            chatId: chat.id
+          }).then((response) => {
+            // ✅ ÉXITO: Respuesta exitosa del servidor
+            console.log('✅ [Chat] Mensaje enviado exitosamente, respuesta del servidor:', response);
+            
+            // Actualizar el mensaje para quitar el estado temporal/pendiente
+            this.chatStateService.updateMessage(messageId, {
+              metadata: {
+                isPending: false,
+                isTemporary: false,
+                confirmedAt: Date.now()
+              }
+            });
+            
+            this.isSendingMessage.set(false);
+            
+          }).catch((error) => {
+            // ❌ ERROR: Error del servidor o timeout
+            console.error('❌ [Chat] Error al enviar mensaje:', error);
+            
+            // REMOVER el mensaje temporal debido al error
+            console.log('🗑️ [Chat] Removiendo mensaje temporal debido al error');
+            this.chatStateService.removeMessage(messageId);
+            
+            // Restaurar el texto del mensaje para que el usuario pueda reintentarlo
+            this.currentMessageText.set(message);
+            
+            this.isSendingMessage.set(false);
+            
+            // Mostrar mensaje de error al usuario (opcional)
+            if ('error' in error) {
+              console.error('Error del servidor:', error.error);
+              // Aquí podrías mostrar una notificación al usuario
+            }
+          });
+          
+        } catch (error) {
+          console.error('❌ [Chat] Error al enviar mensaje:', error);
+          
+          // Remover mensaje temporal en caso de error
+          this.chatStateService.removeMessage(messageId);
+          
+          // Restaurar el texto del mensaje
+          this.currentMessageText.set(message);
+          
+          this.isSendingMessage.set(false);
         }
-      });
-      
-    } catch (error) {
-      console.error('❌ [Chat] Error al enviar mensaje:', error);
-      this.isSendingMessage.set(false);
-    }
+      },
+      error: (error) => {
+        console.error('❌ [Chat] Error al obtener usuario actual:', error);
+        this.isSendingMessage.set(false);
+      }
+    });
   }
 
   /**

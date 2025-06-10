@@ -14,9 +14,19 @@
 				@for (msg of group.messages; track msg.id) {
 					<div class="chat-message" 
 						 [class.chat-message--sent]="isMessageSent(msg.senderId)"
-						 [class.chat-message--received]="!isMessageSent(msg.senderId)">
+						 [class.chat-message--received]="!isMessageSent(msg.senderId)"
+						 [class.chat-message--pending]="isMessagePending(msg)"
+						 [class.chat-message--confirmed]="isMessageConfirmed(msg)">
 						<div class="chat-message__content">
 							<p>{{ msg.content }}</p>
+							@if (isMessagePending(msg)) {
+								<span class="chat-message__status">
+									<svg class="chat-message__pending-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+										<circle cx="12" cy="12" r="10"/>
+										<polyline points="12,6 12,12 16,14"/>
+									</svg>
+								</span>
+							}
 						</div>
 						<span class="chat-message__time">{{ formatMessageTime(msg.createdAt) }}</span>
 					</div>

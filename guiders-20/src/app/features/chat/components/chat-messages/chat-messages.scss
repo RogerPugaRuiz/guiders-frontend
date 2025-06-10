@@ -188,3 +188,44 @@
 		}
 	}
 }
+
+/* Estados de mensaje para programación positiva */
+.chat-message {
+	&--pending {
+		opacity: 0.7;
+		
+		.chat-message__content {
+			background-color: var(--color-surface-variant) !important;
+			position: relative;
+		}
+		
+		.chat-message__status {
+			display: inline-flex;
+			align-items: center;
+			margin-left: var(--spacing-xs);
+		}
+		
+		.chat-message__pending-icon {
+			color: var(--color-text-light);
+			animation: spin 1s linear infinite;
+		}
+	}
+	
+	&--confirmed {
+		opacity: 1;
+		
+		.chat-message__content {
+			transition: background-color 0.3s ease;
+		}
+	}
+	
+	// Animación suave para cuando el mensaje cambia de estado
+	&--sent.chat-message--pending .chat-message__content {
+		border: 1px dashed var(--color-primary-light);
+	}
+	
+	&--sent.chat-message--confirmed .chat-message__content {
+		border: none;
+		background-color: var(--color-primary);
+	}
+}

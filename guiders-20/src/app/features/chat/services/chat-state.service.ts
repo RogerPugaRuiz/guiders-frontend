@@ -198,6 +198,38 @@ export class ChatStateService {
   }
   
   /**
+   * Remueve un mensaje específico por su ID
+   */
+  removeMessage(messageId: string): void {
+    console.log('🗑️ [ChatStateService] Removiendo mensaje del estado:', {
+      messageId,
+      currentMessagesCount: this._messages().length
+    });
+    
+    this._messages.update(messages => {
+      const filteredMessages = messages.filter(msg => msg.id !== messageId);
+      console.log('🗑️ [ChatStateService] Mensaje removido, total mensajes restantes:', filteredMessages.length);
+      return filteredMessages;
+    });
+  }
+  
+  /**
+   * Actualiza un mensaje específico (por ejemplo, para cambiar su estado de pendiente a confirmado)
+   */
+  updateMessage(messageId: string, updates: Partial<Message>): void {
+    console.log('✏️ [ChatStateService] Actualizando mensaje en el estado:', {
+      messageId,
+      updates
+    });
+    
+    this._messages.update(messages => {
+      return messages.map(msg => 
+        msg.id === messageId ? { ...msg, ...updates } : msg
+      );
+    });
+  }
+  
+  /**
    * Deselecciona el chat actual
    */
   clearSelection(): void {

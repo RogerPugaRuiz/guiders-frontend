@@ -178,4 +178,14 @@ export class ChatMessages {
     // Los mensajes dentro de cada grupo también están ordenados (más antiguos primero)
     return groups;
   }
+
+  // Método para determinar si un mensaje está pendiente (programación positiva)
+  isMessagePending(message: any): boolean {
+    return message.metadata?.isPending === true;
+  }
+
+  // Método para determinar si un mensaje está confirmado
+  isMessageConfirmed(message: any): boolean {
+    return message.metadata?.isPending === false && message.metadata?.isTemporary === false;
+  }
 }
