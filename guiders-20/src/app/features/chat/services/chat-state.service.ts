@@ -94,6 +94,8 @@ export class ChatStateService {
       return; // Ya está seleccionado
     }
     
+    // Limpiar mensajes del chat anterior
+    this._messages.set([]);
     this._selectedChatId.set(chatId);
     await this.loadMessages(chatId);
   }
@@ -108,7 +110,24 @@ export class ChatStateService {
         limit: 100
       }).subscribe({
         next: (response) => {
-          this._messages.set(response.data || []);
+          // Solo limpiar mensajes si cambiamos de chat
+          const currentMessages = this._messages();
+          const isNewChat = currentMessages.length === 0 || 
+                           currentMessages.some(msg => msg.chatId !== chatId);
+          
+          if (isNewChat) {
+            // Chat nuevo o diferente: reemplazar mensajes
+            this._messages.set(response.data || []);
+          } else {
+            // Mismo chat: combinar mensajes evitando duplicados
+            const newMessages = response.data || [];
+            const existingIds = new Set(currentMessages.map(msg => msg.id));
+            const uniqueNewMessages = newMessages.filter(msg => !existingIds.has(msg.id));
+            
+            if (uniqueNewMessages.length > 0) {
+              this._messages.update(messages => [...messages, ...uniqueNewMessages]);
+            }
+          }
           resolve();
         },
         error: (error) => {
@@ -164,7 +183,18 @@ export class ChatStateService {
    * Agrega un nuevo mensaje al chat seleccionado
    */
   addMessage(message: Message): void {
-    this._messages.update(messages => [...messages, message]);
+    console.log('📝 [ChatStateService] Agregando mensaje al estado:', {
+      messageId: message.id,
+      chatId: message.chatId,
+      content: message.content,
+      currentMessagesCount: this._messages().length
+    });
+    
+    this._messages.update(messages => {
+      const newMessages = [...messages, message];
+      console.log('📝 [ChatStateService] Estado actualizado, total mensajes:', newMessages.length);
+      return newMessages;
+    });
   }
   
   /**

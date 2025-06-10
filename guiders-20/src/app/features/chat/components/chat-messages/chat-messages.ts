@@ -34,20 +34,34 @@ export class ChatMessages {
   });
 
   message = computed(() => {
-    // Primero intentar obtener mensajes del estado en tiempo real
-    const stateMessages = this.chatStateService.messages();
-    if (stateMessages.length > 0) {
-      // Convertir mensajes del estado para que sean compatibles con el template
-      return stateMessages.map(msg => ({
-        ...msg,
-        createdAt: msg.timestamp || new Date().toISOString()
-      }));
-    }
-    
-    // Si no hay mensajes en el estado, usar los del HTTP resource
     const chat = this.selectedChat();
     if (!chat) return [];
-    return this.messagesResource.value()?.messages || [];
+    
+    // Obtener mensajes del HTTP resource (carga inicial)
+    const httpMessages = this.messagesResource.value()?.messages || [];
+    
+    // Obtener mensajes en tiempo real del estado
+    const stateMessages = this.chatStateService.messages();
+    
+    // Si no hay mensajes en tiempo real, usar solo los del HTTP
+    if (stateMessages.length === 0) {
+      return httpMessages;
+    }
+    
+    // Combinar mensajes: HTTP + nuevos del WebSocket
+    // Filtrar mensajes del estado que no estén ya en httpMessages
+    const httpMessageIds = new Set(httpMessages.map(msg => msg.id));
+    const newStateMessages = stateMessages.filter(msg => !httpMessageIds.has(msg.id));
+    
+    // Convertir nuevos mensajes del estado para compatibilidad con template
+    const convertedStateMessages = newStateMessages.map(msg => ({
+      ...msg,
+      createdAt: msg.timestamp || new Date().toISOString()
+    }));
+    
+    // Combinar y ordenar por timestamp
+    const allMessages = [...httpMessages, ...convertedStateMessages];
+    return allMessages.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   });
 
   // Método para formatear la hora del mensaje considerando UTC

@@ -257,6 +257,11 @@ export class ChatComponent implements OnInit, OnDestroy {
   onChatSelected(event: ChatSelectionEvent) {
     this.selectedChat.set(event.chat);
     console.log('🎯 [Chat] Chat seleccionado desde chat-list:', event.chat.id, event.chat);
+    
+    // Usar el servicio de estado para manejar la selección correctamente
+    this.chatStateService.selectChat(event.chat.id).catch(error => {
+      console.error('❌ [Chat] Error al seleccionar chat:', error);
+    });
   }
 
   /**
@@ -264,13 +269,14 @@ export class ChatComponent implements OnInit, OnDestroy {
    */
   private handleIncomingMessage(payload: any): void {
     try {
+      // Extraer los datos del mensaje de la estructura anidada
+      const messageData = payload?.data?.data;
+      
       // Validar estructura del payload
-      if (!this.isValidReceiveMessagePayload(payload)) {
+      if (!this.isValidReceiveMessagePayload(messageData)) {
         console.error('❌ [Chat] Payload de mensaje entrante inválido:', payload);
         return;
       }
-
-      const messageData = payload as ReceiveMessageData;
       const currentChat = this.selectedChat();
 
       // Solo procesar el mensaje si pertenece al chat seleccionado actualmente
@@ -382,7 +388,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (messageEvent: any) => {
           console.log('📨 [Chat] Mensaje entrante recibido:', messageEvent);
-          this.handleIncomingMessage(messageEvent.data);
+          this.handleIncomingMessage(messageEvent);
         },
         error: (error: any) => {
           console.error('❌ [Chat] Error al procesar mensaje entrante:', error);
