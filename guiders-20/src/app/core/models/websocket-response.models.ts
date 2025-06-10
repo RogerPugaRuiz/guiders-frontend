@@ -68,6 +68,15 @@ export interface ChatLastMessageUpdatedData {
   senderId: string;
 }
 
+// Interface para el payload de receive-message según el backend
+export interface ReceiveMessageData extends Record<string, unknown> {
+  id: string;
+  chatId: string;
+  senderId: string;
+  message: string;
+  createdAt: string;
+}
+
 // Verificadores de tipo para diferenciar entre éxito y error
 export function isSuccessResponse<T extends Record<string, unknown>>(
   response: Response<T>

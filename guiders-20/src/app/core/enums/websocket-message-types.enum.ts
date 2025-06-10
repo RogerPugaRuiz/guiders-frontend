@@ -24,6 +24,9 @@ export enum WebSocketMessageType {
   // Eventos de participantes
   PARTICIPANT_ONLINE_STATUS_UPDATED = 'participant:online-status-updated',
   
+  // Eventos de mensajes entrantes
+  RECEIVE_MESSAGE = 'receive-message',
+  
   // Eventos de heartbeat/ping-pong
   PING = 'ping',
   PONG = 'pong',
@@ -60,7 +63,8 @@ export const CHAT_RELATED_MESSAGE_TYPES: readonly WebSocketMessageType[] = [
   WebSocketMessageType.CHAT_STATUS_UPDATED,
   WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED,
   WebSocketMessageType.CHAT_TYPING_STATUS_UPDATED,
-  WebSocketMessageType.PARTICIPANT_ONLINE_STATUS_UPDATED
+  WebSocketMessageType.PARTICIPANT_ONLINE_STATUS_UPDATED,
+  WebSocketMessageType.RECEIVE_MESSAGE
 ] as const;
 
 /**
@@ -95,7 +99,8 @@ export const WEBSOCKET_TO_CHAT_EVENT_MAP: Record<WebSocketMessageType, ChatWebSo
   [WebSocketMessageType.AUTH_ERROR]: ChatWebSocketEventType.STATUS_CHANGE,
   [WebSocketMessageType.RECONNECT]: ChatWebSocketEventType.STATUS_CHANGE,
   [WebSocketMessageType.RECONNECT_ATTEMPT]: ChatWebSocketEventType.STATUS_CHANGE,
-  [WebSocketMessageType.RECONNECT_FAILED]: ChatWebSocketEventType.STATUS_CHANGE
+  [WebSocketMessageType.RECONNECT_FAILED]: ChatWebSocketEventType.STATUS_CHANGE,
+  [WebSocketMessageType.RECEIVE_MESSAGE]: ChatWebSocketEventType.MESSAGE
 };
 
 /**

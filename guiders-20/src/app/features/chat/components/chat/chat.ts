@@ -10,6 +10,10 @@ import { ChatWebSocketService } from '../../services/chat-websocket.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
 import { AvatarService } from 'src/app/core/services/avatar.service';
 import { v4 as uuidv4 } from 'uuid';
+import { WebSocketMessageType } from 'src/app/core/enums/websocket-message-types.enum';
+import { ReceiveMessageData } from 'src/app/core/models/websocket-response.models';
+import { ChatStateService } from '../../services/chat-state.service';
+import { Message } from '@libs/feature/chat';
 
 @Component({
   selector: 'app-chat',
@@ -22,6 +26,7 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   private avatarService = inject(AvatarService);
   public webSocketService = inject(WebSocketService);
+  private chatStateService = inject(ChatStateService);
   private destroy$ = new Subject<void>();
 
   // Referencias a elementos del template usando viewChild signal
@@ -254,6 +259,87 @@ export class ChatComponent implements OnInit, OnDestroy {
     console.log('🎯 [Chat] Chat seleccionado desde chat-list:', event.chat.id, event.chat);
   }
 
+  /**
+   * Procesa mensajes entrantes del WebSocket tipo 'receive-message'
+   */
+  private handleIncomingMessage(payload: any): void {
+    try {
+      // Validar estructura del payload
+      if (!this.isValidReceiveMessagePayload(payload)) {
+        console.error('❌ [Chat] Payload de mensaje entrante inválido:', payload);
+        return;
+      }
+
+      const messageData = payload as ReceiveMessageData;
+      const currentChat = this.selectedChat();
+
+      // Solo procesar el mensaje si pertenece al chat seleccionado actualmente
+      if (!currentChat || currentChat.id !== messageData.chatId) {
+        console.log('📨 [Chat] Mensaje recibido para chat no seleccionado, no actualizando UI:', {
+          receivedChatId: messageData.chatId,
+          currentChatId: currentChat?.id || 'ninguno'
+        });
+        return;
+      }
+
+      // Crear objeto Message según la interfaz
+      const newMessage: Message = {
+        id: messageData.id,
+        chatId: messageData.chatId,
+        senderId: messageData.senderId,
+        senderName: this.getSenderNameById(messageData.senderId),
+        content: messageData.message,
+        type: 'text',
+        timestamp: messageData.createdAt,
+        isRead: false,
+        metadata: {
+          source: 'websocket',
+          receivedAt: new Date().toISOString()
+        }
+      };
+
+      // Agregar mensaje al estado del chat
+      this.chatStateService.addMessage(newMessage);
+
+      console.log('✅ [Chat] Mensaje entrante procesado y agregado al chat:', {
+        messageId: newMessage.id,
+        chatId: newMessage.chatId,
+        content: newMessage.content,
+        sender: newMessage.senderName
+      });
+
+    } catch (error) {
+      console.error('❌ [Chat] Error al procesar mensaje entrante:', error);
+    }
+  }
+
+  /**
+   * Valida la estructura del payload de receive-message
+   */
+  private isValidReceiveMessagePayload(payload: any): payload is ReceiveMessageData {
+    return payload &&
+           typeof payload.id === 'string' &&
+           typeof payload.chatId === 'string' &&
+           typeof payload.senderId === 'string' &&
+           typeof payload.message === 'string' &&
+           typeof payload.createdAt === 'string' &&
+           payload.id.trim() !== '' &&
+           payload.chatId.trim() !== '' &&
+           payload.senderId.trim() !== '' &&
+           payload.message.trim() !== '';
+  }
+
+  /**
+   * Obtiene el nombre del sender por su ID
+   */
+  private getSenderNameById(senderId: string): string {
+    const currentChat = this.selectedChat();
+    if (!currentChat) return 'Usuario desconocido';
+
+    const participant = currentChat.participants.find(p => p.id === senderId);
+    return participant?.name || 'Usuario desconocido';
+  }
+
   ngOnInit() {
     this.setupWebSocketListeners();
   }
@@ -287,6 +373,19 @@ export class ChatComponent implements OnInit, OnDestroy {
           console.error('❌ [Chat] Error del servidor al enviar mensaje:', error);
           this.isSendingMessage.set(false);
           // Aquí podrías mostrar un mensaje de error al usuario
+        }
+      });
+
+    // Escuchar mensajes entrantes del tipo 'receive-message'
+    this.webSocketService.getMessagesByType(WebSocketMessageType.RECEIVE_MESSAGE)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (messageEvent: any) => {
+          console.log('📨 [Chat] Mensaje entrante recibido:', messageEvent);
+          this.handleIncomingMessage(messageEvent.data);
+        },
+        error: (error: any) => {
+          console.error('❌ [Chat] Error al procesar mensaje entrante:', error);
         }
       });
   }
