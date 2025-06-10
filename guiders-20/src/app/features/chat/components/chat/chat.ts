@@ -12,6 +12,7 @@ import { AvatarService } from 'src/app/core/services/avatar.service';
 import { ChatStateService } from '../../services/chat-state.service';
 import { ReceiveMessageData } from '../../../../core/models/websocket-response.models';
 import { Message } from '../../../../../../libs/feature/chat';
+import { WebSocketMessageType } from '../../../../core/enums/websocket-message-types.enum';
 
 @Component({
   selector: 'app-chat',
@@ -374,7 +375,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
 
     // Escuchar mensajes entrantes del tipo 'receive-message'
-    this.webSocketService.getMessagesByType('receive-message')
+    this.webSocketService.getMessagesByType(WebSocketMessageType.RECEIVE_MESSAGE)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (messageEvent: any) => {
