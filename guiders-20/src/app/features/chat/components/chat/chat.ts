@@ -2,7 +2,7 @@ import { Component, ElementRef, OnInit, OnDestroy, viewChild, inject, signal, co
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ChatService } from '../../services/chat.service';
-import { ChatData, SelectOption } from '../../models/chat.models';
+import { ChatData, SelectOption, Message } from '../../models/chat.models';
 import { ChatListComponent, ChatSearchEvent, ChatFilterEvent, ChatSelectionEvent, ChatRetryEvent } from '../chat-list/chat-list';
 import { ChatMessages } from '../chat-messages/chat-messages';
 import { ChatSelectionService } from '../../services/chat-selection.service';
@@ -13,7 +13,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { WebSocketMessageType } from 'src/app/core/enums/websocket-message-types.enum';
 import { ReceiveMessageData } from 'src/app/core/models/websocket-response.models';
 import { ChatStateService } from '../../services/chat-state.service';
-import { Message } from '@libs/feature/chat';
 
 @Component({
   selector: 'app-chat',
@@ -291,6 +290,7 @@ export class ChatComponent implements OnInit, OnDestroy {
         content: messageData.message,
         type: 'text',
         timestamp: messageData.createdAt,
+        createdAt: messageData.createdAt, // Add for backward compatibility
         isRead: false,
         metadata: {
           source: 'websocket',

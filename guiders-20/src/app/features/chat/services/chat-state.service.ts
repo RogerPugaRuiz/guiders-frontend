@@ -2,7 +2,7 @@ import { Injectable, inject, signal, computed, effect } from '@angular/core';
 import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from './chat.service';
-import { Chat, Message } from '../../../../../../libs/feature/chat';
+import { ChatData, Message } from '../models/chat.models';
 
 /**
  * Servicio de estado global para el chat usando signals de Angular 20
@@ -15,7 +15,7 @@ export class ChatStateService {
   private chatService = inject(ChatService);
   
   // Estados privados con signals
-  private _chats = signal<Chat[]>([]);
+  private _chats = signal<ChatData[]>([]);
   private _selectedChatId = signal<string | null>(null);
   private _messages = signal<Message[]>([]);
   private _isConnected = signal(false);
@@ -121,7 +121,7 @@ export class ChatStateService {
   /**
    * Crea un nuevo chat
    */
-  async createChat(): Promise<Chat> {
+  async createChat(): Promise<ChatData> {
     const newChatId = `chat-${Date.now()}`;
     
     return new Promise((resolve, reject) => {
@@ -154,7 +154,7 @@ export class ChatStateService {
   /**
    * Actualiza un chat específico en el estado
    */
-  updateChat(updatedChat: Chat): void {
+  updateChat(updatedChat: ChatData): void {
     this._chats.update(chats => 
       chats.map(chat => chat.id === updatedChat.id ? updatedChat : chat)
     );
@@ -188,7 +188,7 @@ export class ChatStateService {
   /**
    * Filtra chats por texto de búsqueda
    */
-  searchChats(searchTerm: string): Chat[] {
+  searchChats(searchTerm: string): ChatData[] {
     if (!searchTerm.trim()) {
       return this._chats();
     }
@@ -198,8 +198,10 @@ export class ChatStateService {
       // Buscar en nombres de participantes
       const participantNames = chat.participants.map(p => p.name.toLowerCase()).join(' ');
       
-      // Buscar en el último mensaje
-      const lastMessageContent = chat.lastMessage?.content.toLowerCase() || '';
+      // Buscar en el último mensaje (ChatData has lastMessage as string)
+      const lastMessageContent = typeof chat.lastMessage === 'string' 
+        ? chat.lastMessage.toLowerCase() 
+        : '';
       
       return participantNames.includes(term) || lastMessageContent.includes(term);
     });
