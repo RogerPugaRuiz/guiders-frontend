@@ -75,7 +75,7 @@ export class ChatStateService {
   async loadChats(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.chatService.getChats({
-        include: ['messages', 'participants'],
+        include: ['participants', 'lastMessage', 'metadata'],
         limit: 100
       }).subscribe({
         next: (response) => {

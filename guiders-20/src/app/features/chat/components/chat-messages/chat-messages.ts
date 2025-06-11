@@ -342,7 +342,7 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
           }
         });
       }
-    }, { allowSignalWrites: true });
+    });
 
     // Effect para hacer scroll automático cuando cambian los mensajes
     effect(() => {

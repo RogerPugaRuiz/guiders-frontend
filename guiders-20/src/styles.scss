@@ -458,3 +458,207 @@ a {
     fill: currentColor; // Asegura que el SVG use el color del texto
   }
 }
+
+/* Estilos globales adicionales */
+
+/* Panel de información de tracking - usado por visitor-activity y otros componentes */
+.tracking-info-panel {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  width: 300px;
+  background-color: var(--color-background);
+  border-left: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  border-bottom-left-radius: var(--border-radius);
+  border-top-left-radius: var(--border-radius);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  z-index: 10;
+  overflow-y: auto;
+  
+  &.show {
+    transform: translateX(0);
+  }
+  
+  .tracking-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    
+    h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    
+    .close-visitor-btn {
+      padding: 4px;
+      
+      svg {
+        width: 14px;
+        height: 14px;
+      }
+    }
+  }
+  
+  .tracking-info-content {
+    padding: var(--spacing-md);
+  }
+  
+  .tracking-info-item {
+    margin-bottom: var(--spacing-md);
+    font-size: 0.875rem;
+    
+    strong {
+      display: block;
+      margin-bottom: 0.25rem;
+      color: var(--color-text-light);
+    }
+    
+    span {
+      color: var(--color-text);
+    }
+    
+    .tracking-pages-list {
+      margin: 0.5rem 0 0 0;
+      padding: 0;
+      list-style: none;
+      
+      li {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid var(--color-border);
+        
+        &:last-child {
+          border-bottom: none;
+        }
+        
+        .page-title {
+          font-size: 0.875rem;
+        }
+        
+        .page-time {
+          font-size: 0.75rem;
+          color: var(--color-text-light);
+        }
+      }
+    }
+  }
+}
+
+/* Extensiones para botones icon - reutilizables globalmente */
+.gh-button {
+  &--icon {
+    padding: var(--spacing-sm);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    color: var(--color-text);
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    transition: all 0.2s ease;
+    
+    &.tracking-btn {
+      position: relative;
+      overflow: hidden;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--color-primary);
+        opacity: 0;
+        border-radius: 50%;
+        transform: scale(0);
+        transition: transform 0.3s ease, opacity 0.3s ease;
+      }
+      
+      &.active {
+        color: var(--color-primary);
+        
+        &::before {
+          opacity: 0.15;
+          transform: scale(1);
+        }
+        
+        svg {
+          transform: scale(1.1);
+        }
+      }
+      
+      svg {
+        position: relative;
+        z-index: 1;
+        transition: transform 0.2s ease;
+      }
+    }
+  }
+}
+
+/* Animaciones globales adicionales */
+@keyframes pulsate {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideFromRight {
+  from { transform: translateX(20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideFromLeft {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Estados de carga y error globales para componentes */
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+  text-align: center;
+
+  p {
+    margin: 0 0 var(--spacing-md) 0;
+    font-size: 0.875rem;
+    color: var(--color-text-light);
+  }
+
+  .retry-button {
+    font-size: 0.875rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+}
+
+.error-state {
+  p {
+    color: var(--error-primary, #dc2626);
+  }
+}

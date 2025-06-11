@@ -30,7 +30,7 @@ effect(() => {
       }
     });
   }
-}, { allowSignalWrites: true });
+});
 ```
 
 #### B. Vigilancia Activa del Estado del httpResource

@@ -1,0 +1,47 @@
+/* Estilos específicos para el componente VisitorActivity */
+/* Los estilos principales del tracking-info-panel están en styles.scss como globales */
+
+/* Tags del visitante */
+.visitor-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: 0.25rem;
+}
+
+.visitor-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: var(--accent-light, #e0f2fe);
+  color: var(--accent-primary, #0ea5e9);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Lista de páginas visitadas específica del visitante */
+.visited-pages-list {
+  margin: 0.5rem 0 0 0;
+  padding: 0;
+  list-style: none;
+  
+  li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--color-border);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .page-title {
+      font-size: 0.875rem;
+    }
+    
+    .page-time {
+      font-size: 0.75rem;
+      color: var(--color-text-light);
+    }
+  }
+}

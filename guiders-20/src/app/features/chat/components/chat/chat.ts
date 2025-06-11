@@ -5,6 +5,7 @@ import { ChatService } from '../../services/chat.service';
 import { ChatData, SelectOption } from '../../models/chat.models';
 import { ChatListComponent, ChatSearchEvent, ChatFilterEvent, ChatSelectionEvent, ChatRetryEvent } from '../chat-list/chat-list';
 import { ChatMessages } from '../chat-messages/chat-messages';
+import { VisitorActivityComponent } from '../visitor-activity/visitor-activity';
 import { ChatSelectionService } from '../../services/chat-selection.service';
 import { ChatWebSocketService } from '../../services/chat-websocket.service';
 import { WebSocketService } from '../../../../core/services/websocket.service';
@@ -20,7 +21,7 @@ import { User } from '@libs/feature/auth';
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [FormsModule, ChatListComponent, ChatMessages],
+  imports: [FormsModule, ChatListComponent, ChatMessages, VisitorActivityComponent],
   templateUrl: './chat.html',
   styleUrls: ['./chat.scss']
 })
@@ -309,6 +310,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     return 'AN'; // Anónimo
   }
 
+  /**
+   * Obtiene el ID del visitante del chat seleccionado
+   */
+  visitorId = computed(() => {
+    const chat = this.selectedChat();
+    if (!chat) return null;
+    
+    const visitor = chat.participants.find(p => p.isVisitor);
+    return visitor?.id || null;
+  });
+
   toggleTrackingInfo() {
     this.isTrackingPanelVisible.update(visible => !visible);
   }
@@ -316,6 +328,10 @@ export class ChatComponent implements OnInit, OnDestroy {
   showTrackingPanel() {
     return this.isTrackingPanelVisible();
   }
+
+  /**
+   * Cierra el panel de información del visitante
+   */
 
   onChatSelected(event: ChatSelectionEvent) {
     this.selectedChat.set(event.chat);
