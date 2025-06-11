@@ -164,7 +164,7 @@
 }
 
 // Estados de carga y sin mensajes
-.chat-loading, .chat-no-messages {
+.chat-loading, .chat-no-messages, .chat-error {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -177,6 +177,32 @@
 		color: var(--color-text-light);
 		font-size: 0.95rem;
 		animation: fadeIn 0.3s ease-in-out;
+	}
+}
+
+.chat-error {
+	p {
+		color: var(--color-danger, #dc3545);
+		margin-bottom: var(--spacing-md);
+	}
+	
+	.retry-button {
+		padding: var(--spacing-sm) var(--spacing-md);
+		background-color: var(--color-primary);
+		color: white;
+		border: none;
+		border-radius: var(--border-radius);
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: background-color 0.2s ease;
+		
+		&:hover {
+			background-color: var(--color-primary-dark, #0056b3);
+		}
+		
+		&:active {
+			transform: translateY(1px);
+		}
 	}
 }
 

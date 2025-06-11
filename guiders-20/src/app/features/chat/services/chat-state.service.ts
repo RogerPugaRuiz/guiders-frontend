@@ -58,11 +58,14 @@ export class ChatStateService {
    */
   async initialize(): Promise<void> {
     try {
+      console.log('🚀 [ChatStateService] Iniciando carga de chats...');
       await this.loadChats();
       this._isConnected.set(true);
+      console.log('✅ [ChatStateService] Estado inicializado correctamente');
     } catch (error) {
-      console.error('Error al inicializar el estado del chat:', error);
+      console.error('❌ [ChatStateService] Error al inicializar el estado del chat:', error);
       this._isConnected.set(false);
+      throw error; // Re-lanzar el error para que el componente pueda manejarlo
     }
   }
   
@@ -91,25 +94,40 @@ export class ChatStateService {
    */
   async selectChat(chatId: string): Promise<void> {
     if (this._selectedChatId() === chatId) {
+      console.log('📝 [ChatStateService] Chat ya seleccionado:', chatId);
       return; // Ya está seleccionado
     }
+    
+    console.log('🎯 [ChatStateService] Seleccionando chat:', chatId);
     
     // Limpiar mensajes del chat anterior
     this._messages.set([]);
     this._selectedChatId.set(chatId);
-    await this.loadMessages(chatId);
+    
+    try {
+      await this.loadMessages(chatId);
+      console.log('✅ [ChatStateService] Chat seleccionado y mensajes cargados:', chatId);
+    } catch (error) {
+      console.error('❌ [ChatStateService] Error al cargar mensajes para chat:', chatId, error);
+      // No limpiar la selección en caso de error, mantener el chat seleccionado
+      throw error;
+    }
   }
   
   /**
    * Carga los mensajes de un chat específico
    */
   async loadMessages(chatId: string): Promise<void> {
+    console.log('📩 [ChatStateService] Cargando mensajes para chat:', chatId);
+    
     return new Promise((resolve, reject) => {
       this.chatService.getMessages({
         chatId,
         limit: 100
       }).subscribe({
         next: (response) => {
+          console.log('📩 [ChatStateService] Mensajes recibidos:', response.data?.length || 0, 'mensajes');
+          
           // Solo limpiar mensajes si cambiamos de chat
           const currentMessages = this._messages();
           const isNewChat = currentMessages.length === 0 || 
@@ -117,20 +135,24 @@ export class ChatStateService {
           
           if (isNewChat) {
             // Chat nuevo o diferente: reemplazar mensajes
+            console.log('📩 [ChatStateService] Reemplazando mensajes para nuevo chat');
             this._messages.set(response.data || []);
           } else {
             // Mismo chat: combinar mensajes evitando duplicados
+            console.log('📩 [ChatStateService] Combinando mensajes para mismo chat');
             const newMessages = response.data || [];
             const existingIds = new Set(currentMessages.map(msg => msg.id));
             const uniqueNewMessages = newMessages.filter(msg => !existingIds.has(msg.id));
             
             if (uniqueNewMessages.length > 0) {
+              console.log('📩 [ChatStateService] Agregando', uniqueNewMessages.length, 'mensajes únicos');
               this._messages.update(messages => [...messages, ...uniqueNewMessages]);
             }
           }
           resolve();
         },
         error: (error) => {
+          console.error('❌ [ChatStateService] Error al cargar mensajes:', error);
           reject(error);
         }
       });

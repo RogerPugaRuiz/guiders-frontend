@@ -42,9 +42,14 @@
 			}
 		} @else {
 			<!-- Estado de carga o sin mensajes -->
-			@if (messagesResource.isLoading()) {
+			@if (messagesResource.isLoading() || messagesResource.status() === 'idle') {
 				<div class="chat-loading">
 					<p>Cargando mensajes...</p>
+				</div>
+			} @else if (messagesResource.error()) {
+				<div class="chat-error">
+					<p>Error al cargar mensajes: {{ messagesResource.error() }}</p>
+					<button (click)="messagesResource.reload()" class="retry-button">Reintentar</button>
 				</div>
 			} @else {
 				<div class="chat-no-messages">

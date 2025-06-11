@@ -480,11 +480,99 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.setupWebSocketListeners();
+    
+    // Inicializar el estado del chat y seleccionar el primer chat disponible si es la primera carga
+    this.initializeChatState();
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  /**
+   * Inicializa el estado del chat cuando se carga el componente
+   */
+  private async initializeChatState(): Promise<void> {
+    try {
+      console.log('🚀 [Chat] Iniciando estado del chat...');
+      
+      // Inicializar el servicio de estado si no está ya inicializado
+      await this.chatStateService.initialize();
+      
+      // Si no hay chat seleccionado, intentar seleccionar el primero disponible
+      if (!this.selectedChat()) {
+        this.selectFirstAvailableChat();
+      }
+      
+      console.log('✅ [Chat] Estado del chat inicializado correctamente');
+    } catch (error) {
+      console.error('❌ [Chat] Error al inicializar estado del chat:', error);
+    }
+  }
+
+  /**
+   * Método para diagnosticar problemas de carga (útil para debugging)
+   */
+  public diagnoseLoadingIssues(): void {
+    const selectedChat = this.selectedChat();
+    const stateChats = this.chatStateService.chats();
+    const stateSelectedChatId = this.chatStateService.selectedChatId();
+    const stateMessages = this.chatStateService.messages();
+    const isConnected = this.chatStateService.isConnected();
+
+    console.log('🔍 [Chat] Diagnóstico completo del estado:', {
+      componentSelectedChat: selectedChat?.id,
+      stateSelectedChatId,
+      totalChatsInState: stateChats.length,
+      totalMessagesInState: stateMessages.length,
+      isStateConnected: isConnected,
+      webSocketConnected: this.webSocketService.isConnected()
+    });
+
+    // Verificar inconsistencias
+    if (selectedChat?.id !== stateSelectedChatId) {
+      console.warn('⚠️ [Chat] Inconsistencia detectada entre componente y estado global');
+    }
+
+    if (stateChats.length === 0) {
+      console.warn('⚠️ [Chat] No hay chats cargados en el estado');
+    }
+  }
+
+  /**
+   * Selecciona el primer chat disponible si no hay ninguno seleccionado
+   */
+  private selectFirstAvailableChat(): void {
+    // Usar un pequeño delay para asegurar que los chats estén cargados
+    setTimeout(() => {
+      const availableChats = this.chatStateService.chats();
+      if (availableChats.length > 0 && !this.selectedChat()) {
+        const firstChat = availableChats[0];
+        console.log('🎯 [Chat] Seleccionando primer chat disponible automáticamente:', firstChat.id);
+        
+        // Convertir a ChatData para compatibilidad
+        const chatData: ChatData = {
+          id: firstChat.id,
+          lastMessage: firstChat.lastMessage?.content || '',
+          lastMessageAt: firstChat.lastMessage?.timestamp || '',
+          status: firstChat.status as any,
+          participants: firstChat.participants || [],
+          createdAt: firstChat.createdAt || new Date().toISOString()
+        };
+        
+        this.selectedChat.set(chatData);
+        this.chatStateService.selectChat(firstChat.id).catch(error => {
+          console.error('❌ [Chat] Error al seleccionar primer chat automáticamente:', error);
+        });
+      } else if (availableChats.length === 0) {
+        // Si no hay chats disponibles, intentar nuevamente después de un delay más largo
+        console.log('⏳ [Chat] No hay chats disponibles aún, reintentando en 2 segundos...');
+        setTimeout(() => {
+          this.selectFirstAvailableChat();
+        }, 2000);
+      }
+    }, 500); // Delay de 500ms para permitir que se carguen los chats
   }
 
   private setupWebSocketListeners() {

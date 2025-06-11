@@ -332,6 +332,15 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
       if (chat) {
         this.resetMessages();
         console.log('📜 [ChatMessages] Chat cambiado, mensajes reseteados para:', chat.id);
+        
+        // Forzar la recarga del httpResource cuando cambia el chat
+        // Esto asegura que los mensajes se carguen correctamente en la primera visita
+        requestAnimationFrame(() => {
+          if (this.messagesResource.status() === 'idle') {
+            this.messagesResource.reload();
+            console.log('📜 [ChatMessages] Forzando recarga del recurso HTTP para nuevo chat');
+          }
+        });
       }
     }, { allowSignalWrites: true });
 
@@ -349,6 +358,33 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
         }
       }
     });
+
+    // Effect adicional para vigilar el estado del httpResource y forzar carga si es necesario
+    effect(() => {
+      const chat = this.selectedChat();
+      const resourceStatus = this.messagesResource.status();
+      const resourceValue = this.messagesResource.value();
+      
+      // Si hay un chat seleccionado pero el recurso está idle y no hay datos, forzar carga
+      if (chat && resourceStatus === 'idle' && !resourceValue) {
+        console.log('📜 [ChatMessages] Detectado recurso idle sin datos para chat activo, forzando carga...');
+        setTimeout(() => {
+          this.messagesResource.reload();
+        }, 200);
+      }
+    });
+
+    // Effect para sincronizar con el estado global del chat
+    effect(() => {
+      const selectedChatId = this.chatStateService.selectedChatId();
+      const currentChat = this.selectedChat();
+      
+      // Si el servicio de estado tiene un chat seleccionado diferente al componente
+      if (selectedChatId && currentChat?.id !== selectedChatId) {
+        console.log('🔄 [ChatMessages] Sincronizando con estado global, chat ID:', selectedChatId);
+        // Aquí podrías emitir un evento o forzar la actualización
+      }
+    });
   }
 
   ngAfterViewInit() {
@@ -357,6 +393,50 @@ export class ChatMessages implements AfterViewInit, OnDestroy {
 
     // Configurar listener para scroll al top (cargar más mensajes históricos)
     this.setupScrollListener();
+    
+    // Forzar carga inicial si hay un chat seleccionado pero no hay datos
+    this.ensureInitialLoad();
+  }
+
+  /**
+   * Asegura que se carguen los mensajes iniciales si hay un chat seleccionado
+   */
+  private ensureInitialLoad(): void {
+    const chat = this.selectedChat();
+    if (chat && this.messagesResource.status() === 'idle') {
+      console.log('📜 [ChatMessages] Forzando carga inicial de mensajes para chat:', chat.id);
+      setTimeout(() => {
+        this.messagesResource.reload();
+      }, 100);
+    }
+  }
+
+  /**
+   * Método público para diagnosticar problemas de carga
+   */
+  public diagnoseLoadingIssues(): void {
+    const chat = this.selectedChat();
+    const resourceStatus = this.messagesResource.status();
+    const resourceValue = this.messagesResource.value();
+    const allMessages = this.allMessages();
+    const stateMessages = this.chatStateService.messages();
+
+    console.log('🔍 [ChatMessages] Diagnóstico de carga:', {
+      selectedChat: chat?.id,
+      resourceStatus,
+      hasResourceValue: !!resourceValue,
+      resourceMessageCount: resourceValue?.messages?.length || 0,
+      allMessagesCount: allMessages.length,
+      stateMessagesCount: stateMessages.length,
+      isFirstLoad: this.isFirstLoad(),
+      cursor: this.cursor()
+    });
+
+    // Si hay problemas evidentes, intentar solucionarlos
+    if (chat && resourceStatus === 'idle' && !resourceValue && allMessages.length === 0) {
+      console.log('🔧 [ChatMessages] Problema detectado: forzando recarga del recurso');
+      this.messagesResource.reload();
+    }
   }
 
   /**
