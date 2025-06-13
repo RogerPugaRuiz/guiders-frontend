@@ -57,6 +57,24 @@ export class ChatComponent implements OnInit, OnDestroy {
     return 'Desconectado';
   }
 
+  /**
+   * Verifica si hay un chat seleccionado
+   */
+  hasChatSelected() {
+    return this.selectedChat() !== null;
+  }
+
+  /**
+   * Obtiene el mensaje de estado cuando no hay chat seleccionado
+   */
+  getEmptyStateMessage() {
+    const totalChats = this.chatStateService.chats().length;
+    if (totalChats === 0) {
+      return 'No hay conversaciones disponibles';
+    }
+    return 'Selecciona una conversación para comenzar';
+  }
+
   canSendMessage() {
     return this.selectedChat() !== null && 
            this.currentMessageText().trim().length > 0 && 
@@ -497,7 +515,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.setupWebSocketListeners();
     
-    // Inicializar el estado del chat y seleccionar el primer chat disponible si es la primera carga
+    // Inicializar el estado del chat sin seleccionar ningún chat automáticamente
     this.initializeChatState();
   }
 
@@ -516,10 +534,8 @@ export class ChatComponent implements OnInit, OnDestroy {
       // Inicializar el servicio de estado si no está ya inicializado
       await this.chatStateService.initialize();
       
-      // Si no hay chat seleccionado, intentar seleccionar el primero disponible
-      if (!this.selectedChat()) {
-        this.selectFirstAvailableChat();
-      }
+      // No seleccionar automáticamente ningún chat - esperar acción del usuario
+      console.log('⭐ [Chat] Estado del chat inicializado - sin selección automática');
       
       console.log('✅ [Chat] Estado del chat inicializado correctamente');
     } catch (error) {
@@ -558,37 +574,11 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   /**
    * Selecciona el primer chat disponible si no hay ninguno seleccionado
+   * MÉTODO DESHABILITADO - Ahora se requiere selección manual del usuario
    */
   private selectFirstAvailableChat(): void {
-    // Usar un pequeño delay para asegurar que los chats estén cargados
-    setTimeout(() => {
-      const availableChats = this.chatStateService.chats();
-      if (availableChats.length > 0 && !this.selectedChat()) {
-        const firstChat = availableChats[0];
-        console.log('🎯 [Chat] Seleccionando primer chat disponible automáticamente:', firstChat.id);
-        
-        // Convertir a ChatData para compatibilidad
-        const chatData: ChatData = {
-          id: firstChat.id,
-          lastMessage: firstChat.lastMessage?.content || '',
-          lastMessageAt: firstChat.lastMessage?.timestamp || '',
-          status: firstChat.status as any,
-          participants: firstChat.participants || [],
-          createdAt: firstChat.createdAt || new Date().toISOString()
-        };
-        
-        this.selectedChat.set(chatData);
-        this.chatStateService.selectChat(firstChat.id).catch(error => {
-          console.error('❌ [Chat] Error al seleccionar primer chat automáticamente:', error);
-        });
-      } else if (availableChats.length === 0) {
-        // Si no hay chats disponibles, intentar nuevamente después de un delay más largo
-        console.log('⏳ [Chat] No hay chats disponibles aún, reintentando en 2 segundos...');
-        setTimeout(() => {
-          this.selectFirstAvailableChat();
-        }, 2000);
-      }
-    }, 500); // Delay de 500ms para permitir que se carguen los chats
+    // Método deshabilitado - la selección debe ser manual
+    console.log('ℹ️ [Chat] Selección automática deshabilitada - esperando acción del usuario');
   }
 
   private setupWebSocketListeners() {

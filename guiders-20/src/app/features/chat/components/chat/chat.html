@@ -13,20 +13,8 @@
 		<app-chat-list (chatSelected)="onChatSelected($event)" (participantStatusUpdated)="onParticipantStatusUpdated($event)"></app-chat-list>
 		<!-- Área principal del chat -->
 		<div class="chat-main">
-			<div class="chat-header">
-				<!-- Indicador de estado de conexión WebSocket -->
-				<!-- No es necesario y molesta mas que ayuda, ya existe en el header principal un componente que indica esto -->
-				<!-- <div class="connection-status" [class.connected]="webSocketService.isConnected()" [class.disconnected]="!webSocketService.isConnected()">
-					@if (webSocketService.isConnected()) {
-						<span class="connection-indicator connected">●</span>
-						<span class="connection-text">En línea</span>
-					} @else {
-						<span class="connection-indicator disconnected">●</span>
-						<span class="connection-text">Desconectado</span>
-					}
-				</div> -->
-				
-				@if (selectedChat()) {
+			@if (selectedChat()) {
+				<div class="chat-header">
 					<div class="chat-contact">
 						<div class="chat-contact__avatar">
 							<span class="chat-contact__status" [class]="selectedChatStatusClass()"></span>
@@ -41,47 +29,36 @@
 							<p class="chat-contact__metadata">{{ visitorStatus() }}</p>
 						</div>
 					</div>
-				} @else {
-					<div class="chat-contact">
-						<div class="chat-contact__avatar">
-							<span>?</span>
-							<span class="chat-contact__status chat-contact__status--offline"></span>
-						</div>
-						<div class="chat-contact__info">
-							<h3 class="chat-contact__name">Selecciona un chat</h3>
-							<p class="chat-contact__metadata">Elige una conversación de la lista</p>
-						</div>
+					<div class="chat-actions">
+						<button class="gh-button gh-button--icon tracking-btn" [class.active]="showTrackingPanel()"
+							title="Actividad del visitante" (click)="toggleTrackingInfo()">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+								stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+								class="lucide lucide-book-text-icon lucide-book-text">
+								<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
+								<path d="M8 11h8" />
+								<path d="M8 7h6" />
+							</svg>
+						</button>
+						<button class="gh-button gh-button--icon" title="Alertas importantes">
+							<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+								stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+								class="lucide lucide-info-icon lucide-info">
+								<circle cx="12" cy="12" r="10" />
+								<path d="M12 16v-4" />
+								<path d="M12 8h.01" />
+							</svg>
+						</button>
+						<button class="gh-button gh-button--icon" title="Más opciones">
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+								<path
+									d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z">
+								</path>
+							</svg>
+						</button>
 					</div>
-				}
-				<div class="chat-actions">
-					<button class="gh-button gh-button--icon tracking-btn" [class.active]="showTrackingPanel()"
-						title="Actividad del visitante" (click)="toggleTrackingInfo()">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-							class="lucide lucide-book-text-icon lucide-book-text">
-							<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" />
-							<path d="M8 11h8" />
-							<path d="M8 7h6" />
-						</svg>
-					</button>
-					<button class="gh-button gh-button--icon" title="Alertas importantes">
-						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-							class="lucide lucide-info-icon lucide-info">
-							<circle cx="12" cy="12" r="10" />
-							<path d="M12 16v-4" />
-							<path d="M12 8h.01" />
-						</svg>
-					</button>
-					<button class="gh-button gh-button--icon" title="Más opciones">
-						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
-							<path
-								d="M8 2a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM8 6.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM9.5 12.5a1.5 1.5 0 1 0-3 0 1.5 1.5 0 0 0 3 0Z">
-							</path>
-						</svg>
-					</button>
 				</div>
-			</div>
+			}
 
 			<!-- Panel de información del visitante -->
 			@if (showTrackingPanel() && visitorId()) {
