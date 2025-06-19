@@ -2,7 +2,7 @@ import { Injectable, inject, OnDestroy, PLATFORM_ID, signal, computed } from '@a
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, Subject, BehaviorSubject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
-import * as io from 'socket.io-client';
+import { Socket, io } from 'socket.io-client';
 import { AuthService } from './auth.service';
 import { environment } from '../../../environments/environment';
 import { WebSocketMessageType } from '../enums/websocket-message-types.enum';
@@ -40,7 +40,7 @@ export class WebSocketService implements OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private authService = inject(AuthService);
 
-  private socket: any | null = null;
+  private socket: Socket | null = null;
   private destroy$ = new Subject<void>();
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -128,7 +128,7 @@ export class WebSocketService implements OnDestroy {
           });
           
           // Configurar Socket.IO con autenticación JWT
-          this.socket = io.connect(environment.websocketUrl, {
+          this.socket = io(environment.websocketUrl, {
             // Método 1: auth (Socket.IO v4+)
             auth: {
               token: session.token
@@ -154,6 +154,8 @@ export class WebSocketService implements OnDestroy {
             timeout: 10000,
             forceNew: true
           });
+
+
 
           this.setupSocketEventListeners();
 
@@ -226,7 +228,7 @@ export class WebSocketService implements OnDestroy {
             });
             
             // Configurar Socket.IO con autenticación JWT
-            this.socket = io.connect(environment.websocketUrl, {
+            this.socket = io(environment.websocketUrl, {
               auth: {
                 token: session.token
               },
@@ -269,8 +271,13 @@ export class WebSocketService implements OnDestroy {
             };
 
             // Escuchar eventos de conexión una sola vez
-            this.socket.once('connect', onConnect);
-            this.socket.once('connect_error', onConnectError);
+            if (this.socket) {
+              this.socket.once('connect', onConnect);
+              this.socket.once('connect_error', onConnectError);
+            } else {
+              console.error('WebSocket: No se pudo configurar listeners - socket es null');
+              onConnectError(new Error('Socket no inicializado'));
+            }
 
             // Configurar todos los event listeners normales
             this.setupSocketEventListeners();
@@ -626,6 +633,15 @@ export class WebSocketService implements OnDestroy {
         timestamp: Date.now()
       });
     });
+
+    this.socket.onAny((event: string, data: any) => {
+      console.log(`WebSocket: Evento genérico recibido: ${event}`, data);
+      this.messages$.next({
+        type: event,
+        data,
+        timestamp: Date.now()
+      });
+    });
   }
 
   /**
@@ -670,8 +686,9 @@ export class WebSocketService implements OnDestroy {
       });
 
       // Actualizar el token en la configuración del socket
-      if (this.socket.auth) {
-        this.socket.auth.token = newToken;
+      if (this.socket.auth && typeof this.socket.auth === 'object') {
+        // Usando aserción de tipos para indicar que auth es un objeto con token
+        (this.socket.auth as Record<string, any>)["token"] = newToken;
       }
 
       // Emitir evento de actualización de token al servidor
@@ -713,9 +730,8 @@ export class WebSocketService implements OnDestroy {
           error: null 
         });
 
-        try {
-          // Configurar Socket.IO con el nuevo token
-          this.socket = io.connect(environment.websocketUrl, {
+        try {            // Configurar Socket.IO con el nuevo token
+            this.socket = io(environment.websocketUrl, {
             auth: {
               token: newToken
             },
@@ -764,7 +780,13 @@ export class WebSocketService implements OnDestroy {
       .subscribe(session => {
         if (session?.token && this.isConnected()) {
           // Verificar si el token ha cambiado
-          const currentAuth = this.socket?.auth?.token;
+          let currentAuth = null;
+          
+          // Obtener token actual usando verificación de tipo segura
+          if (this.socket?.auth && typeof this.socket.auth === 'object') {
+            currentAuth = (this.socket.auth as Record<string, any>)["token"];
+          }
+          
           if (currentAuth && currentAuth !== session.token) {
             console.log('WebSocket: Token renovado detectado, actualizando...');
             this.setAuthToken(session.token);

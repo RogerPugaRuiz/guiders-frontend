@@ -38,8 +38,11 @@ export enum WebSocketMessageType {
   AUTH_ERROR = 'auth_error',
   RECONNECT = 'reconnect',
   RECONNECT_ATTEMPT = 'reconnect_attempt',
-  RECONNECT_FAILED = 'reconnect_failed'
-}
+  RECONNECT_FAILED = 'reconnect_failed',
+  
+  // Eventos de asignación de comercial
+  COMMERCIAL_INCOMING_CHAT = 'commercial:incoming-chats'
+ }
 
 /**
  * Enum para tipos de eventos de chat WebSocket
@@ -64,7 +67,8 @@ export const CHAT_RELATED_MESSAGE_TYPES: readonly WebSocketMessageType[] = [
   WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED,
   WebSocketMessageType.CHAT_TYPING_STATUS_UPDATED,
   WebSocketMessageType.PARTICIPANT_ONLINE_STATUS_UPDATED,
-  WebSocketMessageType.RECEIVE_MESSAGE
+  WebSocketMessageType.RECEIVE_MESSAGE,
+  WebSocketMessageType.COMMERCIAL_INCOMING_CHAT
 ] as const;
 
 /**
@@ -100,7 +104,8 @@ export const WEBSOCKET_TO_CHAT_EVENT_MAP: Record<WebSocketMessageType, ChatWebSo
   [WebSocketMessageType.RECONNECT]: ChatWebSocketEventType.STATUS_CHANGE,
   [WebSocketMessageType.RECONNECT_ATTEMPT]: ChatWebSocketEventType.STATUS_CHANGE,
   [WebSocketMessageType.RECONNECT_FAILED]: ChatWebSocketEventType.STATUS_CHANGE,
-  [WebSocketMessageType.RECEIVE_MESSAGE]: ChatWebSocketEventType.MESSAGE
+  [WebSocketMessageType.RECEIVE_MESSAGE]: ChatWebSocketEventType.MESSAGE,
+  [WebSocketMessageType.COMMERCIAL_INCOMING_CHAT]: ChatWebSocketEventType.MESSAGE
 };
 
 /**

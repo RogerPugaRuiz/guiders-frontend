@@ -1,7 +1,9 @@
+export type ChatStatus = 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
+
 export interface ChatData {
   id: string;
   participants: Participant[];
-  status: 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
+  status: ChatStatus;
   lastMessage?: string | null;
   lastMessageAt: string | null;
   createdAt: string;
@@ -47,8 +49,6 @@ export interface ChatListResponse {
     total?: number;
   };
 }
-
-export type ChatStatus = 'active' | 'inactive' | 'closed' | 'archived' | 'pending';
 
 export interface RealChatListResponse {
   chats: ChatData[];

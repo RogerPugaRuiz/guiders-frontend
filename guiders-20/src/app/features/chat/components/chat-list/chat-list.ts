@@ -129,6 +129,23 @@ export class ChatListComponent  implements OnInit, OnDestroy {
         }, 0);
       }
     });
+
+    // Effect para manejar la recepción de un chat asignado al comercial
+    effect(() => {
+      const incomingChat = this.commercialIncomingChat();
+      
+      if (incomingChat?.data?.data?.chat) {
+        const newChat = incomingChat.data.data.chat as ChatData;
+        
+        console.log('🔔 [ChatList] Nuevo chat asignado al comercial recibido:', newChat);
+        
+        // Reproducir sonido de notificación o mostrar toast si es necesario
+        this.playNotificationSound();
+        
+        // Opcional: Seleccionar automáticamente el nuevo chat
+        // this.selectChat(newChat);
+      }
+    });
   }
   ngOnInit(): void {
   }
@@ -201,6 +218,22 @@ export class ChatListComponent  implements OnInit, OnDestroy {
     { initialValue: null }
   );
 
+  // Signal para recibir actualizaciones de chat asignado a comercial
+  commercialIncomingChat = toSignal(
+    this.ws.getMessagesByType(WebSocketMessageType.COMMERCIAL_INCOMING_CHAT)
+      .pipe(
+        tap(message => {
+          console.log('🔔 [ChatList] Recibido chat asignado a comercial:', message);
+        }),
+        filter(message => message && message.data && message.data.data && message.data.data.chat),
+        catchError(err => {
+          console.error('❌ Error en el stream de chat asignado a comercial:', err);
+          return EMPTY;
+        })
+      ),
+    { initialValue: null }
+  );
+
   lastMessageUpdate = toSignal(
     this.ws.getMessagesByType(WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED)
       .pipe(
@@ -221,8 +254,33 @@ export class ChatListComponent  implements OnInit, OnDestroy {
     const allChats = this.chatsResource.value()?.chats || [];
     const participantStatusUpdate = this.participantStatusUpdate();
     const lastMessageUpdate = this.lastMessageUpdate();
+    const incomingChat = this.commercialIncomingChat();
 
     let updatedChats = allChats;
+
+    // Manejar nuevo chat asignado al comercial
+    if (incomingChat?.data?.data?.chat) {
+      console.log('🔔 [ChatList] Procesando chat entrante asignado al comercial:', incomingChat);
+      
+      const newChat = incomingChat.data.data.chat as ChatData;
+      
+      // Verificar si el chat ya existe en la lista
+      const chatExists = updatedChats.some(chat => chat.id === newChat.id);
+      
+      if (!chatExists) {
+        // Añadir el nuevo chat al principio de la lista
+        console.log('➕ [ChatList] Añadiendo nuevo chat a la lista:', newChat);
+        updatedChats = [newChat, ...updatedChats];
+      } else {
+        // Actualizar el chat existente
+        console.log('🔄 [ChatList] Actualizando chat existente:', newChat.id);
+        updatedChats = updatedChats.map(chat => 
+          chat.id === newChat.id ? newChat : chat
+        );
+      }
+      
+      console.log('🔄 [ChatList] Lista de chats actualizada con nuevo chat asignado:', updatedChats);
+    }
 
     // Handle participant status updates
     if (participantStatusUpdate?.data?.data) {
@@ -346,6 +404,23 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       .filter(participant => participant.isVisitor)
       .map(participant => participant.name)
       .map(name => name.split(' ').map(part => part.charAt(0).toUpperCase()).join(''))[0] || 'V';
+  }
+
+  /**
+   * Reproduce un sonido de notificación cuando se recibe un nuevo chat
+   */
+  private playNotificationSound(): void {
+    try {
+      // Usar un elemento de audio HTML5 para reproducir el sonido
+      const audio = new Audio('/assets/sounds/notification.mp3');
+      audio.volume = 0.5; // Volumen al 50%
+      audio.play().catch(error => {
+        // Capturar errores de reproducción (común en navegadores que requieren interacción del usuario)
+        console.warn('🔊 No se pudo reproducir el sonido de notificación:', error);
+      });
+    } catch (error) {
+      console.error('❌ Error al intentar reproducir sonido de notificación:', error);
+    }
   }
 
   getParticipantStatusClass(chat: ChatData): string {
