@@ -26,12 +26,16 @@ import { User } from '@libs/feature/auth';
   styleUrls: ['./chat.scss']
 })
 export class ChatComponent implements OnInit, OnDestroy {
-
-  private avatarService = inject(AvatarService);
-  public webSocketService = inject(WebSocketService);
+  // Services injection
   private chatStateService = inject(ChatStateService);
+  protected webSocketService = inject(WebSocketService); // Cambiado a protected para acceso en template
   private authService = inject(AuthService);
+  private avatarService = inject(AvatarService);
   private destroy$ = new Subject<void>();
+
+  // Para evitar duplicados a nivel de componente
+  private processedMessageIds = new Set<string>();
+  private readonly MESSAGE_CACHE_SIZE = 100;
 
   // Referencias a elementos del template usando viewChild signal
   trackingInfoPanel = viewChild<ElementRef>('trackingInfoPanel');
@@ -385,6 +389,24 @@ export class ChatComponent implements OnInit, OnDestroy {
         return;
       }
 
+      // Verificar si el mensaje ya fue procesado para evitar duplicados
+      if (this.processedMessageIds.has(messageData.id)) {
+        console.warn('⚠️ [Chat] Mensaje duplicado detectado, ignorando:', messageData.id);
+        return;
+      }
+
+      // Agregar ID del mensaje al cache de procesados
+      this.processedMessageIds.add(messageData.id);
+      
+      // Mantener el tamaño del cache dentro del límite
+      if (this.processedMessageIds.size > this.MESSAGE_CACHE_SIZE) {
+        // Eliminar el primer elemento agregado (FIFO)
+        const firstProcessedId = this.processedMessageIds.values().next().value;
+        if (firstProcessedId) {
+          this.processedMessageIds.delete(firstProcessedId);
+        }
+      }
+
       // Crear objeto Message según la interfaz
       const newMessage: Message = {
         id: messageData.id,
@@ -404,11 +426,31 @@ export class ChatComponent implements OnInit, OnDestroy {
       // Agregar mensaje al estado del chat
       this.chatStateService.addMessage(newMessage);
 
+      // Actualizar también la información del último mensaje en el chat seleccionado
+      this.selectedChat.update(chat => {
+        if (!chat || chat.id !== messageData.chatId) return chat;
+        
+        return {
+          ...chat,
+          lastMessage: messageData.message,
+          lastMessageAt: messageData.createdAt
+        };
+      });
+
+      // Actualizar también en el servicio de estado global para sincronizar con otros componentes
+      this.chatStateService.updateLastMessage(
+        messageData.chatId,
+        messageData.message,
+        messageData.createdAt,
+        messageData.senderId
+      );
+
       console.log('✅ [Chat] Mensaje entrante procesado y agregado al chat:', {
         messageId: newMessage.id,
         chatId: newMessage.chatId,
         content: newMessage.content,
-        sender: newMessage.senderName
+        sender: newMessage.senderName,
+        lastMessageUpdated: true
       });
 
     } catch (error) {
@@ -441,75 +483,6 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const participant = currentChat.participants.find(p => p.id === senderId);
     return participant?.name || 'Usuario desconocido';
-  }
-
-  /**
-   * Procesa actualizaciones del último mensaje del chat del WebSocket tipo 'chat:last-message-updated'
-   */
-  private handleLastMessageUpdate(payload: any): void {
-    try {
-      const updateData = payload?.data;
-      
-      // Validar estructura del payload
-      if (!this.isValidLastMessageUpdatePayload(updateData)) {
-        console.error('❌ [Chat] Payload de actualización de último mensaje inválido:', payload);
-        return;
-      }
-
-      const currentChat = this.selectedChat();
-
-      // Solo procesar si es para el chat seleccionado actualmente
-      if (!currentChat || currentChat.id !== updateData.chatId) {
-        console.log('📝 [Chat] Actualización de último mensaje para chat no seleccionado:', {
-          receivedChatId: updateData.chatId,
-          currentChatId: currentChat?.id || 'ninguno'
-        });
-        return;
-      }
-
-      // Actualizar la información del último mensaje en el chat seleccionado
-      this.selectedChat.update(chat => {
-        if (!chat || chat.id !== updateData.chatId) return chat;
-        
-        return {
-          ...chat,
-          lastMessage: updateData.lastMessage,
-          lastMessageAt: updateData.lastMessageAt
-        };
-      });
-
-      // Actualizar también en el servicio de estado global
-      this.chatStateService.updateLastMessage(
-        updateData.chatId,
-        updateData.lastMessage,
-        updateData.lastMessageAt,
-        updateData.senderId
-      );
-
-      console.log('✅ [Chat] Último mensaje actualizado para el chat:', {
-        chatId: updateData.chatId,
-        lastMessage: updateData.lastMessage,
-        lastMessageAt: updateData.lastMessageAt,
-        senderId: updateData.senderId
-      });
-
-    } catch (error) {
-      console.error('❌ [Chat] Error al procesar actualización de último mensaje:', error);
-    }
-  }
-
-  /**
-   * Valida la estructura del payload de chat:last-message-updated
-   */
-  private isValidLastMessageUpdatePayload(payload: any): payload is ChatLastMessageUpdatedData {
-    return payload &&
-           typeof payload.lastMessage === 'string' &&
-           typeof payload.lastMessageAt === 'string' &&
-           typeof payload.chatId === 'string' &&
-           typeof payload.senderId === 'string' &&
-           payload.lastMessage.trim() !== '' &&
-           payload.chatId.trim() !== '' &&
-           payload.senderId.trim() !== '';
   }
 
   ngOnInit() {
@@ -613,24 +586,17 @@ export class ChatComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (messageEvent: any) => {
-          console.log('📨 [Chat] Mensaje entrante recibido:', messageEvent);
+          const messageId = messageEvent?.data?.data?.id || 'unknown';
+          console.log('📨 [Chat] Mensaje entrante recibido en componente:', {
+            messageId,
+            timestamp: Date.now(),
+            componentName: 'ChatComponent',
+            messageEvent
+          });
           this.handleIncomingMessage(messageEvent);
         },
         error: (error: any) => {
           console.error('❌ [Chat] Error al procesar mensaje entrante:', error);
-        }
-      });
-
-    // Escuchar actualizaciones del último mensaje del chat
-    this.webSocketService.getMessagesByType(WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (updateEvent: any) => {
-          console.log('📝 [Chat] Actualización de último mensaje recibida:', updateEvent);
-          this.handleLastMessageUpdate(updateEvent);
-        },
-        error: (error: any) => {
-          console.error('❌ [Chat] Error al procesar actualización de último mensaje:', error);
         }
       });
   }

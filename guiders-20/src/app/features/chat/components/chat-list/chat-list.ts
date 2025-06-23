@@ -102,34 +102,6 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       }
     });
 
-    // Effect para manejar actualizaciones de último mensaje
-    effect(() => {
-      const lastMessageUpdate = this.lastMessageUpdate();
-      
-      if (lastMessageUpdate?.data?.data) {
-        // Usar setTimeout para evitar modificaciones síncronas de signals
-        setTimeout(() => {
-          const updateData = lastMessageUpdate.data.data as ChatLastMessageUpdatedData;
-          const { chatId, senderId } = updateData;
-          const currentUser = this.authService.currentUser();
-
-          // Si el mensaje no es del usuario actual, incrementar el conteo
-          if (currentUser && senderId !== currentUser.id) {
-            const currentCount = this.unreadCountsMap().get(chatId) || 0;
-            this.updateUnreadCount(chatId, currentCount + 1);
-            console.log('📨 [ChatList] Incrementando conteo de mensajes no leídos para chat:', chatId, 'nuevo conteo:', currentCount + 1);
-          }
-
-          // Verificar si el chat está seleccionado actualmente y emitir mensaje de visualización
-          const selectedChatId = this.selectedChat()?.id;
-          if (selectedChatId === chatId) {
-            this.emitViewingChatMessage(chatId, true);
-            console.log('👁️ [ChatList] Mensaje de visualización enviado para chat activo:', chatId);
-          }
-        }, 0);
-      }
-    });
-
     // Effect para manejar la recepción de un chat asignado al comercial
     effect(() => {
       const incomingChat = this.commercialIncomingChat();
@@ -234,27 +206,33 @@ export class ChatListComponent  implements OnInit, OnDestroy {
     { initialValue: null }
   );
 
-  lastMessageUpdate = toSignal(
-    this.ws.getMessagesByType(WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED)
+  // Signal para recibir mensajes entrantes y actualizar el último mensaje
+  incomingMessage = toSignal(
+    this.ws.getMessagesByType(WebSocketMessageType.RECEIVE_MESSAGE)
       .pipe(
         tap(message => {
-          console.log('📨 [ChatList] Received last message update:', message);
+          const messageId = message?.data?.data?.id || 'unknown';
+          console.log('📨 [ChatList] Mensaje entrante recibido en componente:', {
+            messageId,
+            timestamp: Date.now(),
+            componentName: 'ChatListComponent',
+            message
+          });
         }),
-        filter(message => message && message.data),
+        filter(message => message && message.data && message.data.data),
         catchError(err => {
-          console.error('❌ Error in last message update stream:', err);
+          console.error('❌ Error en el stream de mensajes entrantes:', err);
           return EMPTY;
         })
       ),
     { initialValue: null }
   );
 
-
   chats = linkedSignal(() => {
     const allChats = this.chatsResource.value()?.chats || [];
     const participantStatusUpdate = this.participantStatusUpdate();
-    const lastMessageUpdate = this.lastMessageUpdate();
     const incomingChat = this.commercialIncomingChat();
+    const incomingMessage = this.incomingMessage();
 
     let updatedChats = allChats;
 
@@ -313,33 +291,46 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       console.log('🔄 [ChatList] Updated chats with participant status:', updatedChats);
     }
 
-    // Handle last message updates
-    if (lastMessageUpdate?.data?.data) {
-      console.log('📨 [ChatList] Processing last message update:', lastMessageUpdate);
+    // Manejar mensajes entrantes para actualizar último mensaje
+    if (incomingMessage?.data?.data) {
+      console.log('📨 [ChatList] Procesando mensaje entrante:', incomingMessage);
+      
+      const messageData = incomingMessage.data.data;
+      const { chatId, message, createdAt, senderId } = messageData;
+      const currentUser = this.authService.currentUser();
 
-      const updateData = lastMessageUpdate.data.data as ChatLastMessageUpdatedData;
-      const { chatId, lastMessage, lastMessageAt, senderId } = updateData;
-
-      console.log('📨 [ChatList] Last message update details:', {
-        chatId,
-        lastMessage,
-        lastMessageAt,
-        senderId
-      });
-
+      // Actualizar el último mensaje del chat correspondiente
       updatedChats = updatedChats.map(chat => {
         if (chat.id === chatId) {
-          console.log('✅ [ChatList] Updating last message for chat:', chatId);
+          console.log('✅ [ChatList] Actualizando último mensaje para chat:', chatId);
           return {
             ...chat,
-            lastMessage,
-            lastMessageAt
+            lastMessage: message,
+            lastMessageAt: createdAt
           };
         }
         return chat;
       });
 
-      console.log('🔄 [ChatList] Updated chats with last message:', updatedChats);
+      // Si el mensaje no es del usuario actual, incrementar el conteo de no leídos
+      if (currentUser && senderId !== currentUser.id) {
+        setTimeout(() => {
+          const currentCount = this.unreadCountsMap().get(chatId) || 0;
+          this.updateUnreadCount(chatId, currentCount + 1);
+          console.log('📨 [ChatList] Incrementando conteo de mensajes no leídos para chat:', chatId, 'nuevo conteo:', currentCount + 1);
+        }, 0);
+      }
+
+      // Verificar si el chat está seleccionado actualmente y emitir mensaje de visualización
+      const selectedChatId = this.selectedChat()?.id;
+      if (selectedChatId === chatId) {
+        setTimeout(() => {
+          this.emitViewingChatMessage(chatId, true);
+          console.log('👁️ [ChatList] Mensaje de visualización enviado para chat activo:', chatId);
+        }, 0);
+      }
+
+      console.log('🔄 [ChatList] Lista de chats actualizada con mensaje entrante:', updatedChats);
     }
 
     return updatedChats;

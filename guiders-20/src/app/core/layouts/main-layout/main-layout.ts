@@ -84,7 +84,7 @@ export class MainLayout implements OnInit, OnDestroy {
     }
     
     await this.webSocketService.connectAsync()
-    // Suscribirse a los mensajes del WebSocket
+    // Suscribirse a los mensajes del WebSocket (excluyendo eventos con listeners específicos)
     this.webSocketService.getMessages().pipe(
       takeUntil(this.destroy$)
     ).subscribe(message => {

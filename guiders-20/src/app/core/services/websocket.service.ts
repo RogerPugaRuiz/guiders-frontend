@@ -45,6 +45,22 @@ export class WebSocketService implements OnDestroy {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
 
+  // Para detección de mensajes duplicados
+  private recentMessages: Array<{messageId: string, timestamp: number}> = [];
+  private readonly MAX_RECENT_MESSAGES = 100;
+  private readonly DUPLICATE_DETECTION_WINDOW = 5000; // 5 segundos
+
+  // Protección adicional: último mensaje procesado para evitar duplicados consecutivos
+  private lastProcessedMessage: {messageId: string, timestamp: number, messageHash: string} | null = null;
+
+  // Lista de eventos que tienen listeners específicos para evitar duplicados en onAny
+  private readonly SPECIFIC_EVENT_LISTENERS: string[] = [
+    WebSocketMessageType.RECEIVE_MESSAGE, // 'receive-message'
+    'participant:online-status-updated', 
+    'ping',
+    'pong'
+  ];
+
   // Signals para el estado de conexión
   private connectionState = signal<WebSocketConnectionState>({
     connected: false,
@@ -55,6 +71,9 @@ export class WebSocketService implements OnDestroy {
   });
 
   private messages$ = new Subject<WebSocketMessage>();
+
+  // Subject específico para mensajes receive-message (para evitar duplicados)
+  private receiveMessages$ = new Subject<WebSocketMessage>();
 
   // Computed signals para información derivada
   isConnected = computed(() => this.connectionState().connected);
@@ -310,6 +329,9 @@ export class WebSocketService implements OnDestroy {
       this.socket = null;
     }
 
+    // Limpiar estado de protección contra duplicados
+    this.clearDuplicateProtectionState();
+
     this.updateConnectionState({
       connected: false,
       connecting: false,
@@ -465,6 +487,8 @@ export class WebSocketService implements OnDestroy {
 
   /**
    * Obtiene los mensajes como Observable
+   * NOTA: Este Observable NO incluye eventos que tienen listeners específicos
+   * como 'receive-message'. Para esos eventos, usa getMessagesByType().
    */
   getMessages(): Observable<WebSocketMessage> {
     return this.messages$.asObservable();
@@ -474,6 +498,12 @@ export class WebSocketService implements OnDestroy {
    * Observable de mensajes filtrados por tipo
    */
   getMessagesByType(type: WebSocketMessageType | string): Observable<WebSocketMessage> {
+    // Para receive-message, usar el Subject específico para evitar duplicados
+    if (type === WebSocketMessageType.RECEIVE_MESSAGE) {
+      return this.receiveMessages$.asObservable();
+    }
+    
+    // Para otros tipos, usar el Subject general
     return this.messages$.pipe(
       filter(message => message.type === type)
     );
@@ -609,15 +639,6 @@ export class WebSocketService implements OnDestroy {
       });
     });
 
-    this.socket.on('chat:last-message-updated', (data: any) => {
-      console.log('💬 WebSocket: Último mensaje de chat actualizado:', data);
-      this.messages$.next({
-        type: WebSocketMessageType.CHAT_LAST_MESSAGE_UPDATED,
-        data,
-        timestamp: Date.now()
-      });
-    });
-
     // Eventos de ping/pong para heartbeat
     this.socket.on('ping', (data: any) => {
       console.log('🏓 WebSocket: Ping recibido, enviando pong');
@@ -626,21 +647,74 @@ export class WebSocketService implements OnDestroy {
 
     // Escuchar mensajes entrantes del tipo 'receive-message'
     this.socket.on(WebSocketMessageType.RECEIVE_MESSAGE, (data: any) => {
-      console.log('📨 WebSocket: Mensaje recibido del tipo receive-message:', data);
-      this.messages$.next({
+      const messageId = data?.data?.id || 'unknown';
+      const timestamp = Date.now();
+      const messageHash = this.generateMessageHash(data);
+      
+      console.log('📨 WebSocket: Mensaje recibido del tipo receive-message:', {
+        messageId,
+        timestamp,
+        messageHash,
+        data,
+        socketId: this.socket?.id
+      });
+      
+      // PRIMERA PROTECCIÓN: Verificar duplicados consecutivos (mismo ID y contenido)
+      if (this.isConsecutiveDuplicate(messageId, messageHash, timestamp)) {
+        console.warn('🚫 WebSocket: Mensaje duplicado consecutivo BLOQUEADO:', {
+          messageId,
+          messageHash,
+          timestamp
+        });
+        return; // BLOQUEAR procesamiento de duplicados consecutivos
+      }
+      
+      // SEGUNDA PROTECCIÓN: Verificar si ya procesamos este mensaje recientemente
+      const isDuplicate = this.recentMessages.some((msg: {messageId: string, timestamp: number}) => 
+        msg.messageId === messageId && 
+        (timestamp - msg.timestamp) < this.DUPLICATE_DETECTION_WINDOW
+      );
+      
+      if (isDuplicate) {
+        console.warn('⚠️ WebSocket: Mensaje duplicado en ventana temporal BLOQUEADO:', {
+          messageId,
+          timestamp,
+          previousMessages: this.recentMessages.filter((m: {messageId: string, timestamp: number}) => m.messageId === messageId)
+        });
+        return; // BLOQUEAR procesamiento de duplicados en ventana temporal
+      }
+      
+      // Almacenar información del mensaje para detección de duplicados
+      this.storeRecentMessage(messageId, timestamp);
+      this.updateLastProcessedMessage(messageId, messageHash, timestamp);
+      
+      // Enviar al Subject específico para receive-message
+      this.receiveMessages$.next({
         type: WebSocketMessageType.RECEIVE_MESSAGE,
         data,
-        timestamp: Date.now()
+        timestamp: timestamp
+      });
+      
+      console.log('✅ WebSocket: Mensaje receive-message procesado y enviado al Subject específico:', {
+        messageId,
+        messageHash,
+        timestamp
       });
     });
 
+    // Configurar listener genérico SOLO para eventos no manejados específicamente
     this.socket.onAny((event: string, data: any) => {
-      console.log(`WebSocket: Evento genérico recibido: ${event}`, data);
-      this.messages$.next({
-        type: event,
-        data,
-        timestamp: Date.now()
-      });
+      // Solo procesar eventos que NO tienen listeners específicos
+      if (!this.SPECIFIC_EVENT_LISTENERS.includes(event)) {
+        console.log(`WebSocket: Evento genérico recibido (no manejado específicamente): ${event}`, data);
+        this.messages$.next({
+          type: event,
+          data,
+          timestamp: Date.now()
+        });
+      } else {
+        console.log(`WebSocket: Evento ${event} ignorado por onAny (tiene listener específico)`);
+      }
     });
   }
 
@@ -807,6 +881,196 @@ export class WebSocketService implements OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.connectionStatus$.complete();
+    this.messages$.complete();
+    this.receiveMessages$.complete();
     this.disconnect();
+  }
+
+  /**
+   * Almacena información de un mensaje reciente para detección de duplicados
+   */
+  private storeRecentMessage(messageId: string, timestamp: number): void {
+    // Limpiar mensajes antiguos antes de añadir el nuevo
+    this.cleanOldMessages(timestamp);
+    
+    // Añadir el nuevo mensaje
+    this.recentMessages.push({ messageId, timestamp });
+    
+    // Mantener solo los últimos MAX_RECENT_MESSAGES
+    if (this.recentMessages.length > this.MAX_RECENT_MESSAGES) {
+      this.recentMessages = this.recentMessages.slice(-this.MAX_RECENT_MESSAGES);
+    }
+  }
+
+  /**
+   * Limpia mensajes antiguos fuera del window de detección
+   */
+  private cleanOldMessages(currentTimestamp: number): void {
+    this.recentMessages = this.recentMessages.filter(
+      msg => (currentTimestamp - msg.timestamp) < this.DUPLICATE_DETECTION_WINDOW
+    );
+  }
+
+  /**
+   * Obtiene estadísticas de duplicados para debugging
+   */
+  public getDuplicateStats(): {
+    recentMessagesCount: number;
+    oldestMessage: number | null;
+    newestMessage: number | null;
+  } {
+    const now = Date.now();
+    return {
+      recentMessagesCount: this.recentMessages.length,
+      oldestMessage: this.recentMessages.length > 0 ? 
+        Math.min(...this.recentMessages.map(m => now - m.timestamp)) : null,
+      newestMessage: this.recentMessages.length > 0 ? 
+        Math.max(...this.recentMessages.map(m => now - m.timestamp)) : null
+    };
+  }
+
+  /**
+   * Diagnóstico de la conexión WebSocket para debugging
+   */
+  public getConnectionDiagnostics(): {
+    isConnected: boolean;
+    socketId: string | null;
+    hasListeners: boolean;
+    connectionState: WebSocketConnectionState;
+    duplicateStats: any;
+    duplicateProtectionStats: any;
+  } {
+    return {
+      isConnected: this.socket?.connected || false,
+      socketId: this.socket?.id || null,
+      hasListeners: !!this.socket && this.socket.hasListeners?.(WebSocketMessageType.RECEIVE_MESSAGE),
+      connectionState: this.connectionState(),
+      duplicateStats: this.getDuplicateStats(),
+      duplicateProtectionStats: this.getDuplicateProtectionStats()
+    };
+  }
+
+  /**
+   * Método de debugging para monitorear eventos WebSocket filtrados
+   */
+  public debugEventFiltering(): void {
+    console.log('🔍 WebSocket Debug: Lista de eventos con listeners específicos:', this.SPECIFIC_EVENT_LISTENERS);
+    console.log('🔍 WebSocket Debug: Para desactivar el filtrado temporalmente, ejecuta en consola:');
+    console.log('window.wsService = this; // Luego: wsService.SPECIFIC_EVENT_LISTENERS.length = 0');
+  }
+
+  /**
+   * Obtener estadísticas de eventos procesados vs filtrados (para debugging)
+   */
+  public getEventStats(): {
+    specificEvents: string[];
+    totalEventsReceived: number;
+    lastEventTime: Date | null;
+  } {
+    return {
+      specificEvents: [...this.SPECIFIC_EVENT_LISTENERS],
+      totalEventsReceived: this.recentMessages.length,
+      lastEventTime: this.recentMessages.length > 0 ? 
+        new Date(Math.max(...this.recentMessages.map(m => m.timestamp))) : null
+    };
+  }
+
+  /**
+   * Genera un hash simple del contenido del mensaje para detectar duplicados exactos
+   */
+  private generateMessageHash(data: any): string {
+    try {
+      const messageContent = {
+        id: data?.data?.id || data?.id,
+        content: data?.data?.content || data?.content,
+        sender: data?.data?.sender_id || data?.data?.senderId || data?.sender,
+        timestamp: data?.data?.timestamp || data?.timestamp,
+        chat: data?.data?.chat_id || data?.data?.chatId || data?.chat
+      };
+      
+      // Crear hash simple concatenando propiedades clave
+      const hashString = JSON.stringify(messageContent);
+      let hash = 0;
+      for (let i = 0; i < hashString.length; i++) {
+        const char = hashString.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // Convertir a entero de 32 bits
+      }
+      return hash.toString();
+    } catch (error) {
+      console.warn('⚠️ WebSocket: Error generando hash del mensaje:', error);
+      return 'unknown-hash';
+    }
+  }
+
+  /**
+   * Verifica si el mensaje es un duplicado del último mensaje procesado
+   */
+  private isConsecutiveDuplicate(messageId: string, messageHash: string, timestamp: number): boolean {
+    if (!this.lastProcessedMessage) {
+      return false;
+    }
+
+    const timeDiff = timestamp - this.lastProcessedMessage.timestamp;
+    const isSameId = this.lastProcessedMessage.messageId === messageId;
+    const isSameHash = this.lastProcessedMessage.messageHash === messageHash;
+    const isWithinWindow = timeDiff < this.DUPLICATE_DETECTION_WINDOW;
+
+    // Es duplicado si tiene el mismo ID y hash, y está dentro del window temporal
+    const isDuplicate = isSameId && isSameHash && isWithinWindow;
+
+    if (isDuplicate) {
+      console.warn('🚫 WebSocket: Duplicado consecutivo detectado:', {
+        messageId,
+        messageHash,
+        timeDiff,
+        lastProcessed: this.lastProcessedMessage
+      });
+    }
+
+    return isDuplicate;
+  }
+
+  /**
+   * Actualiza el último mensaje procesado para futuras comparaciones
+   */
+  private updateLastProcessedMessage(messageId: string, messageHash: string, timestamp: number): void {
+    this.lastProcessedMessage = {
+      messageId,
+      messageHash,
+      timestamp
+    };
+  }
+
+  /**
+   * Limpia el estado de protección contra duplicados (útil al desconectar)
+   */
+  private clearDuplicateProtectionState(): void {
+    console.log('🧹 WebSocket: Limpiando estado de protección contra duplicados');
+    this.recentMessages = [];
+    this.lastProcessedMessage = null;
+  }
+
+  /**
+   * Método de debugging para obtener estadísticas de protección contra duplicados
+   */
+  public getDuplicateProtectionStats(): {
+    totalRecentMessages: number;
+    lastProcessedMessage: any;
+    duplicateDetectionWindow: number;
+    maxRecentMessages: number;
+    oldestMessageAge: number | null;
+  } {
+    const now = Date.now();
+    const oldestMessage = this.recentMessages.length > 0 ? 
+      this.recentMessages[0] : null;
+    
+    return {
+      totalRecentMessages: this.recentMessages.length,
+      lastProcessedMessage: this.lastProcessedMessage,
+      duplicateDetectionWindow: this.DUPLICATE_DETECTION_WINDOW,
+      maxRecentMessages: this.MAX_RECENT_MESSAGES,
+      oldestMessageAge: oldestMessage ? (now - oldestMessage.timestamp) : null
+    };
   }
 }
