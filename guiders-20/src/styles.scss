@@ -602,6 +602,116 @@ a {
       }
     }
   }
+
+  /* Botón de acción reutilizable con efectos avanzados (cerrar, refrescar, eliminar, etc.) */
+  &--action {
+    border: none;
+    background: var(--surface-primary, var(--color-background-secondary));
+    color: var(--text-secondary, var(--color-text-light));
+    cursor: pointer;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color, var(--color-border));
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--accent-primary, var(--color-primary));
+      opacity: 0;
+      border-radius: var(--border-radius);
+      transform: scale(0);
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    &:hover {
+      color: var(--accent-primary, var(--color-primary));
+      background-color: var(--surface-secondary, var(--color-hover));
+      border-color: var(--accent-primary, var(--color-primary));
+      box-shadow: var(--shadow-md);
+      transform: scale(1.05);
+
+      &::before {
+        opacity: 0.1;
+        transform: scale(1);
+      }
+
+      svg {
+        transform: scale(1.1);
+      }
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: var(--shadow-focus);
+    }
+
+    &:active {
+      transform: scale(0.95);
+      
+      svg {
+        transform: scale(1.05);
+      }
+    }
+
+    svg {
+      position: relative;
+      z-index: 1;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Variantes específicas para diferentes tipos de acción */
+    &.refresh {
+      &:hover {
+        transform: scale(1.05);
+        
+        svg {
+          transform: scale(1.1) rotate(-180deg);
+        }
+      }
+      
+      &:active svg {
+        transform: scale(1.05) rotate(-360deg);
+      }
+    }
+
+    &.close {
+      &:hover {
+        transform: scale(1.05);
+        
+        svg {
+          transform: scale(1.1) rotate(90deg);
+        }
+      }
+    }
+
+    &.delete {
+      &:hover {
+        color: var(--error-primary, var(--color-danger));
+        border-color: var(--error-primary, var(--color-danger));
+        transform: scale(1.05);
+        
+        &::before {
+          background-color: var(--error-primary, var(--color-danger));
+        }
+      }
+    }
+  }
 }
 
 /* Animaciones globales adicionales */

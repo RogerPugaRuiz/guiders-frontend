@@ -9,7 +9,7 @@ import { ChatData, ChatListResponse, ChatStatus, Participant, MessagesListRespon
 import { ChatLastMessageUpdatedData } from '../../../../core/models/websocket-response.models';
 import { environment } from 'src/environments/environment';
 import { WebSocketConnectionStateDefault, WebSocketMessage, WebSocketService } from 'src/app/core/services';
-import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { WebSocketMessageType } from 'src/app/core/enums';
 import { catchError, EMPTY, filter, tap } from 'rxjs';
 
@@ -118,6 +118,25 @@ export class ChatListComponent  implements OnInit, OnDestroy {
         // this.selectChat(newChat);
       }
     });
+
+    // Effect para seleccionar automáticamente el primer chat cuando se cambien los filtros
+    effect(() => {
+      const filteredChats = this.filteredChats();
+      const currentSelection = this.selectedChat();
+      
+      // Si no hay chat seleccionado y hay chats disponibles, seleccionar el primero
+      if (!currentSelection && filteredChats.length > 0) {
+        setTimeout(() => {
+          this.selectFirstChatIfNone();
+        }, 100);
+      }
+      
+      // Si el chat actual ya no está en la lista filtrada, deseleccionarlo
+      if (currentSelection && !filteredChats.some(chat => chat.id === currentSelection.id)) {
+        this.selectedChat.set(null);
+        console.log('❌ [ChatList] Chat seleccionado ya no está en la lista filtrada, deseleccionando');
+      }
+    });
   }
   ngOnInit(): void {
   }
@@ -133,8 +152,18 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   
 
   // Triggers
-  onSearchChange($event: Event) {}
-  onFilterChange($event: Event) {}
+  onSearchChange($event: Event) {
+    const target = $event.target as HTMLInputElement;
+    this.searchTerm.set(target.value.trim().toLowerCase());
+    console.log('🔍 [ChatList] Término de búsqueda actualizado:', this.searchTerm());
+  }
+
+  onFilterChange($event: Event) {
+    const target = $event.target as HTMLSelectElement;
+    const filterValue = target.value as ChatStatus | 'all';
+    this.selectedFilter.set(filterValue);
+    console.log('🎯 [ChatList] Filtro actualizado:', this.selectedFilter());
+  }
 
   filterOptions: FilterOption[] = [
     { value: 'all', label: 'Todos' },
@@ -338,12 +367,73 @@ export class ChatListComponent  implements OnInit, OnDestroy {
 
   filteredChats = computed(() => {
     const allChats = this.chats() || [];
-    if (this.selectedFilter() === 'all') return allChats;
-    return allChats.filter(chat => chat.status === this.selectedFilter());
+    const searchTerm = this.searchTerm();
+    const selectedFilter = this.selectedFilter();
+    
+    let filtered = allChats;
+    
+    // Aplicar filtro por estado
+    if (selectedFilter !== 'all') {
+      filtered = filtered.filter(chat => chat.status === selectedFilter);
+    }
+    
+    // Aplicar filtro de búsqueda
+    if (searchTerm) {
+      filtered = filtered.filter(chat => {
+        // Buscar en el nombre del visitante
+        const visitorName = this.getVisitorName(chat).toLowerCase();
+        
+        // Buscar en el último mensaje
+        const lastMessage = chat.lastMessage ? chat.lastMessage.toLowerCase() : '';
+        
+        // Buscar en el ID del chat
+        const chatId = chat.id.toLowerCase();
+        
+        // Buscar en nombres de todos los participantes
+        const participantNames = chat.participants
+          .map(p => p.name)
+          .join(' ')
+          .toLowerCase();
+        
+        return visitorName.includes(searchTerm) ||
+               lastMessage.includes(searchTerm) ||
+               chatId.includes(searchTerm) ||
+               participantNames.includes(searchTerm);
+      });
+    }
+    
+    // Ordenar chats: primero los activos/en línea, luego por fecha del último mensaje
+    return filtered.sort((a, b) => {
+      // Priorizar chats con visitantes en línea
+      const aVisitor = this.getVisitor(a);
+      const bVisitor = this.getVisitor(b);
+      
+      if (aVisitor?.isOnline && !bVisitor?.isOnline) return -1;
+      if (!aVisitor?.isOnline && bVisitor?.isOnline) return 1;
+      
+      // Si ambos tienen el mismo estado online, ordenar por última actividad
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      
+      return bTime - aTime; // Más reciente primero
+    });
   });
 
   // functions
-  retryLoadChats() {}
+  retryLoadChats() {
+    this.isRetryLoading.set(true);
+    this.error.set(null);
+    
+    console.log('🔄 [ChatList] Reintentando cargar chats...');
+    
+    // Recargar el resource
+    this.chatsResource.reload();
+    
+    // Reset loading state after a delay
+    setTimeout(() => {
+      this.isRetryLoading.set(false);
+    }, 1000);
+  }
 
   isChatSelected(chat: ChatData): boolean {
     return this.selectedChat()?.id === chat.id;
@@ -703,6 +793,59 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       this.emitViewingChatMessage(currentChat.id, false);
       this.selectedChat.set(null);
       console.log('👁️ [ChatList] Chat deseleccionado:', currentChat.id);
+    }
+  }
+
+  /**
+   * Limpia el término de búsqueda
+   */
+  clearSearch(): void {
+    this.searchTerm.set('');
+    console.log('🔍 [ChatList] Búsqueda limpiada');
+  }
+
+  /**
+   * Resetea todos los filtros a sus valores por defecto
+   */
+  resetFilters(): void {
+    this.searchTerm.set('');
+    this.selectedFilter.set('all');
+    console.log('🎯 [ChatList] Filtros reseteados');
+  }
+
+  /**
+   * Obtiene el número total de chats filtrados
+   */
+  getTotalFilteredChats(): number {
+    return this.filteredChats().length;
+  }
+
+  /**
+   * Verifica si hay algún filtro activo
+   */
+  hasActiveFilters(): boolean {
+    return this.searchTerm().length > 0 || this.selectedFilter() !== 'all';
+  }
+
+  /**
+   * Obtiene el primer chat de la lista filtrada
+   * Útil para selección automática
+   */
+  getFirstChat(): ChatData | null {
+    const filtered = this.filteredChats();
+    return filtered.length > 0 ? filtered[0] : null;
+  }
+
+  /**
+   * Selecciona el primer chat disponible si no hay uno seleccionado
+   */
+  selectFirstChatIfNone(): void {
+    if (!this.selectedChat() && this.filteredChats().length > 0) {
+      const firstChat = this.getFirstChat();
+      if (firstChat) {
+        this.selectChat(firstChat);
+        console.log('✅ [ChatList] Primer chat seleccionado automáticamente:', firstChat.id);
+      }
     }
   }
 
