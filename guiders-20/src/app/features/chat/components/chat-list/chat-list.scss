@@ -1,4 +1,4 @@
-// Chat sidebar styles - Actualizado con sistema de diseño global
+// Chat sidebar styles - Estilo minimalista tipo GitHub
 .chat-sidebar {
   display: flex;
   flex-direction: column;
@@ -8,55 +8,45 @@
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
   &__header {
-    padding: var(--spacing-lg);
-    border-bottom: 1px solid var(--border-color);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-light);
     background: var(--surface-primary);
-    box-shadow: var(--shadow-sm);
   }
 }
 
-// Search styles - Actualizado con variables globales
+// Search styles - Estilo minimalista tipo GitHub
 .chat-search {
   position: relative;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
 
   &__icon {
     position: absolute;
-    left: var(--spacing-md);
+    left: var(--spacing-sm);
     top: 50%;
     transform: translateY(-50%);
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
     pointer-events: none;
-    opacity: 0.6;
     width: 16px;
     height: 16px;
   }
 
   &__input {
     width: 100%;
-    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) var(--spacing-xxl);
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 32px;
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: var(--font-size-sm);
     background: var(--surface-primary);
     color: var(--text-primary);
-    transition: all 0.15s ease;
-    box-shadow: var(--shadow-sm);
+    transition: border-color 0.15s ease;
 
     &::placeholder {
-      color: var(--text-secondary);
-      opacity: 0.7;
+      color: var(--text-tertiary);
     }
 
     &:focus {
       outline: none;
       border-color: var(--accent-primary);
-      box-shadow: var(--shadow-focus);
-    }
-
-    &:hover:not(:focus) {
-      border-color: var(--border-color);
-      box-shadow: var(--shadow-md);
     }
   }
 
@@ -67,40 +57,39 @@
     transform: translateY(-50%);
     border: none;
     background: none;
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
     cursor: pointer;
-    padding: var(--spacing-xs);
+    padding: 2px;
     border-radius: var(--border-radius-sm);
-    transition: all 0.15s ease;
+    transition: color 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
 
     &:hover {
       color: var(--text-primary);
-      background-color: var(--surface-secondary);
     }
 
     &:focus {
       outline: none;
-      box-shadow: var(--shadow-focus);
+      color: var(--text-primary);
     }
   }
 }
 
-// Filter styles - Actualizado con sistema de diseño global
+// Filter styles - Estilo minimalista tipo GitHub
 .chat-filter {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
 
   .form-select {
     flex: 1;
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
     border: 1px solid var(--border-color);
     border-radius: var(--border-radius);
     font-size: var(--font-size-sm);
@@ -110,19 +99,12 @@
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right var(--spacing-sm) center;
-    padding-right: var(--spacing-xl);
-    transition: all 0.15s ease;
-    box-shadow: var(--shadow-sm);
+    padding-right: var(--spacing-lg);
+    transition: border-color 0.15s ease;
 
     &:focus {
       outline: none;
       border-color: var(--accent-primary);
-      box-shadow: var(--shadow-focus);
-    }
-
-    &:hover:not(:focus) {
-      border-color: var(--border-color);
-      box-shadow: var(--shadow-md);
     }
   }
 
@@ -130,30 +112,30 @@
   // como la clase global 'gh-button--refresh' definida en styles.scss
 }
 
-// Estilos para información de resultados
+// Estilos para información de resultados - Estilo minimalista
 .chat-results-info {
-  padding: var(--spacing-sm) 0;
+  padding: var(--spacing-xs) 0;
   text-align: center;
   border-bottom: 1px solid var(--border-light);
-  background: var(--surface-secondary);
+  background: var(--surface-primary);
   
   .chat-results-count {
     font-size: var(--font-size-xs);
-    color: var(--text-secondary);
-    font-weight: 500;
+    color: var(--text-tertiary);
+    font-weight: 400;
   }
 }
 
-// Chat list styles - Actualizado con sistema de diseño global
+// Chat list styles - Estilo minimalista tipo GitHub
 .chat-list {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-xs) 0;
+  background: var(--surface-primary);
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) transparent;
   
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
   
   &::-webkit-scrollbar-track {
@@ -162,7 +144,8 @@
   
   &::-webkit-scrollbar-thumb {
     background-color: var(--border-color);
-    border-radius: var(--border-radius-sm);
+    border-radius: var(--border-radius);
+    border: 2px solid var(--surface-primary);
     
     &:hover {
       background-color: var(--text-secondary);
@@ -170,6 +153,7 @@
   }
 }
 
+// Estados de carga y error - Estilo minimalista
 .chat-loading,
 .chat-empty,
 .chat-error {
@@ -177,13 +161,18 @@
   text-align: center;
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
+  
+  p {
+    margin: 0;
+    line-height: 1.5;
+  }
 }
 
 .chat-error {
   &__content {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-md);
     align-items: center;
   }
 
@@ -196,81 +185,56 @@
   }
 
   &__retry-button {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-xs);
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-sm) var(--spacing-lg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    background: var(--accent-primary);
-    color: white;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    
-    &:hover {
-      background: var(--accent-dark);
-      box-shadow: var(--shadow-md);
-    }
-    
-    &:focus {
-      outline: none;
-      box-shadow: var(--shadow-focus);
-    }
   }
 }
 
-// Chat item styles - Actualizado con sistema de diseño global
+// Chat item styles - Estilo minimalista tipo GitHub
 .chat-item {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  margin: var(--spacing-xs) var(--spacing-sm);
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0;
   border-bottom: 1px solid var(--border-light);
   cursor: pointer;
   position: relative;
-  overflow: hidden;
-  border-radius: var(--border-radius);
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease;
+  background: transparent;
 
   &:hover {
     background: var(--surface-secondary);
-    box-shadow: var(--shadow-sm);
   }
 
   &--active {
     background: var(--accent-light);
-    border-radius: var(--border-radius);
-    border: 1px solid rgba(var(--accent-primary), 0.2);
-    box-shadow: var(--shadow-md);
+    border-left: 3px solid var(--accent-primary);
+    padding-left: calc(var(--spacing-md) - 3px);
     
     &:hover {
       background: var(--accent-light);
-      box-shadow: var(--shadow-lg);
     }
   }
 
   &__avatar {
     position: relative;
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent-primary), var(--accent-dark));
-    color: white;
+    background: var(--surface-secondary);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: var(--font-size-sm);
+    font-size: 0.75rem;
     font-weight: 500;
     flex-shrink: 0;
-    transition: opacity 0.2s ease;
+    border: 1px solid var(--border-color);
     overflow: visible;
-    isolation: isolate; /* Crea un nuevo contexto de apilamiento */
-    
-    .chat-item:hover & {
-      opacity: 0.95;
-    }
     
     &-image {
       width: 100%;
@@ -278,8 +242,6 @@
       object-fit: cover;
       border-radius: 50%;
       display: block;
-      position: relative;
-      z-index: -1; /* Pone la imagen detrás del contenedor */
     }
     
     &-fallback {
@@ -291,81 +253,62 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, var(--accent-primary), var(--accent-dark));
+      background: var(--surface-secondary);
       border-radius: 50%;
-      color: white;
-      font-size: 0.875rem;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
       font-weight: 500;
-      z-index: -1; /* Pone el fallback detrás del contenedor */
     }
   }
 
   &__status {
     position: absolute;
-    bottom: -2px;
-    right: -2px;
-    width: 0.75rem;
-    height: 0.75rem;
+    bottom: -1px;
+    right: -1px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     border: 2px solid var(--surface-primary);
-    transition: all 0.15s ease;
-    z-index: 10; /* Valor alto para estar por encima de todo */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    pointer-events: none; /* Evita que interfiera con clics */
+    z-index: 2;
 
     &--online {
-      background: #2da44e;
+      background: var(--success-primary);
     }
 
     &--inactive {
-      background: #bf8700;
+      background: var(--warning-primary);
     }
 
     &--offline {
-      background: #6e7781;
+      background: var(--text-tertiary);
     }
     
     &--typing {
-      background: #bf8700;
+      background: var(--warning-primary);
       animation: pulsate 1.5s infinite;
     }
   }
   
   &__status-text {
-    font-size: 0.6875rem;
+    font-size: 0.75rem;
     font-weight: 400;
-    color: var(--text-secondary);
-    margin: 0.125rem 0 0;
+    color: var(--text-tertiary);
+    margin: 0;
     
     &.typing {
-      position: relative;
+      color: var(--warning-primary);
       display: inline-flex;
-      padding-right: 1em;
-      color: #bf8700;
+      align-items: center;
+      gap: var(--spacing-xs);
       
       &::after {
-        content: "";
-        position: absolute;
-        right: 0;
-        bottom: 0.25em;
-        width: 0.25em;
-        height: 0.25em;
-        border-radius: 50%;
-        background-color: #bf8700;
+        content: "•••";
         animation: pulsate 1.5s infinite;
       }
     }
     
     &.inactive {
-      color: #bf8700;
-      display: inline-flex;
-      align-items: center;
-      
-      &::before {
-        content: "•";
-        font-style: normal;
-        margin-right: 0.25em;
-      }
+      color: var(--warning-primary);
     }
   }
   
@@ -376,33 +319,31 @@
   &__content {
     flex: 1;
     min-width: 0;
-    padding-left: 0.375rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
   }
 
   &__header {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
-    margin-bottom: 0.125rem;
+    gap: var(--spacing-xs);
   }
 
   &__name {
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 500;
     color: var(--text-primary);
     margin: 0;
     flex: 1;
-    transition: color 0.15s ease;
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    min-width: 0; // Para permitir que el texto se corte correctamente
-    
-    .chat-item:hover & {
-      color: var(--accent-primary);
-    }
+    gap: var(--spacing-xs);
+    min-width: 0;
     
     .chat-item--active & {
+      color: var(--accent-primary);
       font-weight: 600;
     }
   }
@@ -418,36 +359,27 @@
   &__anonymous-tag {
     display: inline-flex;
     align-items: center;
-    padding: 0.125rem 0.375rem;
+    padding: 0.125rem 0.25rem;
     font-size: 0.625rem;
     font-weight: 500;
     line-height: 1;
-    border-radius: 0.75rem;
+    border-radius: var(--border-radius-sm);
     background-color: var(--warning-light);
     color: var(--warning-primary);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-light);
     white-space: nowrap;
     flex-shrink: 0;
-    transition: all 0.15s ease;
-    
-    .chat-item:hover & {
-      opacity: 0.9;
-    }
   }
 
   &__notification-badge {
     display: none;
-    
-    .chat-item--active & {
-      display: none;
-    }
 
     &--unread {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 1.125rem;
-      height: 1.125rem;
+      min-width: 16px;
+      height: 16px;
       padding: 0 0.25rem;
       font-size: 0.625rem;
       font-weight: 600;
@@ -457,23 +389,24 @@
       color: white;
       white-space: nowrap;
       flex-shrink: 0;
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
   }
 
   &__time {
-    font-size: 0.6875rem;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
     flex-shrink: 0;
-    margin-left: 0.375rem;
     font-weight: 400;
-    opacity: 0.7;
     
     .chat-item--active & {
-      color: var(--accent-primary);
-      opacity: 0.9;
+      color: var(--text-secondary);
     }
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
 
   &__preview {
@@ -483,9 +416,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    line-height: 1.4;
-    max-width: 90%;
-    opacity: 0.8;
+    line-height: 1.3;
     
     .chat-item--active & {
       color: var(--text-primary);
@@ -493,40 +424,33 @@
   }
 }
 
-// Animaciones para los estados de los participantes
+// Animaciones minimalistas
 @keyframes pulsate {
-  0% {
-    transform: scale(1);
+  0%, 100% {
     opacity: 1;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
+    opacity: 0.5;
   }
 }
 
-@keyframes glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(191, 135, 0, 0.3);
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
   }
-  70% {
-    box-shadow: 0 0 0 4px rgba(191, 135, 0, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(191, 135, 0, 0);
+  to {
+    transform: rotate(360deg);
   }
 }
 
-// Spinner styles
+
+
+// Spinner styles - Estilo minimalista
 .spinner {
   display: inline-block;
   width: 1rem;
   height: 1rem;
-  animation: spin 0.75s linear infinite;
+  animation: spin 1s linear infinite;
 
   &--sm {
     width: 0.75rem;
@@ -543,23 +467,13 @@
   }
 }
 
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// GitHub-style tooltip
+// Tooltip minimalista tipo GitHub
 .tooltip {
   position: relative;
   
   &:hover .tooltip__content {
     visibility: visible;
     opacity: 1;
-    transform: translateY(0);
   }
   
   &__content {
@@ -567,16 +481,16 @@
     z-index: 1000;
     bottom: 125%;
     left: 50%;
-    transform: translateX(-50%) translateY(5px);
-    padding: 0.375rem 0.625rem;
-    background-color: #24292f;
-    color: white;
-    border-radius: 0.25rem;
+    transform: translateX(-50%);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--text-primary);
+    color: var(--surface-primary);
+    border-radius: var(--border-radius-sm);
     font-size: 0.75rem;
     white-space: nowrap;
     visibility: hidden;
     opacity: 0;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: opacity 0.2s ease;
     
     &::after {
       content: '';
@@ -584,18 +498,19 @@
       top: 100%;
       left: 50%;
       transform: translateX(-50%);
-      border-width: 5px;
+      border-width: 4px;
       border-style: solid;
-      border-color: #24292f transparent transparent transparent;
+      border-color: var(--text-primary) transparent transparent transparent;
     }
   }
 }
 
-// Mejoras en la accesibilidad y estados de los chats
+// Mejoras en accesibilidad y estados - Estilo minimalista
 .chat-item {
   &:focus-within {
     outline: 2px solid var(--accent-primary);
     outline-offset: -2px;
+    border-radius: var(--border-radius-sm);
   }
 
   &--active {
@@ -605,7 +520,7 @@
   }
 }
 
-// Indicador de carga mejorado
+// Indicador de carga mejorado - Estilo minimalista
 .chat-loading {
   position: relative;
   
@@ -615,9 +530,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 20px;
-    height: 20px;
-    border: 2px solid var(--border-color);
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-light);
     border-top-color: var(--accent-primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
