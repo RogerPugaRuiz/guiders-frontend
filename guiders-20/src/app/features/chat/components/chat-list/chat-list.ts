@@ -619,8 +619,14 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   /**
    * Verifica si el chat tiene mensajes no leídos para el usuario actual
    * Compara el lastSeenAt del participante (usuario actual) con el lastMessageAt del chat
+   * Si el chat está seleccionado actualmente, nunca considera que tiene mensajes no leídos
    */
   hasUnreadMessages(chat: ChatData): boolean {
+    // Si el chat está seleccionado actualmente, nunca considerar que tiene mensajes no leídos
+    if (this.isChatSelected(chat)) {
+      return false;
+    }
+    
     const currentUser = this.authService.currentUser();
     if (!currentUser) return false;
 
@@ -647,8 +653,14 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   /**
    * Obtiene el número de mensajes no leídos para un chat específico
    * Usa el signal unreadCountsMap para obtener el conteo cached
+   * Si el chat está seleccionado actualmente, siempre retorna 0
    */
   getUnreadCount(chat: ChatData): number {
+    // Si el chat está seleccionado actualmente, nunca mostrar contador
+    if (this.isChatSelected(chat)) {
+      return 0;
+    }
+    
     if (!this.hasUnreadMessages(chat)) return 0;
     
     const cachedCount = this.unreadCountsMap().get(chat.id);
@@ -665,8 +677,14 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   /**
    * Obtiene el texto a mostrar en el badge de notificación
    * Muestra "99+" si hay más de 99 mensajes no leídos
+   * Si el chat está seleccionado actualmente, nunca muestra texto
    */
   getUnreadCountText(chat: ChatData): string {
+    // Si el chat está seleccionado actualmente, nunca mostrar texto del contador
+    if (this.isChatSelected(chat)) {
+      return '';
+    }
+    
     const count = this.getUnreadCount(chat);
     if (count === 0) return '';
     if (count > 99) return '99+';
