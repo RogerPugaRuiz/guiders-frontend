@@ -1,4 +1,4 @@
-import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit, OnDestroy, linkedSignal } from '@angular/core';
+import { Component, input, output, signal, computed, inject, effect, resource, ResourceStreamItem, Signal, OnInit, OnDestroy, linkedSignal, viewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -42,12 +42,35 @@ export interface ChatRetryEvent {
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss'
 })
-export class ChatListComponent  implements OnInit, OnDestroy {
+export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
   // Injection of services
   private avatarService = inject(AvatarService);
   private authService = inject(AuthService);
   private ws = inject(WebSocketService);
   private http = inject(HttpClient);
+
+  // Referencia al contenedor de chats para el scroll infinito
+  chatListContainer = viewChild<ElementRef>('chatListContainer');
+
+  // Variables para manejar el scroll infinito
+  private isLoadingMore = false;
+  private scrollDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private loadMoreThrottleTimer: ReturnType<typeof setTimeout> | null = null;
+  private minimumLoadingTimer: ReturnType<typeof setTimeout> | null = null;
+  private cleanupScrollListener: (() => void) | null = null;
+
+  // Configuración para el scroll infinito
+  private readonly SCROLL_THRESHOLD = 200; // Distancia del bottom para activar carga (aumentado para mayor sensibilidad)
+  private readonly DEBOUNCE_DELAY = 100; // Delay para debounce del scroll (reducido para mayor respuesta)
+  private readonly THROTTLE_DELAY = 200; // Delay para throttle de cargas (reducido)
+  private readonly MINIMUM_LOADING_DURATION = 800; // Tiempo mínimo para mostrar loading (reducido)
+
+  // Signal para mostrar el indicador de carga de scroll infinito
+  isLoadingMoreChats = signal(false);
+  private loadingStartTime = 0;
+
+  // Signal para acumular todos los chats HTTP
+  allChats = signal<ChatData[]>([]);
 
   // Output events
   chatSelected = output<ChatSelectionEvent>();
@@ -60,9 +83,10 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   isRetryLoading = signal(false);
   selectedChat = signal<ChatData | null>(null);
-  limit = signal(20);
+  previousSelectedChatId = signal<string | null>(null); // Para rastrear cambios de selección
+  limit = signal(24);
   cursor = signal<string>("");
-  include = signal<string[]>([]);
+  include = signal<string[]>(['participants', 'lastMessage', 'metadata']);
   
   // Signal para mantener el conteo de mensajes no leídos por chat ID
   unreadCountsMap = signal<Map<string, number>>(new Map());
@@ -75,6 +99,88 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       console.log('❌ Error:', this.chatsResource.error());
       console.log('📦 Chats computed:', this.chats());
       console.log('🎯 Filtered chats:', this.filteredChats());
+    });
+
+    // Effect para monitorear cambios en el cursor y status del resource
+    effect(() => {
+      const cursor = this.cursor();
+      const status = this.chatsResource.status();
+      const isLoading = this.chatsResource.isLoading();
+      
+      console.log('📋 [ChatList] Cambio en cursor o status:', {
+        cursor,
+        status,
+        isLoading,
+        wsConnected: this.wsConnected().connected
+      });
+    });
+
+    // Effect para acumular chats cuando cambian los datos del httpResource
+    effect(() => {
+      const newData = this.chatsResource.value();
+      const isFirst = this.isFirstLoad();
+
+      if (newData?.chats) {
+        console.log('📋 [ChatList] Nuevos datos recibidos:', {
+          chatsCount: newData.chats.length,
+          isFirst,
+          hasMore: newData.hasMore,
+          nextCursor: newData.nextCursor,
+          total: newData.total
+        });
+
+        requestAnimationFrame(() => {
+          if (isFirst) {
+            // Primera carga: reemplazar todos los chats
+            this.allChats.set(newData.chats);
+            console.log('📋 [ChatList] Primera carga:', newData.chats.length, 'chats');
+          } else {
+            // Cargas posteriores: acumular chats (añadir al final para paginación)
+            this.allChats.update(current => {
+              const existingIds = new Set(current.map(chat => chat.id));
+              const newChats = newData.chats.filter(chat => !existingIds.has(chat.id));
+              
+              // Añadir nuevos chats al final
+              const combined = [...current, ...newChats];
+              console.log('📋 [ChatList] Chats acumulados:', {
+                nuevos: newChats.length,
+                anteriores: current.length,
+                total: combined.length
+              });
+              return combined;
+            });
+          }
+          
+          // Si no hay más chats para cargar, ocultar el indicador
+          if (!newData.hasMore && this.isLoadingMoreChats()) {
+            console.log('📋 [ChatList] No hay más chats, completando carga...');
+            this.animateLoadingCompletion();
+          } else if (this.isLoadingMore) {
+            // Si hay más chats pero terminamos de cargar esta página, resetear el flag
+            console.log('📋 [ChatList] Página cargada, reseteando flag de loading...');
+            setTimeout(() => {
+              this.animateLoadingCompletion();
+            }, 500);
+          }
+        });
+      }
+    });
+
+    // Effect para resetear paginación cuando cambien los filtros
+    effect(() => {
+      const searchTerm = this.searchTerm();
+      const selectedFilter = this.selectedFilter();
+      
+      // Solo resetear si hay filtros activos y ya tenemos chats cargados
+      // Esto evita resetear en la carga inicial
+      if ((searchTerm || selectedFilter !== 'all') && this.allChats().length > 0) {
+        console.log('🔄 [ChatList] Filtros cambiados, reseteando paginación');
+        setTimeout(() => {
+          this.resetPagination();
+          // Forzar recarga después del reset
+          this.chatsResource.reload();
+        }, 0);
+      }
     });
 
     effect(() => {
@@ -91,7 +197,7 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       }
     });
 
-    // Effect para cargar conteos de mensajes no leídos cuando cambien los chats
+    // Effect para cargar conteos de mensajes no leídos cuando cambian los chats
     effect(() => {
       const chats = this.filteredChats();
       if (chats.length > 0) {
@@ -100,6 +206,30 @@ export class ChatListComponent  implements OnInit, OnDestroy {
           this.loadUnreadCountsForVisibleChats();
         }, 100);
       }
+    });
+
+    // Effect para monitorear cambios en la selección de chat y enviar eventos WebSocket
+    effect(() => {
+      const currentSelectedChat = this.selectedChat();
+      const previousSelectedChatId = this.previousSelectedChatId();
+      
+      // Si había un chat seleccionado anteriormente y es diferente al actual
+      if (previousSelectedChatId && previousSelectedChatId !== currentSelectedChat?.id) {
+        this.emitViewingChatMessage(previousSelectedChatId, false);
+        console.log('👁️ [ChatList] Effect: Chat anterior desconectado por cambio de selección:', previousSelectedChatId);
+      }
+      
+      // Si hay un chat seleccionado actualmente
+      if (currentSelectedChat) {
+        this.emitViewingChatMessage(currentSelectedChat.id, true);
+        console.log('👁️ [ChatList] Effect: Chat actual conectado por cambio de selección:', currentSelectedChat.id);
+        
+        // Limpiar conteo de mensajes no leídos
+        this.clearUnreadCount(currentSelectedChat.id);
+      }
+      
+      // Actualizar el ID del chat anteriormente seleccionado
+      this.previousSelectedChatId.set(currentSelectedChat?.id || null);
     });
 
     // Effect para manejar la recepción de un chat asignado al comercial
@@ -133,21 +263,52 @@ export class ChatListComponent  implements OnInit, OnDestroy {
       
       // Si el chat actual ya no está en la lista filtrada, deseleccionarlo
       if (currentSelection && !filteredChats.some(chat => chat.id === currentSelection.id)) {
+        // El effect de selección se encargará de enviar el mensaje de desconexión
         this.selectedChat.set(null);
         console.log('❌ [ChatList] Chat seleccionado ya no está en la lista filtrada, deseleccionando');
       }
     });
   }
+  
+  ngAfterViewInit(): void {
+    // Configurar listener para scroll infinito
+    this.setupScrollListener();
+  }
+  
   ngOnInit(): void {
   }
   
   ngOnDestroy(): void {
-    // Enviar mensaje de que ya no se está visualizando ningún chat al destruir el componente
-    const currentSelectedChat = this.selectedChat();
-    if (currentSelectedChat) {
-      this.emitViewingChatMessage(currentSelectedChat.id, false);
-      console.log('👁️ [ChatList] Componente destruido, enviando mensaje de no visualización para chat:', currentSelectedChat.id);
+    // Deseleccionar el chat actual al destruir el componente
+    // El effect se encargará de enviar el mensaje de desconexión automáticamente
+    if (this.selectedChat()) {
+      this.selectedChat.set(null);
+      console.log('👁️ [ChatList] Componente destruido, deseleccionando chat actual');
     }
+
+    // Limpiar todos los timers y listeners
+    if (this.scrollDebounceTimer) {
+      clearTimeout(this.scrollDebounceTimer);
+      this.scrollDebounceTimer = null;
+    }
+    
+    if (this.loadMoreThrottleTimer) {
+      clearTimeout(this.loadMoreThrottleTimer);
+      this.loadMoreThrottleTimer = null;
+    }
+
+    if (this.minimumLoadingTimer) {
+      clearTimeout(this.minimumLoadingTimer);
+      this.minimumLoadingTimer = null;
+    }
+    
+    // Limpiar listener de scroll
+    if (this.cleanupScrollListener) {
+      this.cleanupScrollListener();
+      this.cleanupScrollListener = null;
+    }
+    
+    console.log('📋 [ChatList] Componente destruido, timers y listeners limpiados');
   }
   
 
@@ -190,17 +351,27 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   });
 
 
+  // Computed signal que determina si es la primera carga
+  private isFirstLoad = computed(() => this.cursor() === '');
+
   chatsResource = httpResource<ChatListResponse>(() => {
     // Solo ejecuta la petición si el WebSocket está conectado
-    if (!this.wsConnected().connected) return undefined;
+    if (!this.wsConnected().connected) {
+      console.log('📋 [ChatList] WebSocket no conectado, no ejecutando petición');
+      return undefined;
+    }
+
+    const params = {
+      limit: this.limit(),
+      cursor: this.cursor(),
+      include: this.include().join(',')
+    };
+
+    console.log('📋 [ChatList] Configurando httpResource con parámetros:', params);
 
     return {
       url: `${environment.apiUrl}/chats`,
-      params: {
-        limit: this.limit(),
-        cursor: this.cursor(),
-        include: this.include().join(',')
-      }
+      params
     };
   });
 
@@ -258,12 +429,12 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   );
 
   chats = linkedSignal(() => {
-    const allChats = this.chatsResource.value()?.chats || [];
+    const httpChats = this.allChats();
     const participantStatusUpdate = this.participantStatusUpdate();
     const incomingChat = this.commercialIncomingChat();
     const incomingMessage = this.incomingMessage();
 
-    let updatedChats = allChats;
+    let updatedChats = httpChats;
 
     // Manejar nuevo chat asignado al comercial
     if (incomingChat?.data?.data?.chat) {
@@ -440,26 +611,12 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   }
 
   selectChat(chat: ChatData): void {
-    // Verificar si hay un chat anteriormente seleccionado
-    const previousChat = this.selectedChat();
-    
-    // Si había un chat seleccionado anteriormente, enviar mensaje de que ya no se está visualizando
-    if (previousChat && previousChat.id !== chat.id) {
-      this.emitViewingChatMessage(previousChat.id, false);
-      console.log('👁️ [ChatList] Chat anterior deseleccionado:', previousChat.id);
-    }
-    
     // Usar signal local para mantener el estado seleccionado
+    // El effect se encargará de manejar los eventos WebSocket automáticamente
     this.selectedChat.set(chat);
-    
-    // Limpiar el conteo de mensajes no leídos para este chat
-    this.clearUnreadCount(chat.id);
     
     // Emitir evento al componente padre
     this.chatSelected.emit({ chat });
-    
-    // Emitir mensaje WebSocket para indicar que se está visualizando el chat
-    this.emitViewingChatMessage(chat.id, true);
     
     console.log('✅ [ChatList] Chat seleccionado mediante signal y output:', chat.id, chat);
   }
@@ -806,12 +963,9 @@ export class ChatListComponent  implements OnInit, OnDestroy {
    * Útil cuando se necesita deseleccionar desde el componente padre
    */
   public deselectCurrentChat(): void {
-    const currentChat = this.selectedChat();
-    if (currentChat) {
-      this.emitViewingChatMessage(currentChat.id, false);
-      this.selectedChat.set(null);
-      console.log('👁️ [ChatList] Chat deseleccionado:', currentChat.id);
-    }
+    // El effect se encargará de enviar el mensaje de desconexión automáticamente
+    this.selectedChat.set(null);
+    console.log('👁️ [ChatList] Chat deseleccionado mediante signal');
   }
 
   /**
@@ -819,7 +973,8 @@ export class ChatListComponent  implements OnInit, OnDestroy {
    */
   clearSearch(): void {
     this.searchTerm.set('');
-    console.log('🔍 [ChatList] Búsqueda limpiada');
+    this.resetPagination();
+    console.log('🔍 [ChatList] Búsqueda limpiada y paginación reseteada');
   }
 
   /**
@@ -828,7 +983,8 @@ export class ChatListComponent  implements OnInit, OnDestroy {
   resetFilters(): void {
     this.searchTerm.set('');
     this.selectedFilter.set('all');
-    console.log('🎯 [ChatList] Filtros reseteados');
+    this.resetPagination();
+    console.log('🎯 [ChatList] Filtros reseteados y paginación reseteada');
   }
 
   /**
@@ -865,6 +1021,303 @@ export class ChatListComponent  implements OnInit, OnDestroy {
         console.log('✅ [ChatList] Primer chat seleccionado automáticamente:', firstChat.id);
       }
     }
+  }
+
+  /**
+   * Configura el listener para detectar scroll al bottom y cargar más chats
+   */
+  private setupScrollListener(): void {
+    const container = this.chatListContainer()?.nativeElement;
+    if (!container) {
+      console.log('📋 [ChatList] No se pudo obtener referencia al contenedor');
+      return;
+    }
+
+    console.log('📋 [ChatList] Configurando scroll listener');
+
+    let lastScrollTop = 0;
+    let isScrolling = false;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const currentScrollTop = container.scrollTop;
+          const scrollHeight = container.scrollHeight;
+          const clientHeight = container.clientHeight;
+          
+          // Detectar dirección del scroll
+          const isScrollingDown = currentScrollTop > lastScrollTop;
+          
+          // Detectar cuando el scroll está cerca del bottom y el usuario está scrolleando hacia abajo
+          const distanceFromBottom = scrollHeight - clientHeight - currentScrollTop;
+          
+          // Log para debug
+          console.log('📋 [ChatList] Scroll info:', {
+            currentScrollTop,
+            scrollHeight,
+            clientHeight,
+            distanceFromBottom,
+            threshold: this.SCROLL_THRESHOLD,
+            isScrollingDown,
+            shouldLoad: distanceFromBottom <= this.SCROLL_THRESHOLD && isScrollingDown && !this.isLoadingMore && !isScrolling
+          });
+          
+          if (distanceFromBottom <= this.SCROLL_THRESHOLD && 
+              isScrollingDown && 
+              !this.isLoadingMore && 
+              !isScrolling) {
+            
+            isScrolling = true;
+            
+            // Debounce para evitar múltiples cargas rápidas
+            if (this.scrollDebounceTimer) {
+              clearTimeout(this.scrollDebounceTimer);
+            }
+            
+            this.scrollDebounceTimer = setTimeout(() => {
+              console.log('📋 [ChatList] Activando carga por scroll al bottom');
+              this.loadMoreChats();
+              isScrolling = false;
+            }, this.DEBOUNCE_DELAY);
+          }
+          
+          lastScrollTop = currentScrollTop;
+          ticking = false;
+        });
+        
+        ticking = true;
+      }
+    };
+
+    // Listener optimizado para mejor rendimiento
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Guardar referencia para cleanup
+    this.cleanupScrollListener = () => {
+      container.removeEventListener('scroll', handleScroll);
+      console.log('📋 [ChatList] Scroll listener removido');
+    };
+
+    // Log inicial de las dimensiones del contenedor
+    console.log('📋 [ChatList] Contenedor configurado:', {
+      scrollHeight: container.scrollHeight,
+      clientHeight: container.clientHeight,
+      scrollTop: container.scrollTop
+    });
+  }
+
+  /**
+   * Carga más chats cuando el usuario hace scroll al bottom
+   */
+  private loadMoreChats(): void {
+    // Throttle para evitar cargas muy frecuentes
+    if (this.loadMoreThrottleTimer) {
+      console.log('📋 [ChatList] Carga throttleada, ignorando...');
+      return;
+    }
+
+    const chatsResponse = this.chatsResource.value();
+
+    // Verificar si hay más chats para cargar
+    if (!chatsResponse || !chatsResponse.hasMore) {
+      console.log('📋 [ChatList] No hay más chats para cargar:', {
+        hasResponse: !!chatsResponse,
+        hasMore: chatsResponse?.hasMore
+      });
+      return;
+    }
+
+    // Evitar cargas múltiples simultáneas
+    if (this.isLoadingMore) {
+      console.log('📋 [ChatList] Ya se está cargando más chats, ignorando...');
+      return;
+    }
+
+    // Verificar que hay un cursor válido para la siguiente página
+    if (!chatsResponse.nextCursor) {
+      console.log('📋 [ChatList] No hay cursor para siguiente página');
+      return;
+    }
+
+    this.isLoadingMore = true;
+    this.isLoadingMoreChats.set(true);
+    
+    // Guardar el momento en que inicia la carga para tiempo mínimo
+    this.loadingStartTime = Date.now();
+    console.log('📋 [ChatList] Iniciando carga de más chats...', {
+      currentCount: this.allChats().length,
+      nextCursor: chatsResponse.nextCursor
+    });
+
+    // Aplicar throttle
+    this.loadMoreThrottleTimer = setTimeout(() => {
+      this.loadMoreThrottleTimer = null;
+    }, this.THROTTLE_DELAY);
+
+    // Ejecutar nextPage() para cargar más chats
+    this.nextPage();
+  }
+
+  /**
+   * Cargar la siguiente página de chats
+   */
+  nextPage(): void {
+    const chatsResponse = this.chatsResource.value();
+    console.log('📋 [ChatList] Cargando siguiente página de chats');
+
+    if (chatsResponse && chatsResponse.hasMore && chatsResponse.nextCursor) {
+      // Actualizar cursor para la siguiente página
+      console.log('📋 [ChatList] Actualizando cursor:', {
+        anterior: this.cursor(),
+        nuevo: chatsResponse.nextCursor
+      });
+      this.cursor.set(chatsResponse.nextCursor);
+      console.log('📋 [ChatList] Cursor actualizado, esto debería activar una nueva petición HTTP');
+    } else {
+      console.log('📋 [ChatList] No se puede cargar siguiente página:', {
+        hasResponse: !!chatsResponse,
+        hasMore: chatsResponse?.hasMore,
+        nextCursor: chatsResponse?.nextCursor
+      });
+    }
+  }
+
+  /**
+   * Anima la finalización de la carga para una transición más suave
+   */
+  private animateLoadingCompletion(): void {
+    const currentTime = Date.now();
+    const elapsedTime = currentTime - this.loadingStartTime;
+    const remainingTime = Math.max(0, this.MINIMUM_LOADING_DURATION - elapsedTime);
+
+    console.log('📋 [ChatList] Tiempo transcurrido:', elapsedTime, 'ms, tiempo restante:', remainingTime, 'ms');
+
+    // Limpiar timer anterior si existe
+    if (this.minimumLoadingTimer) {
+      clearTimeout(this.minimumLoadingTimer);
+      this.minimumLoadingTimer = null;
+    }
+
+    // Esperar el tiempo restante antes de ocultar el mensaje
+    this.minimumLoadingTimer = setTimeout(() => {
+      // Delay progresivo para una transición más natural
+      setTimeout(() => {
+        this.isLoadingMore = false;
+        
+        // Delay adicional para ocultar el indicador de carga
+        setTimeout(() => {
+          this.isLoadingMoreChats.set(false);
+          console.log('📋 [ChatList] Indicador de carga ocultado después del tiempo mínimo');
+        }, 100);
+      }, 200);
+    }, remainingTime);
+  }
+
+  /**
+   * Resetea el estado de paginación (útil al cambiar filtros)
+   */
+  resetPagination(): void {
+    this.cursor.set('');
+    this.allChats.set([]);
+    this.isLoadingMore = false;
+    this.isLoadingMoreChats.set(false);
+    
+    // Limpiar timers
+    if (this.scrollDebounceTimer) {
+      clearTimeout(this.scrollDebounceTimer);
+      this.scrollDebounceTimer = null;
+    }
+    if (this.loadMoreThrottleTimer) {
+      clearTimeout(this.loadMoreThrottleTimer);
+      this.loadMoreThrottleTimer = null;
+    }
+    if (this.minimumLoadingTimer) {
+      clearTimeout(this.minimumLoadingTimer);
+      this.minimumLoadingTimer = null;
+    }
+    
+    console.log('📋 [ChatList] Paginación reseteada');
+  }
+
+  /**
+   * Método público para diagnosticar problemas de scroll infinito
+   */
+  public diagnoseScrollInfinite(): void {
+    const container = this.chatListContainer()?.nativeElement;
+    const chatsResponse = this.chatsResource.value();
+    const allChats = this.allChats();
+    const filteredChats = this.filteredChats();
+
+    console.log('🔍 [ChatList] Diagnóstico de scroll infinito:', {
+      // Estado del contenedor
+      container: {
+        exists: !!container,
+        scrollHeight: container?.scrollHeight || 0,
+        clientHeight: container?.clientHeight || 0,
+        scrollTop: container?.scrollTop || 0,
+        distanceFromBottom: container ? (container.scrollHeight - container.clientHeight - container.scrollTop) : 0
+      },
+      
+      // Estado de los datos
+      data: {
+        resourceStatus: this.chatsResource.status(),
+        resourceIsLoading: this.chatsResource.isLoading(),
+        hasResourceValue: !!chatsResponse,
+        resourceChatCount: chatsResponse?.chats?.length || 0,
+        allChatsCount: allChats.length,
+        filteredChatsCount: filteredChats.length,
+        hasMore: chatsResponse?.hasMore,
+        nextCursor: chatsResponse?.nextCursor,
+        currentCursor: this.cursor(),
+        total: chatsResponse?.total
+      },
+      
+      // Estado de carga
+      loading: {
+        isLoadingMore: this.isLoadingMore,
+        isLoadingMoreChats: this.isLoadingMoreChats(),
+        isFirstLoad: this.isFirstLoad()
+      },
+      
+      // Estado de conexión
+      connection: {
+        wsConnected: this.wsConnected().connected
+      },
+      
+      // Configuración
+      config: {
+        limit: this.limit(),
+        scrollThreshold: this.SCROLL_THRESHOLD,
+        debounceDelay: this.DEBOUNCE_DELAY,
+        throttleDelay: this.THROTTLE_DELAY
+      }
+    });
+
+    // Sugerencias de depuración
+    if (!container) {
+      console.warn('⚠️ [ChatList] Contenedor no encontrado - verificar ViewChild');
+    }
+    
+    if (!this.wsConnected().connected) {
+      console.warn('⚠️ [ChatList] WebSocket no conectado - las peticiones no se ejecutarán');
+    }
+    
+    if (chatsResponse && !chatsResponse.hasMore) {
+      console.info('ℹ️ [ChatList] No hay más chats para cargar');
+    }
+    
+    if (this.isLoadingMore) {
+      console.info('ℹ️ [ChatList] Carga en progreso...');
+    }
+  }
+
+  /**
+   * Verifica si se puede cargar más chats
+   */
+  canLoadMoreChats(): boolean {
+    const chatsResponse = this.chatsResource.value();
+    return !!(chatsResponse && chatsResponse.hasMore && !this.isLoadingMore);
   }
 
 }

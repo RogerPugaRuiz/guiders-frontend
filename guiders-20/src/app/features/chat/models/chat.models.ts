@@ -41,6 +41,13 @@ export interface MessagesListResponse {
 
 export interface ChatListResponse {
   chats: ChatData[];
+  total: number;
+  hasMore: boolean;
+  nextCursor: string | null;
+}
+
+export interface RealChatListResponse {
+  chats: ChatData[];
   pagination: {
     cursor?: string;
     nextCursor?: string | null;
@@ -48,13 +55,6 @@ export interface ChatListResponse {
     limit: number;
     total?: number;
   };
-}
-
-export interface RealChatListResponse {
-  chats: ChatData[];
-  total: number;
-  hasMore: boolean;
-  nextCursor: string | null;
 }
 
 // Opciones para el selector

@@ -3,6 +3,7 @@ import { Observable, BehaviorSubject, combineLatest } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from './chat.service';
 import { Chat, Message } from '../../../../../../libs/feature/chat';
+import { ChatData } from '../models/chat.models';
 
 /**
  * Servicio de estado global para el chat usando signals de Angular 20
@@ -54,25 +55,32 @@ export class ChatStateService {
   }
   
   /**
-   * Inicializa el estado cargando los chats
+   * Inicializa el estado del chat
+   * TEMPORALMENTE DESHABILITADO: para evitar peticiones HTTP duplicadas con ChatListComponent
    */
   async initialize(): Promise<void> {
     try {
-      console.log('🚀 [ChatStateService] Iniciando carga de chats...');
-      await this.loadChats();
+      console.log('🚀 [ChatStateService] Estado inicializado (modo simplificado)');
+      // Temporalmente comentado para evitar duplicación con ChatListComponent
+      // await this.loadChats();
       this._isConnected.set(true);
       console.log('✅ [ChatStateService] Estado inicializado correctamente');
     } catch (error) {
       console.error('❌ [ChatStateService] Error al inicializar el estado del chat:', error);
       this._isConnected.set(false);
-      throw error; // Re-lanzar el error para que el componente pueda manejarlo
+      throw error;
     }
   }
   
   /**
    * Carga todos los chats disponibles
+   * TEMPORALMENTE DESHABILITADO: para evitar peticiones HTTP duplicadas
    */
   async loadChats(): Promise<void> {
+    console.log('⚠️ [ChatStateService] loadChats() temporalmente deshabilitado para evitar duplicación');
+    return Promise.resolve();
+    
+    /*
     return new Promise((resolve, reject) => {
       this.chatService.getChats({
         include: ['participants', 'lastMessage', 'metadata'],
@@ -87,6 +95,17 @@ export class ChatStateService {
         }
       });
     });
+    */
+  }
+
+  /**
+   * Establece los chats desde una fuente externa (como ChatListComponent)
+   * Esto evita peticiones HTTP duplicadas
+   */
+  setChats(chats: Chat[]): void {
+    console.log('📋 [ChatStateService] setChats() temporalmente deshabilitado');
+    // Temporalmente comentado debido a incompatibilidades de tipos
+    // this._chats.set(chats);
   }
   
   /**

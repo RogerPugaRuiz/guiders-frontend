@@ -54,7 +54,7 @@
     }
   </div>
 
-  <div class="chat-list" data-cy="chat-list">
+  <div class="chat-list" data-cy="chat-list" #chatListContainer>
     <!-- Loading state -->
     @if (isLoading()) {
       <div class="chat-loading" data-cy="chat-loading">
@@ -140,6 +140,14 @@
             }
           </div>
         </div>
+      </div>
+    }
+
+    <!-- Indicador de carga para scroll infinito -->
+    @if (isLoadingMoreChats()) {
+      <div class="loading-more-chats-indicator">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">Cargando más chats...</span>
       </div>
     }
   </div>
