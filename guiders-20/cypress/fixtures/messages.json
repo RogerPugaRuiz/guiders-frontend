@@ -1,0 +1,52 @@
+[
+  {
+    "id": "msg-1",
+    "chatId": "chat-1",
+    "senderId": "visitor-1",
+    "senderName": "Juan Pérez",
+    "content": "Hola, necesito ayuda con mi pedido",
+    "type": "text",
+    "timestamp": "2025-07-12T17:30:00Z",
+    "isRead": true
+  },
+  {
+    "id": "msg-2",
+    "chatId": "chat-1",
+    "senderId": "agent-1",
+    "senderName": "Agente Test",
+    "content": "¡Hola! Estaré encantado de ayudarte. ¿Podrías proporcionarme tu número de pedido?",
+    "type": "text",
+    "timestamp": "2025-07-12T17:31:00Z",
+    "isRead": true
+  },
+  {
+    "id": "msg-3",
+    "chatId": "chat-1",
+    "senderId": "visitor-1",
+    "senderName": "Juan Pérez",
+    "content": "Sí, es el número #12345",
+    "type": "text",
+    "timestamp": "2025-07-12T17:32:00Z",
+    "isRead": true
+  },
+  {
+    "id": "msg-4",
+    "chatId": "chat-1",
+    "senderId": "agent-1",
+    "senderName": "Agente Test",
+    "content": "Perfecto, déjame revisar tu pedido. Un momento por favor...",
+    "type": "text",
+    "timestamp": "2025-07-12T17:33:00Z",
+    "isRead": true
+  },
+  {
+    "id": "msg-5",
+    "chatId": "chat-1",
+    "senderId": "visitor-1",
+    "senderName": "Juan Pérez",
+    "content": "De acuerdo, espero",
+    "type": "text",
+    "timestamp": "2025-07-12T18:00:00Z",
+    "isRead": false
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "chat-1",
+    "participants": [
+      {
+        "id": "visitor-1",
+        "name": "Juan Pérez",
+        "isVisitor": true,
+        "isOnline": true,
+        "isAnonymous": false
+      },
+      {
+        "id": "agent-1",
+        "name": "Agente Test",
+        "isVisitor": false,
+        "isOnline": true,
+        "isAnonymous": false
+      }
+    ],
+    "lastMessage": "Hola, necesito ayuda con mi pedido",
+    "lastMessageAt": "2025-07-12T18:00:00Z",
+    "status": "active",
+    "createdAt": "2025-07-12T17:30:00Z",
+    "updatedAt": "2025-07-12T18:00:00Z"
+  },
+  {
+    "id": "chat-2",
+    "participants": [
+      {
+        "id": "visitor-2",
+        "name": "María García",
+        "isVisitor": true,
+        "isOnline": false,
+        "isAnonymous": false
+      },
+      {
+        "id": "agent-1",
+        "name": "Agente Test",
+        "isVisitor": false,
+        "isOnline": true,
+        "isAnonymous": false
+      }
+    ],
+    "lastMessage": "Gracias por la información",
+    "lastMessageAt": "2025-07-12T17:45:00Z",
+    "status": "archived",
+    "createdAt": "2025-07-12T17:00:00Z",
+    "updatedAt": "2025-07-12T17:45:00Z"
+  },
+  {
+    "id": "chat-3",
+    "participants": [
+      {
+        "id": "visitor-3",
+        "name": "Visitante Anónimo",
+        "isVisitor": true,
+        "isOnline": true,
+        "isAnonymous": true
+      },
+      {
+        "id": "agent-1",
+        "name": "Agente Test",
+        "isVisitor": false,
+        "isOnline": true,
+        "isAnonymous": false
+      }
+    ],
+    "lastMessage": "¿Pueden ayudarme?",
+    "lastMessageAt": "2025-07-12T18:10:00Z",
+    "status": "pending",
+    "createdAt": "2025-07-12T18:10:00Z",
+    "updatedAt": "2025-07-12T18:10:00Z"
+  }
+]
