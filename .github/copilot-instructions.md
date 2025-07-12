@@ -39,18 +39,6 @@ npm run start:guiders-20:hmr
 cd guiders-20 && npm start
 ```
 
-### Testing
-```bash
-# Run all tests
-./run-all-tests.sh
-
-# Unit tests only
-./run-unit-tests.sh
-
-# E2E tests
-./run-e2e-tests.sh
-```
-
 ### Building
 ```bash
 # Development build
@@ -59,6 +47,41 @@ npm run build:guiders-20
 # Production build
 npm run build:guiders-20:prod
 ```
+
+### Testing
+```bash
+# Jest Unit Tests (Primary testing framework)
+npm run test:jest:guiders-20
+
+# Cypress E2E Tests
+npm run test:cypress:guiders-20              # Interactive mode
+npm run test:cypress:headless:guiders-20     # Headless mode
+npm run test:cypress:open:guiders-20         # Open Cypress test runner
+
+# Shell scripts for comprehensive testing
+./run-all-tests.sh      # All tests (unit + e2e)
+./run-unit-tests.sh     # Unit tests only
+./run-e2e-tests.sh      # E2E tests
+```
+
+### Code Quality
+```bash
+# ESLint
+npm run lint:guiders-20
+```
+
+### Available Root Scripts
+All scripts are defined in the root `package.json` and delegate to the `guiders-20` application:
+
+- `start:guiders-20` - Start development server
+- `start:guiders-20:hmr` - Start with Hot Module Replacement
+- `build:guiders-20` - Development build
+- `build:guiders-20:prod` - Production build
+- `test:jest:guiders-20` - **Jest unit tests** (primary testing framework)
+- `test:cypress:guiders-20` - Cypress E2E tests
+- `test:cypress:headless:guiders-20` - Headless Cypress tests
+- `test:cypress:open:guiders-20` - Open Cypress test runner
+- `lint:guiders-20` - ESLint code quality check
 
 ## 🏛️ Hexagonal Architecture Rules
 
@@ -133,15 +156,33 @@ export class AuthService {
 
 ## 🧪 Testing Conventions
 
-### Unit Tests
-- **Use cases**: Test with mock repositories
-- **Services**: Test Angular-specific behavior
-- **Components**: Test UI interactions and state changes
+### Jest Unit Tests (Primary Framework)
+- **Framework**: Jest is the primary testing framework for unit tests
+- **Command**: `npm run test:jest:guiders-20` (runs from root)
+- **Configuration**: `jest.config.js` in both root and `guiders-20/`
+- **Setup**: Custom Jest setup in `guiders-20/src/setup-jest.ts`
 
-### E2E Tests
-- Located in project root with shell scripts
-- Mock services available for isolated testing
-- Database cleanup scripts included
+### Test Organization
+- **Use cases**: Test with mock repositories in `libs/feature/*/application/use-cases/`
+- **Services**: Test Angular-specific behavior in `guiders-20/src/app/core/services/`
+- **Components**: Test UI interactions and state changes
+- **Adapters**: Test infrastructure adapters with mocked dependencies
+
+### E2E Tests (Cypress)
+- **Framework**: Cypress for end-to-end testing
+- **Commands**: 
+  - `npm run test:cypress:guiders-20` - Interactive mode
+  - `npm run test:cypress:headless:guiders-20` - Headless execution
+  - `npm run test:cypress:open:guiders-20` - Open test runner
+- **Location**: E2E tests and configurations in project root
+- **Mock services**: Available for isolated testing scenarios
+- **Database cleanup**: Automated cleanup scripts included
+
+### Testing Best Practices
+- **Isolation**: Each test should be independent and not rely on others
+- **Mocking**: Use Jest mocks for external dependencies
+- **Coverage**: Aim for high test coverage, especially for business logic
+- **WebSocket testing**: Mock WebSocket connections for unit tests
 
 ## 🔄 State Management
 

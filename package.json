@@ -7,7 +7,6 @@
     "start:guiders-20:hmr": "cd guiders-20 && npm run start:hmr",
     "build:guiders-20": "cd guiders-20 && npm run build",
     "build:guiders-20:prod": "cd guiders-20 && npm run build:prod:env",
-    "test:guiders-20": "cd guiders-20 && npm run test",
     "test:jest:guiders-20": "cd guiders-20 && npm run test:jest",
     "test:cypress:guiders-20": "cd guiders-20 && npm run test:cypress",
     "test:cypress:headless:guiders-20": "cd guiders-20 && npm run test:cypress:headless",

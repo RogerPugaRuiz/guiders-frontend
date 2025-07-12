@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { Login } from './login';
+import { MOCK_AUTH_PROVIDERS } from '../../../../core/testing/auth.mocks';
 
 describe('Login', () => {
   let component: Login;
@@ -8,7 +9,10 @@ describe('Login', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Login]
+      imports: [Login],
+      providers: [
+        ...MOCK_AUTH_PROVIDERS
+      ]
     })
     .compileComponents();
 

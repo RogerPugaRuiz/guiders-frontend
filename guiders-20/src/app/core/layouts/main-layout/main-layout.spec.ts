@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { MainLayout } from './main-layout';
+import { MOCK_AUTH_PROVIDERS } from '../../testing/auth.mocks';
 
 describe('MainLayout', () => {
   let component: MainLayout;
@@ -8,7 +10,11 @@ describe('MainLayout', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [MainLayout]
+      imports: [MainLayout],
+      providers: [
+        provideRouter([]),
+        ...MOCK_AUTH_PROVIDERS
+      ]
     })
     .compileComponents();
 

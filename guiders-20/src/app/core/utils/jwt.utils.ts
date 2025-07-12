@@ -27,7 +27,10 @@ export function decodeJwtPayload<T = any>(token: string): T | null {
 
     const parts = token.split('.');
     if (parts.length !== 3) {
-      console.error('Token JWT inválido: debe tener 3 partes');
+      // Solo mostrar error si no estamos en el entorno de testing
+      if (typeof (global as any)?.jest === 'undefined' && typeof (window as any)?.jest === 'undefined') {
+        console.error('Token JWT inválido: debe tener 3 partes');
+      }
       return null;
     }
 
@@ -42,7 +45,10 @@ export function decodeJwtPayload<T = any>(token: string): T | null {
     
     return JSON.parse(decoded) as T;
   } catch (error) {
-    console.error('Error al decodificar el token JWT:', error);
+    // Solo mostrar error si no estamos en el entorno de testing
+    if (typeof (global as any)?.jest === 'undefined' && typeof (window as any)?.jest === 'undefined') {
+      console.error('Error al decodificar el token JWT:', error);
+    }
     return null;
   }
 }
