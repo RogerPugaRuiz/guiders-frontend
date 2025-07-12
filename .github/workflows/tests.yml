@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [guiders, backoffice]
+        project: [guiders-20]
 
     steps:
     - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        project: [guiders, backoffice]
+        project: [guiders-20]
     
     steps:
     - uses: actions/checkout@v4
