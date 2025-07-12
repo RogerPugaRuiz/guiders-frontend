@@ -26,16 +26,16 @@ jobs:
 
     - name: Instalar dependencias
       run: |
-        npm ci
+        npm ci --legacy-peer-deps
         # Asegurarnos de que estamos en el directorio correcto
         echo "Directorios en la raíz del proyecto:"
         ls -la
         if [ -d "${{ matrix.project }}" ]; then
           echo "Entrando al directorio ${{ matrix.project }}"
           cd ${{ matrix.project }}
-          npm ci
+          npm ci --legacy-peer-deps
           # Instalar explícitamente las dependencias de rollup para Linux
-          npm install @rollup/rollup-linux-x64-gnu
+          npm install @rollup/rollup-linux-x64-gnu --legacy-peer-deps
           cd ..
         else
           echo "Error: El directorio ${{ matrix.project }} no existe"
@@ -77,7 +77,7 @@ jobs:
     
     - name: Instalar dependencias del proyecto
       run: |
-        npm ci
+        npm ci --legacy-peer-deps
         # Instalar dependencias del proyecto específico
         if [ -d "${{ matrix.project }}" ]; then
           echo "Instalando dependencias en ${{ matrix.project }}"

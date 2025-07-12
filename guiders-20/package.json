@@ -21,14 +21,14 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/common": "^20.0.0",
-    "@angular/compiler": "^20.0.0",
-    "@angular/core": "^20.0.0",
-    "@angular/forms": "^20.0.0",
-    "@angular/platform-browser": "^20.0.0",
-    "@angular/platform-server": "^20.0.0",
-    "@angular/router": "^20.0.0",
-    "@angular/ssr": "^20.0.0",
+    "@angular/common": "^20.1.0",
+    "@angular/compiler": "^20.1.0",
+    "@angular/core": "^20.1.0",
+    "@angular/forms": "^20.1.0",
+    "@angular/platform-browser": "^20.1.0",
+    "@angular/platform-server": "^20.1.0",
+    "@angular/router": "^20.1.0",
+    "@angular/ssr": "^20.1.0",
     "@multiavatar/multiavatar": "^1.0.7",
     "@ngrx/signals": "^19.2.1",
     "@types/uuid": "^10.0.0",
@@ -40,9 +40,9 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.0.0",
-    "@angular/cli": "^20.0.0",
-    "@angular/compiler-cli": "^20.0.0",
+    "@angular/build": "^20.1.0",
+    "@angular/cli": "^20.1.0",
+    "@angular/compiler-cli": "^20.1.0",
     "@angular/platform-browser-dynamic": "^20.1.0",
     "@angular/testing": "^0.0.0-0",
     "@jest/globals": "^30.0.4",
@@ -64,8 +64,8 @@
     "typescript": "~5.8.2"
   },
   "overrides": {
-    "@angular/core": "^20.0.0",
-    "@angular/common": "^20.0.0",
-    "@angular/platform-browser": "^20.0.0"
+    "@angular/core": "^20.1.0",
+    "@angular/common": "^20.1.0",
+    "@angular/platform-browser": "^20.1.0"
   }
 }
