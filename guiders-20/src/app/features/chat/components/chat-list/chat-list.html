@@ -102,44 +102,63 @@
     <!-- Chat items -->
     @for (chat of filteredChats(); track chat.id) {
       <div class="chat-item"
-           [class.chat-item--active]="isChatSelected(chat)" 
+           [class.chat-item--active]="isChatSelected(chat)"
+           [class.chat-item--claimed]="isChatClaimed(chat.id)"
            [attr.data-chat-id]="chat.id" 
-           data-cy="chat-item"
-           (click)="selectChat(chat)">
-        <div class="chat-item__avatar">
-          <span class="chat-item__status" [class]="getParticipantStatusClass(chat)" [title]="getParticipantStatusText(chat)"></span>
-          <img [src]="getChatAvatar(chat)" 
-               [alt]="getVisitorName(chat)"
-               class="chat-item__avatar-image"
-               (error)="onAvatarError($event, chat)">
-          <span class="chat-item__avatar-fallback">{{ getParticipantInitials(chat) }}</span>
-        </div>
-        <div class="chat-item__content">
-          <div class="chat-item__header">
-            <h4 class="chat-item__name">
-              <span class="chat-item__name-text">{{ getVisitorName(chat) }}</span>
-              @if (isAnonymousVisitor(chat)) {
-                <span class="chat-item__anonymous-tag">Anónimo</span>
-              }
-              @if (hasUnreadMessages(chat)) {
-                <span class="chat-item__notification-badge" 
-                [class.chat-item__notification-badge--unread]="getUnreadCount(chat) > 0"
-                [title]="getUnreadCount(chat) + ' mensaje(s) sin leer'">
-                  {{ getUnreadCountText(chat) }}
-                </span>
-              }
-            </h4>
-            <span class="chat-item__time">{{ formatLastMessageTime(chat) }}</span>
+           data-cy="chat-item">
+        <div class="chat-item__main" (click)="selectChat(chat)">
+          <div class="chat-item__avatar">
+            <span class="chat-item__status" [class]="getParticipantStatusClass(chat)" [title]="getParticipantStatusText(chat)"></span>
+            <img [src]="getChatAvatar(chat)" 
+                 [alt]="getVisitorName(chat)"
+                 class="chat-item__avatar-image"
+                 (error)="onAvatarError($event, chat)">
+            <span class="chat-item__avatar-fallback">{{ getParticipantInitials(chat) }}</span>
           </div>
-          <div class="chat-item__info">
-            <p class="chat-item__preview">{{ getLastMessagePreview(chat) }}</p>
-            @if (getVisitor(chat)?.isTyping) {
-              <p class="chat-item__status-text typing">Escribiendo...</p>
-            } @else if (getParticipantStatusClass(chat) === 'chat-item__status--inactive') {
-              <!-- <p class="chat-item__status-text inactive">Inactivo</p> -->
-            }
+          <div class="chat-item__content">
+            <div class="chat-item__header">
+              <h4 class="chat-item__name">
+                <span class="chat-item__name-text">{{ getVisitorName(chat) }}</span>
+                @if (isAnonymousVisitor(chat)) {
+                  <span class="chat-item__anonymous-tag">Anónimo</span>
+                }
+                @if (isChatClaimed(chat.id)) {
+                  <span class="chat-item__claimed-tag">Reclamado</span>
+                }
+                @if (hasUnreadMessages(chat)) {
+                  <span class="chat-item__notification-badge" 
+                  [class.chat-item__notification-badge--unread]="getUnreadCount(chat) > 0"
+                  [title]="getUnreadCount(chat) + ' mensaje(s) sin leer'">
+                    {{ getUnreadCountText(chat) }}
+                  </span>
+                }
+              </h4>
+              <span class="chat-item__time">{{ formatLastMessageTime(chat) }}</span>
+            </div>
+            <div class="chat-item__info">
+              <p class="chat-item__preview">{{ getLastMessagePreview(chat) }}</p>
+              @if (getVisitor(chat)?.isTyping) {
+                <p class="chat-item__status-text typing">Escribiendo...</p>
+              } @else if (getParticipantStatusClass(chat) === 'chat-item__status--inactive') {
+                <!-- <p class="chat-item__status-text inactive">Inactivo</p> -->
+              }
+            </div>
           </div>
         </div>
+        
+        <!-- Acciones de claim/release -->
+        @if (shouldShowClaimButton(chat.id)) {
+          <div class="chat-item__actions">
+            <button type="button"
+                    [class]="getClaimButtonClass(chat.id)"
+                    [disabled]="isClaimButtonDisabled(chat.id)"
+                    (click)="toggleChatClaim(chat.id)"
+                    [title]="getClaimButtonText(chat.id)"
+                    data-cy="chat-claim-button">
+              {{ getClaimButtonText(chat.id) }}
+            </button>
+          </div>
+        }
       </div>
     }
 

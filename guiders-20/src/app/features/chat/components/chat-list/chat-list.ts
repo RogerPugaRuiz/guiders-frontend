@@ -5,13 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { AvatarService } from '../../../../core/services/avatar.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { ChatData, ChatListResponse, ChatStatus, Participant, MessagesListResponse } from '../../models/chat.models';
+import { ChatData, ChatListResponse, ChatStatus, Participant, MessagesListResponse, ClaimChatRequest, ReleaseChatClaimRequest, ChatClaimedEvent, ChatReleaseEvent } from '../../models/chat.models';
 import { ChatLastMessageUpdatedData } from '../../../../core/models/websocket-response.models';
 import { environment } from 'src/environments/environment';
 import { WebSocketConnectionStateDefault, WebSocketMessage, WebSocketService } from 'src/app/core/services';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { WebSocketMessageType } from 'src/app/core/enums';
 import { catchError, EMPTY, filter, tap } from 'rxjs';
+import { ChatClaimService } from '../../services/chat-claim.service';
 
 interface FilterOption {
   value: string;
@@ -35,6 +36,18 @@ export interface ChatRetryEvent {
   // Evento simple para indicar retry
 }
 
+export interface ChatClaimEvent {
+  chatId: string;
+  success: boolean;
+  error?: string;
+}
+
+export interface ChatReleaseClaimEvent {
+  chatId: string;
+  success: boolean;
+  error?: string;
+}
+
 @Component({
   selector: 'app-chat-list',
   standalone: true,
@@ -48,6 +61,7 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
   private authService = inject(AuthService);
   private ws = inject(WebSocketService);
   private http = inject(HttpClient);
+  private chatClaimService = inject(ChatClaimService);
 
   // Referencia al contenedor de chats para el scroll infinito
   chatListContainer = viewChild<ElementRef>('chatListContainer');
@@ -75,6 +89,8 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
   // Output events
   chatSelected = output<ChatSelectionEvent>();
   participantStatusUpdated = output<{ participantId: string; isOnline: boolean }>();
+  chatClaimed = output<ChatClaimEvent>();
+  chatReleased = output<ChatReleaseClaimEvent>();
 
   // Signals
   searchTerm = signal('');
@@ -84,12 +100,21 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
   isRetryLoading = signal(false);
   selectedChat = signal<ChatData | null>(null);
   previousSelectedChatId = signal<string | null>(null); // Para rastrear cambios de selección
-  limit = signal(24);
+  limit = signal(20);
   cursor = signal<string>("");
   include = signal<string[]>(['participants', 'lastMessage', 'metadata']);
   
   // Signal para mantener el conteo de mensajes no leídos por chat ID
   unreadCountsMap = signal<Map<string, number>>(new Map());
+
+  // Signals para manejar claims de chats
+  claimingChatId = signal<string | null>(null);
+  releasingChatId = signal<string | null>(null);
+  claimedChats = signal<Set<string>>(new Set());
+  availableChats = signal<ChatData[]>([]);
+  
+  // Signal para mantener información detallada de claims
+  claimDetails = signal<Map<string, { isAvailable: boolean; claimInfo?: any; lastChecked: number }>>(new Map());
 
   constructor() {
     effect(() => {
@@ -204,6 +229,8 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
         // Usar setTimeout para evitar cargas síncronas que puedan bloquear la UI
         setTimeout(() => {
           this.loadUnreadCountsForVisibleChats();
+          // Verificar estados de claim después de cargar los chats
+          this.verifyClaimStatesForVisibleChats();
         }, 100);
       }
     });
@@ -266,6 +293,17 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
         // El effect de selección se encargará de enviar el mensaje de desconexión
         this.selectedChat.set(null);
         console.log('❌ [ChatList] Chat seleccionado ya no está en la lista filtrada, deseleccionando');
+      }
+    });
+
+    // Effect para cargar chats disponibles cuando el WebSocket se conecte
+    effect(() => {
+      const wsStatus = this.wsConnected();
+      if (wsStatus.connected) {
+        // Cargar chats disponibles para claims cuando se establezca la conexión
+        setTimeout(() => {
+          this.loadAvailableChats();
+        }, 1000);
       }
     });
   }
@@ -428,11 +466,45 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
     { initialValue: null }
   );
 
+  // Signal para escuchar eventos de chat reclamado
+  chatClaimedEvent = toSignal(
+    this.ws.getMessagesByType(WebSocketMessageType.CHAT_CLAIMED)
+      .pipe(
+        tap(message => {
+          console.log('🎯 [ChatList] Evento de chat reclamado recibido:', message);
+        }),
+        filter(message => message && message.data && message.data.data),
+        catchError(err => {
+          console.error('❌ Error en el stream de chat reclamado:', err);
+          return EMPTY;
+        })
+      ),
+    { initialValue: null }
+  );
+
+  // Signal para escuchar eventos de liberación de claim
+  chatReleaseClaimEvent = toSignal(
+    this.ws.getMessagesByType(WebSocketMessageType.CHAT_CLAIM_RELEASED)
+      .pipe(
+        tap(message => {
+          console.log('🎯 [ChatList] Evento de liberación de claim recibido:', message);
+        }),
+        filter(message => message && message.data && message.data.data),
+        catchError(err => {
+          console.error('❌ Error en el stream de liberación de claim:', err);
+          return EMPTY;
+        })
+      ),
+    { initialValue: null }
+  );
+
   chats = linkedSignal(() => {
     const httpChats = this.allChats();
     const participantStatusUpdate = this.participantStatusUpdate();
     const incomingChat = this.commercialIncomingChat();
     const incomingMessage = this.incomingMessage();
+    const chatClaimedEvent = this.chatClaimedEvent();
+    const chatReleaseEvent = this.chatReleaseClaimEvent();
 
     let updatedChats = httpChats;
 
@@ -531,6 +603,36 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
       }
 
       console.log('🔄 [ChatList] Lista de chats actualizada con mensaje entrante:', updatedChats);
+    }
+
+    // Manejar eventos de chat reclamado
+    if (chatClaimedEvent?.data?.data) {
+      const claimData = chatClaimedEvent.data.data as ChatClaimedEvent;
+      console.log('🎯 [ChatList] Procesando evento de chat reclamado:', claimData);
+      
+      // Actualizar el conjunto de chats reclamados
+      this.claimedChats.update(current => {
+        const newSet = new Set(current);
+        newSet.add(claimData.chatId);
+        return newSet;
+      });
+      
+      console.log('🎯 [ChatList] Chat marcado como reclamado:', claimData.chatId);
+    }
+
+    // Manejar eventos de liberación de claim
+    if (chatReleaseEvent?.data?.data) {
+      const releaseData = chatReleaseEvent.data.data as ChatReleaseEvent;
+      console.log('🎯 [ChatList] Procesando evento de liberación de claim:', releaseData);
+      
+      // Remover del conjunto de chats reclamados
+      this.claimedChats.update(current => {
+        const newSet = new Set(current);
+        newSet.delete(releaseData.chatId);
+        return newSet;
+      });
+      
+      console.log('🎯 [ChatList] Chat marcado como liberado:', releaseData.chatId);
     }
 
     return updatedChats;
@@ -1318,6 +1420,418 @@ export class ChatListComponent implements OnInit, OnDestroy, AfterViewInit {
   canLoadMoreChats(): boolean {
     const chatsResponse = this.chatsResource.value();
     return !!(chatsResponse && chatsResponse.hasMore && !this.isLoadingMore);
+  }
+
+  // ========================================
+  // MÉTODOS DE CLAIM/RELEASE DE CHATS
+  // ========================================
+
+  /**
+   * Reclama un chat específico para el usuario actual
+   */
+  async claimChat(chatId: string): Promise<void> {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) {
+      console.error('❌ [ChatList] No hay usuario autenticado para reclamar el chat');
+      this.chatClaimed.emit({ chatId, success: false, error: 'No hay usuario autenticado' });
+      return;
+    }
+
+    // Verificar si ya se está reclamando este chat
+    if (this.claimingChatId() === chatId) {
+      console.warn('⚠️ [ChatList] Ya se está reclamando este chat:', chatId);
+      return;
+    }
+
+    // Verificar si el chat ya está reclamado
+    if (this.claimedChats().has(chatId)) {
+      console.warn('⚠️ [ChatList] El chat ya está reclamado:', chatId);
+      this.chatClaimed.emit({ chatId, success: false, error: 'El chat ya está reclamado' });
+      return;
+    }
+
+    try {
+      this.claimingChatId.set(chatId);
+      console.log('🎯 [ChatList] Intentando reclamar chat:', { chatId, comercialId: currentUser.id });
+
+      const claimRequest: ClaimChatRequest = {
+        chatId,
+        comercialId: currentUser.id
+      };
+
+      const response = await this.chatClaimService.claimChat(claimRequest).toPromise();
+      
+      if (response) {
+        console.log('✅ [ChatList] Chat reclamado exitosamente:', response);
+        
+        // Actualizar estado local
+        this.claimedChats.update(current => {
+          const newSet = new Set(current);
+          newSet.add(chatId);
+          return newSet;
+        });
+
+        // Emitir evento de éxito
+        this.chatClaimed.emit({ chatId, success: true });
+
+        // Opcionalmente, seleccionar el chat reclamado
+        const claimedChat = this.allChats().find(chat => chat.id === chatId);
+        if (claimedChat) {
+          this.selectChat(claimedChat);
+        }
+      }
+    } catch (error) {
+      console.error('❌ [ChatList] Error al reclamar chat:', error);
+      this.chatClaimed.emit({ 
+        chatId, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Error desconocido' 
+      });
+    } finally {
+      this.claimingChatId.set(null);
+    }
+  }
+
+  /**
+   * Libera el claim de un chat específico
+   */
+  async releaseChatClaim(chatId: string): Promise<void> {
+    const currentUser = this.authService.currentUser();
+    if (!currentUser) {
+      console.error('❌ [ChatList] No hay usuario autenticado para liberar el claim');
+      this.chatReleased.emit({ chatId, success: false, error: 'No hay usuario autenticado' });
+      return;
+    }
+
+    // Verificar si ya se está liberando este chat
+    if (this.releasingChatId() === chatId) {
+      console.warn('⚠️ [ChatList] Ya se está liberando este chat:', chatId);
+      return;
+    }
+
+    // Verificar si el chat está reclamado
+    if (!this.claimedChats().has(chatId)) {
+      console.warn('⚠️ [ChatList] El chat no está reclamado actualmente:', chatId);
+      this.chatReleased.emit({ chatId, success: false, error: 'El chat no está reclamado' });
+      return;
+    }
+
+    try {
+      this.releasingChatId.set(chatId);
+      console.log('🎯 [ChatList] Intentando liberar claim del chat:', { chatId, comercialId: currentUser.id });
+
+      const releaseRequest: ReleaseChatClaimRequest = {
+        chatId,
+        comercialId: currentUser.id
+      };
+
+      await this.chatClaimService.releaseChatClaim(releaseRequest).toPromise();
+      
+      console.log('✅ [ChatList] Claim liberado exitosamente para chat:', chatId);
+      
+      // Actualizar estado local
+      this.claimedChats.update(current => {
+        const newSet = new Set(current);
+        newSet.delete(chatId);
+        return newSet;
+      });
+
+      // Emitir evento de éxito
+      this.chatReleased.emit({ chatId, success: true });
+
+      // Si el chat liberado está seleccionado, deseleccionarlo
+      if (this.selectedChat()?.id === chatId) {
+        this.deselectCurrentChat();
+      }
+    } catch (error) {
+      console.error('❌ [ChatList] Error al liberar claim del chat:', error);
+      this.chatReleased.emit({ 
+        chatId, 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Error desconocido' 
+      });
+    } finally {
+      this.releasingChatId.set(null);
+    }
+  }
+
+  /**
+   * Toggle del claim de un chat (reclama si está disponible, libera si está reclamado)
+   */
+  async toggleChatClaim(chatId: string): Promise<void> {
+    const status = this.getChatClaimStatus(chatId);
+    
+    switch (status) {
+      case 'available':
+        await this.claimChat(chatId);
+        break;
+      case 'claimed':
+        await this.releaseChatClaim(chatId);
+        break;
+      case 'claiming':
+      case 'releasing':
+        console.warn('⚠️ [ChatList] Operación en progreso para chat:', chatId, 'status:', status);
+        break;
+    }
+  }
+
+  /**
+   * Verifica si un chat está siendo reclamado actualmente
+   */
+  isChatBeingClaimed(chatId: string): boolean {
+    return this.claimingChatId() === chatId;
+  }
+
+  /**
+   * Verifica si un chat está siendo liberado actualmente
+   */
+  isChatBeingReleased(chatId: string): boolean {
+    return this.releasingChatId() === chatId;
+  }
+
+  /**
+   * Verifica si un chat está reclamado por el usuario actual
+   */
+  isChatClaimed(chatId: string): boolean {
+    return this.claimedChats().has(chatId);
+  }
+
+  /**
+   * Obtiene el estado del claim para un chat específico
+   */
+  getChatClaimStatus(chatId: string): 'available' | 'claimed' | 'claiming' | 'releasing' {
+    if (this.isChatBeingClaimed(chatId)) return 'claiming';
+    if (this.isChatBeingReleased(chatId)) return 'releasing';
+    if (this.isChatClaimed(chatId)) return 'claimed';
+    return 'available';
+  }
+
+  /**
+   * Carga la lista de chats disponibles para reclamar
+   */
+  async loadAvailableChats(): Promise<void> {
+    try {
+      console.log('🎯 [ChatList] Cargando chats disponibles para reclamar...');
+      const response = await this.chatClaimService.getAvailableChats().toPromise();
+      
+      if (response) {
+        this.availableChats.set(response.chats);
+        console.log('✅ [ChatList] Chats disponibles cargados:', response.chats.length);
+      }
+    } catch (error) {
+      console.error('❌ [ChatList] Error al cargar chats disponibles:', error);
+    }
+  }
+
+  /**
+   * Obtiene el texto del botón para las operaciones de claim
+   */
+  getClaimButtonText(chatId: string): string {
+    const status = this.getChatClaimStatus(chatId);
+    const claimDetail = this.claimDetails().get(chatId);
+    
+    switch (status) {
+      case 'claiming':
+        return 'Reclamando...';
+      case 'releasing':
+        return 'Liberando...';
+      case 'claimed':
+        // Si tenemos información del claim, verificar si es del usuario actual
+        if (claimDetail?.claimInfo) {
+          const currentUser = this.authService.currentUser();
+          const isMyOwnClaim = currentUser ? (claimDetail.claimInfo.comercialId === currentUser.id) : false;
+          return isMyOwnClaim ? 'Liberar' : 'Reclamado';
+        }
+        return 'Liberar';
+      case 'available':
+      default:
+        return 'Reclamar';
+    }
+  }
+
+  /**
+   * Obtiene la clase CSS para el botón de claim según el estado
+   */
+  getClaimButtonClass(chatId: string): string {
+    const status = this.getChatClaimStatus(chatId);
+    const claimDetail = this.claimDetails().get(chatId);
+    
+    let baseClass = 'chat-claim-button ';
+    
+    switch (status) {
+      case 'claiming':
+        return baseClass + 'chat-claim-button--claiming';
+      case 'releasing':
+        return baseClass + 'chat-claim-button--releasing';
+      case 'claimed':
+        // Si tenemos información del claim, verificar si es del usuario actual
+        if (claimDetail?.claimInfo) {
+          const currentUser = this.authService.currentUser();
+          const isMyOwnClaim = currentUser ? (claimDetail.claimInfo.comercialId === currentUser.id) : false;
+          return baseClass + (isMyOwnClaim ? 'chat-claim-button--mine' : 'chat-claim-button--claimed-other');
+        }
+        return baseClass + 'chat-claim-button--claimed';
+      case 'available':
+      default:
+        return baseClass + 'chat-claim-button--available';
+    }
+  }
+
+  /**
+   * Determina si el botón de claim debe estar deshabilitado
+   */
+  isClaimButtonDisabled(chatId: string): boolean {
+    const status = this.getChatClaimStatus(chatId);
+    const claimDetail = this.claimDetails().get(chatId);
+    
+    // Deshabilitar durante operaciones en progreso
+    if (status === 'claiming' || status === 'releasing') {
+      return true;
+    }
+    
+    // Si está reclamado por otro usuario, deshabilitar
+    if (status === 'claimed' && claimDetail?.claimInfo) {
+      const currentUser = this.authService.currentUser();
+      const isMyOwnClaim = currentUser ? (claimDetail.claimInfo.comercialId === currentUser.id) : false;
+      return !isMyOwnClaim;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Determina si el botón de claim debe mostrarse
+   */
+  shouldShowClaimButton(chatId: string): boolean {
+    const claimDetail = this.claimDetails().get(chatId);
+    
+    // Si aún no se ha verificado el estado, mostrar el botón
+    if (!claimDetail) {
+      return true;
+    }
+    
+    // Si está reclamado por otro usuario, puede optar por ocultar el botón
+    if (!claimDetail.isAvailable && claimDetail.claimInfo) {
+      const currentUser = this.authService.currentUser();
+      const isMyOwnClaim = currentUser ? (claimDetail.claimInfo.comercialId === currentUser.id) : false;
+      
+      // Mostrar solo si es mi propio claim (para poder liberarlo)
+      // O siempre mostrar pero deshabilitado (comentar la línea de abajo para esto)
+      return isMyOwnClaim;
+    }
+    
+    return true;
+  }
+
+  /**
+   * Verifica el estado de claim para todos los chats visibles
+   */
+  private verifyClaimStatesForVisibleChats(): void {
+    const visibleChats = this.filteredChats();
+    const chatsToCheck = visibleChats.filter(chat => {
+      const lastChecked = this.claimDetails().get(chat.id)?.lastChecked || 0;
+      const now = Date.now();
+      // Solo verificar si no se ha chequeado en los últimos 30 segundos
+      return (now - lastChecked) > 30000;
+    });
+
+    if (chatsToCheck.length > 0) {
+      console.log('🎯 [ChatList] Verificando estados de claim para', chatsToCheck.length, 'chats');
+      chatsToCheck.forEach(chat => {
+        this.checkChatClaimStatus(chat.id);
+      });
+    }
+  }
+
+  /**
+   * Verifica el estado de claim de un chat específico usando el servicio
+   */
+  private async checkChatClaimStatus(chatId: string): Promise<void> {
+    try {
+      // Verificar disponibilidad del chat
+      const isAvailableResponse = await this.chatClaimService.isChatAvailable(chatId).toPromise();
+      const isAvailable = isAvailableResponse ?? true; // Asumir disponible si es undefined
+      
+      let claimInfo = null;
+      
+      // Si no está disponible, obtener información del claim
+      if (!isAvailable) {
+        try {
+          claimInfo = await this.chatClaimService.getChatClaim(chatId).toPromise();
+        } catch (error) {
+          console.warn('⚠️ [ChatList] No se pudo obtener información del claim para:', chatId);
+        }
+      }
+
+      // Actualizar el signal con la información
+      this.claimDetails.update(current => {
+        const newMap = new Map(current);
+        newMap.set(chatId, {
+          isAvailable,
+          claimInfo,
+          lastChecked: Date.now()
+        });
+        return newMap;
+      });
+
+      // Actualizar el set de chats reclamados basado en la información real
+      this.claimedChats.update(current => {
+        const newSet = new Set(current);
+        if (!isAvailable && claimInfo) {
+          newSet.add(chatId);
+        } else {
+          newSet.delete(chatId);
+        }
+        return newSet;
+      });
+
+      console.log('✅ [ChatList] Estado de claim verificado para chat:', chatId, {
+        isAvailable,
+        isClaimed: !isAvailable,
+        claimInfo
+      });
+
+    } catch (error) {
+      console.error('❌ [ChatList] Error al verificar estado de claim para chat:', chatId, error);
+      
+      // En caso de error, marcar como no verificado
+      this.claimDetails.update(current => {
+        const newMap = new Map(current);
+        newMap.set(chatId, {
+          isAvailable: true, // Asumir disponible en caso de error
+          claimInfo: null,
+          lastChecked: Date.now()
+        });
+        return newMap;
+      });
+    }
+  }
+
+  /**
+   * Invalida el cache de claims para forzar una nueva verificación
+   */
+  invalidateClaimCache(chatId?: string): void {
+    if (chatId) {
+      // Invalidar solo un chat específico
+      this.claimDetails.update(current => {
+        const newMap = new Map(current);
+        newMap.delete(chatId);
+        return newMap;
+      });
+      console.log('🎯 [ChatList] Cache de claim invalidado para chat:', chatId);
+    } else {
+      // Invalidar todo el cache
+      this.claimDetails.set(new Map());
+      console.log('🎯 [ChatList] Cache de claims completamente invalidado');
+    }
+  }
+
+  /**
+   * Fuerza la verificación inmediata de un chat específico
+   */
+  async forceVerifyClaimStatus(chatId: string): Promise<void> {
+    this.invalidateClaimCache(chatId);
+    await this.checkChatClaimStatus(chatId);
   }
 
 }

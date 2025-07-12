@@ -62,3 +62,46 @@ export interface SelectOption {
   value: string;
   label: string;
 }
+
+// Interfaces para el sistema de claims de chats
+export interface ChatClaim {
+  id: string;
+  chatId: string;
+  comercialId: string;
+  claimedAt: string;
+  releasedAt?: string | null;
+  status: 'active' | 'released';
+}
+
+export interface AvailableChatsResponse {
+  chats: ChatData[];
+  total: number;
+}
+
+export interface ClaimChatRequest {
+  chatId: string;
+  comercialId: string;
+}
+
+export interface ReleaseChatClaimRequest {
+  chatId: string;
+  comercialId: string;
+}
+
+export interface ClaimChatResponse {
+  claim: ChatClaim;
+  chat: ChatData;
+}
+
+// Eventos para el sistema de claims
+export interface ChatClaimedEvent {
+  chatId: string;
+  comercialId: string;
+  claimedAt: string;
+}
+
+export interface ChatReleaseEvent {
+  chatId: string;
+  comercialId: string;
+  releasedAt: string;
+}
