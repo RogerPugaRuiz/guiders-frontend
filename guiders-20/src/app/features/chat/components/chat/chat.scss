@@ -60,20 +60,7 @@
 		border-right: 1px solid var(--color-border);
 		background-color: var(--color-background);
 	}
-	
-	/* Panel lateral de conversaciones - COMENTADO: se usa app-chat-list directamente
-	.chat-sidebar {
-		width: 320px;
-		display: flex;
-		flex-direction: column;
-		border-right: 1px solid var(--color-border);
-		
-		&__header {
-			padding: var(--spacing-md);
-			border-bottom: 1px solid var(--color-border);
-		}
-	}
-	*/
+
 	
 	.chat-search {
 		position: relative;
