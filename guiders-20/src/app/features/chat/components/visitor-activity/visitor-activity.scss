@@ -1,6 +1,107 @@
 /* Estilos específicos para el componente VisitorActivity */
 /* Los estilos principales del tracking-info-panel están en styles.scss como globales */
 
+/* Campos editables */
+.editable-item {
+  position: relative;
+  
+  .display-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: background-color 0.15s ease;
+    
+    &:hover {
+      background-color: var(--color-bg-secondary);
+      
+      .edit-btn {
+        opacity: 1;
+      }
+    }
+    
+    span {
+      flex: 1;
+    }
+  }
+  
+  .edit-btn {
+    opacity: 0;
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: var(--radius-sm);
+    transition: opacity 0.15s ease, color 0.15s ease;
+    
+    &:hover {
+      color: var(--accent-primary);
+    }
+    
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+  
+  .edit-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  
+  .edit-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-primary);
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: border-color 0.15s ease;
+    
+    &:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px var(--accent-light);
+    }
+    
+    &::placeholder {
+      color: var(--color-text-light);
+    }
+  }
+  
+  .edit-confirm-btn {
+    padding: 0.5rem;
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-color 0.15s ease, opacity 0.15s ease;
+    
+    &:hover:not(:disabled) {
+      background-color: var(--accent-dark);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    svg {
+      width: 16px;
+      height: 16px;
+      display: block;
+    }
+  }
+}
+
 /* Tags del visitante */
 .visitor-tags {
   display: flex;
@@ -17,6 +118,21 @@
   border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 500;
+}
+
+/* Lista de notas del visitante */
+.visitor-notes-list {
+  margin: 0.5rem 0 0 0;
+  padding-left: 1rem;
+  
+  li {
+    margin-bottom: 0.25rem;
+    font-size: 0.875rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }
 
 /* Lista de páginas visitadas específica del visitante */
