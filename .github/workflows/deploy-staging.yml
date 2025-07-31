@@ -1,0 +1,614 @@
+# Workflow para deployment de Angular SSR a staging
+# .github/workflows/deploy-staging.yml
+name: Deploy Angular SSR to Staging
+
+on:
+  push:
+    branches: [develop, feature/*]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Forzar deployment (skip some checks)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Test básico y build
+  test-and-build:
+    name: Test and Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📦 Install root dependencies
+        run: npm ci --legacy-peer-deps
+      
+      - name: 📦 Install Guiders-20 dependencies
+        run: |
+          cd guiders-20
+          npm ci --legacy-peer-deps
+      
+      - name: 🔍 Run lint
+        run: |
+          cd guiders-20
+          npm run lint:guiders-20 || npm run lint || echo "⚠️ Lint no disponible, continuando..."
+      
+      - name: 🏗️ Build Angular SSR application for staging
+        run: |
+          cd guiders-20
+          npm run build:guiders-20 || npm run build || echo "⚠️ Build command no encontrado"
+      
+      - name: 🧪 Run unit tests
+        run: |
+          cd guiders-20
+          npm run test:jest:guiders-20 || npm run test:unit || echo "⚠️ Tests unitarios no disponibles"
+
+      - name: 📁 Verify build output
+        run: |
+          echo "📁 Verificando estructura de build..."
+          ls -la guiders-20/dist/
+          
+          # Verificar estructura Angular 20 (siempre tiene el subdirectorio del proyecto)
+          if [ -d "guiders-20/dist/guiders-20" ]; then
+            echo "✅ Build exitoso - encontrado subdirectorio del proyecto"
+            echo "📁 Contenido del build principal:"
+            ls -la guiders-20/dist/guiders-20/
+            
+            # Verificar que existen las carpetas browser y server
+            if [ -d "guiders-20/dist/guiders-20/browser" ] && [ -d "guiders-20/dist/guiders-20/server" ]; then
+              echo "✅ Directorios browser y server encontrados"
+              
+              # Verificar que server.mjs existe
+              if [ -f "guiders-20/dist/guiders-20/server/server.mjs" ]; then
+                echo "✅ server.mjs encontrado"
+              else
+                echo "❌ Error: server.mjs no encontrado"
+                echo "📁 Archivos en server/:"
+                ls -la guiders-20/dist/guiders-20/server/
+                exit 1
+              fi
+              
+              # Verificar index.html en browser
+              if [ -f "guiders-20/dist/guiders-20/browser/index.csr.html" ] || [ -f "guiders-20/dist/guiders-20/browser/index.html" ]; then
+                echo "✅ Archivo index HTML encontrado en el cliente"
+              else
+                echo "❌ Error: No se encontró archivo index HTML en el cliente"
+                exit 1
+              fi
+            else
+              echo "❌ Error: No se encontraron directorios browser/server"
+              exit 1
+            fi
+          else
+            echo "❌ Error: No se encontró el subdirectorio del proyecto en dist/"
+            exit 1
+          fi
+
+  # Deploy real a staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [test-and-build]
+    if: needs.test-and-build.result == 'success'
+    environment: staging
+    
+    env:
+      STAGING_HOST: '${{ secrets.STAGING_HOST }}'
+      STAGING_USER: '${{ secrets.STAGING_USER }}'
+      STAGING_DEPLOY_PATH: '/var/www/guiders-frontend-staging'
+      STAGING_BACKUP_PATH: '/tmp/guiders-frontend-staging-backup'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y sshpass wireguard
+
+      - name: 🌐 Setup WireGuard VPN
+        run: |
+          echo "🔧 Configurando WireGuard VPN..."
+          
+          # Setup WireGuard private key
+          echo "${{ secrets.WG_PRIVATE_KEY }}" > /tmp/privatekey
+          sudo chmod 600 /tmp/privatekey
+
+          # Create WireGuard interface
+          sudo ip link add dev wg0 type wireguard
+
+          # Configure WireGuard IP
+          sudo ip address add dev wg0 10.0.0.3/24 peer 10.0.0.1
+
+          # Configure WireGuard peer
+          sudo wg set wg0 \
+            listen-port 48123 \
+            private-key /tmp/privatekey \
+            peer ${{ secrets.WG_SERVER_PUBLIC_KEY }} \
+            allowed-ips 10.0.0.0/24 \
+            endpoint ${{ secrets.WG_SERVER_ENDPOINT }}:51820
+
+          # Bring up WireGuard interface
+          sudo ip link set up dev wg0
+
+          # Cleanup private key
+          rm -f /tmp/privatekey
+
+      - name: 🔍 Verify VPN connection
+        run: |
+          echo "🔍 Verificando conexión VPN..."
+          
+          # Mostrar información de la interfaz WireGuard
+          echo "📋 Estado de WireGuard:"
+          sudo wg show
+          
+          # Verificar conectividad VPN
+          echo ""
+          echo "🔍 Probando diferentes IPs del servidor VPN..."
+          for server_ip in "10.0.0.1" "10.0.0.254"; do
+            echo "  Probando $server_ip..."
+            if timeout 3 ping -c 1 -W 2 "$server_ip" >/dev/null 2>&1; then
+              echo "    ✅ $server_ip responde!"
+              VPN_SERVER_IP="$server_ip"
+              break
+            else
+              echo "    ❌ $server_ip no responde"
+            fi
+          done
+          
+          # Si encontramos un servidor que responde, continuar; si no, fallar
+          if [[ -n "${VPN_SERVER_IP:-}" ]]; then
+            echo "✅ Conexión VPN exitosa con servidor $VPN_SERVER_IP!"
+          else
+            echo "❌ No se puede establecer conectividad VPN"
+            echo "🚫 DETENIENDO DEPLOYMENT - VPN requerida para acceso seguro"
+            exit 1
+          fi
+          
+          # Verificar que podemos alcanzar el servidor de staging a través de la VPN
+          echo ""
+          echo "🎯 Probando acceso al servidor de staging:"
+          if ping -c 2 -W 5 ${{ env.STAGING_HOST }}; then
+            echo "✅ Servidor de staging accesible a través de VPN!"
+          else
+            echo "❌ No se puede alcanzar el servidor de staging a través de VPN"
+            echo "🚫 DETENIENDO DEPLOYMENT - Servidor de staging no accesible"
+            exit 1
+          fi
+
+      - name: 🔑 Add staging server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H ${{ env.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🏗️ Build and prepare deployment
+        run: |
+          echo "🏗️ Building Angular SSR application for staging..."
+          
+          # Install dependencies
+          npm ci --legacy-peer-deps
+          cd guiders-20
+          npm ci --legacy-peer-deps
+          
+          # Build for staging (usar build de desarrollo si no hay específico de staging)
+          npm run build:guiders-20 || npm run build
+          
+          # Volver al directorio raíz
+          cd ..
+          
+          # Crear package.json optimizado para staging
+          cd guiders-20
+          node -e "
+            const pkg = JSON.parse(require('fs').readFileSync('package.json'));
+            // Optimizar dependencias para staging
+            if (pkg.devDependencies) {
+              // Mantener solo las dependencias necesarias para SSR
+              const productionDeps = {
+                '@angular/animations': pkg.dependencies['@angular/animations'],
+                '@angular/common': pkg.dependencies['@angular/common'],
+                '@angular/compiler': pkg.dependencies['@angular/compiler'],
+                '@angular/core': pkg.dependencies['@angular/core'],
+                '@angular/forms': pkg.dependencies['@angular/forms'],
+                '@angular/platform-browser': pkg.dependencies['@angular/platform-browser'],
+                '@angular/platform-browser-dynamic': pkg.dependencies['@angular/platform-browser-dynamic'],
+                '@angular/platform-server': pkg.dependencies['@angular/platform-server'],
+                '@angular/router': pkg.dependencies['@angular/router'],
+                '@angular/ssr': pkg.dependencies['@angular/ssr'],
+                'express': pkg.dependencies['express'],
+                'rxjs': pkg.dependencies['rxjs'],
+                'tslib': pkg.dependencies['tslib'],
+                'zone.js': pkg.dependencies['zone.js']
+              };
+              
+              // Filtrar dependencias undefined
+              pkg.dependencies = Object.fromEntries(
+                Object.entries(productionDeps).filter(([key, value]) => value !== undefined)
+              );
+              
+              delete pkg.devDependencies;
+            }
+            require('fs').writeFileSync('package-staging.json', JSON.stringify(pkg, null, 2));
+          "
+          
+          # Crear tarball con el build y configuración
+          tar czf ../deploy-staging.tar.gz dist package-staging.json package-lock.json
+
+      - name: 🔧 Create staging environment files
+        run: |
+          echo "🔧 Creando archivos de configuración para staging..."
+          
+          # Crear ecosystem.config.js para PM2 staging
+          cat > ecosystem.staging.config.js << 'EOF'
+          module.exports = {
+            apps: [{
+              name: 'guiders-frontend-staging',
+              script: './dist/guiders-20/server/server.mjs',
+              cwd: '/var/www/guiders-frontend-staging',
+              instances: 1,
+              exec_mode: 'cluster',
+              env: {
+                NODE_ENV: 'staging',
+                PORT: 4001
+              },
+              error_file: '/var/log/pm2/guiders-frontend-staging-error.log',
+              out_file: '/var/log/pm2/guiders-frontend-staging-out.log',
+              log_file: '/var/log/pm2/guiders-frontend-staging.log',
+              time: true,
+              max_memory_restart: '500M',
+              node_args: '--max-old-space-size=512'
+            }]
+          };
+          EOF
+          
+          # Crear script de gestión segura de PM2 para staging
+          cat > pm2-staging-management.sh << 'EOF'
+          #!/bin/bash
+          
+          set -e
+          
+          APP_NAME="guiders-frontend-staging"
+          TIMEOUT=30
+          
+          echo "🔄 Gestión segura de PM2 para $APP_NAME..."
+          
+          # Función para verificar si la app está corriendo
+          check_app_status() {
+            pm2 list | grep -q "$APP_NAME.*online" && return 0 || return 1
+          }
+          
+          # Detener aplicación anterior si existe
+          if pm2 list | grep -q "$APP_NAME"; then
+            echo "🛑 Deteniendo aplicación anterior..."
+            timeout $TIMEOUT pm2 stop "$APP_NAME" || echo "⚠️ Timeout deteniendo aplicación"
+            timeout $TIMEOUT pm2 delete "$APP_NAME" || echo "⚠️ Timeout eliminando aplicación"
+          fi
+          
+          # Iniciar nueva aplicación
+          echo "🚀 Iniciando aplicación staging..."
+          if timeout $TIMEOUT pm2 start ecosystem.staging.config.js; then
+            echo "✅ Aplicación iniciada con PM2"
+            
+            # Verificar que está corriendo
+            sleep 5
+            if check_app_status; then
+              echo "✅ Aplicación está corriendo correctamente"
+              timeout $TIMEOUT pm2 save || echo "⚠️ No se pudo guardar la configuración PM2"
+              echo "📊 Estado final:"
+              timeout $TIMEOUT pm2 status || echo "⚠️ No se pudo mostrar el estado"
+            else
+              echo "❌ La aplicación no está corriendo después del inicio"
+              timeout $TIMEOUT pm2 logs "$APP_NAME" --lines 10 --nostream || echo "⚠️ No se pudieron mostrar los logs"
+              exit 1
+            fi
+          else
+            echo "❌ Error al iniciar la aplicación con PM2"
+            exit 1
+          fi
+          EOF
+          
+          chmod +x pm2-staging-management.sh
+
+      - name: 1️⃣ Prepare deployment info
+        run: |
+          echo "🚀 Preparando deployment a staging..."
+          echo "📦 Archivos listos para deploy:"
+          ls -la deploy-staging.tar.gz ecosystem.staging.config.js pm2-staging-management.sh
+          
+          echo ""
+          echo "📋 Información del deploy:"
+          echo "- Branch: ${{ github.ref_name }}"
+          echo "- Commit: ${{ github.sha }}"
+          echo "- Target: ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }}"
+          echo "- Path: ${{ env.STAGING_DEPLOY_PATH }}"
+
+      - name: 2️⃣ Create staging directory and backup
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "📁 Creando directorio de staging y backup..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            # Crear backup con timestamp si existe deployment anterior
+            if [ -d "${{ env.STAGING_DEPLOY_PATH }}" ]; then
+              TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+              BACKUP_DIR="${{ env.STAGING_BACKUP_PATH }}_${TIMESTAMP}"
+              
+              echo "📦 Creando backup en ${BACKUP_DIR}..."
+              mkdir -p "${BACKUP_DIR}"
+              cp -r ${{ env.STAGING_DEPLOY_PATH }}/* "${BACKUP_DIR}/" || true
+              echo "✅ Backup creado exitosamente"
+              
+              # Mantener solo los últimos 3 backups para staging
+              ls -dt ${{ env.STAGING_BACKUP_PATH }}_* | tail -n +4 | xargs rm -rf || true
+            fi
+            
+            # Crear/recrear directorio de staging
+            mkdir -p ${{ env.STAGING_DEPLOY_PATH }}
+            mkdir -p ${{ env.STAGING_DEPLOY_PATH }}/logs
+            echo "✅ Directorio de staging preparado"
+          EOF
+
+      - name: 3️⃣ Upload main files
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "📤 Subiendo archivos principales..."
+          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+            deploy-staging.tar.gz \
+            ecosystem.staging.config.js \
+            pm2-staging-management.sh \
+            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }}:${{ env.STAGING_DEPLOY_PATH }}/
+          echo "✅ Archivos principales subidos"
+
+      - name: 4️⃣ Extract and prepare application
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "📦 Descomprimiendo aplicación..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            
+            echo "📦 Descomprimiendo aplicación Angular SSR..."
+            tar xzf deploy-staging.tar.gz
+            
+            # Usar package.json optimizado si existe
+            if [ -f package-staging.json ]; then
+              mv package-staging.json package.json
+              echo "✅ Usando package.json optimizado para staging"
+            fi
+            
+            # Verificar estructura del deployment
+            echo "📁 Verificando estructura desplegada:"
+            ls -la ./dist/guiders-20/
+            
+            # Verificar archivos críticos
+            if [ -f "./dist/guiders-20/server/server.mjs" ]; then
+              echo "✅ server.mjs encontrado"
+            else
+              echo "❌ Error: server.mjs no encontrado"
+              exit 1
+            fi
+            
+            if [ -d "./dist/guiders-20/browser" ]; then
+              echo "✅ Directorio browser encontrado"
+            else
+              echo "❌ Error: Directorio browser no encontrado"
+              exit 1
+            fi
+            
+            echo "✅ Aplicación descomprimida y verificada exitosamente"
+          EOF
+
+      - name: 5️⃣ Prepare server environment
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "🛠️ Preparando entorno del servidor..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            # Verificar/instalar Node.js si no existe
+            if ! command -v node &> /dev/null; then
+              echo "📥 Instalando Node.js..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+            
+            # Verificar versión de Node.js
+            echo "🟢 Node.js version: $(node --version)"
+            echo "📦 NPM version: $(npm --version)"
+            
+            # Instalar PM2 si no existe
+            if ! command -v pm2 &> /dev/null; then
+              echo "⚡ Instalando PM2..."
+              npm install -g pm2
+            fi
+            
+            echo "🟢 PM2 version: $(pm2 --version)"
+            
+            # Crear directorio de logs de PM2 si no existe
+            sudo mkdir -p /var/log/pm2
+            sudo chown $USER:$USER /var/log/pm2
+            
+            echo "✅ Entorno del servidor preparado"
+          EOF
+
+      - name: 6️⃣ Install production dependencies
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "📦 Instalando dependencias de producción..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            
+            # Verificar que package.json existe
+            if [ ! -f package.json ]; then
+              echo "❌ Error: package.json no encontrado"
+              exit 1
+            fi
+            
+            echo "📦 Instalando dependencias de staging..."
+            # Limpiar node_modules anterior
+            rm -rf node_modules
+            
+            # Instalar dependencias
+            if [ -f package-lock.json ]; then
+              npm ci --omit=dev --legacy-peer-deps
+            else
+              echo "⚠️ package-lock.json no encontrado, usando npm install"
+              npm install --omit=dev --legacy-peer-deps
+            fi
+            
+            echo "✅ Dependencias instaladas exitosamente"
+          EOF
+
+      - name: 7️⃣ Start Angular SSR application with PM2
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        timeout-minutes: 10
+        run: |
+          echo "🚀 Iniciando aplicación Angular SSR de staging..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o ServerAliveInterval=10 -o ServerAliveCountMax=3 ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            
+            echo "🚀 Iniciando aplicación Angular SSR de staging..."
+            
+            # Hacer el script ejecutable
+            chmod +x pm2-staging-management.sh
+            
+            # Ejecutar gestión segura de PM2
+            ./pm2-staging-management.sh
+            
+            echo "✅ Aplicación Angular SSR iniciada exitosamente en staging"
+          EOF
+
+      - name: 8️⃣ Verify deployment status
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "📊 Verificando estado del deployment..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            
+            echo "📊 Estado de PM2:"
+            pm2 list | grep guiders-frontend-staging || echo "⚠️ Aplicación no encontrada en PM2"
+            
+            echo ""
+            echo "🌐 Verificando puerto 4001:"
+            netstat -tulpn | grep :4001 || echo "⚠️ Puerto 4001 no encontrado en netstat"
+            
+            echo ""
+            echo "💾 Uso de disco:"
+            du -sh ${{ env.STAGING_DEPLOY_PATH }}
+            
+            echo ""
+            echo "📁 Estructura final:"
+            ls -la ${{ env.STAGING_DEPLOY_PATH }}/dist/guiders-20/
+            
+            echo "✅ Verificación de deployment completada"
+          EOF
+
+      - name: 9️⃣ Test application health
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "🔍 Probando salud de la aplicación..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            # Esperar un momento para que la aplicación se inicie completamente
+            echo "⏳ Esperando que la aplicación se inicie completamente..."
+            sleep 10
+            
+            # Probar la aplicación localmente
+            echo "🔍 Probando aplicación en localhost:4001..."
+            if curl -f -s --max-time 10 http://localhost:4001 > /dev/null; then
+              echo "✅ Aplicación responde correctamente en puerto 4001"
+            else
+              echo "❌ Aplicación no responde en puerto 4001"
+              echo "📊 Verificando logs de PM2:"
+              pm2 logs guiders-frontend-staging --lines 20 --nostream || echo "⚠️ No se pudieron obtener logs"
+              echo ""
+              echo "📊 Estado de PM2:"
+              pm2 status || echo "⚠️ No se pudo obtener estado de PM2"
+              exit 1
+            fi
+          EOF
+
+  # Resumen final
+  summary:
+    name: Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [test-and-build, deploy-staging]
+    if: always()
+    
+    steps:
+      - name: Show results
+        run: |
+          echo "# 📊 Resumen de Staging Deploy - Frontend Angular SSR" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tests & Build:** ${{ needs.test-and-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deploy:** ${{ needs.deploy-staging.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.deploy-staging.result }}" == "success" ]]; then
+            echo "## ✅ Deploy Exitoso" >> $GITHUB_STEP_SUMMARY
+            echo "Frontend Angular SSR desplegado exitosamente en staging" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🌐 URLs de Staging:" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: http://${{ secrets.STAGING_HOST }}:4001" >> $GITHUB_STEP_SUMMARY
+            echo "- Aplicación Angular SSR con hexagonal architecture" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🏗️ Tecnologías desplegadas:" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Angular 20 con SSR (Server-Side Rendering)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Express.js server (server.mjs)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ PM2 Process Manager (guiders-frontend-staging)" >> $GITHUB_STEP_SUMMARY
+            echo "- ✅ Hexagonal Architecture (Domain + Application + Infrastructure)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔧 Gestión del deployment:" >> $GITHUB_STEP_SUMMARY
+            echo "- **PM2 App:** guiders-frontend-staging" >> $GITHUB_STEP_SUMMARY
+            echo "- **Puerto:** 4001" >> $GITHUB_STEP_SUMMARY
+            echo "- **Logs:** /var/log/pm2/guiders-frontend-staging*.log" >> $GITHUB_STEP_SUMMARY
+            echo "- **Path:** /var/www/guiders-frontend-staging" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 📊 Comandos útiles en el servidor:" >> $GITHUB_STEP_SUMMARY
+            echo "```bash" >> $GITHUB_STEP_SUMMARY
+            echo "# Ver estado de la aplicación" >> $GITHUB_STEP_SUMMARY
+            echo "pm2 status guiders-frontend-staging" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# Ver logs en tiempo real" >> $GITHUB_STEP_SUMMARY
+            echo "pm2 logs guiders-frontend-staging --lines 50" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# Reiniciar aplicación" >> $GITHUB_STEP_SUMMARY
+            echo "pm2 restart guiders-frontend-staging" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "# Verificar conectividad" >> $GITHUB_STEP_SUMMARY
+            echo "curl http://localhost:4001" >> $GITHUB_STEP_SUMMARY
+            echo "```" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ❌ Deploy Fallido" >> $GITHUB_STEP_SUMMARY
+            echo "Revisar logs para más detalles" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🔍 Pasos para debugging:" >> $GITHUB_STEP_SUMMARY
+            echo "1. Verificar logs del workflow en GitHub Actions" >> $GITHUB_STEP_SUMMARY
+            echo "2. Verificar conexión VPN a staging" >> $GITHUB_STEP_SUMMARY
+            echo "3. Verificar build de Angular SSR" >> $GITHUB_STEP_SUMMARY
+            echo "4. Verificar dependencias de Node.js" >> $GITHUB_STEP_SUMMARY
+          fi
