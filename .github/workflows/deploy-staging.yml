@@ -296,6 +296,16 @@ jobs:
             pm2 list | grep -q "$APP_NAME.*online" && return 0 || return 1
           }
           
+          # Verificar que el archivo server.mjs existe
+          if [ ! -f "./dist/guiders-20/server/server.mjs" ]; then
+            echo "❌ Error: ./dist/guiders-20/server/server.mjs no encontrado"
+            echo "📁 Estructura actual:"
+            find ./dist -name "*.mjs" -o -name "server.js" | head -10
+            exit 1
+          fi
+          
+          echo "✅ server.mjs verificado"
+          
           # Detener aplicación anterior si existe
           if pm2 list | grep -q "$APP_NAME"; then
             echo "🛑 Deteniendo aplicación anterior..."
@@ -303,21 +313,41 @@ jobs:
             timeout $TIMEOUT pm2 delete "$APP_NAME" || echo "⚠️ Timeout eliminando aplicación"
           fi
           
+          # Limpiar logs anteriores
+          echo "🧹 Limpiando logs anteriores..."
+          rm -f /var/log/pm2/guiders-frontend-staging*.log
+          
           # Iniciar nueva aplicación
           echo "🚀 Iniciando aplicación staging..."
           if timeout $TIMEOUT pm2 start ecosystem.staging.config.js; then
             echo "✅ Aplicación iniciada con PM2"
             
-            # Verificar que está corriendo
-            sleep 5
+            # Esperar y verificar que está corriendo
+            sleep 8
             if check_app_status; then
               echo "✅ Aplicación está corriendo correctamente"
+              
+              # Mostrar logs iniciales para diagnóstico
+              echo "📊 Logs iniciales (5 segundos):"
+              timeout 5 pm2 logs "$APP_NAME" --nostream || echo "⚠️ No hay logs disponibles aún"
+              
+              # Verificar si está escuchando en el puerto
+              echo "🔍 Verificando puerto 4001..."
+              sleep 2
+              if netstat -tulpn | grep -q ":4001"; then
+                echo "✅ Puerto 4001 está en uso"
+              else
+                echo "⚠️ Puerto 4001 no está en uso, verificando otros puertos..."
+                netstat -tulpn | grep -E ":300[0-9]|:400[0-9]|:800[0-9]"
+              fi
+              
               timeout $TIMEOUT pm2 save || echo "⚠️ No se pudo guardar la configuración PM2"
               echo "📊 Estado final:"
               timeout $TIMEOUT pm2 status || echo "⚠️ No se pudo mostrar el estado"
             else
               echo "❌ La aplicación no está corriendo después del inicio"
-              timeout $TIMEOUT pm2 logs "$APP_NAME" --lines 10 --nostream || echo "⚠️ No se pudieron mostrar los logs"
+              echo "📊 Logs de error:"
+              timeout $TIMEOUT pm2 logs "$APP_NAME" --lines 20 --nostream || echo "⚠️ No se pudieron mostrar los logs"
               exit 1
             fi
           else
@@ -531,22 +561,97 @@ jobs:
         run: |
           echo "🔍 Probando salud de la aplicación..."
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            
             # Esperar un momento para que la aplicación se inicie completamente
             echo "⏳ Esperando que la aplicación se inicie completamente..."
-            sleep 10
+            sleep 15
             
-            # Probar la aplicación localmente
+            echo "📊 Diagnóstico detallado de la aplicación..."
+            
+            # Verificar estado de PM2
+            echo "📊 Estado actual de PM2:"
+            pm2 status || echo "⚠️ No se pudo obtener estado de PM2"
+            
+            echo ""
+            echo "📊 Información detallada de la aplicación:"
+            pm2 show guiders-frontend-staging || echo "⚠️ No se pudo mostrar info detallada"
+            
+            # Verificar logs directamente de archivos
+            echo ""
+            echo "📊 Logs de error desde archivo:"
+            if [ -f "/var/log/pm2/guiders-frontend-staging-error.log" ]; then
+              echo "Últimas 20 líneas del log de error:"
+              tail -n 20 /var/log/pm2/guiders-frontend-staging-error.log || echo "Sin errores recientes"
+            else
+              echo "❌ Archivo de error no encontrado"
+            fi
+            
+            echo ""
+            echo "📊 Logs de salida desde archivo:"
+            if [ -f "/var/log/pm2/guiders-frontend-staging-out.log" ]; then
+              echo "Últimas 20 líneas del log de salida:"
+              tail -n 20 /var/log/pm2/guiders-frontend-staging-out.log || echo "Sin salida reciente"
+            else
+              echo "❌ Archivo de salida no encontrado"
+            fi
+            
+            # Verificar estructura del deployment
+            echo ""
+            echo "📁 Verificando estructura del deployment:"
+            echo "¿Existe server.mjs?"
+            ls -la ./dist/guiders-20/server/server.mjs || echo "❌ server.mjs no encontrado"
+            
+            echo ""
+            echo "🔍 Verificando proceso y puerto..."
+            echo "Procesos Node.js corriendo:"
+            ps aux | grep node | grep -v grep || echo "❌ No hay procesos Node.js"
+            
+            echo ""
+            echo "Puertos abiertos:"
+            netstat -tulpn | grep -E ':400[0-9]|:3000' || echo "❌ No hay puertos 4000-4009 o 3000 abiertos"
+            
+            # Intentar ejecutar server.mjs directamente para ver errores
+            echo ""
+            echo "🧪 Prueba de ejecución directa del servidor (timeout 10s):"
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            timeout 10s node ./dist/guiders-20/server/server.mjs 2>&1 | head -20 || echo "⚠️ Timeout o error en ejecución directa"
+            
+            # Probar la aplicación localmente después de diagnóstico
+            echo ""
             echo "🔍 Probando aplicación en localhost:4001..."
             if curl -f -s --max-time 10 http://localhost:4001 > /dev/null; then
               echo "✅ Aplicación responde correctamente en puerto 4001"
             else
               echo "❌ Aplicación no responde en puerto 4001"
-              echo "📊 Verificando logs de PM2:"
-              pm2 logs guiders-frontend-staging --lines 20 --nostream || echo "⚠️ No se pudieron obtener logs"
+              
+              # Intentar otros puertos comunes de Angular SSR
+              echo "� Probando otros puertos..."
+              for port in 3000 4000 8080; do
+                echo "  Probando puerto $port..."
+                if curl -f -s --max-time 5 http://localhost:$port > /dev/null; then
+                  echo "  ✅ Aplicación responde en puerto $port"
+                  echo "  ⚠️ La aplicación está corriendo en puerto $port en lugar de 4001"
+                  break
+                fi
+              done
+              
               echo ""
-              echo "📊 Estado de PM2:"
-              pm2 status || echo "⚠️ No se pudo obtener estado de PM2"
-              exit 1
+              echo "� Reiniciando aplicación para intentar resolver el problema..."
+              pm2 restart guiders-frontend-staging || echo "⚠️ No se pudo reiniciar"
+              
+              sleep 10
+              
+              echo "🔍 Reintentando conexión a puerto 4001..."
+              if curl -f -s --max-time 10 http://localhost:4001 > /dev/null; then
+                echo "✅ Aplicación responde correctamente después del reinicio"
+              else
+                echo "❌ Aplicación sigue sin responder - deployment falló"
+                echo ""
+                echo "📊 Estado final de PM2:"
+                pm2 status
+                exit 1
+              fi
             fi
           EOF
 
@@ -573,7 +678,7 @@ jobs:
             echo "Frontend Angular SSR desplegado exitosamente en staging" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🌐 URLs de Staging:" >> $GITHUB_STEP_SUMMARY
-            echo "- Frontend: http://${{ secrets.STAGING_HOST }}:4001" >> $GITHUB_STEP_SUMMARY
+            echo "- Frontend: http://[STAGING_HOST]:4001" >> $GITHUB_STEP_SUMMARY
             echo "- Aplicación Angular SSR con hexagonal architecture" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "### 🏗️ Tecnologías desplegadas:" >> $GITHUB_STEP_SUMMARY
