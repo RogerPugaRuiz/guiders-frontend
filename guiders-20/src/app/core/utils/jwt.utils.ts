@@ -28,7 +28,12 @@ export function decodeJwtPayload<T = any>(token: string): T | null {
     const parts = token.split('.');
     if (parts.length !== 3) {
       // Solo mostrar error si no estamos en el entorno de testing
-      if (typeof (global as any)?.jest === 'undefined' && typeof (window as any)?.jest === 'undefined') {
+      const isJestTesting = process.env['NODE_ENV'] === 'test' || 
+                           process.env['JEST_WORKER_ID'] !== undefined ||
+                           typeof (global as any)?.test !== 'undefined' ||
+                           typeof (global as any)?.expect !== 'undefined';
+      
+      if (!isJestTesting) {
         console.error('Token JWT inválido: debe tener 3 partes');
       }
       return null;

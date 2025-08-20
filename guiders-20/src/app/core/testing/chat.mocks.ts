@@ -6,7 +6,17 @@ import {
   GET_CHATS_USE_CASE_TOKEN,
   GET_MESSAGES_USE_CASE_TOKEN,
   GET_CHAT_BY_ID_USE_CASE_TOKEN,
-  START_CHAT_USE_CASE_TOKEN
+  START_CHAT_USE_CASE_TOKEN,
+  // Tokens V2
+  GET_CHATS_V2_USE_CASE_TOKEN,
+  GET_CHAT_BY_ID_V2_USE_CASE_TOKEN,
+  GET_COMMERCIAL_CHATS_V2_USE_CASE_TOKEN,
+  GET_VISITOR_CHATS_V2_USE_CASE_TOKEN,
+  GET_PENDING_QUEUE_V2_USE_CASE_TOKEN,
+  GET_COMMERCIAL_METRICS_V2_USE_CASE_TOKEN,
+  GET_RESPONSE_TIME_STATS_V2_USE_CASE_TOKEN,
+  ASSIGN_CHAT_V2_USE_CASE_TOKEN,
+  CLOSE_CHAT_V2_USE_CASE_TOKEN
 } from '../providers/chat-use-case.providers';
 import { CHAT_REPOSITORY_TOKEN } from '../providers/chat-adapter-providers';
 
@@ -50,11 +60,22 @@ export const mockHttpResource = () => ({
 
 // Mock para ChatMessages dependencies
 export const MOCK_CHAT_PROVIDERS = [
-  // Use case mocks
+  // Use case mocks V1
   { provide: GET_CHATS_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve([]) } },
   { provide: GET_MESSAGES_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve([]) } },
   { provide: GET_CHAT_BY_ID_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve(null) } },
   { provide: START_CHAT_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve({ id: 'new-chat' }) } },
+  
+  // Use case mocks V2
+  { provide: GET_CHATS_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve([]) } },
+  { provide: GET_CHAT_BY_ID_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve(null) } },
+  { provide: GET_COMMERCIAL_CHATS_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve([]) } },
+  { provide: GET_VISITOR_CHATS_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve([]) } },
+  { provide: GET_PENDING_QUEUE_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve([]) } },
+  { provide: GET_COMMERCIAL_METRICS_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve({}) } },
+  { provide: GET_RESPONSE_TIME_STATS_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve({}) } },
+  { provide: ASSIGN_CHAT_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve({}) } },
+  { provide: CLOSE_CHAT_V2_USE_CASE_TOKEN, useValue: { execute: () => Promise.resolve({}) } },
   
   // Repository mock
   { provide: CHAT_REPOSITORY_TOKEN, useValue: { 
@@ -66,7 +87,6 @@ export const MOCK_CHAT_PROVIDERS = [
   }},
   
   // Service mocks
-  { provide: 'ChatStateService', useClass: MockChatStateService },
   { provide: 'environment', useValue: mockEnvironment },
   { provide: HttpClient, useValue: { get: () => of([]) } }
 ];

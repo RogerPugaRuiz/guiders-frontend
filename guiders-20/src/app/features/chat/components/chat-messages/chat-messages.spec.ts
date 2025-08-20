@@ -5,6 +5,7 @@ import { signal } from '@angular/core';
 
 import { ChatMessages } from './chat-messages';
 import { MOCK_CHAT_PROVIDERS, MockChatStateService } from '../../../../core/testing/chat.mocks';
+import { ChatStateService } from '../../services/chat-state.service';
 
 describe('ChatMessages', () => {
   let component: ChatMessages;
@@ -19,7 +20,7 @@ describe('ChatMessages', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: 'ChatStateService', useValue: mockChatStateService },
+        { provide: ChatStateService, useValue: mockChatStateService },
         ...MOCK_CHAT_PROVIDERS
       ]
     })
