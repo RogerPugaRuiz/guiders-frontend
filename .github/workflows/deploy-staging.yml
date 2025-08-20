@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "🏗️ Construyendo aplicación para staging..."
           cd guiders-20
-          npm run build -- --configuration=staging
+          npm run build:staging
           
           # Verificar que el build fue exitoso
           if [ ! -f "dist/guiders-20/server/server.mjs" ]; then
