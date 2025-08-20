@@ -1,0 +1,247 @@
+# Workflow para diagnosticar problemas en staging
+# .github/workflows/diagnose-staging.yml
+name: Diagnose Staging Issues
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Acción a realizar'
+        required: true
+        default: 'full-diagnosis'
+        type: choice
+        options:
+          - 'full-diagnosis'
+          - 'restart-pm2'
+          - 'check-logs'
+          - 'test-connectivity'
+          - 'rebuild-deploy'
+
+jobs:
+  diagnose:
+    name: Staging Diagnosis
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    env:
+      STAGING_HOST: '${{ secrets.STAGING_HOST }}'
+      STAGING_USER: '${{ secrets.STAGING_USER }}'
+      STAGING_DEPLOY_PATH: '/var/www/guiders-frontend-staging'
+    
+    steps:
+      - name: 🔧 Setup SSH
+        run: |
+          sudo apt-get update && sudo apt-get install -y sshpass
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ env.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🔍 Full Diagnosis
+        if: ${{ inputs.action == 'full-diagnosis' }}
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "🔍 Ejecutando diagnóstico completo del servidor staging..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            
+            echo "=== DIAGNÓSTICO COMPLETO DE STAGING ==="
+            echo "Fecha: $(date)"
+            echo ""
+            
+            echo "1. 📊 Estado del sistema:"
+            echo "Usuario actual: $(whoami)"
+            echo "Directorio actual: $(pwd)"
+            echo "Uptime: $(uptime)"
+            echo ""
+            
+            echo "2. 🟢 Versiones instaladas:"
+            echo "Node.js: $(node --version 2>/dev/null || echo 'No instalado')"
+            echo "NPM: $(npm --version 2>/dev/null || echo 'No instalado')"
+            echo "PM2: $(pm2 --version 2>/dev/null || echo 'No instalado')"
+            echo ""
+            
+            echo "3. 📁 Estado del directorio de deployment:"
+            if [ -d "${{ env.STAGING_DEPLOY_PATH }}" ]; then
+              echo "✅ Directorio existe: ${{ env.STAGING_DEPLOY_PATH }}"
+              echo "Contenido:"
+              ls -la ${{ env.STAGING_DEPLOY_PATH }}
+              echo ""
+              
+              echo "Verificando archivos críticos:"
+              if [ -f "${{ env.STAGING_DEPLOY_PATH }}/dist/guiders-20/server/server.mjs" ]; then
+                echo "✅ server.mjs existe"
+                echo "Tamaño: $(du -h ${{ env.STAGING_DEPLOY_PATH }}/dist/guiders-20/server/server.mjs)"
+              else
+                echo "❌ server.mjs NO existe"
+                echo "Buscando archivos server:"
+                find ${{ env.STAGING_DEPLOY_PATH }} -name "*server*" 2>/dev/null || echo "No encontrado"
+              fi
+              
+              if [ -f "${{ env.STAGING_DEPLOY_PATH }}/ecosystem.staging.config.js" ]; then
+                echo "✅ Configuración PM2 existe"
+              else
+                echo "❌ Configuración PM2 NO existe"
+              fi
+            else
+              echo "❌ Directorio NO existe: ${{ env.STAGING_DEPLOY_PATH }}"
+            fi
+            echo ""
+            
+            echo "4. ⚡ Estado de PM2:"
+            if command -v pm2 &> /dev/null; then
+              echo "PM2 instalado correctamente"
+              echo "Procesos PM2:"
+              pm2 list || echo "Error al listar procesos PM2"
+              echo ""
+              
+              echo "Información detallada de guiders-frontend-staging:"
+              pm2 show guiders-frontend-staging 2>/dev/null || echo "Aplicación no encontrada en PM2"
+            else
+              echo "❌ PM2 no está instalado"
+            fi
+            echo ""
+            
+            echo "5. 📝 Logs de PM2:"
+            echo "Logs de error:"
+            if [ -f "/var/log/pm2/guiders-frontend-staging-error.log" ]; then
+              echo "Últimas 10 líneas del log de error:"
+              tail -10 /var/log/pm2/guiders-frontend-staging-error.log
+            else
+              echo "❌ Archivo de error no existe"
+            fi
+            echo ""
+            
+            echo "Logs de salida:"
+            if [ -f "/var/log/pm2/guiders-frontend-staging-out.log" ]; then
+              echo "Últimas 10 líneas del log de salida:"
+              tail -10 /var/log/pm2/guiders-frontend-staging-out.log
+            else
+              echo "❌ Archivo de salida no existe"
+            fi
+            echo ""
+            
+            echo "6. 🌐 Estado de red:"
+            echo "Puertos en uso:"
+            netstat -tulpn | grep LISTEN | grep -E ':(3000|4000|4001|8080)' || echo "No hay puertos Angular típicos en uso"
+            echo ""
+            
+            echo "Procesos Node.js:"
+            ps aux | grep node | grep -v grep || echo "No hay procesos Node.js corriendo"
+            echo ""
+            
+            echo "7. 💾 Uso de recursos:"
+            echo "Memoria:"
+            free -h
+            echo ""
+            echo "Disco:"
+            df -h | grep -E '/$|/var'
+            echo ""
+            
+            echo "=== FIN DEL DIAGNÓSTICO ==="
+          EOF
+
+      - name: 🔄 Restart PM2
+        if: ${{ inputs.action == 'restart-pm2' }}
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "🔄 Reiniciando PM2..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            
+            echo "🛑 Deteniendo aplicación..."
+            pm2 stop guiders-frontend-staging 2>/dev/null || echo "App no estaba corriendo"
+            pm2 delete guiders-frontend-staging 2>/dev/null || echo "App no estaba en PM2"
+            
+            echo "🧹 Limpiando logs..."
+            rm -f /var/log/pm2/guiders-frontend-staging*.log
+            
+            echo "🚀 Iniciando aplicación..."
+            cd ${{ env.STAGING_DEPLOY_PATH }}
+            if [ -f "ecosystem.staging.config.js" ]; then
+              pm2 start ecosystem.staging.config.js
+              sleep 5
+              pm2 status
+              pm2 logs guiders-frontend-staging --lines 10 --nostream
+            else
+              echo "❌ Configuración PM2 no encontrada"
+            fi
+          EOF
+
+      - name: 📝 Check Logs
+        if: ${{ inputs.action == 'check-logs' }}
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "📝 Revisando logs..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            
+            echo "📊 Estado actual de PM2:"
+            pm2 status
+            echo ""
+            
+            echo "📝 Logs recientes (últimas 30 líneas):"
+            pm2 logs guiders-frontend-staging --lines 30 --nostream || echo "No hay logs disponibles"
+            echo ""
+            
+            echo "📁 Archivos de log disponibles:"
+            ls -la /var/log/pm2/guiders-frontend-staging* 2>/dev/null || echo "No hay archivos de log"
+          EOF
+
+      - name: 🧪 Test Connectivity
+        if: ${{ inputs.action == 'test-connectivity' }}
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "🧪 Probando conectividad..."
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            
+            echo "🧪 Probando conectividad de la aplicación..."
+            
+            echo "1. Puerto 4001:"
+            if curl -f -s --max-time 10 http://localhost:4001 > /dev/null; then
+              echo "✅ Puerto 4001 responde"
+              echo "Respuesta:"
+              curl -s --max-time 5 http://localhost:4001 | head -10
+            else
+              echo "❌ Puerto 4001 no responde"
+            fi
+            echo ""
+            
+            echo "2. Conectividad al backend:"
+            if curl -f -s --max-time 10 http://217.154.105.26/api > /dev/null; then
+              echo "✅ Backend responde"
+            else
+              echo "❌ Backend no responde"
+            fi
+            echo ""
+            
+            echo "3. Puertos en uso:"
+            netstat -tulpn | grep LISTEN
+          EOF
+
+      - name: 🏗️ Rebuild and Deploy
+        if: ${{ inputs.action == 'rebuild-deploy' }}
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          echo "🏗️ Reconstruyendo y desplegando..."
+          echo "Esta acción requiere el código fuente. Usa el workflow 'Deploy to Staging (Simple)' en su lugar."
+          echo "O ejecuta manualmente:"
+          echo "git pull && npm run build:guiders-20:staging && ./deploy-staging.sh"
+
+      - name: 📋 Summary
+        if: always()
+        run: |
+          echo "# 🔍 Staging Diagnosis Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Action:** ${{ inputs.action }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Server:** ${{ env.STAGING_HOST }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Path:** ${{ env.STAGING_DEPLOY_PATH }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🔧 Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Review the diagnosis output above" >> $GITHUB_STEP_SUMMARY
+          echo "2. If needed, run 'Deploy to Staging (Simple)' workflow" >> $GITHUB_STEP_SUMMARY
+          echo "3. Check logs with: \`pm2 logs guiders-frontend-staging\`" >> $GITHUB_STEP_SUMMARY

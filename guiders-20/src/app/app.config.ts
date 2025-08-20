@@ -8,6 +8,7 @@ import { allAdapterProviders, allUseCaseProviders } from './core/providers';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { GUIDERS20_AUTH_PROVIDERS } from './core/config/auth-config.providers';
 import { WEBSOCKET_PROVIDERS } from './core/providers/websocket.providers';
+import { defaultChatApiConfig, CHAT_API_CONFIG_TOKEN } from './core/config/chat-api.config';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -20,9 +21,11 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptors([authInterceptor])
     ),
+    // Configuración de la API de Chat (V1 + V2)
+    { provide: CHAT_API_CONFIG_TOKEN, useValue: defaultChatApiConfig },
     // Configuración de adaptadores (infraestructura)
     ...allAdapterProviders,
-    // Configuración de casos de uso (aplicación)
+    // Configuración de casos de uso (aplicación) - incluye V1 y V2
     ...allUseCaseProviders,
     // Configuración de auth con arquitectura hexagonal
     ...GUIDERS20_AUTH_PROVIDERS,
