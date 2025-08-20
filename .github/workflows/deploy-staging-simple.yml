@@ -1,5 +1,6 @@
-# Workflow para deployment de staging
-name: Deploy to Staging
+# Workflow simplificado para deployment rápido de staging
+# .github/workflows/deploy-staging-simple.yml
+name: Deploy to Staging (Simple)
 
 on:
   push:
