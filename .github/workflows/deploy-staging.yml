@@ -101,42 +101,6 @@ jobs:
           tar czf ../staging-deploy.tar.gz dist package-staging.json
           
           cd ..
-          
-          # Crear configuración de PM2 actualizada
-          cat > ecosystem.staging.config.js << 'EOF'
-          module.exports = {
-            apps: [{
-              name: 'guiders-frontend-staging',
-              script: './dist/guiders-20/server/server.mjs',
-              cwd: '/var/www/guiders-frontend-staging',
-              instances: 1,
-              exec_mode: 'cluster',
-              env: {
-                NODE_ENV: 'staging',
-                PORT: 4001,
-                DEBUG: 'app:*',
-                LOG_LEVEL: 'info'
-              },
-              error_file: '/var/log/pm2/guiders-frontend-staging-error.log',
-              out_file: '/var/log/pm2/guiders-frontend-staging-out.log',
-              log_file: '/var/log/pm2/guiders-frontend-staging.log',
-              time: true,
-              max_memory_restart: '500M',
-              node_args: '--max-old-space-size=512',
-              watch: false,
-              restart_delay: 4000,
-              max_restarts: 10,
-              min_uptime: '10s',
-              kill_timeout: 5000,
-              merge_logs: true,
-              log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-              wait_ready: true,
-              listen_timeout: 15000,
-              instance_var: 'INSTANCE_ID'
-            }]
-          };
-          EOF
-          
           # Crear script de deployment
           cat > deploy-staging.sh << 'EOF'
           #!/bin/bash
@@ -298,11 +262,15 @@ jobs:
             "mkdir -p ${{ env.STAGING_DEPLOY_PATH }}"
 
           echo "📤 Subiendo archivos..."
+          # Subir paquete y script
           sshpass -p "$SSH_PASSWORD" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             staging-deploy.tar.gz \
-            ecosystem.staging.config.js \
             deploy-staging.sh \
             ${{ env.STAGING_USER }}@"$HOST":${{ env.STAGING_DEPLOY_PATH }}/
+          # Subir archivo de PM2 desde el repo y renombrarlo en destino
+          sshpass -p "$SSH_PASSWORD" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            .github/ecosystem.staging.config.js \
+            ${{ env.STAGING_USER }}@"$HOST":${{ env.STAGING_DEPLOY_PATH }}/ecosystem.staging.config.js
 
       - name: 🚀 Deploy application
         env:
