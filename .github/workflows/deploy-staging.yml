@@ -140,51 +140,68 @@ jobs:
           # Crear script de deployment
           cat > deploy-staging.sh << 'EOF'
           #!/bin/bash
-          set -e
-          
+          set -euo pipefail
+
           echo "🚀 Iniciando deployment de staging..."
-          
+
+          # Cargar nvm si existe y asegurar Node/pm2 en PATH
+          if [ -s "$HOME/.nvm/nvm.sh" ]; then
+            . "$HOME/.nvm/nvm.sh"
+            nvm use --lts >/dev/null 2>&1 || true
+          fi
+
+          if ! command -v pm2 >/dev/null 2>&1; then
+            echo "🔧 Instalando pm2 global..."
+            npm i -g pm2
+          fi
+
+          PM2_BIN="$(command -v pm2 || echo pm2)"
+
+          # Asegurar directorio de logs
+          sudo mkdir -p /var/log/pm2
+          sudo chown -R "$USER":"$USER" /var/log/pm2
+
           # Detener aplicación actual
           echo "🛑 Deteniendo aplicación actual..."
-          pm2 stop guiders-frontend-staging 2>/dev/null || echo "App no estaba corriendo"
-          pm2 delete guiders-frontend-staging 2>/dev/null || echo "App no estaba en PM2"
-          
+          "$PM2_BIN" stop guiders-frontend-staging 2>/dev/null || echo "App no estaba corriendo"
+          "$PM2_BIN" delete guiders-frontend-staging 2>/dev/null || echo "App no estaba en PM2"
+
           # Limpiar logs anteriores
-          rm -f /var/log/pm2/guiders-frontend-staging*.log
-          
+          rm -f /var/log/pm2/guiders-frontend-staging*.log || true
+
           # Descomprimir aplicación
           echo "📦 Descomprimiendo aplicación..."
           tar xzf staging-deploy.tar.gz
-          
+
           # Usar package.json optimizado
           mv package-staging.json package.json
-          
+
           # Verificar archivos críticos
           if [ ! -f "./dist/guiders-20/server/server.mjs" ]; then
             echo "❌ Error: server.mjs no encontrado"
             exit 1
           fi
-          
+
           echo "✅ Archivos verificados correctamente"
-          
+
           # Iniciar con PM2
           echo "🚀 Iniciando aplicación..."
-          pm2 start ecosystem.staging.config.js
-          
+          "$PM2_BIN" start ecosystem.staging.config.js --update-env
+
           # Esperar y verificar
           echo "⏳ Esperando inicio de la aplicación..."
           sleep 10
-          
+
           # Verificar estado
-          if pm2 list | grep -q "guiders-frontend-staging.*online"; then
+          if "$PM2_BIN" list | grep -q "guiders-frontend-staging.*online"; then
             echo "✅ Aplicación iniciada correctamente"
-            pm2 logs guiders-frontend-staging --lines 10 --nostream
+            "$PM2_BIN" logs guiders-frontend-staging --lines 10 --nostream
           else
             echo "❌ Error al iniciar aplicación"
-            pm2 logs guiders-frontend-staging --lines 20 --nostream
+            "$PM2_BIN" logs guiders-frontend-staging --lines 20 --nostream || true
             exit 1
           fi
-          
+
           echo "✅ Deployment completado!"
           EOF
           
@@ -229,18 +246,34 @@ jobs:
           echo "🔍 Verificando deployment..."
           sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
             ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+            # Preparar entorno para pm2 (nvm) y utilidades
+            if [ -s "$HOME/.nvm/nvm.sh" ]; then
+              . "$HOME/.nvm/nvm.sh"
+              nvm use --lts >/dev/null 2>&1 || true
+            fi
+            PM2_BIN="$(command -v pm2 || echo pm2)"
             
             echo "📊 Estado de PM2:"
-            pm2 status
+            "$PM2_BIN" status || echo "⚠️ pm2 no disponible"
             
             echo ""
             echo "🌐 Verificando puerto 4001:"
-            if netstat -tulpn | grep -q :4001; then
-              echo "✅ Puerto 4001 está en uso"
+            if command -v ss >/dev/null 2>&1; then
+              if ss -lntp | grep -q ':4001'; then
+                echo "✅ Puerto 4001 está en uso"
+              else
+                echo "❌ Puerto 4001 no está en uso"
+                echo "Puertos activos (ss):"
+                ss -lntp | grep LISTEN || true
+              fi
             else
-              echo "❌ Puerto 4001 no está en uso"
-              echo "Puertos activos:"
-              netstat -tulpn | grep LISTEN
+              if netstat -tulpn 2>/dev/null | grep -q :4001; then
+                echo "✅ Puerto 4001 está en uso"
+              else
+                echo "❌ Puerto 4001 no está en uso"
+                echo "Puertos activos (netstat):"
+                netstat -tulpn 2>/dev/null | grep LISTEN || true
+              fi
             fi
             
             echo ""
@@ -250,7 +283,7 @@ jobs:
             else
               echo "❌ Aplicación no responde"
               echo "📊 Logs recientes:"
-              pm2 logs guiders-frontend-staging --lines 10 --nostream
+              "$PM2_BIN" logs guiders-frontend-staging --lines 10 --nostream || true
             fi
           EOF
 
