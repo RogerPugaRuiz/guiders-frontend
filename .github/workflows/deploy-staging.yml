@@ -207,7 +207,62 @@ jobs:
           
           chmod +x deploy-staging.sh
 
-      - name: 📤 Upload files to staging server
+      - name: �️ Install WireGuard
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wireguard
+
+      - name: 🔐 Setup WireGuard private key
+        run: |
+          if [ -z "${{ secrets.WG_PRIVATE_KEY }}" ] || [ -z "${{ secrets.WG_SERVER_PUBLIC_KEY }}" ] || [ -z "${{ secrets.WG_SERVER_ENDPOINT }}" ]; then
+            echo "❌ Faltan secrets de WireGuard: WG_PRIVATE_KEY / WG_SERVER_PUBLIC_KEY / WG_SERVER_ENDPOINT"
+            exit 1
+          fi
+          echo "${{ secrets.WG_PRIVATE_KEY }}" | sudo tee /tmp/wg-privatekey >/dev/null
+          sudo chmod 600 /tmp/wg-privatekey
+
+      - name: 🔧 Configure WireGuard interface
+        run: |
+          set -euo pipefail
+          # Variables por defecto (sin depender de secrets opcionales)
+          WG_CLIENT_IP="10.0.0.3/24"
+          WG_ALLOWED_IPS="10.0.0.0/24"
+
+          # Crear interfaz wg0
+          sudo ip link add dev wg0 type wireguard || echo "wg0 ya existe"
+          sudo ip address add "$WG_CLIENT_IP" dev wg0 || echo "IP ya asignada"
+          sudo wg set wg0 \
+            private-key /tmp/wg-privatekey \
+            peer "${{ secrets.WG_SERVER_PUBLIC_KEY }}" \
+            allowed-ips "$WG_ALLOWED_IPS" \
+            endpoint "${{ secrets.WG_SERVER_ENDPOINT }}:51820"
+          sudo ip link set up dev wg0
+          # Asegurar ruta a la red de la VPN
+          sudo ip route add "$WG_ALLOWED_IPS" dev wg0 || true
+
+      - name: 🔎 Verify VPN connection
+        run: |
+          set -euo pipefail
+          echo "📋 Estado de WireGuard:"
+          sudo wg show
+          echo ""
+          echo "📋 Interfaces WireGuard activas:"
+          ip link show type wireguard || true
+          echo ""
+          echo "📋 Rutas VPN:"
+          ip route | grep -E "wg0|10\\.0\\.0\\." || true
+          echo ""
+          echo "🏓 Probando conectividad con el servidor VPN (10.0.0.1)"
+          if ping -c 2 -W 3 10.0.0.1 >/dev/null 2>&1; then
+            echo "✅ VPN responde"
+          else
+            echo "❌ No hay respuesta del servidor VPN dentro de la red"
+            exit 1
+          fi
+          # Limpiar clave
+          sudo rm -f /tmp/wg-privatekey || true
+
+      - name: �📤 Upload files to staging server
         env:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
@@ -236,9 +291,10 @@ jobs:
             exit 1
           fi
 
-          echo "�📁 Creando directorio de staging..."
+          HOST="${{ env.STAGING_HOST }}"
+          echo "📁 Creando directorio de staging en $HOST..."
           sshpass -p "$SSH_PASSWORD" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} \
+            ${{ env.STAGING_USER }}@"$HOST" \
             "mkdir -p ${{ env.STAGING_DEPLOY_PATH }}"
 
           echo "📤 Subiendo archivos..."
@@ -246,15 +302,16 @@ jobs:
             staging-deploy.tar.gz \
             ecosystem.staging.config.js \
             deploy-staging.sh \
-            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }}:${{ env.STAGING_DEPLOY_PATH }}/
+            ${{ env.STAGING_USER }}@"$HOST":${{ env.STAGING_DEPLOY_PATH }}/
 
       - name: 🚀 Deploy application
         env:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           echo "🚀 Ejecutando deployment en el servidor..."
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} \
+          HOST="${{ env.STAGING_HOST }}"
+          sshpass -p "$SSH_PASSWORD" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ env.STAGING_USER }}@"$HOST" \
             "cd ${{ env.STAGING_DEPLOY_PATH }} && chmod +x deploy-staging.sh && ./deploy-staging.sh"
 
       - name: 🔍 Verify deployment
@@ -262,8 +319,9 @@ jobs:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           echo "🔍 Verificando deployment..."
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
+          HOST="${{ env.STAGING_HOST }}"
+          sshpass -p "$SSH_PASSWORD" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ env.STAGING_USER }}@"$HOST" << 'EOF'
             # Preparar entorno para pm2 (nvm) y utilidades
             if [ -s "$HOME/.nvm/nvm.sh" ]; then
               . "$HOME/.nvm/nvm.sh"
