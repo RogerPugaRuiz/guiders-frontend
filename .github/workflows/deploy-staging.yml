@@ -211,20 +211,38 @@ jobs:
         env:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
+          set -euo pipefail
           echo "🔧 Configurando conexión SSH..."
           sudo apt-get update && sudo apt-get install -y sshpass
-          
-          # Agregar host a known_hosts
+
+          # Validar variables requeridas
+          if [ -z "${{ env.STAGING_HOST }}" ] || [ -z "${{ env.STAGING_USER }}" ] || [ -z "${SSH_PASSWORD:-}" ]; then
+            echo "❌ Faltan variables de entorno/secretos: STAGING_HOST/STAGING_USER/SSH_PASSWORD"
+            echo "- STAGING_HOST set: $([ -n "${{ env.STAGING_HOST }}" ] && echo yes || echo no)"
+            echo "- STAGING_USER set: $([ -n "${{ env.STAGING_USER }}" ] && echo yes || echo no)"
+            echo "- SSH_PASSWORD set: $([ -n "${SSH_PASSWORD:-}" ] && echo yes || echo no)"
+            exit 1
+          fi
+
+          # Preparar known_hosts (no bloquear si falla)
           mkdir -p ~/.ssh
-          ssh-keyscan -H ${{ env.STAGING_HOST }} >> ~/.ssh/known_hosts
-          
-          echo "📁 Creando directorio de staging..."
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+          ssh-keyscan -H "${{ env.STAGING_HOST }}" >> ~/.ssh/known_hosts || echo "⚠️ ssh-keyscan falló, se continuará con UserKnownHostsFile=/dev/null"
+
+          echo "� Probando conexión SSH..."
+          if ! sshpass -p "$SSH_PASSWORD" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} "echo OK" >/dev/null 2>&1; then
+            echo "❌ No se pudo establecer conexión SSH al servidor."
+            echo "   Verifica: host/usuario/secreto, Firewall/22, y que PasswordAuthentication esté habilitado."
+            exit 1
+          fi
+
+          echo "�📁 Creando directorio de staging..."
+          sshpass -p "$SSH_PASSWORD" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} \
             "mkdir -p ${{ env.STAGING_DEPLOY_PATH }}"
-          
+
           echo "📤 Subiendo archivos..."
-          sshpass -p "$SSH_PASSWORD" scp -o StrictHostKeyChecking=no \
+          sshpass -p "$SSH_PASSWORD" scp -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             staging-deploy.tar.gz \
             ecosystem.staging.config.js \
             deploy-staging.sh \
@@ -235,7 +253,7 @@ jobs:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           echo "🚀 Ejecutando deployment en el servidor..."
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} \
             "cd ${{ env.STAGING_DEPLOY_PATH }} && chmod +x deploy-staging.sh && ./deploy-staging.sh"
 
@@ -244,7 +262,7 @@ jobs:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           echo "🔍 Verificando deployment..."
-          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no \
+          sshpass -p "$SSH_PASSWORD" ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             ${{ env.STAGING_USER }}@${{ env.STAGING_HOST }} << 'EOF'
             # Preparar entorno para pm2 (nvm) y utilidades
             if [ -s "$HOME/.nvm/nvm.sh" ]; then
