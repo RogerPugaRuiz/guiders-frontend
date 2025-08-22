@@ -17,7 +17,8 @@ import process from 'node:process';
 import { resolve } from 'node:path';
 import fs from 'node:fs';
 import express from 'express';
-import { AngularNodeAppEngine, writeResponseToNodeResponse } from '@angular/ssr/node';
+// Importaciones Angular se difieren para capturar errores y loggear primero
+let AngularNodeAppEngine, writeResponseToNodeResponse;
 
 const PORT = parseInt(process.env.PORT || '4001', 10);
 const distRoot = resolve(process.cwd(), 'dist/guiders-20');
@@ -55,6 +56,25 @@ async function start() {
   trace('[SSR] node_modules presente: ' + (fileExists(resolve(process.cwd(), 'node_modules')) ? 'sí' : 'NO'));
   trace('[SSR] Paquetes núcleo:');
   ['@angular/core','@angular/common','@angular/compiler','@angular/platform-server','@angular/ssr','express','rxjs','zone.js'].forEach(p => trace(`   - ${p}@${readPackageVersion(p)}`));
+
+  // Intentar cargar compiler primero para evitar fallo de linker/JIT
+  try {
+    trace('[SSR] Intentando importar @angular/compiler temprano...');
+    await import('@angular/compiler');
+    trace('[SSR] @angular/compiler cargado (JIT disponible)');
+  } catch (e) {
+    trace('[SSR] ⚠️ No se pudo importar @angular/compiler temprano: ' + (e && e.message));
+  }
+
+  // Cargar módulo SSR Angular ahora (de forma diferida)
+  try {
+    trace('[SSR] Importando @angular/ssr/node...');
+    ({ AngularNodeAppEngine, writeResponseToNodeResponse } = await import('@angular/ssr/node'));
+    trace('[SSR] @angular/ssr/node importado OK');
+  } catch (e) {
+    trace('[SSR] ❌ Error importando @angular/ssr/node: ' + (e && e.stack || e));
+    process.exit(1);
+  }
 
   // Importar bundle para que registre posibles side-effects (no dependemos de listen interno)
   try {

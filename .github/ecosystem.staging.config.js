@@ -11,7 +11,8 @@ module.exports = {
       NODE_ENV: 'staging',
       PORT: 4001,
       // Variables adicionales para debugging
-      DEBUG: 'app:*',
+  DEBUG: 'app:*',
+  DEBUG_SSR: '1',
       LOG_LEVEL: 'info'
     },
     error_file: '/var/log/pm2/guiders-frontend-staging-error.log',
