@@ -15,6 +15,7 @@
 
 import process from 'node:process';
 import { resolve } from 'node:path';
+import fs from 'node:fs';
 import express from 'express';
 import {
   AngularNodeAppEngine,
@@ -26,21 +27,32 @@ const distRoot = resolve(process.cwd(), 'dist/guiders-20');
 const browserDistFolder = resolve(distRoot, 'browser');
 const serverBundlePath = resolve(distRoot, 'server/server.mjs');
 
+function trace(msg) {
+  const line = `${new Date().toISOString()} ${msg}`;
+  console.log(line);
+  try { fs.appendFileSync(resolve(process.cwd(), 'ssr-wrapper.log'), line + '\n'); } catch {}
+}
+
 async function start() {
-  console.log('[SSR] Wrapper inicializado');
-  console.log('[SSR] dist root        :', distRoot);
-  console.log('[SSR] browser assets   :', browserDistFolder);
-  console.log('[SSR] server bundle    :', serverBundlePath);
-  console.log('[SSR] Node version     :', process.version);
+  trace('[SSR] Wrapper inicializado');
+  trace('[SSR] dist root        : ' + distRoot);
+  trace('[SSR] browser assets   : ' + browserDistFolder);
+  trace('[SSR] server bundle    : ' + serverBundlePath);
+  trace('[SSR] Node version     : ' + process.version);
+  trace('[SSR] CWD               : ' + process.cwd());
+  trace('[SSR] ENV PORT          : ' + process.env.PORT);
 
   // Importar bundle para que registre posibles side-effects (no dependemos de listen interno)
   try {
+    trace('[SSR] Importando bundle SSR...');
     await import(serverBundlePath + `?t=${Date.now()}`);
+    trace('[SSR] Bundle SSR importado.');
   } catch (e) {
-    console.error('[SSR] ❌ Error importando bundle SSR:', e);
+    trace('[SSR] ❌ Error importando bundle SSR: ' + (e && e.stack || e));
     process.exit(1);
   }
 
+  trace('[SSR] Creando instancia Express');
   const app = express();
   const angularApp = new AngularNodeAppEngine();
 
@@ -53,34 +65,51 @@ async function start() {
 
   // SSR handler
   app.use((req, res, next) => {
+    trace('[SSR] Request: ' + req.method + ' ' + req.url);
     angularApp.handle(req)
-      .then(r => r ? writeResponseToNodeResponse(r, res) : next())
-      .catch(next);
+      .then(r => {
+        if (r) {
+          trace('[SSR] Render OK: ' + req.url + ' status=' + r.status);
+          return writeResponseToNodeResponse(r, res);
+        }
+        trace('[SSR] Pasando a next() ' + req.url);
+        return next();
+      })
+      .catch(err => {
+        trace('[SSR] ❌ Error en handle: ' + (err && err.stack || err));
+        next(err);
+      });
   });
 
   // Error básico
   app.use((err, _req, res, _next) => {
-    console.error('[SSR] ❌ Error de request:', err);
+    trace('[SSR] ❌ Middleware error: ' + (err && err.stack || err));
     res.status(500).send('SSR Error');
   });
 
-  const server = app.listen(PORT, () => {
-    console.log(`[SSR] ✅ Servidor escuchando en http://localhost:${PORT}`);
-    if (process.send) process.send('ready');
-  });
+  let server;
+  try {
+    server = app.listen(PORT, () => {
+      trace(`[SSR] ✅ Servidor escuchando en http://localhost:${PORT}`);
+      if (process.send) process.send('ready');
+    });
+  } catch (e) {
+    trace('[SSR] ❌ Error al iniciar listen(): ' + (e && e.stack || e));
+    process.exit(1);
+  }
 
   // Diagnóstico tardío
   setTimeout(() => {
     try {
-      console.log('[SSR] Handles activos:', process._getActiveHandles().length);
-      console.log('[SSR] Requests activas:', process._getActiveRequests().length);
+      trace('[SSR] Handles activos: ' + process._getActiveHandles().length);
+      trace('[SSR] Requests activas: ' + process._getActiveRequests().length);
     } catch (_) {}
   }, 3000);
 
   const shutdown = (signal) => {
-    console.log(`[SSR] Señal ${signal} recibida. Cerrando...`);
+    trace(`[SSR] Señal ${signal} recibida. Cerrando...`);
     server.close(() => {
-      console.log('[SSR] Cerrado limpio.');
+      trace('[SSR] Cerrado limpio.');
       process.exit(0);
     });
     setTimeout(() => process.exit(1), 8000).unref();

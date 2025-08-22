@@ -4,8 +4,9 @@ module.exports = {
   // Wrapper que garantiza listen() y señal 'ready'
   script: './ssr-start.mjs',
     cwd: '/var/www/guiders-frontend-staging',
-    instances: 1,
-    exec_mode: 'cluster',
+  instances: 1,
+  // Cambiamos a fork para diagnosticar mejor stdout/puerto
+  exec_mode: 'fork',
     env: {
       NODE_ENV: 'staging',
       PORT: 4001,
