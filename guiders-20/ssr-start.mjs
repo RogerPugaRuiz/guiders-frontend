@@ -89,32 +89,37 @@ async function start() {
   trace('[SSR] Creando instancia Express');
   const app = express();
 
-  // Inicialización diferida del engine Angular con reintento JIT si falta compiler
-  let angularEnginePromise;
-  async function initAngularEngine() {
-    if (angularEnginePromise) return angularEnginePromise;
-    angularEnginePromise = (async () => {
+  // Crear engine de inmediato para detectar fallos temprano
+  let engineInitError = null;
+  let engineInstance = null;
+  try {
+    trace('[SSR] Creando AngularNodeAppEngine inicial (early)...');
+    engineInstance = new AngularNodeAppEngine();
+    trace('[SSR] AngularNodeAppEngine creado (early)');
+  } catch (e) {
+    engineInitError = e;
+    trace('[SSR] ❌ Falló engine early: ' + (e && e.stack || e));
+    // Intento JIT si aún no se intentó compiler
+    if (!/compiler/i.test(e.message || '')) {
       try {
-        trace('[SSR] Creando AngularNodeAppEngine (AOT esperado)');
-        return new AngularNodeAppEngine();
-      } catch (e) {
-        const msg = (e && e.message) || '';
-        trace('[SSR] ⚠️ Falló creación engine inicial: ' + (e && e.stack || e));
-        if (/compiler/i.test(msg) || /ngDeclareFactory/i.test(msg)) {
-          trace('[SSR] Intentando cargar @angular/compiler para modo JIT de respaldo...');
-          try {
-            await import('@angular/compiler');
-            trace('[SSR] @angular/compiler importado. Reintentando engine...');
-            return new AngularNodeAppEngine();
-          } catch (e2) {
-            trace('[SSR] ❌ Reintento con compiler también falló: ' + (e2 && e2.stack || e2));
-            throw e2;
-          }
-        }
-        throw e;
+        trace('[SSR] Intento de recuperación importando @angular/compiler para JIT...');
+        await import('@angular/compiler');
+        trace('[SSR] Reintentando engine tras compiler...');
+        engineInstance = new AngularNodeAppEngine();
+        engineInitError = null;
+        trace('[SSR] ✅ Engine recuperado tras compiler');
+      } catch (e2) {
+        trace('[SSR] ❌ Recuperación fallida: ' + (e2 && e2.stack || e2));
+        engineInitError = e2;
       }
-    })();
-    return angularEnginePromise;
+    }
+  }
+
+  // Inicialización diferida del engine Angular con reintento JIT si falta compiler
+  async function getEngine() {
+    if (engineInstance) return engineInstance;
+    if (engineInitError) throw engineInitError;
+    throw new Error('Engine no inicializado por motivo desconocido');
   }
 
   // Estáticos
@@ -127,12 +132,14 @@ async function start() {
   // SSR handler
   app.use(async (req, res, next) => {
     trace('[SSR] Request: ' + req.method + ' ' + req.url);
+    if (engineInitError) {
+      trace('[SSR] ❌ Engine estaba en error previo (fast-fail)');
+      return res.status(500).send('SSR Engine init failed: ' + (engineInitError && engineInitError.message));
+    }
     let engine;
-    try {
-      engine = await initAngularEngine();
-    } catch (e) {
-      trace('[SSR] ❌ No se pudo inicializar Angular engine: ' + (e && e.stack || e));
-      return res.status(500).send('SSR Engine init failed');
+    try { engine = await getEngine(); } catch (e) {
+      trace('[SSR] ❌ getEngine() error: ' + (e && e.stack || e));
+      return res.status(500).send('SSR Engine init failed (late): ' + (e && e.message));
     }
     try {
       const r = await engine.handle(req);

@@ -47,19 +47,20 @@ app.use((req, res, next) => {
     .catch(next);
 });
 
-/**
- * Start the server if this module is the main entry point.
- * The server listens on the port defined by the `PORT` environment variable, or defaults to 4000.
- */
-if (isMainModule(import.meta.url)) {
+// Export explicit starter so PM2 or other orchestrators can call it
+export function startServer() {
   const port = process.env['PORT'] || 4000;
   app.listen(port, (error) => {
-    if (error) {
-      throw error;
-    }
-
+    if (error) throw error;
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
+}
+
+// Angular 19+/20 + PM2: isMainModule() devuelve false bajo PM2; añadimos bandera PM2=true
+const metaUrl = import.meta.url;
+const shouldStart = isMainModule(metaUrl) || process.env['PM2'] === 'true';
+if (shouldStart) {
+  startServer();
 }
 
 /**

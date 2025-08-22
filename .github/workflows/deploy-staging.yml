@@ -80,14 +80,14 @@ jobs:
           echo "📦 Preparando paquete de deployment..."
           cd guiders-20
           
-          # Crear package.json simplificado para staging
+          # Crear package.json simplificado para staging (usa server.mjs directo)
           cat > package-staging.json << 'EOF'
           {
             "name": "guiders-frontend-staging",
             "version": "1.0.0",
-            "main": "ssr-start.mjs",
+            "main": "dist/guiders-20/server/server.mjs",
             "scripts": {
-              "start": "node ssr-start.mjs"
+              "start": "node dist/guiders-20/server/server.mjs"
             },
             "dependencies": {
               "@angular/common": "^20.1.0",
@@ -95,9 +95,11 @@ jobs:
               "@angular/core": "^20.1.0",
               "@angular/forms": "^20.1.0",
               "@angular/platform-browser": "^20.1.0",
+              "@angular/platform-browser-dynamic": "^20.1.0",
               "@angular/platform-server": "^20.1.0",
               "@angular/router": "^20.1.0",
               "@angular/ssr": "^20.1.0",
+              "@ngrx/signals": "^19.2.1",
               "express": "^5.1.0",
               "rxjs": "~7.8.0",
               "tslib": "^2.8.1",
@@ -112,12 +114,8 @@ jobs:
           }
           EOF
           
-          # Verificar wrapper
-          if [ ! -f "ssr-start.mjs" ]; then
-            echo "❌ Falta ssr-start.mjs"; exit 1; fi
-
-          # Crear tarball incluyendo wrapper
-          tar czf ../staging-deploy.tar.gz dist package-staging.json ssr-start.mjs
+          # Crear tarball (sin wrapper)
+          tar czf ../staging-deploy.tar.gz dist package-staging.json
           
           cd ..
           # Crear script de deployment

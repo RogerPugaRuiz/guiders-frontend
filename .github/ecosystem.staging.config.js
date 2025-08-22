@@ -1,18 +1,15 @@
 module.exports = {
   apps: [{
     name: 'guiders-frontend-staging',
-  // Wrapper que garantiza listen() y señal 'ready'
-  script: './ssr-start.mjs',
+    // Usamos el bundle generado directamente
+    script: './dist/guiders-20/server/server.mjs',
     cwd: '/var/www/guiders-frontend-staging',
-  instances: 1,
-  // Cambiamos a fork para diagnosticar mejor stdout/puerto
-  exec_mode: 'fork',
+    instances: 1,
+    exec_mode: 'fork',
     env: {
       NODE_ENV: 'staging',
       PORT: 4001,
-      // Variables adicionales para debugging
-  DEBUG: 'app:*',
-  DEBUG_SSR: '1',
+      PM2: 'true', // Bandera para forzar arranque en server.mjs (isMainModule bypass)
       LOG_LEVEL: 'info'
     },
     error_file: '/var/log/pm2/guiders-frontend-staging-error.log',
@@ -27,13 +24,8 @@ module.exports = {
     max_restarts: 10,
     min_uptime: '10s',
     kill_timeout: 5000,
-    // Configuración adicional para mejorar el logging
     merge_logs: true,
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
-    // Configuración para capturar errores de inicio
-    wait_ready: true,
-    listen_timeout: 10000,
-    // Configuración de cluster mejorada
     instance_var: 'INSTANCE_ID'
   }]
 };
