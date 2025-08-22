@@ -1,7 +1,8 @@
 module.exports = {
   apps: [{
     name: 'guiders-frontend-staging',
-    script: './dist/guiders-20/server/server.mjs',
+  // Wrapper que garantiza listen() y señal 'ready'
+  script: './ssr-start.mjs',
     cwd: '/var/www/guiders-frontend-staging',
     instances: 1,
     exec_mode: 'cluster',

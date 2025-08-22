@@ -85,9 +85,9 @@ jobs:
           {
             "name": "guiders-frontend-staging",
             "version": "1.0.0",
-            "main": "dist/guiders-20/server/server.mjs",
+            "main": "ssr-start.mjs",
             "scripts": {
-              "start": "node dist/guiders-20/server/server.mjs"
+              "start": "node ssr-start.mjs"
             },
             "dependencies": {
               "@angular/animations": "*",
@@ -105,8 +105,12 @@ jobs:
           }
           EOF
           
-          # Crear tarball
-          tar czf ../staging-deploy.tar.gz dist package-staging.json
+          # Verificar wrapper
+          if [ ! -f "ssr-start.mjs" ]; then
+            echo "❌ Falta ssr-start.mjs"; exit 1; fi
+
+          # Crear tarball incluyendo wrapper
+          tar czf ../staging-deploy.tar.gz dist package-staging.json ssr-start.mjs
           
           cd ..
           # Crear script de deployment
