@@ -30,6 +30,16 @@ function trace(msg) {
   try { fs.appendFileSync(resolve(process.cwd(), 'ssr-wrapper.log'), line + '\n'); } catch {}
 }
 
+function fileExists(path) { try { return fs.existsSync(path); } catch { return false; } }
+function readPackageVersion(pkgName) {
+  try {
+    const pkgPath = require.resolve(pkgName + '/package.json', { paths: [process.cwd()] });
+    return JSON.parse(fs.readFileSync(pkgPath, 'utf-8')).version || 'unknown';
+  } catch { return 'missing'; }
+}
+process.on('unhandledRejection', r => trace('[SSR] ❌ unhandledRejection: ' + (r && r.stack || r)));
+process.on('uncaughtException', e => { trace('[SSR] ❌ uncaughtException: ' + (e && e.stack || e)); });
+
 async function start() {
   trace('[SSR] Wrapper inicializado');
   trace('[SSR] dist root        : ' + distRoot);
@@ -38,6 +48,13 @@ async function start() {
   trace('[SSR] Node version     : ' + process.version);
   trace('[SSR] CWD               : ' + process.cwd());
   trace('[SSR] ENV PORT          : ' + process.env.PORT);
+
+  // FS / deps pre-flight
+  const critical = [distRoot, browserDistFolder, serverBundlePath];
+  critical.forEach(p => trace(`[SSR] Check path: ${p} ${fileExists(p) ? '✅' : '❌'}`));
+  trace('[SSR] node_modules presente: ' + (fileExists(resolve(process.cwd(), 'node_modules')) ? 'sí' : 'NO'));
+  trace('[SSR] Paquetes núcleo:');
+  ['@angular/core','@angular/common','@angular/compiler','@angular/platform-server','@angular/ssr','express','rxjs','zone.js'].forEach(p => trace(`   - ${p}@${readPackageVersion(p)}`));
 
   // Importar bundle para que registre posibles side-effects (no dependemos de listen interno)
   try {
@@ -127,6 +144,11 @@ async function start() {
     trace('[SSR] ❌ Error al iniciar listen(): ' + (e && e.stack || e));
     process.exit(1);
   }
+
+  // Confirmar dirección tras un breve delay
+  setTimeout(() => {
+    try { trace('[SSR] server.address(): ' + JSON.stringify(server.address())); } catch {}
+  }, 1200);
 
   // Diagnóstico tardío
   setTimeout(() => {
