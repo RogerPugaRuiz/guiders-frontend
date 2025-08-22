@@ -308,7 +308,70 @@ jobs:
             ${{ env.STAGING_USER }}@"$HOST" \
             "cd ${{ env.STAGING_DEPLOY_PATH }} && chmod +x deploy-staging.sh && ./deploy-staging.sh"
 
-      - name: 🔍 Verify deployment
+      - name: �️ Run backend migrations (staging)
+        if: ${{ always() }}
+        env:
+          SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
+          BACKEND_PATH: '/var/www/guiders-backend-staging'
+        run: |
+          echo "🗄️ Ejecutando migraciones backend (staging)..."
+          HOST="${{ env.STAGING_HOST }}"
+          sshpass -p "$SSH_PASSWORD" ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            ${{ env.STAGING_USER }}@"$HOST" << 'EOF'
+              set -euo pipefail
+              BACKEND_DIR="/var/www/guiders-backend-staging"
+              echo "📁 Backend dir: $BACKEND_DIR"
+              if [ ! -d "$BACKEND_DIR" ]; then
+                echo "⚠️ Backend no presente, saltando migraciones"; exit 0; fi
+              cd "$BACKEND_DIR"
+              echo "📍 pwd=$(pwd)"
+              if [ ! -f tsconfig.json ] && [ -f tsconfig.build.json ]; then
+                TSCONF=tsconfig.build.json
+              elif [ -f tsconfig.json ]; then
+                TSCONF=tsconfig.json
+              else
+                echo "⚠️ No tsconfig encontrado, saltando build"; TSCONF=""; 
+              fi
+              # Cargar variables de entorno si existe .env.staging
+              if [ -f .env.staging ]; then
+                echo "🔄 Cargando .env.staging"; set -a; . ./.env.staging; set +a; fi
+              # Levantar Postgres si docker compose presente
+              if [ -f docker-compose-staging.yml ]; then
+                if ! docker compose -f docker-compose-staging.yml ps postgres-staging >/dev/null 2>&1; then
+                  echo "🐘 Levantando postgres-staging vía docker compose";
+                  docker compose -f docker-compose-staging.yml up -d postgres-staging || true;
+                fi
+              fi
+              # Esperar DB (si variables definidas)
+              if command -v pg_isready >/dev/null 2>&1 && [ -n "${DB_HOST:-}" ]; then
+                echo "⏳ Esperando DB ${DB_HOST}:${DB_PORT:-5432}...";
+                for i in $(seq 1 20); do
+                  pg_isready -h "${DB_HOST}" -p "${DB_PORT:-5432}" -d "${DB_NAME:-postgres}" -U "${DB_USER:-postgres}" >/dev/null 2>&1 && { echo "✅ DB lista"; break; };
+                  sleep 2; [ "$i" = 20 ] && echo "⚠️ DB no respondió a tiempo";
+                done
+              fi
+              # Build condicional
+              if [ ! -d dist ]; then
+                if [ -n "$TSCONF" ]; then
+                  echo "🔨 Compilando backend (tsconfig=$TSCONF)...";
+                  npx nest build -p "$TSCONF" || { echo "❌ Falló build backend"; exit 1; };
+                fi
+              else
+                echo "✅ dist existente, saltando build"
+              fi
+              # Verificar data-source compilado
+              if [ ! -f dist/src/data-source.js ]; then
+                echo "❌ Falta dist/src/data-source.js; no se pueden ejecutar migraciones"; ls -R dist/src | head -40; exit 0;
+              fi
+              echo "🔄 Ejecutando migraciones TypeORM...";
+              if npx typeorm migration:run -d dist/src/data-source.js; then
+                echo "✅ Migraciones aplicadas";
+              else
+                echo "❌ Migraciones fallaron"; exit 1;
+              fi
+          EOF
+
+      - name: �🔍 Verify deployment
         env:
           SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
