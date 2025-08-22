@@ -54,17 +54,25 @@ jobs:
       - name: 🏗️ Build for staging
         run: |
           echo "🏗️ Construyendo aplicación para staging..."
-          cd guiders-20
-          npm run build:staging
+          # Usar script root consistente que encapsula cd y configuración
+          npm run build:guiders-20:staging
           
           # Verificar que el build fue exitoso
-          if [ ! -f "dist/guiders-20/server/server.mjs" ]; then
+          if [ ! -f "guiders-20/dist/guiders-20/server/server.mjs" ]; then
             echo "❌ Error: server.mjs no fue generado"
             echo "📁 Estructura del build:"
-            find dist -name "*.mjs" -o -name "server*" | head -10
+            find guiders-20/dist -name "*.mjs" -o -name "server*" | head -10
             exit 1
           fi
           
+          echo "📂 Verificación de estructura esperada (staging):"
+          echo "Esperado en servidor: /var/www/guiders-frontend-staging/dist/guiders-20/{browser,server}"
+          echo "Local actual: guiders-20/dist/guiders-20/{browser,server}"
+          [ -d guiders-20/dist/guiders-20/browser ] && echo "✅ Directorio browser OK" || echo "⚠️ Falta browser";
+          [ -d guiders-20/dist/guiders-20/server ] && echo "✅ Directorio server OK" || echo "⚠️ Falta server";
+          ls -1 guiders-20/dist/guiders-20/server | head -10 || true
+          ls -1 guiders-20/dist/guiders-20/browser | head -10 || true
+
           echo "✅ Build completado - server.mjs generado correctamente"
 
       - name: 📦 Prepare deployment package

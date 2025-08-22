@@ -46,8 +46,8 @@ jobs:
 
       - name: 🏗️ Build Angular SSR application
         run: |
-          cd guiders-20
-          npm run build:prod:env
+          # Usar script root que ya hace cd: build:guiders-20:prod
+          npm run build:guiders-20:prod
 
       - name: 📁 Verify build output
         run: |
