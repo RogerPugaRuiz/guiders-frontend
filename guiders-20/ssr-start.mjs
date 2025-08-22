@@ -1,80 +1,91 @@
 #!/usr/bin/env node
 /**
- * Wrapper de arranque para SSR en staging.
- * Asegura que el bundle SSR escuche en el puerto configurado
- * y notifica a PM2 (wait_ready) cuando está listo.
+ * Wrapper SSR (staging)
+ * Motivos del rediseño:
+ *  - El bundle `server.mjs` sólo arranca el server si es módulo principal (isMainModule)
+ *    pero aquí lo importamos dinámicamente, por lo que no invoca app.listen.
+ *  - No exporta la instancia de Express; por tanto no podemos descubrirla.
+ *  - Este wrapper recrea el server Express usando la misma API que `src/server.ts`.
+ *
+ * Resultado:
+ *  - Montamos Express + AngularNodeAppEngine directamente.
+ *  - Servimos estáticos y gestionamos SSR.
+ *  - Señalizamos a PM2 con 'ready'.
  */
-import { fileURLToPath } from 'node:url';
-import { dirname, resolve } from 'node:path';
-import process from 'node:process';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import process from 'node:process';
+import { resolve } from 'node:path';
+import express from 'express';
+import {
+  AngularNodeAppEngine,
+  writeResponseToNodeResponse,
+} from '@angular/ssr/node';
 
 const PORT = parseInt(process.env.PORT || '4001', 10);
-const ENTRY_RELATIVE = './dist/guiders-20/server/server.mjs';
-const entryPath = resolve(__dirname, ENTRY_RELATIVE);
+const distRoot = resolve(process.cwd(), 'dist/guiders-20');
+const browserDistFolder = resolve(distRoot, 'browser');
+const serverBundlePath = resolve(distRoot, 'server/server.mjs');
 
-async function bootstrap() {
-  console.log(`[SSR] Iniciando wrapper SSR...`);
-  console.log(`[SSR] Importando bundle: ${entryPath}`);
+async function start() {
+  console.log('[SSR] Wrapper inicializado');
+  console.log('[SSR] dist root        :', distRoot);
+  console.log('[SSR] browser assets   :', browserDistFolder);
+  console.log('[SSR] server bundle    :', serverBundlePath);
+  console.log('[SSR] Node version     :', process.version);
 
-  let mod;
+  // Importar bundle para que registre posibles side-effects (no dependemos de listen interno)
   try {
-    mod = await import(entryPath + `?t=${Date.now()}`); // cache bust
-  } catch (err) {
-    console.error('[SSR] ❌ Error importando server.mjs:', err);
+    await import(serverBundlePath + `?t=${Date.now()}`);
+  } catch (e) {
+    console.error('[SSR] ❌ Error importando bundle SSR:', e);
     process.exit(1);
   }
 
-  const candidates = [
-    mod.app,
-    mod.default?.app,
-    mod.default,
-    mod.server,
-    mod.default?.server
-  ].filter(Boolean);
+  const app = express();
+  const angularApp = new AngularNodeAppEngine();
 
-  let appLike = candidates.find(c => typeof c?.listen === 'function');
+  // Estáticos
+  app.use(express.static(browserDistFolder, {
+    maxAge: '1y',
+    index: false,
+    redirect: false,
+  }));
 
-  if (!appLike) {
-    console.error('[SSR] ❌ No se encontró instancia con listen() en server.mjs');
-    console.error('[SSR] Exports disponibles:', Object.keys(mod));
-    process.exit(1);
-  }
+  // SSR handler
+  app.use((req, res, next) => {
+    angularApp.handle(req)
+      .then(r => r ? writeResponseToNodeResponse(r, res) : next())
+      .catch(next);
+  });
 
-  if (appLike._guidersStarted) {
-    console.warn('[SSR] ⚠️ La aplicación ya estaba marcada como iniciada');
-  }
+  // Error básico
+  app.use((err, _req, res, _next) => {
+    console.error('[SSR] ❌ Error de request:', err);
+    res.status(500).send('SSR Error');
+  });
 
-  try {
-    const server = appLike.listen(PORT, () => {
-      console.log(`[SSR] ✅ Escuchando en puerto ${PORT}`);
-      if (process.send) process.send('ready');
+  const server = app.listen(PORT, () => {
+    console.log(`[SSR] ✅ Servidor escuchando en http://localhost:${PORT}`);
+    if (process.send) process.send('ready');
+  });
+
+  // Diagnóstico tardío
+  setTimeout(() => {
+    try {
+      console.log('[SSR] Handles activos:', process._getActiveHandles().length);
+      console.log('[SSR] Requests activas:', process._getActiveRequests().length);
+    } catch (_) {}
+  }, 3000);
+
+  const shutdown = (signal) => {
+    console.log(`[SSR] Señal ${signal} recibida. Cerrando...`);
+    server.close(() => {
+      console.log('[SSR] Cerrado limpio.');
+      process.exit(0);
     });
-    appLike._guidersStarted = true;
-
-    setTimeout(() => {
-      try {
-        console.log('[SSR] Diagnóstico post-arranque:');
-        console.log('  Handles activos:', process._getActiveHandles().length);
-        console.log('  Requests activas:', process._getActiveRequests().length);
-      } catch (_) {}
-    }, 4000);
-
-    const shutdown = (signal) => {
-      console.log(`[SSR] Recibida señal ${signal}, cerrando...`);
-      server.close(() => {
-        console.log('[SSR] Servidor cerrado. Bye.');
-        process.exit(0);
-      });
-      setTimeout(() => process.exit(1), 8000).unref();
-    };
-    ['SIGINT', 'SIGTERM'].forEach(sig => process.on(sig, () => shutdown(sig)));
-  } catch (err) {
-    console.error('[SSR] ❌ Error en listen():', err);
-    process.exit(1);
-  }
+    setTimeout(() => process.exit(1), 8000).unref();
+  };
+  ['SIGINT','SIGTERM'].forEach(s => process.on(s, () => shutdown(s)));
 }
 
-bootstrap();
+start();
