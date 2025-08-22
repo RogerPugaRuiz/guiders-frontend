@@ -90,17 +90,24 @@ jobs:
               "start": "node ssr-start.mjs"
             },
             "dependencies": {
-              "@angular/animations": "*",
-              "@angular/common": "*",
-              "@angular/core": "*",
-              "@angular/platform-browser": "*",
-              "@angular/platform-server": "*",
-              "@angular/router": "*",
-              "@angular/ssr": "*",
-              "express": "*",
-              "rxjs": "*",
-              "tslib": "*",
-              "zone.js": "*"
+              "@angular/common": "^20.1.0",
+              "@angular/compiler": "^20.1.0",
+              "@angular/core": "^20.1.0",
+              "@angular/forms": "^20.1.0",
+              "@angular/platform-browser": "^20.1.0",
+              "@angular/platform-server": "^20.1.0",
+              "@angular/router": "^20.1.0",
+              "@angular/ssr": "^20.1.0",
+              "express": "^5.1.0",
+              "rxjs": "~7.8.0",
+              "tslib": "^2.8.1",
+              "zone.js": "~0.15.0",
+              "socket.io-client": "^4.8.1",
+              "uuid": "^11.1.0",
+              "@multiavatar/multiavatar": "^1.0.7"
+            },
+            "engines": {
+              "node": ">=20"
             }
           }
           EOF
@@ -159,6 +166,15 @@ jobs:
           fi
 
           echo "✅ Archivos verificados correctamente"
+
+          echo "📦 Instalando dependencias runtime (omit dev)..."
+          # No usamos npm ci porque no se empaqueta package-lock; instalamos sólo prod deps
+          if ! npm install --omit=dev --legacy-peer-deps; then
+            echo "❌ Falló npm install"
+            exit 1
+          fi
+          echo "✅ Dependencias instaladas"
+          echo "📚 Total dependencias runtime: $(ls -1 node_modules | wc -l | tr -d ' ')"
 
           # Iniciar con PM2
           echo "🚀 Iniciando aplicación..."

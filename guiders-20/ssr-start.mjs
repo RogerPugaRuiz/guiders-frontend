@@ -17,10 +17,7 @@ import process from 'node:process';
 import { resolve } from 'node:path';
 import fs from 'node:fs';
 import express from 'express';
-import {
-  AngularNodeAppEngine,
-  writeResponseToNodeResponse,
-} from '@angular/ssr/node';
+import { AngularNodeAppEngine, writeResponseToNodeResponse } from '@angular/ssr/node';
 
 const PORT = parseInt(process.env.PORT || '4001', 10);
 const distRoot = resolve(process.cwd(), 'dist/guiders-20');
@@ -54,7 +51,34 @@ async function start() {
 
   trace('[SSR] Creando instancia Express');
   const app = express();
-  const angularApp = new AngularNodeAppEngine();
+
+  // Inicialización diferida del engine Angular con reintento JIT si falta compiler
+  let angularEnginePromise;
+  async function initAngularEngine() {
+    if (angularEnginePromise) return angularEnginePromise;
+    angularEnginePromise = (async () => {
+      try {
+        trace('[SSR] Creando AngularNodeAppEngine (AOT esperado)');
+        return new AngularNodeAppEngine();
+      } catch (e) {
+        const msg = (e && e.message) || '';
+        trace('[SSR] ⚠️ Falló creación engine inicial: ' + (e && e.stack || e));
+        if (/compiler/i.test(msg) || /ngDeclareFactory/i.test(msg)) {
+          trace('[SSR] Intentando cargar @angular/compiler para modo JIT de respaldo...');
+          try {
+            await import('@angular/compiler');
+            trace('[SSR] @angular/compiler importado. Reintentando engine...');
+            return new AngularNodeAppEngine();
+          } catch (e2) {
+            trace('[SSR] ❌ Reintento con compiler también falló: ' + (e2 && e2.stack || e2));
+            throw e2;
+          }
+        }
+        throw e;
+      }
+    })();
+    return angularEnginePromise;
+  }
 
   // Estáticos
   app.use(express.static(browserDistFolder, {
@@ -64,21 +88,27 @@ async function start() {
   }));
 
   // SSR handler
-  app.use((req, res, next) => {
+  app.use(async (req, res, next) => {
     trace('[SSR] Request: ' + req.method + ' ' + req.url);
-    angularApp.handle(req)
-      .then(r => {
-        if (r) {
-          trace('[SSR] Render OK: ' + req.url + ' status=' + r.status);
-          return writeResponseToNodeResponse(r, res);
-        }
-        trace('[SSR] Pasando a next() ' + req.url);
-        return next();
-      })
-      .catch(err => {
-        trace('[SSR] ❌ Error en handle: ' + (err && err.stack || err));
-        next(err);
-      });
+    let engine;
+    try {
+      engine = await initAngularEngine();
+    } catch (e) {
+      trace('[SSR] ❌ No se pudo inicializar Angular engine: ' + (e && e.stack || e));
+      return res.status(500).send('SSR Engine init failed');
+    }
+    try {
+      const r = await engine.handle(req);
+      if (r) {
+        trace('[SSR] Render OK: ' + req.url + ' status=' + r.status);
+        return writeResponseToNodeResponse(r, res);
+      }
+      trace('[SSR] Pasando a next() ' + req.url);
+      return next();
+    } catch (err) {
+      trace('[SSR] ❌ Error en handle: ' + (err && err.stack || err));
+      return next(err);
+    }
   });
 
   // Error básico
