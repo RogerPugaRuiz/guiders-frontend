@@ -29,13 +29,6 @@ El workflow ejecuta dos tipos de tests:
 
 ## 🚀 Ejecución Local
 
-### Validar configuración antes de commit:
-
-```bash
-# Ejecutar script de validación
-./validate-ci-tests.sh
-```
-
 ### Ejecutar tests manualmente:
 
 ```bash

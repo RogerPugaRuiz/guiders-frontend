@@ -17,9 +17,9 @@ Objetivo: que un agente pueda añadir/editar features sin romper la arquitectura
 11) Naming: `*.entity.ts`, `*.port.ts`, `*.use-case.ts`, `*.service.ts`. Barriles `index.ts` exponen solo API limpia (evitar fugas de internos).
 12) Entornos/API: Usar `src/environments/*` para URLs. Dev: API `http://localhost:3000/api` WS `ws://localhost:3000`. Prod: `https://guiders.ancoradual.com/api` / `wss://guiders.ancoradual.com`. Nunca hardcode en adaptadores o casos de uso.
 13) Tests: 
-	- Unit Jest: `npm run test:jest:guiders-20` (o script agregado `./run-unit-tests.sh`). Specs junto a caso de uso: `send-message.use-case.spec.ts` mockeando puerto a mano.
-	- E2E Cypress: `npm run test:cypress:headless:guiders-20` o script `./run-e2e-tests.sh`.
-	- Full suite: `./run-all-tests.sh`.
+	- Unit Jest: `npm run test:jest:guiders-20`. Specs junto a caso de uso: `send-message.use-case.spec.ts` mockeando puerto a mano.
+	- E2E Cypress: `npm run test:cypress:headless:guiders-20`.
+	- Full suite: ejecutar ambos comandos secuencialmente.
 14) WebSocket Testing: Mock de interfaz socket; no abrir conexión real. Probar dedupe inyectando mensajes con mismo `messageId` y verificando una única invocación de callback.
 15) Convenciones de Ports: Puertos definen métodos asincrónicos Promise. No devolver Observables ni usar `inject()` dentro de libs.
 16) Adaptadores HTTP: Encapsular fetch/HttpClient, traducir códigos → errores dominio, mapear DTO → entidades antes de devolver. No exponer DTO crudo a componentes.
@@ -27,7 +27,7 @@ Objetivo: que un agente pueda añadir/editar features sin romper la arquitectura
 18) Diagnóstico: Para chat duplicado usar método `diagnostics` del WebSocketService (cuando esté). Para DI roto verificar providers en `app.config.ts` y tokens exportados.
 19) Pitfalls comunes: (a) usar RxJS o `inject()` dentro de libs (b) listeners WS duplicados (c) imports circulares entre casos de uso (d) exponer DTOs crudos (e) olvidar `from()` al exponer Promises (f) hardcode de URLs.
 20) Checklist PR: Dominio puro ✔ Adaptador mínimo ✔ Tokens DI ✔ Servicio convierte Promise→Observable ✔ Tests básicos use-cases ✔ Sin URLs hardcoded ✔ Errores mapeados a dominio ✔ Signals en estado ✔ Sin servicios en libs ✔.
-21) Scripts útiles raíz: `verify-build.sh`, `run-all-tests.sh`, `deploy-staging.sh`, `deploy-cleanup-script.sh`. Ejecutar `verify-build.sh` antes de abrir PR si se modifican dependencias.
+21) Scripts útiles raíz: `deploy-cleanup-script.sh`. Para análisis local de builds, usar directamente npm scripts del proyecto correspondiente.
 22) Añadir nuevo patrón transversal (caching, tracing, feature flags): documentar aquí primero con sección corta antes de uso masivo.
 
 ---
