@@ -112,9 +112,9 @@ run: |
 3. ✅ Verificación de logs de errores
 4. ✅ Métricas del sistema
 
-## 🚀 Script de Verificación Mejorado
+## 🚀 Verificación Post-Deployment
 
-El script `verify-deployment.sh` ahora incluye:
+La verificación post-deployment ahora incluye:
 - ✅ Verificación robusta de PM2 (con y sin jq)
 - ✅ Health checks con reintentos automáticos
 - ✅ Análisis de logs de errores

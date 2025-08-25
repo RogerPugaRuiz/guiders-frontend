@@ -42,7 +42,6 @@ Angular 20 Application
 ├── node_modules/             # Dependencias optimizadas
 ├── package.json              # Configuración de producción
 ├── ecosystem.staging.config.js  # Configuración PM2
-├── pm2-staging-management.sh    # Script de gestión
 └── logs/                     # Logs de aplicación
 ```
 
@@ -133,11 +132,16 @@ netstat -tulpn | grep :4001
 ls -la /var/www/guiders-frontend-staging/dist/guiders-20/
 ```
 
-### Scripts de verificación
+### Verificación manual
 ```bash
-# En el servidor
-cd /var/www/guiders-frontend-staging
-./verify-staging-deployment.sh
+# En el servidor - verificar estado de PM2
+pm2 status
+
+# Ver logs de la aplicación
+pm2 logs guiders-frontend-staging
+
+# Probar conectividad
+curl http://localhost:4001
 ```
 
 ## 🛡️ Seguridad
@@ -252,7 +256,6 @@ pm2 restart guiders-frontend-staging
 - **Staging URL**: `http://STAGING_HOST:4001`
 - **GitHub Actions**: `.github/workflows/deploy-staging.yml`
 - **PM2 Config**: `.github/ecosystem.staging.config.js`
-- **Management Script**: `.github/pm2-staging-management.sh`
-- **Verification Script**: `.github/verify-staging-deployment.sh`
+- **Diagnosis Workflow**: `.github/workflows/diagnose-staging.yml`
 
 Este deployment está optimizado para el desarrollo ágil y testing continuo, proporcionando un entorno de staging robusto y automatizado para el frontend Angular 20 con SSR.
