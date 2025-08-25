@@ -57,3 +57,70 @@ Follow these steps for each interaction:
 	  c) Store facts about them as observations
 
 Nota: Este protocolo no debe interferir con las reglas de pureza de dominio ni modificar código; solo guía interacción conversacional cuando proceda.
+
+---
+### Context7 Documentation Retrieval Protocol (Cuándo y Cómo Usarlo)
+Objetivo: Obtener documentación externa SOLO cuando la info no esté ya en el repo y sea necesaria para decisiones de implementación.
+
+Usar context7 si (todas o varias aplican):
+1. Necesitas una firma, comportamiento o cambio de versión de una librería externa (p.ej. Angular 20 APIs nuevas, RxJS interop, WebSocket estándar, Jest config) que no aparece en el código local.
+2. Hay ambigüedad sobre un decorador, opción de configuración, o API (ej: nueva sintaxis de `provideHttpClient`, signals advanced patterns) y la implementación correcta impacta arquitectura.
+3. Requieres confirmar si una API está deprecada antes de introducirla.
+4. Vas a proponer optimización dependiente de opciones oficiales (build, test, SSR) y no aparece documentada en el repo.
+
+NO usar context7 cuando:
+- La respuesta se deduce leyendo archivos locales (prioriza búsqueda interna primero).
+- Es simple sintaxis TypeScript / estándar ECMAScript.
+- Sería para copiar ejemplos genéricos no alineados al patrón del repo.
+
+Procedimiento:
+1. Intentar primero `semantic_search` o lectura directa de archivos locales.
+2. Si falta info externa, llamar a `resolve-library-id` con nombre (ej: "angular", "rxjs", "jest").
+3. Luego `get-library-docs` con:
+	- `topic` específico (ej: `signals`, `dependency-injection`, `testing`, `ws`).
+	- `tokens` conservador (<=6000) para evitar ruido; subir solo si sigue faltando contexto.
+4. Resumir extractando SOLO lo relevante al cambio que estás implementando; no pegar dumps largos.
+5. Aplicar la decisión en código siguiendo reglas locales (pureza dominio, adapters, tokens DI) y referenciar la sección consultada brevemente ("Context7: Angular DI providers").
+
+Buenas prácticas:
+- Preferir un único fetch bien focalizado a múltiples consultas amplias.
+- Cache mental de lo obtenido durante la sesión: no repetir la misma llamada salvo cambio de versión.
+- Si la docs contradice estilos del proyecto, seguir estilos del proyecto y mencionar la discrepancia.
+- Nunca introducir dependencia nueva solo porque aparece en la docs sin justificar valor claro.
+
+Ejemplos de disparadores válidos:
+- "¿Existe un provider tree-shakable alternativo para X en Angular 20?" → context7 topic: dependency-injection.
+- "Cómo usar señales para reemplazar BehaviorSubject" → context7 topic: signals.
+- "Método correcto de jest para mocks de timers en versión actual" → context7 topic: jest timers.
+
+Evitar:
+- Llamar para recordar sintaxis básica de `Array.map` o `Promise.all`.
+- Descarga masiva de docs sin pregunta concreta.
+ - Descarga masiva de docs sin pregunta concreta.
+
+---
+### Playwright MCP
+No obligatorio, pero mejora precisión y reduce pasos innecesarios. Mantenerlo ≤8 líneas.
+
+Formato sugerido:
+Objetivo: (una frase clara)
+URL inicial: (http/https)
+Pasos clave: 1) … 2) …
+Selectores críticos: (css o data-testid, separados por coma)
+Datos a capturar: (texto|screenshot|html|requests|console)
+Criterio de éxito: (condición verificable)
+Límites: (máx clicks N, timeout Xs, no salir del dominio)
+
+Ejemplo mínimo:
+Objetivo: Validar login correcto
+URL inicial: http://localhost:4200/login
+Pasos clave: 1) Rellenar #email y #password 2) Click button[type=submit]
+Selectores críticos: h1.welcome, .user-menu
+Datos a capturar: screenshot, texto h1.welcome
+Criterio de éxito: h1.welcome contiene "Bienvenido"
+Límites: timeout 15s, máx clicks 3
+
+Notas:
+- Preferir data-testid para estabilidad.
+- Pedir sólo artefactos necesarios (evita sobrecarga).
+- Un prompt conciso evita exploración irrelevante.
