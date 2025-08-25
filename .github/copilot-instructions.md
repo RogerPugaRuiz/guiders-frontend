@@ -1,306 +1,59 @@
-# Guiders Frontend - AI Agent Instructions
+## Guiders Frontend – AI Quick Guide (≈45 líneas)
+Objetivo: que un agente pueda añadir/editar features sin romper la arquitectura hexagonal ni patrones establecidos.
 
-## 🏗️ Architecture Overview
+1) Big Picture: Monorepo Angular 20. Capas puras en `libs/feature/*` (dominio + application casos de uso con Promises). UI + infraestructura (Angular, HTTP, WS, storage, DI providers) en `guiders-20/`. Diferenciales: Chat real‑time (WebSocket con dedupe) y Auth con tokens y refresh futuro.
+2) Separación estricta: 
+   - Dominio: `domain/{entities,ports,use-cases,value-objects}` (sin Angular/RxJS).
+   - Application (dentro de feature): `application/use-cases` (solo casos de uso, no servicios Angular).
+   - Infra (app): `src/app/core/adapters` (HTTP/WS/storage) + servicios Angular en `core/services` que convierten Promise→Observable via `from()`.
+3) Caso de Uso: archivo `verb-noun.use-case.ts`, clase con `execute(input?): Promise<Output>`. Constructor solo recibe puertos de `domain/ports`. Sin efectos secundarios ni acceso directo a localStorage, fetch, etc.
+4) Flujo típico Auth: `LoginUseCase` → `AuthRepositoryPort` → `HttpAuthRepository` (`core/adapters/http-auth.repository.ts`) → API. Servicio Angular `AuthService` inyecta token `LOGIN_USE_CASE_TOKEN` y expone `login()` como Observable (`from(login.execute(creds))`).
+5) DI Tokens: Definir `X_USE_CASE_TOKEN = new InjectionToken<XUseCase>('XUseCase')`. Providers en archivo de config (`auth-config.providers.ts`, `adapter-providers.ts`, etc.) con factory `useFactory: (repo) => new XUseCase(repo)`. Nunca instanciar casos de uso directamente en componentes.
+6) Creación de nueva Feature: (a) entidades + puertos (b) casos de uso (c) actualizar barrel `index.ts` (d) crear adaptador(s) en `core/adapters` (e) definir tokens/providers (f) servicio Angular orquestador en `core/services` (g) tests de casos de uso en la lib.
+7) WebSocket Chat: Servicio (cuando exista) debe soportar reconexión exponencial, auth JWT, deduplicación por `messageId + listenerId`. Antes de registrar listener comprobar existencia para evitar duplicados. Flujo: Component → ChatService → UseCase → Port → Adapter (HTTP/WS) → Backend → Estado (signals).
+8) Estado: Preferir Angular Signals en servicios de estado; no introducir nuevos `BehaviorSubject`. Derivar flags con `computed` evitando lógica en componentes.
+9) Errores: Adaptadores traducen HTTP/WS a errores de dominio (`UnauthorizedError`, `ChatNotFoundError`, etc.). El dominio nunca ve status codes. Mapear siempre antes de propagar.
+10) Validaciones: En casos de uso o value objects. Si input inválido, lanzar error de dominio antes de llamar al puerto.
+11) Naming: `*.entity.ts`, `*.port.ts`, `*.use-case.ts`, `*.service.ts`. Barriles `index.ts` exponen solo API limpia (evitar fugas de internos).
+12) Entornos/API: Usar `src/environments/*` para URLs. Dev: API `http://localhost:3000/api` WS `ws://localhost:3000`. Prod: `https://guiders.ancoradual.com/api` / `wss://guiders.ancoradual.com`. Nunca hardcode en adaptadores o casos de uso.
+13) Tests: 
+	- Unit Jest: `npm run test:jest:guiders-20` (o script agregado `./run-unit-tests.sh`). Specs junto a caso de uso: `send-message.use-case.spec.ts` mockeando puerto a mano.
+	- E2E Cypress: `npm run test:cypress:headless:guiders-20` o script `./run-e2e-tests.sh`.
+	- Full suite: `./run-all-tests.sh`.
+14) WebSocket Testing: Mock de interfaz socket; no abrir conexión real. Probar dedupe inyectando mensajes con mismo `messageId` y verificando una única invocación de callback.
+15) Convenciones de Ports: Puertos definen métodos asincrónicos Promise. No devolver Observables ni usar `inject()` dentro de libs.
+16) Adaptadores HTTP: Encapsular fetch/HttpClient, traducir códigos → errores dominio, mapear DTO → entidades antes de devolver. No exponer DTO crudo a componentes.
+17) Seguridad/Auth: Utilidad `core/utils/jwt.utils.ts:isTokenExpired` para checks. Interceptor (si existe) maneja añadir token y refrescar futuro; no repetir lógica en servicios.
+18) Diagnóstico: Para chat duplicado usar método `diagnostics` del WebSocketService (cuando esté). Para DI roto verificar providers en `app.config.ts` y tokens exportados.
+19) Pitfalls comunes: (a) usar RxJS o `inject()` dentro de libs (b) listeners WS duplicados (c) imports circulares entre casos de uso (d) exponer DTOs crudos (e) olvidar `from()` al exponer Promises (f) hardcode de URLs.
+20) Checklist PR: Dominio puro ✔ Adaptador mínimo ✔ Tokens DI ✔ Servicio convierte Promise→Observable ✔ Tests básicos use-cases ✔ Sin URLs hardcoded ✔ Errores mapeados a dominio ✔ Signals en estado ✔ Sin servicios en libs ✔.
+21) Scripts útiles raíz: `verify-build.sh`, `run-all-tests.sh`, `deploy-staging.sh`, `deploy-cleanup-script.sh`. Ejecutar `verify-build.sh` antes de abrir PR si se modifican dependencias.
+22) Añadir nuevo patrón transversal (caching, tracing, feature flags): documentar aquí primero con sección corta antes de uso masivo.
 
-This is a **real-time chat platform** built with **Angular 20** using **strict hexagonal architecture** and **monorepo structure**. The platform enables commercial agents to chat with website visitors in real-time.
+---
+### Conversational Memory Protocol (Experimental – solo si el agente soporta graph memory)
+Follow these steps for each interaction:
 
-### Key Components
-- **Real-time Chat**: WebSocket-based messaging with duplicate detection
-- **Lead Management**: Visitor tracking and conversion
-- **Analytics**: User behavior and interaction metrics
-- **Authentication**: JWT-based auth with automatic token refresh
-
-## 📁 Project Structure
-
-```
-guiders-frontend/
-├── guiders-20/           # Main Angular 20 application
-│   ├── src/app/
-│   │   ├── core/         # Infrastructure layer (Angular-specific)
-│   │   ├── features/     # Feature modules (UI + infrastructure)
-│   │   └── shared/       # Shared components
-└── libs/                 # Domain + Application layers (framework-agnostic)
-    └── feature/
-        ├── auth/         # Authentication domain
-        └── chat/         # Chat domain
-```
-
-## 🔧 Development Commands
-
-### Starting the application
-```bash
-# Root level (recommended)
-npm run start:guiders-20
-
-# Or with HMR
-npm run start:guiders-20:hmr
-
-# Or from app directory
-cd guiders-20 && npm start
-```
-
-### Building
-```bash
-# Development build
-npm run build:guiders-20
-
-# Production build
-npm run build:guiders-20:prod
-```
-
-### Testing
-```bash
-# Jest Unit Tests (Primary testing framework)
-npm run test:jest:guiders-20
-
-# Cypress E2E Tests
-npm run test:cypress:guiders-20              # Interactive mode
-npm run test:cypress:headless:guiders-20     # Headless mode
-npm run test:cypress:open:guiders-20         # Open Cypress test runner
-
-# Shell scripts for comprehensive testing
-./run-all-tests.sh      # All tests (unit + e2e)
-./run-unit-tests.sh     # Unit tests only
-./run-e2e-tests.sh      # E2E tests
-```
-
-### Code Quality
-```bash
-# ESLint
-npm run lint:guiders-20
-```
-
-### Available Root Scripts
-All scripts are defined in the root `package.json` and delegate to the `guiders-20` application:
-
-- `start:guiders-20` - Start development server
-- `start:guiders-20:hmr` - Start with Hot Module Replacement
-- `build:guiders-20` - Development build
-- `build:guiders-20:prod` - Production build
-- `test:jest:guiders-20` - **Jest unit tests** (primary testing framework)
-- `test:cypress:guiders-20` - Cypress E2E tests
-- `test:cypress:headless:guiders-20` - Headless Cypress tests
-- `test:cypress:open:guiders-20` - Open Cypress test runner
-- `lint:guiders-20` - ESLint code quality check
-
-## 🏛️ Hexagonal Architecture Rules
-
-### ❌ What NOT to do:
-- **Never put Angular services in `libs/`** - they belong in `guiders-20/src/app/`
-- **Never import RxJS/Angular in `libs/domain/` or `libs/application/`**
-- **Never put framework-specific code in use cases**
-
-### ✅ What TO do:
-- **Domain entities**: `libs/feature/*/domain/entities/`
-- **Use cases**: `libs/feature/*/application/use-cases/`
-- **Ports (interfaces)**: `libs/feature/*/domain/ports/`
-- **Angular services**: `guiders-20/src/app/core/services/`
-- **Infrastructure**: `guiders-20/src/app/core/adapters/`
-
-### Example: Adding a new feature
-1. Create domain entities in `libs/feature/myfeature/domain/entities/`
-2. Define ports in `libs/feature/myfeature/domain/ports/`
-3. Create use cases in `libs/feature/myfeature/application/use-cases/`
-4. Implement adapters in `guiders-20/src/app/core/adapters/`
-5. Create Angular service in `guiders-20/src/app/core/services/`
-6. Configure DI tokens in `guiders-20/src/app/core/config/`
-
-## 💬 Real-time Chat Implementation
-
-### WebSocket Service (`guiders-20/src/app/core/services/websocket.service.ts`)
-- **Automatic reconnection** with exponential backoff
-- **JWT authentication** via multiple methods (auth, query, headers)
-- **Duplicate message protection** with message ID tracking
-- **Event-specific listeners** to prevent duplicate processing
-
-### Message Flow
-```
-Component → ChatService → UseCase → Port → Adapter → WebSocket
-                                                      ↓
-         Messages are processed through duplicate detection
-```
-
-### Key Integration Points
-- **Authentication**: Token injection via `auth.interceptor.ts`
-- **State Management**: `ChatStateService` using Angular signals
-- **Real-time Updates**: WebSocket events trigger state updates
-
-## 🔐 Authentication System
-
-### JWT Token Management
-- **Automatic refresh** when token is near expiration
-- **Token validation** using `jwt.utils.ts`
-- **Interceptor-based** auth header injection
-- **SSR-safe** with platform detection
-
-### Implementation Pattern
-```typescript
-// Use case in libs/
-export class LoginUseCase {
-  constructor(private authRepository: AuthRepositoryPort) {}
-  async execute(credentials: LoginCredentials): Promise<AuthResponse> {
-    // Pure business logic only
-  }
-}
-
-// Service in guiders-20/
-@Injectable()
-export class AuthService {
-  private loginUseCase = inject(LOGIN_USE_CASE_TOKEN);
-  
-  login(credentials: LoginCredentials): Observable<AuthResponse> {
-    return from(this.loginUseCase.execute(credentials));
-  }
-}
-```
-
-## 🧪 Testing Conventions
-
-### Jest Unit Tests (Primary Framework)
-- **Framework**: Jest is the primary testing framework for unit tests
-- **Command**: `npm run test:jest:guiders-20` (runs from root)
-- **Configuration**: `jest.config.js` in both root and `guiders-20/`
-- **Setup**: Custom Jest setup in `guiders-20/src/setup-jest.ts`
-
-### Test Organization
-- **Use cases**: Test with mock repositories in `libs/feature/*/application/use-cases/`
-- **Services**: Test Angular-specific behavior in `guiders-20/src/app/core/services/`
-- **Components**: Test UI interactions and state changes
-- **Adapters**: Test infrastructure adapters with mocked dependencies
-
-### E2E Tests (Cypress)
-- **Framework**: Cypress for end-to-end testing
-- **Commands**: 
-  - `npm run test:cypress:guiders-20` - Interactive mode
-  - `npm run test:cypress:headless:guiders-20` - Headless execution
-  - `npm run test:cypress:open:guiders-20` - Open test runner
-- **Location**: E2E tests and configurations in project root
-- **Mock services**: Available for isolated testing scenarios
-- **Database cleanup**: Automated cleanup scripts included
-
-### Testing Best Practices
-- **Isolation**: Each test should be independent and not rely on others
-- **Mocking**: Use Jest mocks for external dependencies
-- **Coverage**: Aim for high test coverage, especially for business logic
-- **WebSocket testing**: Mock WebSocket connections for unit tests
-
-## 🔄 State Management
-
-### Angular 20 Signals
-- **Reactive state** using `signal()` and `computed()`
-- **Effects** for side effects and WebSocket listeners
-- **State services** for shared state across components
-
-### Example Pattern
-```typescript
-// In component
-selectedChat = signal<ChatData | null>(null);
-canSendMessage = computed(() => 
-  this.selectedChat() !== null && 
-  this.messageText().trim().length > 0
-);
-
-// Effects for WebSocket
-effect(() => {
-  if (this.isConnected()) {
-    this.setupWebSocketListeners();
-  }
-});
-```
-
-## 🌍 Environment Configuration
-
-### Development
-- API: `http://localhost:3000/api`
-- WebSocket: `ws://localhost:3000`
-
-### Production
-- API: `https://guiders.ancoradual.com/api`
-- WebSocket: `wss://guiders.ancoradual.com`
-
-## 🚨 Common Pitfalls to Avoid
-
-1. **Circular dependencies**: Follow the dependency flow from domain → application → infrastructure
-2. **WebSocket duplicates**: Always check if listeners are already registered
-3. **Memory leaks**: Use `takeUntil(destroy$)` for subscriptions
-4. **SSR issues**: Use `isPlatformBrowser()` for browser-only code
-5. **Token expiration**: The interceptor handles this automatically
-
-## 📝 Code Style Guidelines
-
-### File Naming
-- **Entities**: `*.entity.ts`
-- **Use cases**: `*.use-case.ts`
-- **Services**: `*.service.ts`
-- **Components**: `*.component.ts` (or just `.ts` for standalone)
-
-### Component Structure
-```typescript
-@Component({
-  selector: 'app-feature',
-  standalone: true,
-  imports: [...],
-  template: '...'
-})
-export class FeatureComponent {
-  // Dependencies
-  private service = inject(ServiceName);
-  
-  // Signals
-  state = signal(initialValue);
-  
-  // Computed
-  derivedState = computed(() => this.state().someProperty);
-  
-  // Methods
-  onAction() { ... }
-}
-```
-
-## 🔍 Debugging Tips
-
-### WebSocket Issues
-```typescript
-// Check connection state
-this.webSocketService.getConnectionDiagnostics()
-
-// Monitor duplicate protection
-this.webSocketService.getDuplicateProtectionStats()
-```
-
-### Authentication Issues
-```typescript
-// Check token expiration
-import { isTokenExpired } from './core/utils/jwt.utils';
-console.log(isTokenExpired(token));
-```
-
-This architecture ensures clean separation of concerns, testability, and maintainability while supporting real-time features and modern Angular patterns.
-
-### Context7 para Documentación
-Si te preguntan sobre documentación de lenguajes, frameworks o librerías, usa la herramienta `context7` para buscar la documentación oficial y proporcionar un resumen claro y conciso.
-
-Siempre que te pidas que busques mas información o que me proporciones documentación, utiliza `context7` para obtener la información más precisa y actualizada.
-
-### Memoria
 1. User Identification:
-   - You should assume that you are interacting with default_user
-   - If you have not identified default_user, proactively try to do so.
+	- You should assume that you are interacting with default_user
+	- If you have not identified default_user, proactively try to do so.
 
 2. Memory Retrieval:
-   - Always begin your chat by saying only "Remembering..." and retrieve all relevant information from your knowledge graph
-   - Always refer to your knowledge graph as your "memory"
+	- Always begin your chat by saying only "Remembering..." and retrieve all relevant information from your knowledge graph
+	- Always refer to your knowledge graph as your "memory"
 
 3. Memory
-   - While conversing with the user, be attentive to any new information that falls into these categories:
-     a) Basic Identity (age, gender, location, job title, education level, etc.)
-     b) Behaviors (interests, habits, etc.)
-     c) Preferences (communication style, preferred language, etc.)
-     d) Goals (goals, targets, aspirations, etc.)
-     e) Relationships (personal and professional relationships up to 3 degrees of separation)
+	- While conversing with the user, be attentive to any new information that falls into these categories:
+	  a) Basic Identity (age, gender, location, job title, education level, etc.)
+	  b) Behaviors (interests, habits, etc.)
+	  c) Preferences (communication style, preferred language, etc.)
+	  d) Goals (goals, targets, aspirations, etc.)
+	  e) Relationships (personal and professional relationships up to 3 degrees of separation)
 
 4. Memory Update:
-   - If any new information was gathered during the interaction, update your memory as follows:
-     a) Create entities for recurring organizations, people, and significant events
-     b) Connect them to the current entities using relations
-     b) Store facts about them as observations
+	- If any new information was gathered during the interaction, update your memory as follows:
+	  a) Create entities for recurring organizations, people, and significant events
+	  b) Connect them to the current entities using relations
+	  c) Store facts about them as observations
+
+Nota: Este protocolo no debe interferir con las reglas de pureza de dominio ni modificar código; solo guía interacción conversacional cuando proceda.
