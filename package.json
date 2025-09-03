@@ -2,7 +2,10 @@
   "name": "@guiders-frontend/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "serve:admin": "nx serve admin --port=4201",
+    "serve:console": "nx serve console --port=4200"
+  },
   "private": true,
   "dependencies": {
     "@angular/common": "~20.1.0",
