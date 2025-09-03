@@ -16,7 +16,10 @@
     "baseUrl": ".",
     "paths": {
       "@guiders-frontend/auth/login": ["lib/auth/features/login/src/index.ts"],
-      "@guiders-frontend/auth/login-form": ["lib/auth/ui/login-form/src/index.ts"]
+      "@guiders-frontend/auth/login-form": [
+        "lib/auth/ui/login-form/src/index.ts"
+      ],
+      "@guiders-frontend/inbox": ["lib/chat/features/inbox/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

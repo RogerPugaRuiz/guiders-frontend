@@ -2,11 +2,11 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
-  selector: 'lib-login',
+  selector: 'chat-inbox',
   imports: [],
-  templateUrl: './login.html',
-  styleUrl: './login.scss',
+  templateUrl: './inbox.html',
+  styleUrl: './inbox.scss',
 })
-export class Login {
+export class Inbox {
   private router = inject(Router);
 }
