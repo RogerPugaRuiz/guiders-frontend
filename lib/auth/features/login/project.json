@@ -1,0 +1,20 @@
+{
+  "name": "login",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "lib/auth/features/login/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["type:feature", "scope:auth"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/lib/auth/features/login"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
