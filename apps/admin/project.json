@@ -1,27 +1,27 @@
 {
-  "name": "guiders-frontend",
+  "name": "admin",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "prefix": "app",
-  "sourceRoot": "apps/guiders-frontend/src",
+  "prefix": "admin",
+  "sourceRoot": "apps/admin/src",
   "tags": [],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "dist/apps/guiders-frontend",
-        "browser": "apps/guiders-frontend/src/main.ts",
+        "outputPath": "dist/apps/admin",
+        "browser": "apps/admin/src/main.ts",
         "polyfills": ["zone.js"],
-        "tsConfig": "apps/guiders-frontend/tsconfig.app.json",
+        "tsConfig": "apps/admin/tsconfig.app.json",
         "inlineStyleLanguage": "scss",
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/guiders-frontend/public"
+            "input": "apps/admin/public"
           }
         ],
-        "styles": ["apps/guiders-frontend/src/styles.scss"]
+        "styles": ["apps/admin/src/styles.scss"]
       },
       "configurations": {
         "production": {
@@ -52,10 +52,10 @@
       "executor": "@angular/build:dev-server",
       "configurations": {
         "production": {
-          "buildTarget": "guiders-frontend:build:production"
+          "buildTarget": "admin:build:production"
         },
         "development": {
-          "buildTarget": "guiders-frontend:build:development"
+          "buildTarget": "admin:build:development"
         }
       },
       "defaultConfiguration": "development"
@@ -63,7 +63,7 @@
     "extract-i18n": {
       "executor": "@angular/build:extract-i18n",
       "options": {
-        "buildTarget": "guiders-frontend:build"
+        "buildTarget": "admin:build"
       }
     },
     "lint": {
@@ -73,16 +73,16 @@
       "executor": "@nx/vite:test",
       "outputs": ["{options.reportsDirectory}"],
       "options": {
-        "reportsDirectory": "../../coverage/apps/guiders-frontend"
+        "reportsDirectory": "../../coverage/apps/admin"
       }
     },
     "serve-static": {
       "continuous": true,
       "executor": "@nx/web:file-server",
       "options": {
-        "buildTarget": "guiders-frontend:build",
+        "buildTarget": "admin:build",
         "port": 4200,
-        "staticFilePath": "dist/apps/guiders-frontend/browser",
+        "staticFilePath": "dist/apps/admin/browser",
         "spa": true
       }
     }

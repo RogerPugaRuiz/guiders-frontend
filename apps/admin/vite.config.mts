@@ -6,14 +6,14 @@ import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 
 export default defineConfig(() => ({
   root: __dirname,
-  cacheDir: '../../node_modules/.vite/apps/guiders-frontend',
+  cacheDir: '../../node_modules/.vite/apps/admin',
   plugins: [angular(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [ nxViteTsPaths() ],
   // },
   test: {
-    name: 'guiders-frontend',
+    name: 'admin',
     watch: false,
     globals: true,
     environment: 'jsdom',
@@ -21,7 +21,7 @@ export default defineConfig(() => ({
     setupFiles: ['src/test-setup.ts'],
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../coverage/apps/guiders-frontend',
+      reportsDirectory: '../../coverage/apps/admin',
       provider: 'v8' as const,
     },
   },
