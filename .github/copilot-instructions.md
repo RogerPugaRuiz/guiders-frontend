@@ -50,6 +50,8 @@
 - **Imports**: `@guiders-frontend/{domain}/{type}/{name}` (definidos en `tsconfig.base.json`)
 - **Ejemplo**: `import { LoginForm } from '@guiders-frontend/auth/ui/login-form';`
 - **Testing**: Vitest configurado para todas las librerías, Playwright para E2E de apps
+- **ModuleResolution**: Usa `"bundler"` en lugar de `"node"` (compatible con Vite y bundlers modernos)
+- **Target**: ES2022 para aprovechar características modernas de JavaScript
 
 ## Archivos Clave y Configuración
 - `nx.json`: Configuración global, generators defaults, plugins y targetDefaults
