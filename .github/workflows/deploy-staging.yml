@@ -76,6 +76,12 @@ jobs:
           set -euo pipefail
           if [ -z "$WG_PK" ]; then echo "🔕 WG_PRIVATE_KEY no definido. Omitiendo WireGuard."; exit 0; fi
           if [ -z "$WG_ENDPOINT" ]; then echo "❌ Falta WG_SERVER_ENDPOINT"; exit 1; fi
+          # Saneado y validación de la clave privada WireGuard
+          WG_PK_CLEAN=$(printf '%s' "$WG_PK" | tr -d '"\r\n' | xargs)
+          if ! echo "$WG_PK_CLEAN" | grep -Eq '^[A-Za-z0-9+/]{43}=$|^[A-Za-z0-9+/]{44}$'; then
+            echo "❌ Formato inválido de WG_PRIVATE_KEY (longitud ${#WG_PK_CLEAN}). Debe ser salida de 'wg genkey' (44 chars base64)."; exit 1;
+          fi
+          echo "🔑 Clave WireGuard validada (longitud ${#WG_PK_CLEAN})."
           sudo mkdir -p /etc/wireguard && sudo chmod 700 /etc/wireguard
           cat > github.conf <<'CFG'
           [Interface]
@@ -88,7 +94,7 @@ jobs:
           AllowedIPs = 10.0.0.0/24
           PersistentKeepalive = 25
           CFG
-          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK#" github.conf
+          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK_CLEAN#" github.conf
           sed -i "s#WG_ENDPOINT_PLACEHOLDER#$WG_ENDPOINT#" github.conf
           sudo mv github.conf /etc/wireguard/github.conf
           sudo chmod 600 /etc/wireguard/github.conf
@@ -136,6 +142,22 @@ jobs:
       - name: Preparar timestamp de release
         id: release_time
         run: echo "RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+      - name: Validar formato clave SSH
+        if: env.STAGING_SSH_HOST != ''
+        env:
+          RAW_KEY: ${{ secrets.STAGING_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RAW_KEY" ]; then echo "❌ STAGING_SSH_KEY vacío"; exit 1; fi
+          LINE_COUNT=$(printf '%s\n' "$RAW_KEY" | wc -l | awk '{print $1}')
+          if ! printf '%s' "$RAW_KEY" | grep -Eq 'BEGIN (OPENSSH|RSA|ED25519) PRIVATE KEY'; then
+            echo "❌ Encabezado inválido de clave privada SSH"; exit 1;
+          fi
+          if printf '%s' "$RAW_KEY" | grep -q $'\r'; then
+            echo "⚠️ Se detectaron CR (\r). Considera normalizar a LF.";
+          fi
+          echo "✅ Clave SSH validada (líneas: $LINE_COUNT)."
 
       - name: Configurar SSH
         if: env.STAGING_SSH_HOST != ''
