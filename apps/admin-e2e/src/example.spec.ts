@@ -1,8 +1,12 @@
 import { test, expect } from '@playwright/test';
 
-test('has title', async ({ page }) => {
+test('home page title', async ({ page }) => {
   await page.goto('/');
+  await expect(page).toHaveTitle(/admin/i);
+});
 
-  // Expect h1 to contain a substring.
-  expect(await page.locator('h1').innerText()).toContain('Welcome');
+test('shows admin app heading', async ({ page }) => {
+  await page.goto('/');
+  const h1 = page.locator('h1');
+  await expect(h1).toHaveText(/Admin Application/);
 });
