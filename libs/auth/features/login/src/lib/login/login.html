@@ -1,1 +1,81 @@
-<guiders-login-form></guiders-login-form>
+<div class="login-container">
+  <!-- OIDC Login (Primary) -->
+  @if (useOidc() && isOidcConfigured()) {
+    <div class="oidc-login">
+      <div class="login-header">
+        <h1>Sign In</h1>
+        <p>Continue with your secure account</p>
+      </div>
+
+      @if (error()) {
+        <div class="error-message">
+          {{ error() }}
+        </div>
+      }
+
+      <button 
+        type="button" 
+        class="oidc-login-btn"
+        [disabled]="isLoading()"
+        (click)="onOidcLogin()">
+        @if (isLoading()) {
+          <span class="loading-spinner"></span>
+          Signing in...
+        } @else {
+          <span class="oidc-icon">🔐</span>
+          Sign in with OIDC
+        }
+      </button>
+
+      <div class="divider">
+        <span>or</span>
+      </div>
+
+      <button 
+        type="button" 
+        class="form-login-toggle"
+        (click)="toggleLoginMethod()">
+        Use email and password
+      </button>
+    </div>
+  } @else {
+    <!-- Form-based Login (Fallback) -->
+    <div class="form-login">
+      <div class="login-header">
+        <h1>Sign In</h1>
+        @if (!isOidcConfigured()) {
+          <p>Enter your credentials to continue</p>
+        } @else {
+          <p>Traditional login method</p>
+        }
+      </div>
+
+      @if (error()) {
+        <div class="error-message">
+          {{ error() }}
+        </div>
+      }
+
+      <guiders-login-form
+        [disabled]="isLoading()"
+        (loginSubmit)="onFormLogin($event)"
+        (forgotPassword)="onForgotPassword()"
+        (signUpClick)="onSignUp()">
+      </guiders-login-form>
+
+      @if (isOidcConfigured()) {
+        <div class="divider">
+          <span>or</span>
+        </div>
+
+        <button 
+          type="button" 
+          class="oidc-login-toggle"
+          (click)="toggleLoginMethod()">
+          <span class="oidc-icon">🔐</span>
+          Sign in with OIDC
+        </button>
+      }
+    </div>
+  }
+</div>

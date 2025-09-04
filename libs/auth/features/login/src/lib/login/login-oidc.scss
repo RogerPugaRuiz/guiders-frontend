@@ -1,0 +1,164 @@
+.login-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #666;
+      font-size: 0.95rem;
+    }
+  }
+
+  .error-message {
+    background: linear-gradient(135deg, #ff4757, #ff3838);
+    color: white;
+    padding: 0.875rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
+  }
+
+  .oidc-login {
+    .oidc-login-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 0.875rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+
+      &:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .oidc-icon {
+        font-size: 1.2rem;
+      }
+
+      .loading-spinner {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+    }
+  }
+
+  .form-login {
+    .form-login-toggle,
+    .oidc-login-toggle {
+      width: 100%;
+      background: transparent;
+      color: #667eea;
+      border: 2px solid #667eea;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+
+      &:hover {
+        background: #667eea;
+        color: white;
+        transform: translateY(-1px);
+      }
+
+      .oidc-icon {
+        font-size: 1rem;
+      }
+    }
+  }
+
+  .divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #e1e5e9;
+    }
+
+    span {
+      background: white;
+      color: #666;
+      padding: 0 1rem;
+      font-size: 0.875rem;
+      position: relative;
+      z-index: 1;
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// Dark mode support
+@media (prefers-color-scheme: dark) {
+  .login-container {
+    .login-header {
+      h1 {
+        color: #f8f9fa;
+      }
+
+      p {
+        color: #adb5bd;
+      }
+    }
+
+    .divider {
+      &::before {
+        background: #495057;
+      }
+
+      span {
+        background: #212529;
+        color: #adb5bd;
+      }
+    }
+  }
+}
