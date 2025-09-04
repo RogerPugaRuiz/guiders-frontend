@@ -38,6 +38,7 @@ import { LoginForm } from '@guiders-frontend/auth/login-form';
       [disabled]="isProcessing()"
       (loginSubmit)="onLogin($event)"
       (forgotPassword)="onForgotPassword()"
+      (signUpClick)="onSignUp()"
     />
   `,
   imports: [LoginForm]
@@ -55,6 +56,11 @@ export class LoginPageComponent {
     // Navegar a página de recuperación
     console.log('Forgot password clicked');
   }
+
+  onSignUp() {
+    // Navegar a página de registro
+    console.log('Sign up clicked');
+  }
 }
 ```
 
@@ -64,13 +70,14 @@ export class LoginPageComponent {
 | Propiedad | Tipo | Default | Descripción |
 |-----------|------|---------|-------------|
 | `disabled` | `boolean` | `false` | Deshabilita el formulario |
-| `showRememberMe` | `boolean` | `true` | Muestra opción recordarme |
 
 ### Outputs
+
 | Evento | Tipo | Descripción |
 |--------|------|-------------|
 | `loginSubmit` | `LoginCredentials` | Emitido al enviar credenciales válidas |
 | `forgotPassword` | `void` | Emitido al hacer clic en recuperar contraseña |
+| `signUpClick` | `void` | Emitido al hacer clic en "Sign up" |
 
 ### Métodos Públicos
 | Método | Descripción |
@@ -87,9 +94,20 @@ interface LoginCredentials {
 }
 ```
 
-## 🎨 Estilos
+## 🎨 Diseño Moderno
 
-El componente incluye estilos CSS completamente funcionales con:
+El componente incluye un diseño moderno y elegante inspirado en interfaces futuristas:
+
+- **Fondo oscuro** con efectos de blur y transparencias
+- **Gradientes azules** para elementos interactivos
+- **Tipografía limpia** con pesos y espaciados optimizados
+- **Animaciones suaves** en hover y focus
+- **Checkbox personalizado** con animación de check
+- **Estados visuales** claros para validación
+- **Diseño responsive** adaptable a móviles y tablets
+- **Tema futurista** coherente con sistemas tecnológicos
+- **Efectos glassmorphism** para modernidad
+- **Sombras y profundidad** para mejor jerarquía visual
 - Diseño responsive
 - Estados de validación visual
 - Animaciones de carga

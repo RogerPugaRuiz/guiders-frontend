@@ -19,11 +19,11 @@ export class LoginForm {
 
   // Signal inputs
   readonly disabled = input<boolean>(false);
-  readonly showRememberMe = input<boolean>(true);
 
   // Output events using new output() API
   readonly loginSubmit = output<LoginCredentials>();
   readonly forgotPassword = output<void>();
+  readonly signUpClick = output<void>();
 
   // Signals for component state
   readonly isLoading = signal<boolean>(false);
@@ -68,6 +68,10 @@ export class LoginForm {
 
   onForgotPassword(): void {
     this.forgotPassword.emit();
+  }
+
+  onSignUp(): void {
+    this.signUpClick.emit();
   }
 
   setError(message: string): void {

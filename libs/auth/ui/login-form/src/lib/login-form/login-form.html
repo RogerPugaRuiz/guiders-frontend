@@ -1,8 +1,8 @@
 <div class="login-container">
-	<div class="login-card">
+	<div class="login-content">
 		<div class="login-header">
-			<h1>Iniciar Sesión</h1>
-			<p>Accede a tu cuenta</p>
+			<h1>Iniciar sesión</h1>
+			<p>Bienvenido al sistema Guiders.<br>Inicia sesión en tu cuenta para continuar.</p>
 		</div>
 		
 		<form 
@@ -22,10 +22,10 @@
 				@if (emailControl().invalid && emailControl().touched) {
 					<div class="error-message">
 						@if (emailControl().hasError('required')) {
-							<span>El correo es requerido</span>
+							<span>El correo electrónico es requerido</span>
 						}
 						@if (emailControl().hasError('email')) {
-							<span>Formato de correo inválido</span>
+							<span>Formato de correo electrónico inválido</span>
 						}
 					</div>
 				}
@@ -62,17 +62,8 @@
 						<span class="loading-spinner"></span>
 						<span>Iniciando sesión...</span>
 					} @else {
-						<span>Iniciar Sesión</span>
+						<span>Iniciar sesión</span>
 					}
-				</button>
-			</div>
-
-			<div class="form-links">
-				<button 
-					type="button" 
-					class="forgot-password"
-					(click)="onForgotPassword()">
-					¿Olvidaste tu contraseña?
 				</button>
 			</div>
 
@@ -81,6 +72,20 @@
 					{{ errorMessage() }}
 				</div>
 			}
+
+			<div class="form-links">
+				<button 
+					type="button" 
+					class="link-button"
+					(click)="onForgotPassword()">
+					¿Olvidaste tu contraseña?
+				</button>
+			</div>
+
+			<div class="signup-link">
+				<span>¿No tienes una cuenta?</span>
+				<button type="button" class="link-button primary" (click)="onSignUp()">Registrarse</button>
+			</div>
 		</form>
 	</div>
 </div>
