@@ -1,0 +1,226 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 20
+  # Opcional: exporta NX_CLOUD_ACCESS_TOKEN como secret si usas Nx Cloud
+  # NX_CLOUD_ACCESS_TOKEN: ${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+  # Variables de entorno de despliegue (definidas como GitHub Secrets)
+  PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+  PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
+  PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
+  PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }} # Ej: /var/www/guiders-frontend
+
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Show Nx graph hash (cache warmup)
+        run: npx nx graph --file tmp-graph.html || echo "Graph only for debug"
+
+      - name: Lint
+        run: npx nx run-many -t lint --projects=admin,console --parallel
+
+      - name: Test
+        run: npx nx run-many -t test --projects=admin,console --parallel --configuration=ci || npx nx run-many -t test --projects=admin,console --parallel
+
+      - name: Build (production configuration)
+        run: npx nx run-many -t build --configuration=production --projects=admin,console --parallel
+
+      - name: Publicar artefacto admin
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-dist
+          path: dist/apps/admin/**
+          if-no-files-found: error
+
+      - name: Publicar artefacto console
+        uses: actions/upload-artifact@v4
+        with:
+          name: console-dist
+          path: dist/apps/console/**
+          if-no-files-found: error
+      
+      # ===================== VPN / WireGuard =====================
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Install WireGuard
+        run: sudo apt-get update && sudo apt-get install -y wireguard
+
+      - name: Configure WireGuard (github.conf)
+        env:
+          WG_PK: ${{ secrets.WG_PRIVATE_KEY }}
+          WG_ENDPOINT: ${{ secrets.WG_SERVER_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          if [ -z "$WG_PK" ]; then echo "🔕 WG_PRIVATE_KEY no definido. Omitiendo WireGuard."; exit 0; fi
+          if [ -z "$WG_ENDPOINT" ]; then echo "❌ Falta WG_SERVER_ENDPOINT"; exit 1; fi
+          sudo mkdir -p /etc/wireguard && sudo chmod 700 /etc/wireguard
+          cat > github.conf <<'CFG'
+          [Interface]
+          PrivateKey = REPLACE_PRIVATE_KEY
+          Address = 10.0.0.4/24
+
+          [Peer]
+          PublicKey = rcfGmqdqyiQs+J81rx5mabiyAjQkvoDfiCTD2eLqaHQ=
+          Endpoint = WG_ENDPOINT_PLACEHOLDER:51820
+          AllowedIPs = 10.0.0.0/24
+          PersistentKeepalive = 25
+          CFG
+          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK#" github.conf
+          sed -i "s#WG_ENDPOINT_PLACEHOLDER#$WG_ENDPOINT#" github.conf
+          sudo mv github.conf /etc/wireguard/github.conf
+          sudo chmod 600 /etc/wireguard/github.conf
+          if sudo wg show github >/dev/null 2>&1; then sudo wg-quick down github || true; fi
+          sudo wg-quick up github || { echo "❌ Error al levantar WireGuard"; sudo wg-quick down github || true; exit 1; }
+
+      - name: Verify VPN connection
+        env:
+          WG_PK: ${{ secrets.WG_PRIVATE_KEY }}
+          VPN_TARGET_HOST: ${{ env.PROD_SSH_HOST }}
+        run: |
+          set -e
+          if [ -z "$WG_PK" ]; then echo "🔕 Saltando verificación VPN (sin WG_PRIVATE_KEY)"; exit 0; fi
+          if [ -z "$VPN_TARGET_HOST" ]; then echo "❌ Falta PROD_SSH_HOST (usado como host VPN)"; exit 1; fi
+          echo "🔍 Verificando conexión VPN..."
+          echo "📋 Estado de WireGuard:"; sudo wg show || true
+          echo "\n📋 Interfaces WireGuard activas:"; ip link show type wireguard 2>/dev/null || echo "No se encontraron interfaces WireGuard"
+          echo "\n📋 IPs asignadas:"; for iface in $(ip link show type wireguard 2>/dev/null | grep -o 'wg[^:]*' || echo ""); do [ -n "$iface" ] && echo "  $iface:" && ip addr show "$iface" | grep -E "inet " | sed 's/^/    /'; done
+          echo "\n📋 Rutas VPN:"; ip route | grep -E "10\.0\.0\.|wg" || echo "No se encontraron rutas VPN"
+          echo "\n🏓 Ping endpoints internos (10.0.0.1 / 10.0.0.254):"
+          VPN_SERVER_IP=""
+          for server_ip in 10.0.0.1 10.0.0.254; do
+            if timeout 3 ping -c 1 -W 2 "$server_ip" >/dev/null 2>&1; then
+              echo "  ✅ $server_ip responde"; VPN_SERVER_IP="$server_ip"; break
+            else
+              echo "  ❌ $server_ip no responde"
+            fi
+          done
+          if [ -z "$VPN_SERVER_IP" ]; then echo "❌ Servidor VPN interno no responde"; exit 1; fi
+          echo "\n🎯 Probando acceso al servidor PROD (VPN/SSH host: $VPN_TARGET_HOST)";
+          if ping -c 2 -W 5 "$VPN_TARGET_HOST" >/dev/null 2>&1; then
+            echo "✅ Servidor PROD accesible vía VPN";
+          else
+            echo "❌ No se alcanza PROD_SSH_HOST ($VPN_TARGET_HOST) via VPN"; exit 1;
+          fi
+
+      - name: Add production server to known_hosts
+        env:
+          VPN_TARGET_HOST: ${{ env.PROD_SSH_HOST }}
+        run: |
+          if [ -z "$VPN_TARGET_HOST" ]; then echo "🔕 Sin PROD_SSH_HOST; omitido"; exit 0; fi
+          mkdir -p ~/.ssh
+          ssh-keyscan "$VPN_TARGET_HOST" >> ~/.ssh/known_hosts || true
+      # =================== FIN VPN =====================
+      - name: Preparar timestamp de release
+        id: release_time
+        run: echo "RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+
+      - name: Configurar SSH
+        if: env.PROD_SSH_HOST != ''
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PROD_SSH_KEY }}
+
+      - name: Crear estructura de release en servidor
+        if: env.PROD_SSH_HOST != ''
+        env:
+          SSH_HOST: ${{ env.PROD_SSH_HOST }}
+          SSH_USER: ${{ env.PROD_SSH_USER }}
+          SSH_PORT: ${{ env.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
+          RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+        run: |
+          set -e
+          PORT=${SSH_PORT:-22}
+          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+            set -e; \
+            BASE=\"$DEPLOY_PATH\"; \
+            RELEASES=\"$DEPLOY_PATH/releases\"; \
+            mkdir -p $DEPLOY_PATH $RELEASES $DEPLOY_PATH/shared; \
+            mkdir -p $RELEASES/$RELEASE_TIMESTAMP/admin $RELEASES/$RELEASE_TIMESTAMP/console; \
+            echo 'Estructura creada';"
+
+      - name: Subir archivos (rsync)
+        if: env.PROD_SSH_HOST != ''
+        env:
+          SSH_HOST: ${{ env.PROD_SSH_HOST }}
+          SSH_USER: ${{ env.PROD_SSH_USER }}
+          SSH_PORT: ${{ env.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
+          RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+        run: |
+          set -e
+          PORT=${SSH_PORT:-22}
+          rsync -az --delete -e "ssh -p $PORT" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
+          rsync -az --delete -e "ssh -p $PORT" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
+
+      - name: Activar release (symlink swap)
+        if: env.PROD_SSH_HOST != ''
+        env:
+          SSH_HOST: ${{ env.PROD_SSH_HOST }}
+          SSH_USER: ${{ env.PROD_SSH_USER }}
+          SSH_PORT: ${{ env.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
+          RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+        run: |
+          set -e
+          PORT=${SSH_PORT:-22}
+          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+            set -e; \
+            ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; \
+            echo 'Symlink actualizado -> current'; \
+            if command -v systemctl >/dev/null 2>&1; then echo 'Opcional: systemctl reload nginx'; fi;"
+
+      - name: Limpiar releases antiguos (mantener últimos 5)
+        if: env.PROD_SSH_HOST != ''
+        env:
+          SSH_HOST: ${{ env.PROD_SSH_HOST }}
+          SSH_USER: ${{ env.PROD_SSH_USER }}
+          SSH_PORT: ${{ env.PROD_SSH_PORT }}
+          DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
+        run: |
+          set -e
+          PORT=${SSH_PORT:-22}
+          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+            set -e; cd $DEPLOY_PATH/releases || exit 0; \
+            ls -1dt */ 2>/dev/null | tail -n +6 | tr -d '/' | while read OLD; do [ -n \"$OLD\" ] && rm -rf \"$OLD\"; done; \
+            echo 'Releases antiguos limpiados';"
+
+      - name: Mostrar skip deploy si faltan secrets
+        if: env.PROD_SSH_HOST == ''
+        run: |
+          echo '[INFO] Saltando despliegue: define secrets PROD_SSH_HOST, PROD_SSH_USER, PROD_SSH_KEY, PROD_DEPLOY_PATH.'
+
+      - name: Summary
+        run: |
+          echo "## Despliegue Production" >> $GITHUB_STEP_SUMMARY
+          echo "Build completado y artefactos publicados." >> $GITHUB_STEP_SUMMARY
