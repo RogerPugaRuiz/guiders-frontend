@@ -1,9 +1,9 @@
-import { Routes } from '@angular/router';
+import { Route } from '@angular/router';
 
-export const appRoutes: Routes = [
+export const appRoutes: Route[] = [
 	{
-		path: 'login',
-		loadComponent: () => import('@guiders-frontend/auth/login').then(m => m.Login),
-		title: 'Iniciar Sesión'
+		path: 'inbox',
+		loadChildren: () => import('@guiders-frontend/chat/features/inbox').then(m => m.inboxRoutes),
+		title: 'Chat Inbox',
 	}
 ];
