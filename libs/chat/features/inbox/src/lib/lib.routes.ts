@@ -1,5 +1,5 @@
 import { Route } from '@angular/router';
-import { authGuard } from '@guiders-frontend/auth/login';
+import { authGuard } from '@guiders-frontend/auth/features/login';
 import { Inbox } from './inbox/inbox';
 
 export const inboxRoutes: Route[] = [
