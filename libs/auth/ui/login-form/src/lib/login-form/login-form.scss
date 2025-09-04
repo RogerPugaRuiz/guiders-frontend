@@ -240,3 +240,66 @@
     }
   }
 }
+
+// Normalización del autocompletado (Chrome, Safari, Edge, Firefox) para que no rompa el diseño oscuro
+// Se aplican estilos que sustituyen el fondo amarillo/azul por el mismo esquema del input original.
+// Nota: El uso de box-shadow grande es la técnica más consistente para WebKit.
+.login-form {
+  .form-group {
+    .form-control {
+      // Especificación moderna (cuando esté soportada)
+      &:autofill {
+        background: rgba(255, 255, 255, 0.05) !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+        -webkit-text-fill-color: #ffffff !important;
+        caret-color: #ffffff;
+        transition: background-color 5000s ease-in-out 0s; // Evita parpadeo
+      }
+
+      // WebKit (Chrome, Safari, Edge Chromium)
+      &:-webkit-autofill,
+      &:-webkit-autofill:hover,
+      &:-webkit-autofill:focus,
+      &:-webkit-autofill:active {
+        background: rgba(255, 255, 255, 0.05) !important;
+        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+        -webkit-text-fill-color: #ffffff !important;
+        caret-color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      }
+
+      // Firefox
+      &:-moz-autofill {
+        background: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
+        -moz-text-fill-color: #ffffff !important;
+        caret-color: #ffffff;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      }
+
+      // Estados con validación + autofill (inválido)
+      &:-webkit-autofill.ng-invalid.ng-touched {
+        -webkit-box-shadow: 0 0 0 1000px rgba(255, 107, 107, 0.05) inset !important;
+        box-shadow: 0 0 0 1000px rgba(255, 107, 107, 0.05) inset !important;
+        border-color: #ff6b6b !important;
+      }
+      &:-moz-autofill.ng-invalid.ng-touched {
+        box-shadow: 0 0 0 1000px rgba(255, 107, 107, 0.05) inset !important;
+        border-color: #ff6b6b !important;
+      }
+
+      // Estados con validación + autofill (válido)
+      &:-webkit-autofill.ng-valid.ng-touched {
+        -webkit-box-shadow: 0 0 0 1000px rgba(81, 207, 102, 0.05) inset !important;
+        box-shadow: 0 0 0 1000px rgba(81, 207, 102, 0.05) inset !important;
+        border-color: #51cf66 !important;
+      }
+      &:-moz-autofill.ng-valid.ng-touched {
+        box-shadow: 0 0 0 1000px rgba(81, 207, 102, 0.05) inset !important;
+        border-color: #51cf66 !important;
+      }
+    }
+  }
+}

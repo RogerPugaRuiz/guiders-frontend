@@ -14,4 +14,9 @@ export const appRoutes: Route[] = [
 		loadChildren: () => import('@guiders-frontend/auth/features/login').then(m => m.loginRoutes),
 		title: 'Login',
 	},
+	{
+		path: '',
+		pathMatch: 'full',
+		redirectTo: 'inbox',
+	}
 ];
