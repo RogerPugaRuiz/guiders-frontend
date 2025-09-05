@@ -1,5 +1,5 @@
 import { Route } from '@angular/router';
-import { authGuard, Login } from '@guiders-frontend/auth/features/login';
+import { authGuard } from '@guiders-frontend/auth/features/login';
 
 export const appRoutes: Route[] = [
 	{
@@ -10,11 +10,6 @@ export const appRoutes: Route[] = [
 			authGuard
 		],
 	}, 
-	{
-		path: 'login',
-		component: Login,
-		title: 'Login',
-	},
 	{
 		path: '',
 		pathMatch: 'full',

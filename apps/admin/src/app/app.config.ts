@@ -24,6 +24,7 @@ export const appConfig: ApplicationConfig = {
         responseType: 'code',
         useRefreshToken: true,
         silentRenew: true,
+        secureRoutes: ['https://guiders.es/api'],
       },
     }),
   ],

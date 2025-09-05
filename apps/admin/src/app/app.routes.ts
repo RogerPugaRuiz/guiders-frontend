@@ -1,12 +1,7 @@
 import { Route } from '@angular/router';
-import { Login, authGuard } from '@guiders-frontend/auth/features/login';
+import { authGuard } from '@guiders-frontend/auth/features/login';
 
 export const appRoutes: Route[] = [
-	{
-		path: 'login',
-		component: Login,
-		title: 'Login',
-	},
 	{
 		path: 'dashboard',
 		loadChildren: () =>
