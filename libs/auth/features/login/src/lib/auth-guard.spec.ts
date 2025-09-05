@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CanActivateFn, Router } from '@angular/router';
-import { vi } from 'vitest';
+import { vi, Mock } from 'vitest';
+import { OidcSecurityService } from 'angular-auth-oidc-client';
 
 import { authGuard } from './auth-guard';
 
@@ -8,16 +9,26 @@ describe('authGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) => 
       TestBed.runInInjectionContext(() => authGuard(...guardParameters));
 
-  let mockRouter: any;
+  let mockRouter: {
+    navigate: Mock;
+  };
+  let mockOidcSecurityService: {
+    authorize: Mock;
+  };
 
   beforeEach(() => {
     mockRouter = {
       navigate: vi.fn()
     };
 
+    mockOidcSecurityService = {
+      authorize: vi.fn()
+    };
+
     TestBed.configureTestingModule({
       providers: [
-        { provide: Router, useValue: mockRouter }
+        { provide: Router, useValue: mockRouter },
+        { provide: OidcSecurityService, useValue: mockOidcSecurityService }
       ]
     });
   });
@@ -33,16 +44,16 @@ describe('authGuard', () => {
   it('should allow access when access-token exists in localStorage', () => {
     localStorage.setItem('access-token', 'fake-token');
 
-    const result = executeGuard({} as any, {} as any);
+    const result = executeGuard({} as never, {} as never);
 
     expect(result).toBe(true);
-    expect(mockRouter.navigate).not.toHaveBeenCalled();
+    expect(mockOidcSecurityService.authorize).not.toHaveBeenCalled();
   });
 
-  it('should redirect to login when access-token does not exist in localStorage', () => {
-    const result = executeGuard({} as any, {} as any);
+  it('should call OIDC authorize and deny access when access-token does not exist in localStorage', () => {
+    const result = executeGuard({} as never, {} as never);
 
     expect(result).toBe(false);
-    expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+    expect(mockOidcSecurityService.authorize).toHaveBeenCalled();
   });
 });
