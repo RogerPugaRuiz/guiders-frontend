@@ -4,7 +4,8 @@ import {
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideAuth } from 'angular-auth-oidc-client';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -12,6 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
+    provideHttpClient(withInterceptors([authInterceptor()])),
     provideAuth({
       config: {
         authority: 'https://auth.guiders.es/realms/guiders',
