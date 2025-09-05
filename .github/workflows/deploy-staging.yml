@@ -11,7 +11,7 @@ env:
   STAGING_SSH_USER: ${{ secrets.STAGING_SSH_USER }}
   STAGING_SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
   STAGING_DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }} # Ej: /var/www/guiders-frontend-staging
-  # Opcional: si no hay clave privada se puede usar STAGING_SSH_PASSWORD
+  # Usar STAGING_SSH_PASSWORD para autenticación por contraseña
 
 concurrency:
   group: staging-deploy
@@ -139,61 +139,20 @@ jobs:
           if [ -z "$VPN_TARGET_HOST" ]; then echo "🔕 Sin STAGING_SSH_HOST; omitido"; exit 0; fi
           mkdir -p ~/.ssh
           ssh-keyscan -H "$VPN_TARGET_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-      # =================== FIN VPN =====================
       - name: Preparar timestamp de release
         id: release_time
         run: echo "RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Detectar clave SSH
-        if: env.STAGING_SSH_HOST != ''
-        id: detect_ssh_key
-        env:
-          RAW_KEY: ${{ secrets.STAGING_SSH_KEY }}
-        run: |
-          if [ -n "$RAW_KEY" ]; then echo "has_key=true" >> "$GITHUB_OUTPUT"; else echo "has_key=false" >> "$GITHUB_OUTPUT"; fi
-
-      - name: Validar formato clave SSH
+      - name: Validar credenciales SSH
         if: env.STAGING_SSH_HOST != ''
         env:
-          RAW_KEY: ${{ secrets.STAGING_SSH_KEY }}
-        run: |
-          set -euo pipefail
-          if [ -z "$RAW_KEY" ]; then echo "ℹ️ Sin STAGING_SSH_KEY; se usará contraseña si está definida"; exit 0; fi
-          LINE_COUNT=$(printf '%s\n' "$RAW_KEY" | wc -l | awk '{print $1}')
-          if ! printf '%s' "$RAW_KEY" | grep -Eq 'BEGIN (OPENSSH|RSA|ED25519) PRIVATE KEY'; then
-            echo "❌ Encabezado inválido de clave privada SSH"; exit 1;
-          fi
-          if printf '%s' "$RAW_KEY" | grep -q $'\r'; then
-            echo "⚠️ Se detectaron CR (\r). Considera normalizar a LF.";
-          fi
-          echo "✅ Clave SSH validada (líneas: $LINE_COUNT)."
-
-      - name: Validar presencia de credenciales
-        if: env.STAGING_SSH_HOST != ''
-        env:
-          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
           PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
-          if [ "$HAS_KEY" != "true" ] && [ -z "$PASS" ]; then
-            echo "❌ No hay clave (STAGING_SSH_KEY) ni contraseña (STAGING_SSH_PASSWORD). Añade al menos una como secret." >&2
+          if [ -z "$PASS" ]; then
+            echo "❌ Falta STAGING_SSH_PASSWORD. Añádela como secret." >&2
             exit 1
           fi
-          if [ "$HAS_KEY" != "true" ] && [ -n "$PASS" ]; then echo "ℹ️ Usaremos contraseña (sshpass)."; fi
-
-      - name: Mostrar método autenticación
-        if: env.STAGING_SSH_HOST != ''
-        run: |
-          if [ "${{ steps.detect_ssh_key.outputs.has_key }}" = "true" ]; then
-            echo "🔐 Método: clave privada (ssh-agent)."
-          else
-            echo "🔑 Método: contraseña (sshpass)."
-          fi
-
-      - name: Configurar SSH
-        if: env.STAGING_SSH_HOST != '' && steps.detect_ssh_key.outputs.has_key == 'true'
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+          echo "ℹ️ Usando autenticación por contraseña (sshpass)."
 
       - name: Probar conexión SSH
         if: env.STAGING_SSH_HOST != ''
@@ -202,36 +161,29 @@ jobs:
           SSH_USER: ${{ env.STAGING_SSH_USER }}
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          echo "🔍 Probando autenticación SSH (timeout 8s)..."
-          if [ "$HAS_KEY" = "true" ]; then
-            # BatchMode para fallar rápido si la clave no sirve
-            ssh -o BatchMode=yes -o StrictHostKeyChecking=no -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' || { echo "❌ Falló autenticación por clave"; exit 1; }
-            echo "✅ Autenticación por clave exitosa"
-          else
-            if [ -z "$PASS" ]; then echo "❌ Sin contraseña definida"; exit 1; fi
-            # Usar variable de entorno para evitar problemas de comillas en la contraseña
-            export SSHPASS="$PASS"
-            attempts=0; ok=0
-            while [ $attempts -lt 3 ]; do
-              if sshpass -e ssh -o StrictHostKeyChecking=no \
-                   -o UserKnownHostsFile=/dev/null \
-                   -o PreferredAuthentications=password,keyboard-interactive \
-                   -o PubkeyAuthentication=no -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
-                ok=1; break
-              fi
-              attempts=$((attempts+1))
-              echo "⚠️ Intento $attempts fallido..."; sleep 2
-            done
-            if [ $ok -ne 1 ]; then
-              echo "❌ Falló autenticación por contraseña tras 3 intentos. Revisa: usuario, password, PasswordAuthentication en sshd_config y bloqueos de fail2ban." >&2
-              exit 1
+          echo "🔍 Probando autenticación SSH por contraseña..."
+          if [ -z "$PASS" ]; then echo "❌ Sin contraseña definida"; exit 1; fi
+          # Usar variable de entorno para evitar problemas de comillas en la contraseña
+          export SSHPASS="$PASS"
+          attempts=0; ok=0
+          while [ $attempts -lt 3 ]; do
+            if sshpass -e ssh -o StrictHostKeyChecking=no \
+                 -o UserKnownHostsFile=/dev/null \
+                 -o PreferredAuthentications=password,keyboard-interactive \
+                 -o PubkeyAuthentication=no -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
+              ok=1; break
             fi
-            echo "✅ Autenticación por contraseña exitosa"
+            attempts=$((attempts+1))
+            echo "⚠️ Intento $attempts fallido..."; sleep 2
+          done
+          if [ $ok -ne 1 ]; then
+            echo "❌ Falló autenticación por contraseña tras 3 intentos. Revisa: usuario, password, PasswordAuthentication en sshd_config y bloqueos de fail2ban." >&2
+            exit 1
           fi
+          echo "✅ Autenticación por contraseña exitosa"
 
       - name: Crear estructura de release en servidor
         if: env.STAGING_SSH_HOST != ''
@@ -242,17 +194,12 @@ jobs:
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
           SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          if [ "$HAS_KEY" = "true" ]; then
-            SSH_BASE="ssh -o StrictHostKeyChecking=no -p $PORT"
-          else
-            if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            export SSHPASS="$SSH_PASS"
-            SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
-          fi
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
             BASE=\"$DEPLOY_PATH\"; \
@@ -270,20 +217,14 @@ jobs:
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
           SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
           echo "📦 Preparando transferencia a $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP"
-          if [ "$HAS_KEY" = "true" ]; then
-            RSYNC_SSH="ssh -p $PORT"
-            SSH_BASE="ssh -p $PORT -o StrictHostKeyChecking=no"
-          else
-            if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            export SSHPASS="$SSH_PASS"
-            RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
-            SSH_BASE="$RSYNC_SSH"
-          fi
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
+          SSH_BASE="$RSYNC_SSH"
           echo "📁 Verificando/creando directorios remotos..."
           $SSH_BASE "$SSH_USER@$SSH_HOST" "mkdir -p $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console" || { echo '❌ Error creando directorios remotos'; exit 1; }
           echo "✅ Directorios asegurados. Ejecutando rsync..."
@@ -299,17 +240,12 @@ jobs:
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
           SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          if [ "$HAS_KEY" = "true" ]; then
-            SSH_BASE="ssh -o StrictHostKeyChecking=no -p $PORT"
-          else
-            if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            export SSHPASS="$SSH_PASS"
-            SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
-          fi
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
             ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; \
@@ -324,17 +260,12 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          if [ "$HAS_KEY" = "true" ]; then
-            SSH_BASE="ssh -o StrictHostKeyChecking=no -p $PORT"
-          else
-            if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            export SSHPASS="$SSH_PASS"
-            SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
-          fi
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; cd $DEPLOY_PATH/releases || exit 0; \
             ls -1dt */ 2>/dev/null | tail -n +6 | tr -d '/' | while read OLD; do [ -n \"$OLD\" ] && rm -rf \"$OLD\"; done; \
@@ -343,7 +274,7 @@ jobs:
       - name: Mostrar skip deploy si faltan secrets
         if: env.STAGING_SSH_HOST == ''
         run: |
-          echo '[INFO] Saltando despliegue: define STAGING_SSH_HOST, STAGING_SSH_USER, (STAGING_SSH_KEY o STAGING_SSH_PASSWORD) y STAGING_DEPLOY_PATH.'
+          echo '[INFO] Saltando despliegue: define STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_PASSWORD y STAGING_DEPLOY_PATH.'
 
       - name: Summary
         run: |
