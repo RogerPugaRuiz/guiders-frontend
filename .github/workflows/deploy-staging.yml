@@ -274,13 +274,19 @@ jobs:
         run: |
           set -e
           PORT=${SSH_PORT:-22}
+          echo "📦 Preparando transferencia a $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP"
           if [ "$HAS_KEY" = "true" ]; then
             RSYNC_SSH="ssh -p $PORT"
+            SSH_BASE="ssh -p $PORT -o StrictHostKeyChecking=accept-new"
           else
             if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
             export SSHPASS="$SSH_PASS"
             RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
+            SSH_BASE="$RSYNC_SSH"
           fi
+          echo "📁 Verificando/creando directorios remotos..."
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "mkdir -p $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console" || { echo '❌ Error creando directorios remotos'; exit 1; }
+          echo "✅ Directorios asegurados. Ejecutando rsync..."
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
 
