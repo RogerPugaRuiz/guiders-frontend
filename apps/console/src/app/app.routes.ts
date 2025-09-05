@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { authGuard, Login } from '@guiders-frontend/auth/features/login';
 
 export const appRoutes: Route[] = [
 	{
@@ -6,12 +7,12 @@ export const appRoutes: Route[] = [
 		loadChildren: () => import('@guiders-frontend/chat/features/inbox').then(m => m.inboxRoutes),
 		title: 'Chat Inbox',
 		canActivate: [
-			() => import('@guiders-frontend/auth/features/login').then(m => m.authGuard),
+			authGuard
 		],
 	}, 
 	{
 		path: 'login',
-		loadChildren: () => import('@guiders-frontend/auth/features/login').then(m => m.loginRoutes),
+		component: Login,
 		title: 'Login',
 	},
 	{
