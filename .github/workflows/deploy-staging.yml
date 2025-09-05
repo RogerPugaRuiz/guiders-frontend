@@ -213,9 +213,14 @@ jobs:
             echo "✅ Autenticación por clave exitosa"
           else
             if [ -z "$PASS" ]; then echo "❌ Sin contraseña definida"; exit 1; fi
+            # Usar variable de entorno para evitar problemas de comillas en la contraseña
+            export SSHPASS="$PASS"
             attempts=0; ok=0
             while [ $attempts -lt 3 ]; do
-              if sshpass -p "$PASS" ssh -o StrictHostKeyChecking=accept-new -o PreferredAuthentications=password -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
+              if sshpass -e ssh -o StrictHostKeyChecking=accept-new \
+                   -o UserKnownHostsFile=/dev/null \
+                   -o PreferredAuthentications=password,keyboard-interactive \
+                   -o PubkeyAuthentication=no -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
                 ok=1; break
               fi
               attempts=$((attempts+1))
@@ -245,7 +250,8 @@ jobs:
             SSH_BASE="ssh -o StrictHostKeyChecking=accept-new -p $PORT"
           else
             if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            SSH_BASE="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+            export SSHPASS="$SSH_PASS"
+            SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
           fi
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
@@ -272,7 +278,8 @@ jobs:
             RSYNC_SSH="ssh -p $PORT"
           else
             if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            RSYNC_SSH="sshpass -p '$SSH_PASS' ssh -p $PORT -o StrictHostKeyChecking=accept-new"
+            export SSHPASS="$SSH_PASS"
+            RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
           fi
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
@@ -294,7 +301,8 @@ jobs:
             SSH_BASE="ssh -o StrictHostKeyChecking=accept-new -p $PORT"
           else
             if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            SSH_BASE="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+            export SSHPASS="$SSH_PASS"
+            SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
           fi
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
@@ -318,7 +326,8 @@ jobs:
             SSH_BASE="ssh -o StrictHostKeyChecking=accept-new -p $PORT"
           else
             if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            SSH_BASE="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+            export SSHPASS="$SSH_PASS"
+            SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
           fi
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; cd $DEPLOY_PATH/releases || exit 0; \
