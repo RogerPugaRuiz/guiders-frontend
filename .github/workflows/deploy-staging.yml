@@ -252,25 +252,6 @@ jobs:
             echo 'Symlink actualizado -> current'; \
             if command -v systemctl >/dev/null 2>&1; then echo 'Opcional: systemctl reload nginx'; fi;"
 
-      - name: Limpiar releases antiguos (mantener últimos 5)
-        if: env.STAGING_SSH_HOST != ''
-        env:
-          SSH_HOST: ${{ env.STAGING_SSH_HOST }}
-          SSH_USER: ${{ env.STAGING_SSH_USER }}
-          SSH_PORT: ${{ env.STAGING_SSH_PORT }}
-          DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
-          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-        run: |
-          set -e
-          PORT=${SSH_PORT:-22}
-          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
-          export SSHPASS="$SSH_PASS"
-          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
-          $SSH_BASE "$SSH_USER@$SSH_HOST" "\
-            set -e; cd $DEPLOY_PATH/releases || exit 0; \
-            ls -1dt */ 2>/dev/null | tail -n +6 | tr -d '/' | while read OLD; do [ -n \"$OLD\" ] && rm -rf \"$OLD\"; done; \
-            echo 'Releases antiguos limpiados';"
-
       - name: Mostrar skip deploy si faltan secrets
         if: env.STAGING_SSH_HOST == ''
         run: |
