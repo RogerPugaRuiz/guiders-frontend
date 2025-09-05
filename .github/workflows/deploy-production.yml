@@ -225,7 +225,7 @@ jobs:
             RSYNC_SSH="ssh -p $PORT"
           else
             if [ -z "$SSH_PASS" ]; then echo "❌ Falta PROD_SSH_PASSWORD (no hay clave)"; exit 1; fi
-            RSYNC_SSH="sshpass -p '$SSH_PASS' ssh -p $PORT -o StrictHostKeyChecking=accept-new"
+            RSYNC_SSH="sshpass -p '$SSH_PASS' ssh -p $PORT -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
           fi
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
