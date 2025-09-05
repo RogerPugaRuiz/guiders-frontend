@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn, Router } from '@angular/router';
+import { CanActivateFn } from '@angular/router';
 import { vi, Mock } from 'vitest';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 
@@ -9,25 +9,17 @@ describe('authGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) => 
       TestBed.runInInjectionContext(() => authGuard(...guardParameters));
 
-  let mockRouter: {
-    navigate: Mock;
-  };
   let mockOidcSecurityService: {
     authorize: Mock;
   };
 
   beforeEach(() => {
-    mockRouter = {
-      navigate: vi.fn()
-    };
-
     mockOidcSecurityService = {
       authorize: vi.fn()
     };
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: Router, useValue: mockRouter },
         { provide: OidcSecurityService, useValue: mockOidcSecurityService }
       ]
     });
