@@ -168,11 +168,65 @@ jobs:
           fi
           echo "✅ Clave SSH validada (líneas: $LINE_COUNT)."
 
+      - name: Validar presencia de credenciales
+        if: env.STAGING_SSH_HOST != ''
+        env:
+          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
+          PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          if [ "$HAS_KEY" != "true" ] && [ -z "$PASS" ]; then
+            echo "❌ No hay clave (STAGING_SSH_KEY) ni contraseña (STAGING_SSH_PASSWORD). Añade al menos una como secret." >&2
+            exit 1
+          fi
+          if [ "$HAS_KEY" != "true" ] && [ -n "$PASS" ]; then echo "ℹ️ Usaremos contraseña (sshpass)."; fi
+
+      - name: Mostrar método autenticación
+        if: env.STAGING_SSH_HOST != ''
+        run: |
+          if [ "${{ steps.detect_ssh_key.outputs.has_key }}" = "true" ]; then
+            echo "🔐 Método: clave privada (ssh-agent)."
+          else
+            echo "🔑 Método: contraseña (sshpass)."
+          fi
+
       - name: Configurar SSH
         if: env.STAGING_SSH_HOST != '' && steps.detect_ssh_key.outputs.has_key == 'true'
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Probar conexión SSH
+        if: env.STAGING_SSH_HOST != ''
+        env:
+          SSH_HOST: ${{ env.STAGING_SSH_HOST }}
+          SSH_USER: ${{ env.STAGING_SSH_USER }}
+          SSH_PORT: ${{ env.STAGING_SSH_PORT }}
+          PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
+          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
+        run: |
+          set -e
+          PORT=${SSH_PORT:-22}
+          echo "🔍 Probando autenticación SSH (timeout 8s)..."
+          if [ "$HAS_KEY" = "true" ]; then
+            # BatchMode para fallar rápido si la clave no sirve
+            ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' || { echo "❌ Falló autenticación por clave"; exit 1; }
+            echo "✅ Autenticación por clave exitosa"
+          else
+            if [ -z "$PASS" ]; then echo "❌ Sin contraseña definida"; exit 1; fi
+            attempts=0; ok=0
+            while [ $attempts -lt 3 ]; do
+              if sshpass -p "$PASS" ssh -o StrictHostKeyChecking=accept-new -o PreferredAuthentications=password -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
+                ok=1; break
+              fi
+              attempts=$((attempts+1))
+              echo "⚠️ Intento $attempts fallido..."; sleep 2
+            done
+            if [ $ok -ne 1 ]; then
+              echo "❌ Falló autenticación por contraseña tras 3 intentos. Revisa: usuario, password, PasswordAuthentication en sshd_config y bloqueos de fail2ban." >&2
+              exit 1
+            fi
+            echo "✅ Autenticación por contraseña exitosa"
+          fi
 
       - name: Crear estructura de release en servidor
         if: env.STAGING_SSH_HOST != ''
