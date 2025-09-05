@@ -15,11 +15,18 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@guiders-frontend/auth/features/login": ["libs/auth/features/login/src/index.ts"],
+      "@guiders-frontend/analytics/features/admin-dashboard": [
+        "libs/analytics/features/admin-dashboard/src/index.ts"
+      ],
+      "@guiders-frontend/auth/features/login": [
+        "libs/auth/features/login/src/index.ts"
+      ],
       "@guiders-frontend/auth/ui/login-form": [
         "libs/auth/ui/login-form/src/index.ts"
       ],
-      "@guiders-frontend/chat/features/inbox": ["libs/chat/features/inbox/src/index.ts"]
+      "@guiders-frontend/chat/features/inbox": [
+        "libs/chat/features/inbox/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]
