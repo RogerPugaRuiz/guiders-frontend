@@ -4,6 +4,7 @@ import {
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideAuth } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -11,5 +12,17 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
+    provideAuth({
+      config: {
+        authority: 'https://auth.guiders.es/realms/guiders',
+        redirectUrl: window.location.origin,
+        postLogoutRedirectUri: window.location.origin,
+        clientId: 'admin',
+        scope: 'openid profile email',
+        responseType: 'code',
+        useRefreshToken: true,
+        silentRenew: true,
+      },
+    }),
   ],
 };
