@@ -45,8 +45,8 @@ jobs:
       - name: Test (staging)
         run: npx nx run-many -t test --projects=admin,console --parallel --configuration=ci || npx nx run-many -t test --projects=admin,console --parallel
 
-      - name: Build (development configuration para staging)
-        run: npx nx run-many -t build --configuration=development --projects=admin,console --parallel
+      - name: Build (staging configuration)
+        run: npx nx run-many -t build --configuration=staging --projects=admin,console --parallel
 
       - name: Publicar artefacto admin (staging)
         uses: actions/upload-artifact@v4
