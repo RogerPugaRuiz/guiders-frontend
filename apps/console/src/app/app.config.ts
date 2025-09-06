@@ -8,6 +8,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
