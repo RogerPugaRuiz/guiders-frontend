@@ -7,6 +7,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
+import { environment } from '../environments/environment';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -16,15 +17,15 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([authInterceptor()])),
     provideAuth({
       config: {
-        authority: 'https://auth.guiders.es/realms/guiders',
+        authority: environment.auth.authority,
         redirectUrl: window.location.origin,
         postLogoutRedirectUri: window.location.origin,
-        clientId: 'admin',
-        scope: 'openid profile email',
+        clientId: environment.auth.clientId,
+        scope: environment.auth.scope,
         responseType: 'code',
         useRefreshToken: true,
         silentRenew: true,
-        secureRoutes: ['https://guiders.es/api'],
+        secureRoutes: environment.auth.secureRoutes,
       },
     }),
   ],
