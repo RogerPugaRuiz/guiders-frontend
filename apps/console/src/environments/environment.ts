@@ -14,7 +14,7 @@ interface Environment {
 export const environment: Environment = {
   production: false,
   auth: {
-    authority: 'https://auth.guiders.es/realms/guiders',
+    authority: 'http://localhost:8080/realms/guiders',
     clientId: 'console',
     scope: 'openid profile email',
     secureRoutes: ['http://localhost:3000/api']

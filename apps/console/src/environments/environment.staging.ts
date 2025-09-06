@@ -17,9 +17,9 @@ export const environment: Environment = {
     authority: 'https://auth.guiders.es/realms/guiders', // Usar auth de producción para staging
     clientId: 'console',
     scope: 'openid profile email',
-    secureRoutes: ['https://staging.guiders.es/api'] // API de staging
+    secureRoutes: ['https://guiders.es/api'] // API de staging
   },
   api: {
-    baseUrl: 'https://staging.guiders.es/api' // API de staging
+    baseUrl: 'https://guiders.es/api' // API de staging
   }
 };
