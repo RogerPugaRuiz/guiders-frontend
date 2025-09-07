@@ -26,6 +26,9 @@
       ],
       "@guiders-frontend/chat/features/inbox": [
         "libs/chat/features/inbox/src/index.ts"
+      ],
+      "@guiders-frontend/auth/data-access/session": [
+        "libs/auth/data-access/session/src/index.ts"
       ]
     }
   },
