@@ -3,16 +3,32 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { provideHttpClient } from '@angular/common/http';
 
 import { SessionService, User } from './session.service';
+import { ENVIRONMENT_TOKEN } from './environment.token';
+import { Environment } from '@guiders-frontend/shared/types';
 
 describe('SessionService', () => {
   let service: SessionService;
   let httpMock: HttpTestingController;
 
+  const mockEnvironment: Environment = {
+    production: false,
+    auth: {
+      authority: 'https://test.com',
+      clientId: 'test-client',
+      scope: 'openid',
+      secureRoutes: []
+    },
+    api: {
+      baseUrl: 'https://test-api.com'
+    }
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        { provide: ENVIRONMENT_TOKEN, useValue: mockEnvironment }
       ]
     });
     service = TestBed.inject(SessionService);
@@ -38,7 +54,7 @@ describe('SessionService', () => {
       expect(user).toEqual(mockUser);
     });
 
-    const req = httpMock.expectOne('/api/bff/auth/me');
+    const req = httpMock.expectOne('https://test-api.com/auth/me');
     expect(req.request.method).toBe('GET');
     expect(req.request.withCredentials).toBe(true);
     req.flush(mockUser);
@@ -57,7 +73,7 @@ describe('SessionService', () => {
     service.ensureSession$().subscribe();
 
     // Solo debe hacer una petición HTTP
-    const req = httpMock.expectOne('/api/bff/auth/me');
+    const req = httpMock.expectOne('https://test-api.com/auth/me');
     req.flush(mockUser);
   });
 
@@ -70,7 +86,7 @@ describe('SessionService', () => {
 
     // Primera llamada
     service.ensureSession$().subscribe();
-    const req1 = httpMock.expectOne('/api/bff/auth/me');
+    const req1 = httpMock.expectOne('https://test-api.com/auth/me');
     req1.flush(mockUser);
 
     // Limpiar cache
@@ -78,7 +94,7 @@ describe('SessionService', () => {
 
     // Segunda llamada después de limpiar cache
     service.ensureSession$().subscribe();
-    const req2 = httpMock.expectOne('/api/bff/auth/me');
+    const req2 = httpMock.expectOne('https://test-api.com/auth/me');
     req2.flush(mockUser);
   });
 });

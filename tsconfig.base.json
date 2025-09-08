@@ -18,6 +18,9 @@
       "@guiders-frontend/analytics/features/admin-dashboard": [
         "libs/analytics/features/admin-dashboard/src/index.ts"
       ],
+      "@guiders-frontend/auth/data-access/session": [
+        "libs/auth/data-access/session/src/index.ts"
+      ],
       "@guiders-frontend/auth/features/login": [
         "libs/auth/features/login/src/index.ts"
       ],
@@ -27,9 +30,8 @@
       "@guiders-frontend/chat/features/inbox": [
         "libs/chat/features/inbox/src/index.ts"
       ],
-      "@guiders-frontend/auth/data-access/session": [
-        "libs/auth/data-access/session/src/index.ts"
-      ]
+      "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/types": ["libs/shared/types/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

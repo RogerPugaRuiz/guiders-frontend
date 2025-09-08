@@ -8,6 +8,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
+import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,5 +29,7 @@ export const appConfig: ApplicationConfig = {
         secureRoutes: environment.auth.secureRoutes,
       },
     }),
+    // Proporcionar el environment a las librerías
+    { provide: ENVIRONMENT_TOKEN, useValue: environment },
   ],
 };

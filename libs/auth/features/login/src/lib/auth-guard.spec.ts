@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn } from '@angular/router';
+import { CanActivateFn, Router } from '@angular/router';
 import { vi, Mock } from 'vitest';
-import { OidcSecurityService } from 'angular-auth-oidc-client';
+import { of, throwError } from 'rxjs';
+import { SessionService } from '@guiders-frontend/auth/data-access/session';
 
 import { authGuard } from './auth-guard';
 
@@ -9,43 +10,66 @@ describe('authGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) => 
       TestBed.runInInjectionContext(() => authGuard(...guardParameters));
 
-  let mockOidcSecurityService: {
-    authorize: Mock;
+  let mockSessionService: {
+    ensureSession$: Mock;
+  };
+  
+  let mockRouter: {
+    navigate: Mock;
   };
 
   beforeEach(() => {
-    mockOidcSecurityService = {
-      authorize: vi.fn()
+    mockSessionService = {
+      ensureSession$: vi.fn()
+    };
+    
+    mockRouter = {
+      navigate: vi.fn()
     };
 
     TestBed.configureTestingModule({
       providers: [
-        { provide: OidcSecurityService, useValue: mockOidcSecurityService }
+        { provide: SessionService, useValue: mockSessionService },
+        { provide: Router, useValue: mockRouter }
       ]
     });
-  });
-
-  afterEach(() => {
-    localStorage.clear();
   });
 
   it('should be created', () => {
     expect(executeGuard).toBeTruthy();
   });
 
-  it('should allow access when access-token exists in localStorage', () => {
-    localStorage.setItem('access-token', 'fake-token');
+  it('should allow access when user session is valid', (done) => {
+    const mockUser: User = {
+      id: '1',
+      email: 'test@example.com',
+      name: 'Test User'
+    };
+    
+    mockSessionService.ensureSession$.mockReturnValue(of(mockUser));
 
     const result = executeGuard({} as never, {} as never);
-
-    expect(result).toBe(true);
-    expect(mockOidcSecurityService.authorize).not.toHaveBeenCalled();
+    
+    if (typeof result === 'object' && 'subscribe' in result) {
+      result.subscribe(canActivate => {
+        expect(canActivate).toBe(true);
+        expect(mockRouter.navigate).not.toHaveBeenCalled();
+        done();
+      });
+    }
   });
 
-  it('should call OIDC authorize and deny access when access-token does not exist in localStorage', () => {
-    const result = executeGuard({} as never, {} as never);
+  it('should deny access and redirect to login when session fails', (done) => {
+    mockSessionService.ensureSession$.mockReturnValue(throwError(() => new Error('Unauthorized')));
 
-    expect(result).toBe(false);
-    expect(mockOidcSecurityService.authorize).toHaveBeenCalled();
+    const result = executeGuard({} as never, {} as never);
+    
+    if (typeof result === 'object' && 'subscribe' in result) {
+      result.subscribe(canActivate => {
+        expect(canActivate).toBe(false);
+        expect(mockRouter.navigate).toHaveBeenCalledWith(['/login']);
+        done();
+      });
+    }
   });
 });
