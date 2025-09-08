@@ -19,7 +19,7 @@ export class SessionService {
 
   ensureSession$(): Observable<User> {
     if (!this.me$) {
-			this.me$ = this.http.get<User>(`${this.environment.api.baseUrl}/api/bff/auth/me`, { withCredentials: true })
+			this.me$ = this.http.get<User>(`${this.environment.api.baseUrl}/bff/auth/me`, { withCredentials: true })
         .pipe(shareReplay({ bufferSize: 1, refCount: true }));
     }
     return this.me$ as Observable<User>;
