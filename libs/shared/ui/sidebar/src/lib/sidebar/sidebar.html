@@ -1,0 +1,78 @@
+<aside 
+  [ngClass]="sidebarClasses()"
+  [style.width]="sidebarWidth()">
+  
+  <!-- Header with toggle button -->
+  <div class="sidebar__header">
+    @if (config().showToggle) {
+      <button 
+        class="sidebar__toggle"
+        (click)="onToggleSidebar()"
+        [attr.aria-label]="isCollapsed() ? 'Expandir sidebar' : 'Contraer sidebar'">
+        <span class="sidebar__toggle-icon">
+          {{ isCollapsed() ? '→' : '←' }}
+        </span>
+      </button>
+    }
+    
+    @if (!isCollapsed()) {
+      <div class="sidebar__logo">
+        <span class="sidebar__logo-text">Guiders</span>
+      </div>
+    }
+  </div>
+
+  <!-- Navigation items -->
+  <nav class="sidebar__nav">
+    <ul class="sidebar__nav-list">
+      @for (item of items(); track item.id) {
+        <li class="sidebar__nav-item">
+          <button
+            class="sidebar__nav-link"
+            [class.sidebar__nav-link--active]="isItemActive(item)"
+            [class.sidebar__nav-link--has-children]="item.children && item.children.length > 0"
+            (click)="onItemClick(item)"
+            [attr.aria-label]="item.label">
+            
+            @if (item.icon) {
+              <span class="sidebar__nav-icon">{{ item.icon }}</span>
+            }
+            
+            @if (!isCollapsed()) {
+              <span class="sidebar__nav-text">{{ item.label }}</span>
+              
+              @if (item.children && item.children.length > 0) {
+                <span class="sidebar__nav-arrow" 
+                      [class.sidebar__nav-arrow--expanded]="isItemExpanded(item.id)">
+                  ↓
+                </span>
+              }
+            }
+          </button>
+
+          <!-- Submenu -->
+          @if (item.children && item.children.length > 0 && !isCollapsed() && isItemExpanded(item.id)) {
+            <ul class="sidebar__submenu">
+              @for (child of item.children; track child.id) {
+                <li class="sidebar__submenu-item">
+                  <button
+                    class="sidebar__submenu-link"
+                    [class.sidebar__submenu-link--active]="isItemActive(child)"
+                    (click)="onItemClick(child)"
+                    [attr.aria-label]="child.label">
+                    
+                    @if (child.icon) {
+                      <span class="sidebar__submenu-icon">{{ child.icon }}</span>
+                    }
+                    
+                    <span class="sidebar__submenu-text">{{ child.label }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </li>
+      }
+    </ul>
+  </nav>
+</aside>

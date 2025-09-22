@@ -1,0 +1,23 @@
+.console-app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.console-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f5f5f5;
+  padding: 2rem;
+}
+
+// Responsive design for mobile
+@media (max-width: 768px) {
+  .console-app {
+    flex-direction: column;
+  }
+  
+  .console-content {
+    padding: 1rem;
+  }
+}

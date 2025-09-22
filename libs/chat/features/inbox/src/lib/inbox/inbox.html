@@ -1,1 +1,99 @@
-<p>Inbox de chat</p>
+<!-- Contenedor principal del inbox -->
+<div class="inbox-container">
+  <!-- Indicador de carga global -->
+  @if (isLoading()) {
+    <div class="inbox-loading">
+      <div class="loading-spinner"></div>
+      <span>Cargando...</span>
+    </div>
+  }
+
+  <!-- Mensaje de error -->
+  @if (error()) {
+    <div class="inbox-error">
+      <div class="error-content">
+        <span class="error-icon">⚠️</span>
+        <span class="error-message">{{ error() }}</span>
+        <button type="button" class="error-dismiss" (click)="clearError()" aria-label="Cerrar error">×</button>
+      </div>
+    </div>
+  }
+
+  <!-- Layout principal: lista de chats + mensajes -->
+  <div class="inbox-layout" [class.has-selection]="hasSelectedChat()">
+    
+    <!-- Panel izquierdo: Lista de chats -->
+    <div class="chat-list-panel" [class.hidden-mobile]="!showChatList() && hasSelectedChat()">
+      <div class="chat-list-header">
+        <h2>Conversaciones</h2>
+        <div class="chat-list-actions">
+          <button 
+            type="button" 
+            class="btn-refresh" 
+            (click)="refresh()"
+            title="Actualizar chats"
+            aria-label="Actualizar lista de chats">
+            🔄
+          </button>
+          <button 
+            type="button" 
+            class="btn-new-chat" 
+            (click)="createNewChat()"
+            title="Nuevo chat"
+            aria-label="Crear nuevo chat">
+            ✉️
+          </button>
+        </div>
+      </div>
+
+      <!-- Componente de lista de chats -->
+      <guiders-chat-list
+        [chats]="chats()"
+        [selectedChatId]="selectedChatId()"
+        [loading]="isLoading()"
+        (chatSelect)="onChatSelected($event)"
+        class="chat-list-content">
+      </guiders-chat-list>
+    </div>
+
+    <!-- Panel derecho: Mensajes del chat seleccionado -->
+    <div class="chat-messages-panel" [class.hidden-mobile]="showChatList() && !hasSelectedChat()">
+      @if (hasSelectedChat()) {
+        <!-- Header del chat seleccionado -->
+        <div class="chat-messages-header">
+          <button 
+            type="button" 
+            class="btn-back-mobile" 
+            (click)="goBackToChatList()"
+            aria-label="Volver a lista de chats">
+            ←
+          </button>
+          <div class="chat-info">
+            <h3>Chat seleccionado</h3>
+            <span class="chat-id">ID: {{ selectedChatId() }}</span>
+          </div>
+        </div>
+
+        <!-- Componente de mensajes -->
+        <guiders-chat-messages
+          [chat]="selectedChat()!"
+          [messages]="currentChatMessages()"
+          [currentUserId]="validCurrentUserId()"
+          [loading]="isLoading()"
+          (messageSend)="onMessageSent($event.content)"
+          (messageRead)="onMessageRead($event)"
+          class="chat-messages-content">
+        </guiders-chat-messages>
+      } @else {
+        <!-- Estado vacío cuando no hay chat seleccionado -->
+        <div class="no-chat-selected">
+          <div class="empty-state">
+            <div class="empty-icon">💬</div>
+            <h3>Selecciona una conversación</h3>
+            <p>Elige un chat de la lista para ver y enviar mensajes</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -12,6 +12,15 @@ export const appRoutes: Route[] = [
 		],
 	},
 	{
+		path: 'inbox',
+		loadChildren: () => 
+			import('@guiders-frontend/chat/features/inbox').then(m => m.inboxRoutes),
+		title: 'Chat Inbox',
+		canActivate: [
+			authGuard
+		],
+	},
+	{
 		path: '',
 		pathMatch: 'full',
 		redirectTo: 'dashboard',

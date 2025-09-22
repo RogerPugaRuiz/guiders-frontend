@@ -1,1 +1,12 @@
-<router-outlet></router-outlet>
+<div class="admin-app">
+  <guiders-sidebar
+    [items]="sidebarItems()"
+    [config]="sidebarConfig()"
+    (itemClick)="onSidebarItemClick($event)"
+    (toggleSidebar)="onSidebarToggle($event)">
+  </guiders-sidebar>
+  
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

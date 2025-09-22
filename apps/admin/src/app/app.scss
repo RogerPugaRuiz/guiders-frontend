@@ -1,0 +1,23 @@
+.admin-app {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.admin-content {
+  flex: 1;
+  overflow-y: auto;
+  background: #f8f9fa;
+  padding: 2rem;
+}
+
+// Responsive design for mobile
+@media (max-width: 768px) {
+  .admin-app {
+    flex-direction: column;
+  }
+  
+  .admin-content {
+    padding: 1rem;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "chat-service",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/data-access/chat-service/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["type:data-access", "scope:chat"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/data-access/chat-service"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
