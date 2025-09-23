@@ -11,6 +11,7 @@ import {
   CreateChatResponse,
   User
 } from '@guiders-frontend/shared/types';
+import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 
 // Tipos internos para las respuestas de la API
 interface ApiChatResponse {
@@ -73,7 +74,8 @@ interface ApiGetMessagesResponse {
 })
 export class ChatService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000'; // TODO: Configurar desde environment
+  private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
   
   // Estado global del chat
   private readonly chatsSubject = new BehaviorSubject<Chat[]>([]);
@@ -108,7 +110,66 @@ export class ChatService {
       headers = headers.set('Authorization', `Bearer ${this.authToken}`);
     }
 
+    // Agregar CSRF token si está disponible
+    const csrfToken = this.getCsrfToken();
+    if (csrfToken) {
+      headers = headers.set('X-CSRF-Token', csrfToken);
+    }
+
     return headers;
+  }
+
+  // Configuración de opciones HTTP con credenciales
+  private getHttpOptions(): { headers: HttpHeaders; withCredentials: boolean } {
+    return {
+      headers: this.getHeaders(),
+      withCredentials: true
+    };
+  }
+
+  // Obtener token CSRF desde meta tag, cookie o endpoint
+  private getCsrfToken(): string | null {
+    // 1. Intentar obtener desde meta tag
+    const metaTag = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+    if (metaTag && metaTag.content) {
+      return metaTag.content;
+    }
+
+    // 2. Intentar obtener desde cookie no-HttpOnly (si está configurada así)
+    const cookieMatch = document.cookie.match(/(?:^|;\s*)csrf-token\s*=\s*([^;]+)/);
+    if (cookieMatch) {
+      return cookieMatch[1];
+    }
+
+    // 3. En una implementación real, podrías hacer una petición a /api/v2/csrf
+    // para obtener el token cuando no esté disponible por otros medios
+    return null;
+  }
+
+  /**
+   * Obtener token CSRF desde el endpoint del BFF
+   * Este método puede ser llamado al inicializar la aplicación
+   */
+  fetchCsrfToken(): Observable<string | null> {
+    return this.http.get<{ token: string }>(`${this.baseUrl}/csrf`, { 
+      withCredentials: true 
+    }).pipe(
+      map(response => {
+        // Opcional: almacenar el token en una meta tag para uso futuro
+        let metaTag = document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement;
+        if (!metaTag) {
+          metaTag = document.createElement('meta');
+          metaTag.name = 'csrf-token';
+          document.head.appendChild(metaTag);
+        }
+        metaTag.content = response.token;
+        return response.token;
+      }),
+      catchError(error => {
+        console.warn('No se pudo obtener el token CSRF:', error);
+        return of(null);
+      })
+    );
   }
 
   // Configurar usuario actual y token
@@ -166,7 +227,7 @@ export class ChatService {
   }): Observable<Chat[]> {
     this.setLoading(true);
     
-    let url = `${this.baseUrl}/v2/chats/commercial/${commercialId}`;
+    let url = `${this.baseUrl}/chats/commercial/${commercialId}`;
     const params = new URLSearchParams();
     
     if (options?.cursor) params.append('cursor', options.cursor);
@@ -195,17 +256,18 @@ export class ChatService {
     
     // Ordenamiento
     if (options?.sort?.field) {
-      params.append('sort[field]', options.sort.field);
-    }
-    if (options?.sort?.direction) {
-      params.append('sort[direction]', options.sort.direction);
+      const sortObj = {
+        field: options.sort.field,
+        direction: options.sort.direction || 'desc'
+      };
+      params.append('sort', JSON.stringify(sortObj));
     }
     
     if (params.toString()) {
       url += `?${params.toString()}`;
     }
 
-    return this.http.get<ApiGetChatsResponse>(url, { headers: this.getHeaders() })
+    return this.http.get<ApiGetChatsResponse>(url, this.getHttpOptions())
       .pipe(
         map(response => {
           const chats = this.transformChatsFromApi(response.chats);
@@ -245,7 +307,7 @@ export class ChatService {
     // Fallback al endpoint genérico si no hay usuario
     this.setLoading(true);
     
-    let url = `${this.baseUrl}/v2/chats`;
+    let url = `${this.baseUrl}/chats`;
     const params = new URLSearchParams();
     
     if (filters?.status) params.append('status', filters.status);
@@ -257,7 +319,7 @@ export class ChatService {
       url += `?${params.toString()}`;
     }
 
-    return this.http.get<ApiGetChatsResponse>(url, { headers: this.getHeaders() })
+    return this.http.get<ApiGetChatsResponse>(url, this.getHttpOptions())
       .pipe(
         map(response => {
           const chats = this.transformChatsFromApi(response.chats);
@@ -278,9 +340,9 @@ export class ChatService {
   getChat(chatId: string): Observable<Chat | null> {
     this.setLoading(true);
     
-    return this.http.get<ApiChatResponse>(`${this.baseUrl}/v2/chats/${chatId}`, { 
-      headers: this.getHeaders() 
-    }).pipe(
+    return this.http.get<ApiChatResponse>(`${this.baseUrl}/chats/${chatId}`, 
+      this.getHttpOptions()
+    ).pipe(
       map(chat => {
         this.setLoading(false);
         return this.transformChatFromApi(chat);
@@ -298,9 +360,9 @@ export class ChatService {
   createChat(request: CreateChatRequest): Observable<Chat | null> {
     this.setLoading(true);
     
-    return this.http.post<CreateChatResponse>(`${this.baseUrl}/v2/chats`, request, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.post<CreateChatResponse>(`${this.baseUrl}/chats`, request, 
+      this.getHttpOptions()
+    ).pipe(
       map(response => {
         this.setLoading(false);
         // Después de crear, obtener el chat completo
@@ -320,9 +382,9 @@ export class ChatService {
   createChatWithMessage(request: CreateChatWithMessageRequest): Observable<{ chat: Chat | null, message: Message | null }> {
     this.setLoading(true);
     
-    return this.http.post<CreateChatWithMessageResponse>(`${this.baseUrl}/v2/chats/with-message`, request, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.post<CreateChatWithMessageResponse>(`${this.baseUrl}/chats/with-message`, request, 
+      this.getHttpOptions()
+    ).pipe(
       map(response => {
         this.setLoading(false);
         const chat = response.chat ? this.transformChatFromApi(response.chat) : null;
@@ -356,7 +418,7 @@ export class ChatService {
   }): Observable<Message[]> {
     this.setLoading(true);
     
-    let url = `${this.baseUrl}/v2/messages/chat/${chatId}`;
+    let url = `${this.baseUrl}/messages/chat/${chatId}`;
     const params = new URLSearchParams();
     
     if (options?.limit) params.append('limit', options.limit.toString());
@@ -367,7 +429,7 @@ export class ChatService {
       url += `?${params.toString()}`;
     }
 
-    return this.http.get<ApiGetMessagesResponse>(url, { headers: this.getHeaders() })
+    return this.http.get<ApiGetMessagesResponse>(url, this.getHttpOptions())
       .pipe(
         map(response => {
           const messages = response.messages.map(msg => this.transformMessageFromApi(msg));
@@ -386,9 +448,9 @@ export class ChatService {
    * Enviar mensaje
    */
   sendMessage(request: SendMessageRequest): Observable<Message | null> {
-    return this.http.post<ApiMessageResponse>(`${this.baseUrl}/v2/messages`, request, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.post<ApiMessageResponse>(`${this.baseUrl}/messages`, request, 
+      this.getHttpOptions()
+    ).pipe(
       map(response => {
         const message = this.transformMessageFromApi(response);
         this.addMessageToState(request.chatId, message);
@@ -407,9 +469,9 @@ export class ChatService {
   markAsRead(messageIds: string[]): Observable<boolean> {
     const request: MarkAsReadRequest = { messageIds };
     
-    return this.http.put(`${this.baseUrl}/v2/messages/mark-as-read`, request, {
-      headers: this.getHeaders()
-    }).pipe(
+    return this.http.put(`${this.baseUrl}/messages/mark-as-read`, request, 
+      this.getHttpOptions()
+    ).pipe(
       map(() => {
         // Actualizar estado local
         this.updateMessageStatus(messageIds, 'READ');

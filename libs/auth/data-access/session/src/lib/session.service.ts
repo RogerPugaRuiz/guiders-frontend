@@ -1,31 +1,44 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { shareReplay } from 'rxjs/operators';
-import { ENVIRONMENT_TOKEN } from './environment.token';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  // Añade más propiedades según tu modelo de usuario
-}
+import { shareReplay, tap } from 'rxjs/operators';
+import { UserService } from './user.service';
+import { User } from './user.interface';
 
 @Injectable({ providedIn: 'root' })
 export class SessionService {
-  private readonly http = inject(HttpClient);
-  private readonly environment = inject(ENVIRONMENT_TOKEN);
-  private me$?: Observable<User | null>;
+  private readonly userService = inject(UserService);
+  private me$?: Observable<User>;
 
   ensureSession$(): Observable<User> {
     if (!this.me$) {
-			this.me$ = this.http.get<User>(`${this.environment.api.baseUrl}/bff/auth/me`, { withCredentials: true })
-        .pipe(shareReplay({ bufferSize: 1, refCount: true }));
+      this.me$ = this.userService.fetchUser()
+        .pipe(
+          tap(user => {
+            console.log('Session ensured for user:', user.email);
+          }),
+          shareReplay({ bufferSize: 1, refCount: true })
+        );
     }
-    return this.me$ as Observable<User>;
+    return this.me$;
   }
 
   clearCache(): void {
     this.me$ = undefined;
+    this.userService.clearUser();
+  }
+
+  // Método de conveniencia para obtener el usuario actual
+  getCurrentUser(): User | null {
+    return this.userService.currentUser();
+  }
+
+  // Método de conveniencia para verificar autenticación
+  isAuthenticated(): boolean {
+    return this.userService.isAuthenticated();
+  }
+
+  // Método de conveniencia para verificar si la sesión ha expirado
+  isSessionExpired(): boolean {
+    return this.userService.isSessionExpired();
   }
 }

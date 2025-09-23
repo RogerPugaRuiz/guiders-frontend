@@ -6,6 +6,7 @@ import { ChatList } from '@guiders-frontend/chat-list';
 import { ChatMessages } from '@guiders-frontend/chat-messages';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { Chat, Message } from '@guiders-frontend/shared/types';
+import { SessionService } from '@guiders-frontend/auth/data-access/session';
 
 @Component({
   selector: 'chat-inbox',
@@ -21,6 +22,7 @@ import { Chat, Message } from '@guiders-frontend/shared/types';
 export class Inbox {
   private readonly router = inject(Router);
   private readonly chatService = inject(ChatService);
+  private readonly sessionService = inject(SessionService);
 
   // Señales para el estado del componente
   readonly selectedChatId = signal<string | null>(null);
@@ -40,7 +42,8 @@ export class Inbox {
   readonly error$ = this.chatService.error$;
 
   // Computed values
-  readonly currentUserId = computed(() => this.chatService.getCurrentUserId());
+  readonly currentUser = computed(() => this.sessionService.getCurrentUser());
+  readonly currentUserId = computed(() => this.currentUser()?.sub || null);
   readonly hasSelectedChat = computed(() => this.selectedChatId() !== null);
   readonly selectedChat = computed(() => {
     const chatId = this.selectedChatId();
@@ -108,14 +111,23 @@ export class Inbox {
    * Cargar lista de chats con filtros aplicados
    */
   loadChats(): void {
+    console.log('📞 Inbox: Iniciando loadChats()...');
+    
     // Obtener el ID del comercial actual
     const commercialId = this.currentUserId();
+    console.log('👤 Inbox: Commercial ID obtenido:', commercialId);
+    
     if (!commercialId) {
+      console.warn('⚠️ Inbox: No hay commercial ID disponible - usuario no autenticado');
       this.error.set('Usuario no autenticado');
       return;
     }
 
     // Preparar filtros basados en el estado actual
+    const selectedFilter = this.selectedFilter();
+    const searchQuery = this.searchQuery();
+    console.log('🔍 Inbox: Filtros actuales - selectedFilter:', selectedFilter, 'searchQuery:', searchQuery);
+    
     const options: {
       cursor?: string;
       limit?: number;
@@ -138,19 +150,29 @@ export class Inbox {
       }
     };
     
-    if (this.selectedFilter() !== 'all') {
+    if (selectedFilter !== 'all') {
       options.filters = {
-        status: [this.selectedFilter()]
+        status: [selectedFilter]
       };
+      console.log('🎯 Inbox: Aplicando filtro de estado:', selectedFilter);
     }
+
+    console.log('📋 Inbox: Opciones de consulta preparadas:', JSON.stringify(options, null, 2));
+    console.log('🚀 Inbox: Llamando a chatService.getCommercialChats()...');
 
     this.chatService.getCommercialChats(commercialId, options).subscribe({
       next: (chats) => {
+        console.log('✅ Inbox: Respuesta recibida del servicio - número de chats:', chats?.length || 0);
+        console.log('📊 Inbox: Chats recibidos del servicio:', chats);
+        
         let filteredChats = chats;
         
         // Aplicar búsqueda local si hay query
-        const query = this.searchQuery().trim().toLowerCase();
+        const query = searchQuery.trim().toLowerCase();
         if (query) {
+          console.log('🔎 Inbox: Aplicando búsqueda local con query:', query);
+          const originalCount = chats.length;
+          
           filteredChats = chats.filter(chat => 
             chat.participants.some(p => 
               p.name.toLowerCase().includes(query) ||
@@ -158,17 +180,38 @@ export class Inbox {
             ) ||
             chat.lastMessage?.content.toLowerCase().includes(query)
           );
+          
+          console.log(`🔍 Inbox: Búsqueda aplicada - ${originalCount} → ${filteredChats.length} chats`);
         }
         
-        console.log('Chats cargados:', filteredChats);
+        console.log('📝 Inbox: Chats finales después de filtros:', filteredChats);
+        console.log(`📈 Inbox: Total de chats a mostrar: ${filteredChats.length}`);
         
         // Si no hay chat seleccionado y hay chats disponibles, seleccionar el primero
-        if (filteredChats.length > 0 && !this.selectedChatId()) {
+        const currentSelectedChatId = this.selectedChatId();
+        console.log('🎯 Inbox: Chat actualmente seleccionado:', currentSelectedChatId);
+        
+        if (filteredChats.length > 0 && !currentSelectedChatId) {
+          console.log('🔄 Inbox: Auto-seleccionando primer chat:', filteredChats[0].chatId);
           this.onChatSelected(filteredChats[0]);
+        } else if (filteredChats.length === 0) {
+          console.log('📭 Inbox: No hay chats disponibles para mostrar');
+        } else {
+          console.log('✨ Inbox: Manteniendo chat seleccionado actual:', currentSelectedChatId);
         }
+        
+        console.log('✅ Inbox: loadChats() completado exitosamente');
       },
       error: (error) => {
-        console.error('Error al cargar chats:', error);
+        console.error('❌ Inbox: Error al cargar chats:', error);
+        console.error('🔍 Inbox: Detalles del error:', {
+          message: error.message,
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url,
+          commercialId,
+          options
+        });
         this.error.set('Error al cargar los chats');
       }
     });
