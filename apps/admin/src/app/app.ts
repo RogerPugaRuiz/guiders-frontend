@@ -31,7 +31,7 @@ export class App {
     {
       id: 'inbox',
       label: 'Chat Inbox',
-      icon: '💬',
+      icon: '<svg width="28px" height="28px" stroke-width="1.8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M10 12L14 12" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 3L21 3" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 7V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V7" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
       route: '/inbox'
     },
     {

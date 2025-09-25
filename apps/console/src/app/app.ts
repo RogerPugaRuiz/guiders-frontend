@@ -25,56 +25,62 @@ export class App {
     {
       id: 'inbox',
       label: 'Bandeja de Entrada',
-      icon: '📥',
+      icon: '<svg width="28px" height="28px" stroke-width="1.8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000"><path d="M10 12L14 12" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 3L21 3" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 7V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V7" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>',
       route: '/inbox'
     },
     {
-      id: 'chats',
-      label: 'Chats',
-      icon: '💬',
+      id: 'visitors',
+      label: 'Visitantes',
+      icon: '�',
       children: [
         {
-          id: 'chats-active',
-          label: 'Chats Activos',
-          icon: '🟢',
-          route: '/chats/active'
+          id: 'visitors-unassigned',
+          label: 'No asignados',
+          icon: '⚪',
+          route: '/visitors?filter=unassigned'
         },
         {
-          id: 'chats-archived',
-          label: 'Archivados',
-          icon: '📁',
-          route: '/chats/archived'
+          id: 'visitors-mine',
+          label: 'Míos',
+          icon: '�',
+          route: '/visitors?filter=mine'
+        },
+        {
+          id: 'visitors-all',
+          label: 'Todos',
+          icon: '�',
+          route: '/visitors?filter=all'
+        },
+        {
+          id: 'visitors-queue',
+          label: 'En cola',
+          icon: '⏳',
+          route: '/visitors?filter=queue'
         }
       ]
     },
     {
       id: 'contacts',
       label: 'Contactos',
-      icon: '👥',
-      route: '/contacts'
-    },
-    {
-      id: 'profile',
-      label: 'Mi Perfil',
-      icon: '👤',
-      route: '/profile'
-    },
-    {
-      id: 'help',
-      label: 'Ayuda',
-      icon: '❓',
+      icon: '📇',
       children: [
         {
-          id: 'help-faq',
-          label: 'Preguntas Frecuentes',
-          icon: '📚',
-          route: '/help/faq'
+          id: 'contacts-mine',
+          label: 'Mis contactos',
+          icon: '👤',
+          route: '/contacts?view=mine'
         },
         {
-          id: 'help-support',
-          label: 'Soporte',
-          icon: '🆘',
-          route: '/help/support'
+          id: 'contacts-recent',
+          label: 'Recientes',
+          icon: '�',
+          route: '/contacts?view=recent'
+        },
+        {
+          id: 'contacts-search',
+          label: 'Buscar',
+          icon: '🔍',
+          route: '/contacts?view=search'
         }
       ]
     }

@@ -35,7 +35,7 @@
             [attr.aria-label]="item.label">
             
             @if (item.icon) {
-              <span class="sidebar__nav-icon">{{ item.icon }}</span>
+              <span class="sidebar__nav-icon" [innerHTML]="item.icon"></span>
             }
             
             @if (!isCollapsed()) {
@@ -62,7 +62,7 @@
                     [attr.aria-label]="child.label">
                     
                     @if (child.icon) {
-                      <span class="sidebar__submenu-icon">{{ child.icon }}</span>
+                      <span class="sidebar__submenu-icon" [innerHTML]="child.icon"></span>
                     }
                     
                     <span class="sidebar__submenu-text">{{ child.label }}</span>

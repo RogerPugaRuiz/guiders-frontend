@@ -37,9 +37,13 @@
       "@guiders-frontend/chat/features/inbox": [
         "libs/chat/features/inbox/src/index.ts"
       ],
+      "@guiders-frontend/contacts": [
+        "libs/chat/features/contacts/src/index.ts"
+      ],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
-      "@guiders-frontend/types": ["libs/shared/types/src/index.ts"]
+      "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/visitors": ["libs/chat/features/visitors/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

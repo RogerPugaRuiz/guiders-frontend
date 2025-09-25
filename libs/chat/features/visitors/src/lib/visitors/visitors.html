@@ -1,0 +1,48 @@
+<div class="visitors-container">
+  <div class="visitors-header">
+    <h2>👥 Visitantes</h2>
+    <p>Gestiona y asigna visitantes</p>
+  </div>
+
+  <div class="visitors-filters">
+    <button 
+      *ngFor="let filter of filters" 
+      [class.active]="selectedFilter === filter.id"
+      (click)="selectFilter(filter.id)"
+      class="filter-button">
+      {{ filter.label }}
+      <span class="count">{{ filter.count }}</span>
+    </button>
+  </div>
+
+  <div class="visitors-content">
+    <div class="visitors-list">
+      @switch (selectedFilter) {
+        @case ('unassigned') {
+          <div class="empty-state">
+            <h3>Sin Visitantes por Asignar</h3>
+            <p>No hay visitantes pendientes de asignación en este momento.</p>
+          </div>
+        }
+        @case ('mine') {
+          <div class="empty-state">
+            <h3>Mis Visitantes</h3>
+            <p>Aquí aparecerán los visitantes asignados a ti.</p>
+          </div>
+        }
+        @case ('all') {
+          <div class="empty-state">
+            <h3>Todos los Visitantes</h3>
+            <p>Vista general de todos los visitantes del sistema.</p>
+          </div>
+        }
+        @case ('queue') {
+          <div class="empty-state">
+            <h3>Cola de Visitantes</h3>
+            <p>Visitantes esperando atención por orden de llegada.</p>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</div>
