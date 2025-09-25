@@ -43,7 +43,13 @@
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
-      "@guiders-frontend/visitors": ["libs/chat/features/visitors/src/index.ts"]
+      "@guiders-frontend/visitors": [
+        "libs/chat/features/visitors/src/index.ts"
+      ],
+      "@guiders-frontend/visitors-data-service": [
+        "libs/chat/data-access/visitors-data-service/src/index.ts"
+      ],
+      "@guiders-frontend/visitors-list": ["libs/chat/ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

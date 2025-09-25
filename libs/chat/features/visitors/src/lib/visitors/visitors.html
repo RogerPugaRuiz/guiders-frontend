@@ -1,48 +1,103 @@
 <div class="visitors-container">
+  <!-- Header con estadísticas -->
   <div class="visitors-header">
-    <h2>👥 Visitantes</h2>
-    <p>Gestiona y asigna visitantes</p>
-  </div>
-
-  <div class="visitors-filters">
-    <button 
-      *ngFor="let filter of filters" 
-      [class.active]="selectedFilter === filter.id"
-      (click)="selectFilter(filter.id)"
-      class="filter-button">
-      {{ filter.label }}
-      <span class="count">{{ filter.count }}</span>
-    </button>
-  </div>
-
-  <div class="visitors-content">
-    <div class="visitors-list">
-      @switch (selectedFilter) {
-        @case ('unassigned') {
-          <div class="empty-state">
-            <h3>Sin Visitantes por Asignar</h3>
-            <p>No hay visitantes pendientes de asignación en este momento.</p>
-          </div>
-        }
-        @case ('mine') {
-          <div class="empty-state">
-            <h3>Mis Visitantes</h3>
-            <p>Aquí aparecerán los visitantes asignados a ti.</p>
-          </div>
-        }
-        @case ('all') {
-          <div class="empty-state">
-            <h3>Todos los Visitantes</h3>
-            <p>Vista general de todos los visitantes del sistema.</p>
-          </div>
-        }
-        @case ('queue') {
-          <div class="empty-state">
-            <h3>Cola de Visitantes</h3>
-            <p>Visitantes esperando atención por orden de llegada.</p>
-          </div>
-        }
-      }
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+          <span class="title-icon">👥</span>
+          Visitantes
+        </h1>
+        <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
+      </div>
+      
+      <!-- Estadísticas rápidas -->
+      <div class="quick-stats" *ngIf="visitorStats() as stats">
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.total }}</span>
+          <span class="stat-label">Total</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.online }}</span>
+          <span class="stat-label">En línea</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.withActiveChat }}</span>
+          <span class="stat-label">Con chat</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.newVisitors }}</span>
+          <span class="stat-label">Nuevos</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ stats.leads }}</span>
+          <span class="stat-label">Leads</span>
+        </div>
+      </div>
     </div>
   </div>
+
+  <!-- Filtros de vista -->
+  <div class="view-filters">
+    <div class="filter-tabs">
+      <button
+        *ngFor="let filter of filterPresets()"
+        [class.active]="selectedFilterId() === filter.id"
+        (click)="onFilterPresetChange(filter.id)"
+        class="filter-tab"
+        [attr.title]="filter.description"
+      >
+        <span class="tab-icon">{{ filter.icon }}</span>
+        <span class="tab-label">{{ filter.label }}</span>
+        <span class="tab-count" *ngIf="filter.count > 0">{{ filter.count }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
+  <div class="visitors-content">
+    @if (state().error) {
+      <div class="error-banner">
+        <span class="error-icon">⚠️</span>
+        <span class="error-text">{{ state().error }}</span>
+        <button class="retry-button" (click)="loadVisitors()">
+          Reintentar
+        </button>
+      </div>
+    }
+
+    <!-- Lista de visitantes usando el componente UI -->
+    <lib-visitors-list
+      [visitors]="filteredVisitors()"
+      [loading]="state().loading"
+      [error]="state().error"
+      [config]="listConfig()"
+      [selectedVisitorIds]="[]"
+      (visitorClick)="onVisitorClick($event)"
+      (visitorSelect)="onVisitorSelect($event)"
+      (createChat)="onCreateChat($event)"
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (sortChange)="onSortChange($event)"
+    />
+  </div>
+
+  <!-- Loading overlay -->
+  @if (state().loading && state().visitors.length === 0) {
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p>Cargando visitantes...</p>
+    </div>
+  }
+
+  <!-- Modal para crear chat -->
+  @if (selectedVisitorForChat()) {
+    <lib-create-chat-modal
+      [visitor]="selectedVisitorForChat()!"
+      [isOpen]="showCreateChatModal()"
+      [loading]="state().loading"
+      [config]="modalConfig()"
+      (modalClose)="closeCreateChatModal()"
+      (createChat)="onModalCreateChat($event)"
+    />
+  }
 </div>

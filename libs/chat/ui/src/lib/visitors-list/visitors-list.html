@@ -1,0 +1,227 @@
+<div class="visitors-list">
+  <!-- Header con estadísticas -->
+  @if (config().showStats) {
+    <div class="visitors-stats">
+      <div class="stat-card">
+        <span class="stat-number">{{ stats().total }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ stats().online }}</span>
+        <span class="stat-label">En línea</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ stats().withActiveChat }}</span>
+        <span class="stat-label">Con chat</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-number">{{ stats().newVisitors }}</span>
+        <span class="stat-label">Nuevos</span>
+      </div>
+    </div>
+  }
+
+  <!-- Barra de búsqueda y filtros -->
+  <div class="visitors-controls">
+    @if (config().showSearch) {
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Buscar visitantes..."
+          [value]="searchQuery()"
+          (input)="onSearchChange($any($event.target).value)"
+          class="search-input">
+        <span class="search-icon">🔍</span>
+      </div>
+    }
+
+    @if (config().showFilters) {
+      <div class="filter-controls">
+        <!-- Filtro por estado -->
+        <div class="filter-group">
+          <span class="filter-label">Estado:</span>
+          <div class="filter-options">
+            @for (option of filterOptions.status; track option.value) {
+              <label class="filter-option">
+                <input
+                  type="checkbox"
+                  [value]="option.value"
+                  (change)="onFilterChange('status', [$any($event.target).value])">
+                <span class="option-text">{{ option.icon }} {{ option.label }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <!-- Filtro por lifecycle -->
+        <div class="filter-group">
+          <span class="filter-label">Tipo:</span>
+          <div class="filter-options">
+            @for (option of filterOptions.lifecycle; track option.value) {
+              <label class="filter-option">
+                <input
+                  type="checkbox"
+                  [value]="option.value"
+                  (change)="onFilterChange('lifecycle', [$any($event.target).value])">
+                <span class="option-text">{{ option.icon }} {{ option.label }}</span>
+              </label>
+            }
+          </div>
+        </div>
+
+        <!-- Ordenamiento -->
+        <div class="sort-controls">
+          <select 
+            class="sort-select"
+            [value]="currentSort().field"
+            (change)="onSortChange($any($event.target).value, currentSort().direction)">
+            @for (option of sortOptions; track option.field) {
+              <option [value]="option.field">{{ option.label }}</option>
+            }
+          </select>
+          <button
+            class="sort-direction"
+            [class.desc]="currentSort().direction === 'desc'"
+            (click)="onSortChange(currentSort().field, currentSort().direction === 'asc' ? 'desc' : 'asc')">
+            {{ currentSort().direction === 'asc' ? '↑' : '↓' }}
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Lista de visitantes -->
+  <div class="visitors-content">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando visitantes...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p class="error-message">{{ error() }}</p>
+        <button class="retry-button">Reintentar</button>
+      </div>
+    } @else if (filteredVisitors().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">👥</span>
+        <h3>No hay visitantes</h3>
+        <p>No se encontraron visitantes con los filtros actuales.</p>
+      </div>
+    } @else {
+      <div class="visitors-grid">
+        @for (visitor of filteredVisitors(); track visitor.id) {
+          <div 
+            class="visitor-card"
+            [class.selected]="isSelected(visitor.id)"
+            [class.has-active-chat]="visitor.hasActiveChat"
+            tabindex="0"
+            role="button"
+            (click)="onVisitorClick(visitor)"
+            (keyup.enter)="onVisitorClick(visitor)"
+            (keyup.space)="onVisitorClick(visitor)"
+            [attr.aria-label]="'Visitante: ' + (visitor.name || 'Anónimo')">
+            
+            <!-- Checkbox para selección múltiple -->
+            @if (config().allowMultiSelect) {
+              <div class="visitor-checkbox">
+                <input 
+                  type="checkbox"
+                  [checked]="isSelected(visitor.id)"
+                  (click)="onVisitorSelect(visitor, $event)">
+              </div>
+            }
+
+            <!-- Avatar y estado -->
+            <div class="visitor-avatar">
+              <div class="avatar-circle">
+                @if (visitor.name) {
+                  {{ visitor.name.charAt(0).toUpperCase() }}
+                } @else {
+                  👤
+                }
+              </div>
+              <span class="status-indicator" [class]="visitor.status">
+                {{ getVisitorStatusIcon(visitor) }}
+              </span>
+            </div>
+
+            <!-- Información principal -->
+            <div class="visitor-info">
+              <div class="visitor-header">
+                <h4 class="visitor-name">
+                  {{ visitor.name || 'Visitante Anónimo' }}
+                </h4>
+                <span class="visitor-lifecycle">
+                  {{ getLifecycleIcon(visitor.lifecycle) }}
+                </span>
+              </div>
+              
+              <div class="visitor-details">
+                @if (visitor.email) {
+                  <span class="visitor-email">📧 {{ visitor.email }}</span>
+                }
+                <span class="visitor-domain">🌐 {{ visitor.domain }}</span>
+                <span class="visitor-last-visit">
+                  🕒 {{ formatLastVisit(visitor.lastVisit) }}
+                </span>
+              </div>
+
+              @if (visitor.hasActiveChat) {
+                <div class="active-chat-indicator">
+                  💬 Chat activo
+                </div>
+              }
+
+              <!-- Tags de intenciones -->
+              @if (visitor.tags && visitor.tags.length > 0) {
+                <div class="visitor-tags">
+                  @for (tag of visitor.tags.slice(0, 3); track tag.id) {
+                    <span class="tag">{{ tag.name }}</span>
+                  }
+                  @if (visitor.tags.length > 3) {
+                    <span class="tag-more">+{{ visitor.tags.length - 3 }}</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Acciones -->
+            @if (config().showActions) {
+              <div class="visitor-actions">
+                @if (!visitor.hasActiveChat) {
+                  <button 
+                    class="action-button create-chat"
+                    (click)="onCreateChat(visitor, $event)"
+                    title="Iniciar chat">
+                    💬
+                  </button>
+                }
+                <button 
+                  class="action-button view-details"
+                  title="Ver detalles">
+                  👁️
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Selección múltiple controles -->
+  @if (config().allowMultiSelect && selectedVisitors().length > 0) {
+    <div class="multi-select-controls">
+      <span class="selection-count">
+        {{ selectedVisitors().length }} seleccionados
+      </span>
+      <div class="bulk-actions">
+        <button class="bulk-action-button">Crear chats</button>
+        <button class="bulk-action-button">Asignar tags</button>
+        <button class="bulk-action-button secondary">Deseleccionar</button>
+      </div>
+    </div>
+  }
+</div>

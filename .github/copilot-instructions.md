@@ -13,8 +13,13 @@
 - **Tipos de librerías**:
   - `features/`: Componentes inteligentes con rutas y lógica de negocio
   - `ui/`: Componentes presentacionales reutilizables
+  - `data-access/`: Servicios HTTP y lógica de acceso a datos (cada servicio como proyecto independiente)
   - `utils/`: Utilidades y helpers (futuro)
-- **Dependencias**: Las features dependen de UI components, estableciendo una jerarquía clara (`login` → `login-form`)
+- **Estructura de Data Access**: Cada servicio tiene su propio proyecto independiente:
+  - `libs/chat/data-access/chat-service/` - Servicio principal de chat
+  - `libs/chat/data-access/visitors-data-service/` - Servicio de gestión de visitantes
+  - Patrón: `libs/{domain}/data-access/{service-name}/`
+- **Dependencias**: Las features dependen de UI components y data-access services, estableciendo una jerarquía clara (`visitors` → `visitors-list` + `visitors-data-service`)
 - **Tagging**: Se usa `tags: ["type:feature", "scope:auth"]` para categorizar proyectos
 
 ## Comandos y Flujos de Desarrollo
@@ -46,9 +51,18 @@
 - **Rutas**: Cada feature exporta `{name}Routes: Route[]` para lazy loading
 - **Barrel exports**: Todos los public APIs se exportan desde `src/index.ts`
 
+## Servicios Data Access y Patrones HTTP
+- **Estructura consistente**: Cada servicio HTTP es un proyecto independiente bajo `data-access/`
+- **Convención de nombres**: `{feature}-data-service` (ej: `visitors-data-service`, `chat-service`)
+- **Imports de servicios**: `@guiders-frontend/{service-name}` (ej: `@guiders-frontend/visitors-data-service`)
+- **Implementación**: Servicios usan `inject(HttpClient)` y proveen métodos observables para API calls
+- **Configuración**: Cada servicio tiene su propio `project.json` con tags `["type:data-access", "scope:{domain}"]`
+
 ## Configuración de Path Mapping y TypeScript
 - **Imports**: `@guiders-frontend/{domain}/{type}/{name}` (definidos en `tsconfig.base.json`)
-- **Ejemplo**: `import { LoginForm } from '@guiders-frontend/auth/ui/login-form';`
+- **Ejemplo Features**: `import { LoginComponent } from '@guiders-frontend/auth/features/login';`
+- **Ejemplo UI**: `import { LoginForm } from '@guiders-frontend/auth/ui/login-form';`
+- **Ejemplo Services**: `import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';`
 - **Testing**: Vitest configurado para todas las librerías, Playwright para E2E de apps
 - **ModuleResolution**: Usa `"bundler"` en lugar de `"node"` (compatible con Vite y bundlers modernos)
 - **Target**: ES2022 para aprovechar características modernas de JavaScript
@@ -67,6 +81,9 @@
 ## Recomendaciones para Agentes
 - Usa `nx show project <name>` para entender targets disponibles de cualquier proyecto
 - Sigue el patrón domain/type/feature para nuevas librerías
+- **Para servicios data-access**: Crea proyectos independientes bajo `libs/{domain}/data-access/{service-name}/`
 - Implementa componentes con signals API y dependency injection moderna
+- **Para servicios HTTP**: Usa `inject(HttpClient)` y retorna Observables, configura con `providedIn: 'root'`
 - Verifica dependencias con `nx graph` antes de crear nuevas referencias entre proyectos
 - Usa los generators configurados en `nx.json` para consistencia (SCSS, Vitest, ESLint)
+- **Consistencia de estructura**: Todos los servicios data-access deben ser proyectos independientes, no carpetas dentro de otros proyectos

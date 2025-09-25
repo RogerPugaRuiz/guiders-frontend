@@ -1,0 +1,242 @@
+<!-- Modal Overlay -->
+<div 
+  class="modal-overlay" 
+  *ngIf="isOpen()"
+  (click)="onBackdropClick($event)"
+  (keydown)="onKeyDown($event)"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="'Crear chat con ' + visitorDisplayName()"
+>
+  <!-- Modal Container -->
+  <div class="modal-container" role="document">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="visitor-info">
+          <div class="visitor-avatar">
+            <span class="avatar-text">
+              {{ (visitor().name || visitor().email || 'V').substring(0, 2).toUpperCase() }}
+            </span>
+          </div>
+          <div class="visitor-details">
+            <h2 class="modal-title">Iniciar Chat</h2>
+            <p class="visitor-name">{{ visitorDisplayName() }}</p>
+            <span class="visitor-status" [class]="'status-' + visitor().status">
+              {{ visitorStatusText() }}
+            </span>
+          </div>
+        </div>
+        
+        <button 
+          type="button" 
+          class="close-button"
+          (click)="onCancel()"
+          [attr.aria-label]="'Cerrar modal'"
+        >
+          <span class="close-icon">✕</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <form [formGroup]="chatForm()" (ngSubmit)="onSubmit()" class="modal-body">
+      <!-- Mensaje inicial -->
+      <div class="form-group">
+        <label for="message" class="form-label">
+          Mensaje inicial
+          @if (!config().requireMessage) {
+            <span class="optional-label">(opcional)</span>
+          }
+        </label>
+        <div class="textarea-container">
+          <textarea
+            id="message"
+            formControlName="message"
+            class="form-textarea"
+            [class.error]="isFieldInvalid('message')"
+            placeholder="Escribe un mensaje de bienvenida para el visitante..."
+            rows="3"
+            [maxlength]="config().maxMessageLength"
+          ></textarea>
+          <div class="character-count">
+            <span class="count-text" [class.warning]="remainingCharacters() < 50" [class.error]="remainingCharacters() < 0">
+              {{ messageCharacterCount() }}/{{ config().maxMessageLength }}
+            </span>
+          </div>
+        </div>
+        @if (isFieldInvalid('message')) {
+          <span class="error-message">{{ getFieldError('message') }}</span>
+        }
+      </div>
+
+      <!-- Configuración del chat -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="department" class="form-label">Departamento</label>
+          <select
+            id="department"
+            formControlName="department"
+            class="form-select"
+            [class.error]="isFieldInvalid('department')"
+          >
+            <option value="" disabled>Seleccionar departamento</option>
+            <option 
+              *ngFor="let dept of config().departments" 
+              [value]="dept.id"
+            >
+              {{ dept.name }}
+            </option>
+          </select>
+          @if (isFieldInvalid('department')) {
+            <span class="error-message">{{ getFieldError('department') }}</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="priority" class="form-label">Prioridad</label>
+          <select
+            id="priority"
+            formControlName="priority"
+            class="form-select priority-select"
+            [class.error]="isFieldInvalid('priority')"
+          >
+            <option 
+              *ngFor="let priority of config().priorities" 
+              [value]="priority.id"
+              [style.color]="priority.color"
+            >
+              {{ priority.name }}
+            </option>
+          </select>
+          @if (selectedPriority()) {
+            <div class="priority-indicator" [style.background-color]="selectedPriority()?.color">
+              {{ selectedPriority()?.name }}
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Opciones avanzadas -->
+      <div class="advanced-section">
+        <button
+          type="button"
+          class="toggle-advanced"
+          (click)="toggleAdvancedOptions()"
+          [class.active]="showAdvancedOptions()"
+        >
+          <span class="toggle-icon">{{ showAdvancedOptions() ? '▼' : '▶' }}</span>
+          <span class="toggle-text">Opciones avanzadas</span>
+        </button>
+
+        @if (showAdvancedOptions()) {
+          <div class="advanced-content">
+            <!-- Actualizar información del visitante -->
+            <div class="form-group checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  formControlName="updateVisitorInfo"
+                  class="form-checkbox"
+                />
+                <span class="checkbox-text">Actualizar información del visitante</span>
+              </label>
+            </div>
+
+            @if (chatForm().get('updateVisitorInfo')?.value) {
+              <div class="visitor-form-section">
+                <h4 class="section-title">Información del visitante</h4>
+                
+                <div class="form-group">
+                  <label for="visitorName" class="form-label">Nombre completo</label>
+                  <input
+                    id="visitorName"
+                    type="text"
+                    formControlName="visitorName"
+                    class="form-input"
+                    [class.error]="isFieldInvalid('visitorName')"
+                    placeholder="Nombre del visitante"
+                  />
+                  @if (isFieldInvalid('visitorName')) {
+                    <span class="error-message">{{ getFieldError('visitorName') }}</span>
+                  }
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="visitorEmail" class="form-label">Email</label>
+                    <input
+                      id="visitorEmail"
+                      type="email"
+                      formControlName="visitorEmail"
+                      class="form-input"
+                      [class.error]="isFieldInvalid('visitorEmail')"
+                      placeholder="email@ejemplo.com"
+                    />
+                    @if (isFieldInvalid('visitorEmail')) {
+                      <span class="error-message">{{ getFieldError('visitorEmail') }}</span>
+                    }
+                  </div>
+
+                  <div class="form-group">
+                    <label for="visitorPhone" class="form-label">Teléfono</label>
+                    <input
+                      id="visitorPhone"
+                      type="tel"
+                      formControlName="visitorPhone"
+                      class="form-input"
+                      [class.error]="isFieldInvalid('visitorPhone')"
+                      placeholder="+34 XXX XXX XXX"
+                    />
+                    @if (isFieldInvalid('visitorPhone')) {
+                      <span class="error-message">{{ getFieldError('visitorPhone') }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <div class="footer-actions">
+        <button
+          type="button"
+          class="button secondary"
+          (click)="onCancel()"
+          [disabled]="loading()"
+        >
+          Cancelar
+        </button>
+
+        <button
+          type="submit"
+          class="button primary"
+          (click)="onSubmit()"
+          [disabled]="!isFormValid()"
+          [class.loading]="loading()"
+        >
+          @if (loading()) {
+            <span class="loading-spinner"></span>
+            <span class="button-text">Creando...</span>
+          } @else {
+            <span class="button-icon">💬</span>
+            <span class="button-text">Iniciar Chat</span>
+          }
+        </button>
+      </div>
+
+      <!-- Atajos de teclado -->
+      <div class="keyboard-hints">
+        <small class="hint-text">
+          <span class="hint-item"><kbd>Esc</kbd> para cerrar</span>
+          <span class="hint-separator">•</span>
+          <span class="hint-item"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> para enviar</span>
+        </small>
+      </div>
+    </div>
+  </div>
+</div>

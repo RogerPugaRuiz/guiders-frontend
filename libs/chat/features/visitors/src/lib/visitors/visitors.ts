@@ -1,25 +1,387 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { catchError, of, finalize } from 'rxjs';
+
+// Importar componentes UI y servicios
+import { 
+  VisitorsListComponent, 
+  CreateChatModal,
+  CreateChatModalConfig 
+} from '@guiders-frontend/visitors-list';
+import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
+import {
+  Visitor,
+  VisitorFilters,
+  VisitorSort,
+  CreateChatWithVisitorRequest,
+  VisitorState,
+  GetVisitorsResponse,
+  VisitorStats
+} from '@guiders-frontend/shared/types';
 
 @Component({
   selector: 'lib-visitors',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, VisitorsListComponent, CreateChatModal],
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.css'],
 })
-export class VisitorsComponent {
-  selectedFilter = 'unassigned';
+export class VisitorsComponent implements OnInit {
+  private readonly visitorsService = inject(VisitorsDataService);
+  private readonly router = inject(Router);
 
-  filters = [
-    { id: 'unassigned', label: 'Sin Asignar', count: 12 },
-    { id: 'mine', label: 'Mis Visitantes', count: 8 },
-    { id: 'all', label: 'Todos los Visitantes', count: 45 },
-    { id: 'queue', label: 'En Cola', count: 5 }
-  ];
+  // Estado reactivo del componente
+  readonly state = signal<VisitorState>({
+    visitors: [],
+    selectedVisitor: null,
+    filters: {
+      includeOffline: false,
+      hasActiveChat: false
+    },
+    sort: { field: 'lastVisit', direction: 'desc' },
+    pagination: { limit: 50, offset: 0 },
+    loading: false,
+    error: null,
+    stats: null,
+    searchQuery: ''
+  });
 
-  selectFilter(filterId: string) {
-    this.selectedFilter = filterId;
-    // TODO: Implementar lógica de filtrado con ChatService
+  // Filtros predefinidos para diferentes vistas
+  readonly filterPresets = signal([
+    {
+      id: 'unassigned',
+      label: 'Sin Asignar',
+      icon: '👥',
+      description: 'Visitantes sin chat activo',
+      filters: { hasActiveChat: false, includeOffline: false } as VisitorFilters,
+      count: 0
+    },
+    {
+      id: 'online',
+      label: 'En Línea',
+      icon: '🟢',
+      description: 'Visitantes conectados actualmente',
+      filters: { status: ['online'], includeOffline: false } as VisitorFilters,
+      count: 0
+    },
+    {
+      id: 'active-chats',
+      label: 'Con Chat Activo',
+      icon: '💬',
+      description: 'Visitantes con conversación en curso',
+      filters: { hasActiveChat: true } as VisitorFilters,
+      count: 0
+    },
+    {
+      id: 'leads',
+      label: 'Leads',
+      icon: '📧',
+      description: 'Visitantes que han proporcionado información',
+      filters: { lifecycle: ['LEAD', 'CONVERTED'] } as VisitorFilters,
+      count: 0
+    },
+    {
+      id: 'all',
+      label: 'Todos',
+      icon: '📊',
+      description: 'Todos los visitantes del sitio',
+      filters: { includeOffline: true } as VisitorFilters,
+      count: 0
+    }
+  ]);
+
+  readonly selectedFilterId = signal<string>('unassigned');
+
+  // Modal state
+  readonly showCreateChatModal = signal<boolean>(false);
+  readonly selectedVisitorForChat = signal<Visitor | null>(null);
+
+  // Modal configuration
+  readonly modalConfig = signal<CreateChatModalConfig>({
+    departments: [
+      { id: 'sales', name: 'Ventas' },
+      { id: 'support', name: 'Soporte Técnico' },
+      { id: 'marketing', name: 'Marketing' },
+      { id: 'general', name: 'Atención General' }
+    ],
+    priorities: [
+      { id: 'LOW', name: 'Baja', color: '#6b7280' },
+      { id: 'MEDIUM', name: 'Media', color: '#f59e0b' },
+      { id: 'HIGH', name: 'Alta', color: '#ef4444' },
+      { id: 'URGENT', name: 'Urgente', color: '#dc2626' }
+    ],
+    defaultDepartment: 'sales',
+    defaultPriority: 'MEDIUM',
+    requireMessage: true,
+    maxMessageLength: 500
+  });
+
+  // Computed values
+  readonly currentFilter = computed(() => {
+    const filterId = this.selectedFilterId();
+    return this.filterPresets().find(f => f.id === filterId) || this.filterPresets()[0];
+  });
+
+  readonly filteredVisitors = computed(() => {
+    const state = this.state();
+    const currentFilter = this.currentFilter();
+    
+    let visitors = state.visitors;
+    const filters = { ...currentFilter.filters, ...state.filters };
+
+    // Aplicar filtros
+    if (filters.status?.length) {
+      visitors = visitors.filter(v => filters.status?.includes(v.status) ?? false);
+    }
+
+    if (filters.lifecycle?.length) {
+      visitors = visitors.filter(v => filters.lifecycle?.includes(v.lifecycle) ?? false);
+    }
+
+    if (filters.hasActiveChat !== undefined) {
+      visitors = visitors.filter(v => v.hasActiveChat === filters.hasActiveChat);
+    }
+
+    if (!filters.includeOffline) {
+      visitors = visitors.filter(v => v.status !== 'offline');
+    }
+
+    if (state.searchQuery) {
+      const query = state.searchQuery.toLowerCase();
+      visitors = visitors.filter(v =>
+        v.name?.toLowerCase().includes(query) ||
+        v.email?.toLowerCase().includes(query) ||
+        v.domain.toLowerCase().includes(query)
+      );
+    }
+
+    return visitors;
+  });
+
+  readonly visitorStats = computed(() => {
+    const visitors = this.state().visitors;
+    const online = visitors.filter(v => v.status === 'online').length;
+    const withChat = visitors.filter(v => v.hasActiveChat).length;
+    const newVisitors = visitors.filter(v => v.isNewVisitor).length;
+
+    return {
+      total: visitors.length,
+      online,
+      withActiveChat: withChat,
+      newVisitors,
+      leads: visitors.filter(v => ['LEAD', 'CONVERTED'].includes(v.lifecycle)).length
+    };
+  });
+
+  // Configuración para el componente de lista
+  readonly listConfig = computed(() => ({
+    showSearch: true,
+    showFilters: true,
+    showActions: true,
+    allowMultiSelect: this.selectedFilterId() === 'unassigned',
+    showStats: true,
+    pageSize: this.state().pagination.limit
+  }));
+
+  constructor() {
+    // Effect para actualizar contadores de filtros
+    effect(() => {
+      const visitors = this.state().visitors;
+      const presets = this.filterPresets();
+
+      const updatedPresets = presets.map(preset => ({
+        ...preset,
+        count: this.getFilterCount(visitors, preset.filters)
+      }));
+
+      this.filterPresets.set(updatedPresets);
+    });
+  }
+
+  ngOnInit(): void {
+    this.loadVisitors();
+    this.loadStats();
+    
+    // Actualizar datos cada 30 segundos
+    setInterval(() => {
+      this.refreshVisitors();
+    }, 30000);
+  }
+
+  private getFilterCount(visitors: Visitor[], filters: VisitorFilters): number {
+    let filtered = visitors;
+
+    if (filters.status?.length) {
+      filtered = filtered.filter(v => filters.status?.includes(v.status) ?? false);
+    }
+
+    if (filters.lifecycle?.length) {
+      filtered = filtered.filter(v => filters.lifecycle?.includes(v.lifecycle) ?? false);
+    }
+
+    if (filters.hasActiveChat !== undefined) {
+      filtered = filtered.filter(v => v.hasActiveChat === filters.hasActiveChat);
+    }
+
+    if (!filters.includeOffline) {
+      filtered = filtered.filter(v => v.status !== 'offline');
+    }
+
+    return filtered.length;
+  }
+
+  // Métodos para cargar datos
+  loadVisitors(): void {
+    this.updateState({ loading: true, error: null });
+
+    const currentState = this.state();
+    const filters = { ...this.currentFilter().filters, ...currentState.filters };
+
+    // TODO: Obtener siteId del contexto de usuario o configuración
+    const siteId = 'default-site-id';
+
+    this.visitorsService.getVisitors(siteId, filters, currentState.pagination)
+      .pipe(
+        catchError((error: Error) => {
+          console.error('Error loading visitors:', error);
+          return of({ visitors: [], total: 0, hasMore: false });
+        }),
+        finalize(() => this.updateState({ loading: false }))
+      )
+      .subscribe((response: GetVisitorsResponse) => {
+        this.updateState({
+          visitors: response.visitors,
+          error: null
+        });
+      });
+  }
+
+  private loadStats(): void {
+    const siteId = 'default-site-id';
+    this.visitorsService.getVisitorStats(siteId)
+      .pipe(
+        catchError((error: Error) => {
+          console.error('Error loading visitor stats:', error);
+          return of(null);
+        })
+      )
+      .subscribe((stats: VisitorStats | null) => {
+        if (stats) {
+          this.updateState({ stats });
+        }
+      });
+  }
+
+  private refreshVisitors(): void {
+    if (this.state().loading) return;
+    
+    const currentState = this.state();
+    const filters = { ...this.currentFilter().filters, ...currentState.filters };
+    const siteId = 'default-site-id';
+
+    this.visitorsService.getVisitors(siteId, filters, currentState.pagination)
+      .pipe(
+        catchError(() => of({ visitors: [], total: 0, hasMore: false }))
+      )
+      .subscribe((response: GetVisitorsResponse) => {
+        this.updateState({ visitors: response.visitors });
+      });
+  }
+
+  private updateState(updates: Partial<VisitorState>): void {
+    this.state.update(current => ({ ...current, ...updates }));
+  }
+
+  // Event handlers del UI
+  onFilterPresetChange(filterId: string): void {
+    this.selectedFilterId.set(filterId);
+    this.loadVisitors();
+  }
+
+  onVisitorClick(visitor: Visitor): void {
+    this.updateState({ selectedVisitor: visitor });
+    // Navegar a vista de detalle del visitante (futuro)
+    // this.router.navigate(['/visitors', visitor.id]);
+  }
+
+  onVisitorSelect(visitors: Visitor[]): void {
+    console.log('Visitors selected:', visitors.length);
+    // Manejar selección múltiple para acciones en lote
+  }
+
+  onCreateChat(request: CreateChatWithVisitorRequest): void {
+    // Este método ahora maneja la solicitud desde la lista para abrir el modal
+    // Buscar el visitante por ID en la request
+    const visitor = this.state().visitors.find(v => v.id === request.visitorId);
+    if (visitor) {
+      this.openCreateChatModal(visitor);
+    }
+  }
+
+  openCreateChatModal(visitor: Visitor): void {
+    this.selectedVisitorForChat.set(visitor);
+    this.showCreateChatModal.set(true);
+  }
+
+  onModalCreateChat(request: CreateChatWithVisitorRequest): void {
+    this.updateState({ loading: true });
+
+    this.visitorsService.createChatWithVisitor(request)
+      .pipe(
+        catchError((error: Error) => {
+          console.error('Error creating chat:', error);
+          this.updateState({ 
+            error: 'Error al crear el chat. Inténtalo de nuevo.',
+            loading: false
+          });
+          return of(null);
+        }),
+        finalize(() => this.updateState({ loading: false }))
+      )
+      .subscribe((response: { chatId: string } | null) => {
+        if (response) {
+          console.log('Chat created successfully:', response.chatId);
+          
+          // Cerrar el modal
+          this.closeCreateChatModal();
+          
+          // Navegar al chat creado
+          // this.router.navigate(['/chat', response.chatId]);
+          
+          // Refrescar la lista de visitantes
+          this.refreshVisitors();
+        }
+      });
+  }
+
+  closeCreateChatModal(): void {
+    this.showCreateChatModal.set(false);
+    this.selectedVisitorForChat.set(null);
+  }
+
+  onSearchChange(query: string): void {
+    this.updateState({ searchQuery: query });
+  }
+
+  onFilterChange(filters: VisitorFilters): void {
+    this.updateState({ filters: { ...this.state().filters, ...filters } });
+    this.loadVisitors();
+  }
+
+  onSortChange(sort: VisitorSort): void {
+    this.updateState({ sort });
+    this.loadVisitors();
+  }
+
+  // Métodos de utilidad
+  getFilterIcon(filterId: string): string {
+    const filter = this.filterPresets().find(f => f.id === filterId);
+    return filter?.icon || '📊';
+  }
+
+  getFilterDescription(filterId: string): string {
+    const filter = this.filterPresets().find(f => f.id === filterId);
+    return filter?.description || '';
   }
 }

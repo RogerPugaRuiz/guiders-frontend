@@ -1,0 +1,422 @@
+// Variables
+:host {
+  --card-padding: 1.25rem;
+  --card-border-radius: 0.75rem;
+  --avatar-size: 3rem;
+  --status-dot-size: 0.75rem;
+  --transition: all 0.2s ease;
+  
+  // Colores de estado
+  --status-online: #10b981;
+  --status-offline: #6b7280;
+  --status-idle: #f59e0b;
+  --status-browsing: #3b82f6;
+  
+  // Colores del tema
+  --primary-color: #4f46e5;
+  --secondary-color: #6b7280;
+  --surface-color: #ffffff;
+  --border-color: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --hover-bg: #f9fafb;
+  --selected-bg: #eff6ff;
+  --selected-border: #3b82f6;
+}
+
+.visitor-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: var(--card-padding);
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--card-border-radius);
+  transition: var(--transition);
+  cursor: pointer;
+  
+  &:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  &.selected {
+    background: var(--selected-bg);
+    border-color: var(--selected-border);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  }
+  
+  &.selectable {
+    cursor: pointer;
+    
+    .selection-checkbox {
+      opacity: 0;
+      transition: var(--transition);
+    }
+    
+    &:hover .selection-checkbox {
+      opacity: 1;
+    }
+    
+    &.selected .selection-checkbox {
+      opacity: 1;
+    }
+  }
+  
+  &:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+  }
+}
+
+// Checkbox de selección
+.selection-checkbox {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 2;
+  
+  input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 0.25rem;
+    border: 2px solid var(--border-color);
+    background: var(--surface-color);
+    cursor: pointer;
+    transition: var(--transition);
+    
+    &:checked {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+    }
+    
+    &:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Avatar del visitante
+.visitor-avatar {
+  position: relative;
+  align-self: center;
+  
+  .avatar-circle {
+    width: var(--avatar-size);
+    height: var(--avatar-size);
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    position: relative;
+    
+    &.status-online {
+      background: linear-gradient(135deg, var(--status-online), #059669);
+    }
+    
+    &.status-offline {
+      background: linear-gradient(135deg, var(--status-offline), #4b5563);
+    }
+    
+    &.status-idle {
+      background: linear-gradient(135deg, var(--status-idle), #d97706);
+    }
+    
+    &.status-browsing {
+      background: linear-gradient(135deg, var(--status-browsing), #2563eb);
+    }
+    
+    .avatar-text {
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+  }
+  
+  .status-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: var(--status-dot-size);
+    height: var(--status-dot-size);
+    border-radius: 50%;
+    background: var(--surface-color);
+    padding: 2px;
+    
+    .status-dot {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--status-offline);
+      
+      .status-online & {
+        background: var(--status-online);
+        animation: pulse 2s infinite;
+      }
+      
+      .status-idle & {
+        background: var(--status-idle);
+      }
+      
+      .status-browsing & {
+        background: var(--status-browsing);
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+}
+
+// Información del visitante
+.visitor-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.visitor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  
+  .visitor-name {
+    flex: 1;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .visitor-status {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    
+    &.status-online {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--status-online);
+    }
+    
+    &.status-offline {
+      background: rgba(107, 114, 128, 0.1);
+      color: var(--status-offline);
+    }
+    
+    &.status-idle {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--status-idle);
+    }
+    
+    &.status-browsing {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--status-browsing);
+    }
+  }
+}
+
+// Detalles del visitante
+.visitor-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  
+  .detail-icon {
+    font-size: 1rem;
+    width: 1.25rem;
+    flex-shrink: 0;
+  }
+  
+  .detail-text {
+    color: var(--text-secondary);
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Metadata del visitante
+.visitor-meta {
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+  
+  .meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    
+    &:not(:last-child) {
+      margin-bottom: 0.5rem;
+    }
+    
+    .meta-label {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    
+    .meta-value {
+      color: var(--text-primary);
+      word-break: break-all;
+    }
+  }
+}
+
+// Acciones del visitante
+.visitor-actions {
+  display: flex;
+  gap: 0.5rem;
+  
+  .action-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: var(--transition);
+    
+    .button-icon {
+      font-size: 1rem;
+    }
+    
+    .button-text {
+      white-space: nowrap;
+    }
+    
+    &.primary {
+      background: var(--primary-color);
+      color: white;
+      
+      &:hover {
+        background: #4338ca;
+        transform: translateY(-1px);
+      }
+      
+      &:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+      }
+    }
+    
+    &.secondary {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      
+      &:hover {
+        background: var(--hover-bg);
+        color: var(--text-primary);
+        border-color: var(--primary-color);
+      }
+      
+      &:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 2px;
+      }
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+}
+
+// Animaciones
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  :host {
+    --card-padding: 1rem;
+    --avatar-size: 2.5rem;
+  }
+  
+  .visitor-actions {
+    flex-direction: column;
+    
+    .action-button {
+      .button-text {
+        display: none;
+      }
+      
+      .button-icon {
+        font-size: 1.25rem;
+      }
+    }
+  }
+  
+  .visitor-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    
+    .visitor-name {
+      text-align: center;
+    }
+    
+    .visitor-status {
+      align-self: center;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  :host {
+    --card-padding: 0.75rem;
+    --avatar-size: 2rem;
+  }
+  
+  .visitor-details {
+    gap: 0.375rem;
+  }
+  
+  .detail-item {
+    font-size: 0.8125rem;
+  }
+  
+  .visitor-meta {
+    padding: 0.5rem;
+    
+    .meta-item {
+      font-size: 0.6875rem;
+    }
+  }
+}
