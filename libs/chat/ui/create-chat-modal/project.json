@@ -1,0 +1,20 @@
+{
+  "name": "create-chat-modal",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/ui/create-chat-modal/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["type:ui", "scope:chat"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/ui/create-chat-modal"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

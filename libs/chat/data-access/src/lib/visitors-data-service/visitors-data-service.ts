@@ -1,9 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { 
   Visitor, 
+  VisitorFilters,
+  VisitorPagination,
   GetVisitorsResponse,
   GetVisitorResponse,
   GetVisitorSessionsResponse,
@@ -19,76 +20,47 @@ import {
   Chat,
   GetChatsResponse
 } from '@guiders-frontend/shared/types';
-
-interface VisitorQueryParams {
-  limit?: number;
-  offset?: number;
-  status?: string;
-  search?: string;
-  includeOffline?: boolean;
-}
-
-
+// import { environment } from '@guiders-frontend/shared/types';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VisitorsDataService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000/api';
+  private readonly baseUrl = 'http://localhost:3000'; // TODO: Use environment configuration
 
   // Obtener visitantes con filtros y paginación
-  getVisitors(siteId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
-    const { limit = 10, offset = 0, status, search, includeOffline } = params;
+  getVisitors(
+    siteId: string,
+    filters?: VisitorFilters,
+    pagination?: VisitorPagination,
+    // TODO: Implement sort functionality
+    // sort?: VisitorSort
+  ): Observable<GetVisitorsResponse> {
+    let params = new HttpParams();
     
-    let queryParams = new HttpParams()
-      .set('limit', limit.toString())
-      .set('offset', offset.toString());
-      
-    if (status) {
-      queryParams = queryParams.set('status', status);
+    if (filters?.includeOffline !== undefined) {
+      params = params.set('includeOffline', filters.includeOffline.toString());
     }
     
-    if (search) {
-      queryParams = queryParams.set('search', search);
+    if (pagination?.limit) {
+      params = params.set('limit', pagination.limit.toString());
     }
     
-    if (includeOffline !== undefined) {
-      queryParams = queryParams.set('includeOffline', includeOffline.toString());
+    if (pagination?.offset) {
+      params = params.set('offset', pagination.offset.toString());
     }
 
-    // Configurar headers de autenticación
-    const token = localStorage.getItem('access-token');
-    console.log(`[VisitorsDataService] Calling API: ${this.baseUrl}/site-visitors/${siteId}/visitors`);
-    console.log('[VisitorsDataService] Query params:', queryParams.toString());
-    console.log('[VisitorsDataService] Auth token:', token ? 'Present' : 'Missing');
-    
-    const options = token ? 
-      { 
-        params: queryParams, 
-        headers: { 'Authorization': `Bearer ${token}` },
-        withCredentials: true 
-      } : 
-      { 
-        params: queryParams,
-        withCredentials: true 
-      };
-    
-    return this.http.get<GetVisitorsResponse>(`${this.baseUrl}/site-visitors/${siteId}/visitors`, options)
-      .pipe(
-        tap(response => console.log('[VisitorsDataService] Response:', response)),
-        catchError(error => {
-          console.error('[VisitorsDataService] Error:', error);
-          return throwError(() => error);
-        })
-      );
+    return this.http.get<GetVisitorsResponse>(
+      `${this.baseUrl}/site-visitors/${siteId}/visitors`,
+      { params }
+    );
   }
 
   // Obtener visitante por ID
   getVisitorById(visitorId: string): Observable<GetVisitorResponse> {
     return this.http.get<GetVisitorResponse>(
-      `${this.baseUrl}/visitors/${visitorId}`,
-      { withCredentials: true }
+      `${this.baseUrl}/visitors/${visitorId}`
     );
   }
 
@@ -104,7 +76,7 @@ export class VisitorsDataService {
 
     return this.http.get<GetVisitorSessionsResponse>(
       `${this.baseUrl}/visitors/${visitorId}/sessions`,
-      { params, withCredentials: true }
+      { params }
     );
   }
 
@@ -120,15 +92,9 @@ export class VisitorsDataService {
       params = params.set('cursor', cursor);
     }
 
-    // Configurar headers de autenticación
-    const token = localStorage.getItem('access-token');
-    const options = token ? 
-      { params, headers: { 'Authorization': `Bearer ${token}` }, withCredentials: true } : 
-      { params, withCredentials: true };
-
     return this.http.get<GetChatsResponse>(
       `${this.baseUrl}/v2/chats/visitor/${visitorId}`,
-      options
+      { params }
     );
   }
 
@@ -144,8 +110,7 @@ export class VisitorsDataService {
           firstMessage: request.firstMessage,
           visitorInfo: request.visitorInfo,
           metadata: request.metadata
-        },
-        { withCredentials: true }
+        }
       );
     } else {
       // Usar endpoint que solo crea el chat
@@ -154,8 +119,7 @@ export class VisitorsDataService {
         {
           visitorInfo: request.visitorInfo,
           metadata: request.metadata
-        },
-        { withCredentials: true }
+        }
       );
     }
   }
@@ -176,7 +140,7 @@ export class VisitorsDataService {
       queue: Chat[];
       total: number;
       waitTime: { average: number; median: number };
-    }>(`${this.baseUrl}/v2/chats/queue/pending`, { params, withCredentials: true });
+    }>(`${this.baseUrl}/v2/chats/queue/pending`, { params });
   }
 
   // Asignar chat a comercial
@@ -186,8 +150,7 @@ export class VisitorsDataService {
   ): Observable<{ success: boolean; assignedAt: string }> {
     return this.http.put<{ success: boolean; assignedAt: string }>(
       `${this.baseUrl}/v2/chats/${chatId}/assign/${commercialId}`,
-      {},
-      { withCredentials: true }
+      {}
     );
   }
 
@@ -195,8 +158,7 @@ export class VisitorsDataService {
   identifyVisitor(request: IdentifyVisitorRequest): Observable<IdentifyVisitorResponse> {
     return this.http.post<IdentifyVisitorResponse>(
       `${this.baseUrl}/visitors/identify`,
-      request,
-      { withCredentials: true }
+      request
     );
   }
 
@@ -204,8 +166,7 @@ export class VisitorsDataService {
   sendHeartbeat(request: HeartbeatRequest): Observable<HeartbeatResponse> {
     return this.http.post<HeartbeatResponse>(
       `${this.baseUrl}/visitors/session/heartbeat`,
-      request,
-      { withCredentials: true }
+      request
     );
   }
 
@@ -213,8 +174,7 @@ export class VisitorsDataService {
   endSession(request: EndSessionRequest): Observable<EndSessionResponse> {
     return this.http.post<EndSessionResponse>(
       `${this.baseUrl}/visitors/session/end`,
-      request,
-      { withCredentials: true }
+      request
     );
   }
 
@@ -244,7 +204,7 @@ export class VisitorsDataService {
         highestConfidence: number;
         dominantCategory: string;
       };
-    }>(`${this.baseUrl}/tracking/intent/${visitorId}`, { withCredentials: true });
+    }>(`${this.baseUrl}/tracking/intent/${visitorId}`);
   }
 
   // Obtener tags de intención del visitante
@@ -265,12 +225,22 @@ export class VisitorsDataService {
       }>;
       categories: Record<string, number>;
       visitor: Visitor;
-    }>(`${this.baseUrl}/tracking/intent-tags/${visitorId}`, { withCredentials: true });
+    }>(`${this.baseUrl}/tracking/intent-tags/${visitorId}`);
   }
 
   // Obtener estadísticas de visitantes
-  getVisitorStats(siteId: string): Observable<VisitorStats> {
-    return this.http.get<VisitorStats>(`${this.baseUrl}/sites/${siteId}/visitors/stats`, { withCredentials: true });
+  getVisitorStats(siteId?: string): Observable<VisitorStats> {
+    // Esta sería una implementación personalizada ya que no está en la API actual
+    // Se podría combinar varias llamadas a la API para generar estadísticas
+    let params = new HttpParams();
+    if (siteId) {
+      params = params.set('siteId', siteId);
+    }
+
+    return this.http.get<VisitorStats>(
+      `${this.baseUrl}/visitors/stats`,
+      { params }
+    );
   }
 
   // Resolver sitio por host
@@ -280,20 +250,11 @@ export class VisitorsDataService {
     siteName: string;
     companyName: string;
   }> {
-    // Asegurar que enviamos solo el hostname (sin puerto)
-    const hostname = (host || '').split(':')[0].trim().toLowerCase();
     return this.http.post<{
       siteId: string;
       tenantId: string;
       siteName: string;
       companyName: string;
-    }>(
-      `${this.baseUrl}/sites/resolve`,
-      { host: hostname },
-      {
-        withCredentials: true,
-        params: new HttpParams().set('host', hostname)
-      }
-    );
+    }>(`${this.baseUrl}/sites/resolve`, { host });
   }
 }

@@ -21,6 +21,12 @@ export const appRoutes: Route[] = [
 		],
 	},
 	{
+		path: 'visitors',
+		loadChildren: () => import('@guiders-frontend/visitors').then(m => m.visitorsRoutes),
+		title: 'Visitantes',
+		canActivate: [authGuard],
+	},
+	{
 		path: '',
 		pathMatch: 'full',
 		redirectTo: 'dashboard',

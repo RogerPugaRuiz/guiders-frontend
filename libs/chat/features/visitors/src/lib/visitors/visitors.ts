@@ -1,14 +1,11 @@
-import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize } from 'rxjs';
 
 // Importar componentes UI y servicios
-import { 
-  VisitorsListComponent, 
-  CreateChatModal,
-  CreateChatModalConfig 
-} from '@guiders-frontend/visitors-list';
+import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
+import { CreateChatModal, CreateChatModalConfig } from '@guiders-frontend/create-chat-modal';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import {
   Visitor,
@@ -27,9 +24,13 @@ import {
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.css'],
 })
-export class VisitorsComponent implements OnInit {
+export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly visitorsService = inject(VisitorsDataService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  // Contexto del sitio resuelto dinámicamente
+  readonly siteId = signal<string | null>(null);
 
   // Estado reactivo del componente
   readonly state = signal<VisitorState>({
@@ -79,6 +80,22 @@ export class VisitorsComponent implements OnInit {
       icon: '📧',
       description: 'Visitantes que han proporcionado información',
       filters: { lifecycle: ['LEAD', 'CONVERTED'] } as VisitorFilters,
+      count: 0
+    },
+    {
+      id: 'mine',
+      label: 'Mis Visitantes',
+      icon: '👤',
+      description: 'Visitantes asignados a mi usuario',
+      filters: { hasActiveChat: true, includeOffline: false } as VisitorFilters,
+      count: 0
+    },
+    {
+      id: 'queue',
+      label: 'En Cola',
+      icon: '⏳',
+      description: 'Visitantes esperando atención prioritaria',
+      filters: { hasActiveChat: false, status: ['online'], includeOffline: false } as VisitorFilters,
       count: 0
     },
     {
@@ -185,28 +202,62 @@ export class VisitorsComponent implements OnInit {
   }));
 
   constructor() {
-    // Effect para actualizar contadores de filtros
+    // Effect para actualizar contadores de filtros evitando ciclo reactivo
     effect(() => {
-      const visitors = this.state().visitors;
-      const presets = this.filterPresets();
+      const visitors = this.state().visitors; // dependencia rastreada
+      untracked(() => {
+        this.filterPresets.update((presets) => {
+          const updated = presets.map(preset => ({
+            ...preset,
+            count: this.getFilterCount(visitors, preset.filters)
+          }));
 
-      const updatedPresets = presets.map(preset => ({
-        ...preset,
-        count: this.getFilterCount(visitors, preset.filters)
-      }));
-
-      this.filterPresets.set(updatedPresets);
+          // Solo actualizar si cambian los counts para no crear bucles innecesarios
+          const changed = updated.some((p, i) => p.count !== presets[i].count);
+          return changed ? updated : presets;
+        });
+      });
     });
   }
 
+  private refreshIntervalId?: number;
+
   ngOnInit(): void {
-    this.loadVisitors();
-    this.loadStats();
-    
-    // Actualizar datos cada 30 segundos
-    setInterval(() => {
-      this.refreshVisitors();
-    }, 30000);
+    // Leer query parameters de la URL
+    this.route.queryParams.subscribe(params => {
+      if (params['filter']) {
+        this.onFilterPresetChange(params['filter']);
+      }
+    });
+
+    // Resolver siteId a partir del host y luego cargar datos
+    const hostname = window.location.hostname;
+    this.visitorsService.resolveSite(hostname)
+      .pipe(
+        catchError((error: Error) => {
+          console.error('Error resolving site:', error);
+          this.updateState({ error: 'No se pudo resolver el sitio para este host.' });
+          return of(null);
+        })
+      )
+      .subscribe((res) => {
+        if (!res) return;
+        this.siteId.set(res.siteId);
+        this.loadVisitors();
+        this.loadStats();
+
+        // Actualizar datos cada 30 segundos (una vez resuelto el sitio)
+        this.refreshIntervalId = window.setInterval(() => {
+          this.refreshVisitors();
+        }, 30000);
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.refreshIntervalId) {
+      clearInterval(this.refreshIntervalId);
+      this.refreshIntervalId = undefined;
+    }
   }
 
   private getFilterCount(visitors: Visitor[], filters: VisitorFilters): number {
@@ -233,15 +284,24 @@ export class VisitorsComponent implements OnInit {
 
   // Métodos para cargar datos
   loadVisitors(): void {
+    // Aún no hay siteId resuelto
+    const siteId = this.siteId();
+    if (!siteId) {
+      return;
+    }
     this.updateState({ loading: true, error: null });
 
     const currentState = this.state();
-    const filters = { ...this.currentFilter().filters, ...currentState.filters };
+    
+    // Preparar parámetros de query según el formato del servicio
+    const queryParams = {
+      limit: currentState.pagination.limit,
+      offset: currentState.pagination.offset || 0,
+      includeOffline: this.currentFilter().filters.includeOffline,
+      search: currentState.searchQuery || undefined
+    };
 
-    // TODO: Obtener siteId del contexto de usuario o configuración
-    const siteId = 'default-site-id';
-
-    this.visitorsService.getVisitors(siteId, filters, currentState.pagination)
+    this.visitorsService.getVisitors(siteId, queryParams)
       .pipe(
         catchError((error: Error) => {
           console.error('Error loading visitors:', error);
@@ -258,7 +318,8 @@ export class VisitorsComponent implements OnInit {
   }
 
   private loadStats(): void {
-    const siteId = 'default-site-id';
+    const siteId = this.siteId();
+    if (!siteId) return;
     this.visitorsService.getVisitorStats(siteId)
       .pipe(
         catchError((error: Error) => {
@@ -275,12 +336,18 @@ export class VisitorsComponent implements OnInit {
 
   private refreshVisitors(): void {
     if (this.state().loading) return;
-    
+    const siteId = this.siteId();
+    if (!siteId) return;
     const currentState = this.state();
-    const filters = { ...this.currentFilter().filters, ...currentState.filters };
-    const siteId = 'default-site-id';
+    
+    const queryParams = {
+      limit: currentState.pagination.limit,
+      offset: currentState.pagination.offset || 0,
+      includeOffline: this.currentFilter().filters.includeOffline,
+      search: currentState.searchQuery || undefined
+    };
 
-    this.visitorsService.getVisitors(siteId, filters, currentState.pagination)
+    this.visitorsService.getVisitors(siteId, queryParams)
       .pipe(
         catchError(() => of({ visitors: [], total: 0, hasMore: false }))
       )

@@ -44,7 +44,8 @@ export class Sidebar {
   // Métodos
   onItemClick(item: SidebarItem): void {
     if (item.route) {
-      this.router.navigate([item.route]);
+      // Usar navigateByUrl para URLs completas con query parameters
+      this.router.navigateByUrl(item.route);
     }
     
     if (item.children && item.children.length > 0) {
@@ -79,6 +80,7 @@ export class Sidebar {
 
   isItemActive(item: SidebarItem): boolean {
     if (item.route) {
+      // Comparar la URL completa
       return this.router.url === item.route;
     }
     return item.isActive || false;

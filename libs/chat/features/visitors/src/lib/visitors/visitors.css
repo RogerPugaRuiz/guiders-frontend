@@ -1,19 +1,19 @@
 /* Variables CSS para consistencia */
 :host {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
+  --primary-color: #3b82f6; /* azul suave para estados activos */
+  --primary-hover: #2563eb;
   --secondary-color: #6b7280;
-  --success-color: #10b981;
+  --success-color: #16a34a;
   --warning-color: #f59e0b;
   --error-color: #ef4444;
   --surface-color: #ffffff;
-  --background-color: #f8fafc;
-  --border-color: #e2e8f0;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --background-color: #f6f7f9; /* fondo más neutro */
+  --border-color: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --shadow-sm: 0 1px 2px rgba(17, 24, 39, 0.04);
+  --shadow-md: 0 2px 8px rgba(17, 24, 39, 0.06);
+  --shadow-lg: 0 6px 20px rgba(17, 24, 39, 0.08);
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -83,9 +83,9 @@
   flex-direction: column;
   align-items: center;
   padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, var(--primary-color), #8b5cf6);
+  background: #f3f4f6; /* neutro */
   border-radius: var(--radius-md);
-  color: white;
+  color: var(--text-primary);
   min-width: 4rem;
   text-align: center;
   transition: var(--transition);
@@ -93,8 +93,8 @@
 }
 
 .stat-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 .stat-number {
@@ -152,7 +152,7 @@
 .filter-tab.active {
   color: var(--primary-color);
   border-bottom-color: var(--primary-color);
-  background: rgba(79, 70, 229, 0.05);
+  background: rgba(59, 130, 246, 0.06);
 }
 
 .tab-icon {
@@ -197,7 +197,7 @@
   gap: 0.75rem;
   padding: 1rem 1.5rem;
   background: #fef2f2;
-  border: 1px solid #fecaca;
+  border: 1px solid #fee2e2;
   border-radius: var(--radius-md);
   color: #dc2626;
   margin: 1.5rem 0;
@@ -248,7 +248,7 @@
 .loading-spinner {
   width: 3rem;
   height: 3rem;
-  border: 3px solid rgba(79, 70, 229, 0.2);
+  border: 3px solid rgba(0, 0, 0, 0.08);
   border-top: 3px solid var(--primary-color);
   border-radius: 50%;
   animation: spin 1s linear infinite;

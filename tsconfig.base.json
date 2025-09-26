@@ -40,16 +40,24 @@
       "@guiders-frontend/contacts": [
         "libs/chat/features/contacts/src/index.ts"
       ],
+      "@guiders-frontend/create-chat-modal": [
+        "libs/chat/ui/create-chat-modal/src/index.ts"
+      ],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/visitor-card": [
+        "libs/chat/ui/visitor-card/src/index.ts"
+      ],
       "@guiders-frontend/visitors": [
         "libs/chat/features/visitors/src/index.ts"
       ],
       "@guiders-frontend/visitors-data-service": [
         "libs/chat/data-access/visitors-data-service/src/index.ts"
       ],
-      "@guiders-frontend/visitors-list": ["libs/chat/ui/src/index.ts"]
+      "@guiders-frontend/visitors-list": [
+        "libs/chat/ui/visitors-list/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]
