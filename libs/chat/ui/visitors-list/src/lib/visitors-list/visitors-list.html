@@ -108,7 +108,7 @@
         <p>No se encontraron visitantes con los filtros actuales.</p>
       </div>
     } @else {
-      <div class="visitors-grid">
+      <div class="visitors-list">
         @for (visitor of filteredVisitors(); track visitor.id) {
           <lib-visitor-card
             [visitor]="visitor"

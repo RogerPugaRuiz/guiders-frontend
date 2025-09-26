@@ -26,23 +26,24 @@
   gap: var(--spacing-4);
   padding: var(--spacing-6);
   background-color: var(--color-surface-elevated);
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-4);
 }
 
 .stat-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-4);
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  padding: var(--spacing-5);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
   text-align: center;
+  box-shadow: var(--shadow-xs);
   transition: all var(--duration-fast) var(--easing-standard);
   
   &:hover {
-    border-color: var(--color-border-hover);
-    box-shadow: var(--shadow-sm);
+    background-color: var(--color-surface-elevated-hover);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 }
 
@@ -66,7 +67,8 @@
 .visitors-controls {
   padding: var(--spacing-6);
   background-color: var(--color-surface-elevated);
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--spacing-4);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-6);
@@ -85,15 +87,16 @@
   flex-direction: column;
 }
 
-// === GRID DE VISITANTES ===
+// === LISTA DE VISITANTES ===
 
-.visitors-grid {
-  padding: var(--spacing-6);
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--spacing-4);
+.visitors-list {
+  padding: var(--spacing-4) var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
   overflow-y: auto;
   flex: 1;
+  background-color: var(--color-surface-subtle);
 }
 
 // === ESTADOS ===
@@ -114,9 +117,9 @@
   .spinner {
     width: var(--spacing-12);
     height: var(--spacing-12);
-    border: 3px solid var(--color-border);
-    border-top: 3px solid var(--color-brand);
+    background: conic-gradient(from 0deg, var(--color-surface-elevated) 0deg 270deg, var(--color-brand) 270deg 360deg);
     border-radius: 50%;
+    mask: radial-gradient(circle at center, transparent 40%, black 40%);
     animation: spin 1s linear infinite;
     margin-bottom: var(--spacing-4);
   }
@@ -170,7 +173,9 @@
   padding: var(--spacing-4) var(--spacing-6);
   background-color: var(--color-brand);
   color: var(--color-on-brand);
-  border-top: 1px solid var(--color-brand-hover);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-4);
+  box-shadow: var(--shadow-md);
 }
 
 .selection-count {
@@ -193,13 +198,14 @@
 // === RESPONSIVE ===
 
 @media (max-width: 1024px) {
-  .visitors-grid {
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    padding: var(--spacing-4);
-    gap: var(--spacing-3);
+  .visitors-list {
+    padding: var(--spacing-3) var(--spacing-4);
+    gap: var(--spacing-2);
   }
   
-  .visitors-controls {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
     padding: var(--spacing-4);
   }
 }
@@ -211,8 +217,9 @@
     padding: var(--spacing-4);
   }
   
-  .visitors-grid {
-    grid-template-columns: 1fr;
+  .visitors-list {
+    padding: var(--spacing-2) var(--spacing-3);
+    gap: var(--spacing-1);
   }
   
   .multi-select-controls {

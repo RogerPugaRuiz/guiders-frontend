@@ -15,50 +15,45 @@
   gap: var(--spacing-4);
   padding: var(--spacing-4);
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   cursor: pointer;
   transition: all var(--duration-fast) var(--easing-standard);
   position: relative;
+  box-shadow: var(--shadow-xs);
+  width: 100%;
+  align-items: center;
   
   &:hover:not(&--disabled) {
-    border-color: var(--color-border-hover);
-    box-shadow: var(--shadow-sm);
+    background-color: var(--color-surface-elevated);
+    box-shadow: var(--shadow-md);
     transform: translateY(-1px);
   }
   
   &:focus-visible {
     outline: none;
-    border-color: var(--color-brand);
+    background-color: var(--color-surface-elevated);
     box-shadow: var(--shadow-focus-brand);
   }
   
   &--selected {
-    border-color: var(--color-brand);
-    background-color: color-mix(in srgb, var(--color-brand) 5%, var(--color-surface));
+    background-color: var(--color-brand-subtle);
+    box-shadow: var(--shadow-md);
     
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 3px;
-      background-color: var(--color-brand);
-      border-radius: var(--radius-xs);
+    &:hover {
+      background-color: var(--color-brand-subtle-hover);
+      transform: translateY(-1px);
     }
   }
   
-  &--disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  &--active {
+    background-color: var(--color-success-subtle);
+    box-shadow: var(--shadow-md);
     
-    * {
-      pointer-events: none;
+    &:hover {
+      background-color: var(--color-success-subtle-hover);
+      transform: translateY(-1px);
     }
-  }
-  
-  &--selectable {
+  }  &--selectable {
     padding-left: var(--spacing-12); // Espacio para checkbox
   }
   
@@ -171,7 +166,7 @@
   align-items: center;
   justify-content: center;
   font-size: var(--font-size-xs);
-  border: 2px solid var(--color-surface);
+  box-shadow: var(--shadow-xs);
   
   &[data-status="online"] {
     background-color: var(--color-success);
