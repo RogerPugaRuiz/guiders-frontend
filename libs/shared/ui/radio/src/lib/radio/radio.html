@@ -1,0 +1,66 @@
+<!-- Radio Component Template -->
+<div [ngClass]="cssClasses()">
+  <!-- Input elemento -->
+  <div class="guiders-radio__wrapper">
+    <input
+      #input
+      type="radio"
+      class="guiders-radio__input"
+      [id]="effectiveId()"
+      [name]="name()"
+      [value]="value()"
+      [checked]="isChecked()"
+      [disabled]="disabled()"
+      [required]="required()"
+      [attr.aria-label]="ariaLabel() || null"
+      [attr.aria-labelledby]="ariaLabelledBy() || null"
+      [attr.aria-describedby]="effectiveAriaDescribedBy() || null"
+      [attr.aria-invalid]="hasError() ? 'true' : null"
+      (change)="onInputChange($event)"
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"
+      (keydown)="onKeydown($event)"
+    />
+    
+    <!-- Círculo visual del radio -->
+    <div class="guiders-radio__circle">
+      <!-- Punto interior cuando está seleccionado -->
+      <div class="guiders-radio__dot"></div>
+    </div>
+  </div>
+
+  <!-- Label -->
+  @if (label()) {
+    <label 
+      class="guiders-radio__label"
+      [for]="effectiveId()"
+    >
+      {{ label() }}
+      @if (required()) {
+        <span class="guiders-radio__required" aria-label="requerido">*</span>
+      }
+    </label>
+  }
+
+  <!-- Helper text -->
+  @if (helperText() && !hasError()) {
+    <div 
+      class="guiders-radio__helper"
+      [id]="helperId()"
+    >
+      {{ helperText() }}
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (hasError()) {
+    <div 
+      class="guiders-radio__error"
+      [id]="errorId()"
+      role="alert"
+      aria-live="polite"
+    >
+      {{ errorMessage() }}
+    </div>
+  }
+</div>

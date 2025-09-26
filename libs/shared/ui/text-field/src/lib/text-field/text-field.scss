@@ -1,0 +1,245 @@
+/**
+ * Guiders TextField Component
+ * Basado en la guía de diseño B2B Web Desktop
+ * Cumple WCAG 2.2 AA
+ */
+
+@use '../../../../../design-tokens/tokens.scss' as tokens;
+
+:host {
+  display: block;
+}
+
+.guiders-text-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  
+  &--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// === LABEL ===
+
+.guiders-text-field__label {
+  @include tokens.typography('label-large');
+  color: var(--color-on-surface);
+  font-weight: var(--font-weight-medium);
+  display: block;
+  margin-bottom: var(--spacing-1);
+  
+  .guiders-text-field--disabled & {
+    color: var(--color-on-surface-disabled);
+  }
+}
+
+.guiders-text-field__required {
+  color: var(--color-danger);
+  margin-left: var(--spacing-1);
+  font-weight: var(--font-weight-semibold);
+}
+
+// === INPUT WRAPPER ===
+
+.guiders-text-field__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// === INPUT ===
+
+.guiders-text-field__input {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-base);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-family-ui);
+  font-weight: var(--font-weight-regular);
+  transition: all var(--duration-fast) var(--easing-standard);
+  
+  // Quitar estilos por defecto del navegador
+  outline: none;
+  appearance: none;
+  
+  &::placeholder {
+    color: var(--color-on-surface-tertiary);
+  }
+  
+  // Estados
+  &:hover:not(:disabled):not(:readonly) {
+    border-color: var(--color-border-hover);
+  }
+  
+  &:focus {
+    border-color: var(--color-border-focus);
+    box-shadow: var(--shadow-focus-brand);
+    background-color: var(--color-surface);
+  }
+  
+  &:disabled {
+    background-color: var(--color-surface-disabled);
+    border-color: var(--color-border-disabled);
+    color: var(--color-on-surface-disabled);
+    cursor: not-allowed;
+  }
+  
+  &:readonly {
+    background-color: var(--color-surface-secondary);
+    border-color: var(--color-border);
+    cursor: default;
+  }
+  
+  &--has-error {
+    border-color: var(--color-danger);
+    
+    &:focus {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+    }
+  }
+}
+
+// === TAMAÑOS ===
+
+.guiders-text-field--small {
+  .guiders-text-field__input {
+    @include tokens.typography('body-small');
+    min-height: var(--spacing-8); // 32px
+    padding: var(--spacing-1) var(--spacing-3); // 4px 12px
+  }
+  
+  .guiders-text-field__label {
+    @include tokens.typography('label-medium');
+  }
+}
+
+.guiders-text-field--medium {
+  .guiders-text-field__input {
+    @include tokens.typography('body-base');
+    min-height: var(--spacing-10); // 40px
+    padding: var(--spacing-2) var(--spacing-4); // 8px 16px
+  }
+}
+
+.guiders-text-field--large {
+  .guiders-text-field__input {
+    @include tokens.typography('body-large');
+    min-height: var(--spacing-12); // 48px
+    padding: var(--spacing-3) var(--spacing-6); // 12px 24px
+  }
+  
+  .guiders-text-field__label {
+    font-size: var(--font-size-lg);
+  }
+}
+
+// === ESTADOS ESPECÍFICOS ===
+
+.guiders-text-field--focused {
+  .guiders-text-field__label {
+    color: var(--color-brand);
+  }
+}
+
+.guiders-text-field--error {
+  .guiders-text-field__label {
+    color: var(--color-danger);
+  }
+}
+
+.guiders-text-field--required {
+  .guiders-text-field__label::after {
+    content: ' *';
+    color: var(--color-danger);
+  }
+}
+
+// === HELPER TEXT ===
+
+.guiders-text-field__helper {
+  @include tokens.typography('caption');
+  color: var(--color-on-surface-secondary);
+  margin-top: var(--spacing-1);
+  line-height: var(--line-height-normal);
+}
+
+// === ERROR MESSAGE ===
+
+.guiders-text-field__error {
+  @include tokens.typography('caption');
+  color: var(--color-danger);
+  margin-top: var(--spacing-1);
+  line-height: var(--line-height-normal);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  
+  // Icono de error opcional
+  &::before {
+    content: '⚠️';
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+// === VARIANTES ESPECIALES ===
+
+// Campo de búsqueda
+.guiders-text-field--search {
+  .guiders-text-field__input {
+    padding-left: var(--spacing-10); // Espacio para icono de búsqueda
+  }
+  
+  .guiders-text-field__wrapper::before {
+    content: '🔍';
+    position: absolute;
+    left: var(--spacing-3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-on-surface-tertiary);
+    pointer-events: none;
+  }
+}
+
+// Campo numérico/monospace para datos
+.guiders-text-field--numeric,
+.guiders-text-field--code {
+  .guiders-text-field__input {
+    font-family: var(--font-family-mono);
+    letter-spacing: 0.5px;
+  }
+}
+
+// === CONFIGURACIÓN PARA MOTION REDUCIDO ===
+
+@media (prefers-reduced-motion: reduce) {
+  .guiders-text-field__input {
+    transition-duration: var(--duration-instant);
+  }
+}
+
+// === MODO OSCURO ===
+
+[data-theme="dark"] {
+  .guiders-text-field__input {
+    &::placeholder {
+      color: var(--color-on-surface-disabled);
+    }
+  }
+}
+
+// === RESPONSIVE ===
+
+@media (max-width: 768px) {
+  .guiders-text-field--large {
+    .guiders-text-field__input {
+      min-height: var(--spacing-10); // Reducir en móvil
+      padding: var(--spacing-2) var(--spacing-4);
+    }
+  }
+}

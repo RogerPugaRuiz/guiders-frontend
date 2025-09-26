@@ -2,10 +2,11 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chat, User } from '@guiders-frontend/shared/types';
+import { TextField } from '@guiders-frontend/text-field';
 
 @Component({
   selector: 'guiders-chat-list',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TextField],
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss',
 })
@@ -38,6 +39,11 @@ export class ChatList {
   // Métodos
   onChatClick(chat: Chat): void {
     this.chatSelect.emit(chat);
+  }
+
+  onSearchValueChange(value: string): void {
+    this.searchQuery.set(value);
+    this.searchChange.emit(value);
   }
 
   onSearchInput(event: Event): void {

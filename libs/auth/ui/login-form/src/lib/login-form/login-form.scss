@@ -1,305 +1,158 @@
-// Asegurar que no hay márgenes o paddings globales que interfieran
+/**
+ * Guiders Login Form Component
+ * Basado en la guía de diseño B2B Web Desktop
+ * Cumple WCAG 2.2 AA
+ */
+
+@use '../../../../../../shared/design-tokens/tokens.scss' as tokens;
+
 :host {
   display: block;
   width: 100%;
   height: 100vh;
-  margin: 0;
-  padding: 0;
 }
 
-.login-container {
+.guiders-login-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  width: 100vw;
-  background-color: #0a0a0a;
-  color: #ffffff;
-  padding: 2rem;
-  position: relative;
-  margin: 0;
+  min-height: 100vh;
+  width: 100%;
+  background-color: var(--color-surface);
+  padding: var(--spacing-8);
   box-sizing: border-box;
 }
 
-.login-content {
-  background: rgba(16, 16, 16, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 3rem;
+.guiders-login-content {
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-12);
   width: 100%;
   max-width: 420px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-xl);
 }
 
-.login-header {
-  margin-bottom: 2.5rem;
+// === HEADER ===
 
-  h1 {
-    margin: 0 0 1rem 0;
-    font-size: 2.5rem;
-    font-weight: 300;
-    color: #ffffff;
-    letter-spacing: -0.02em;
-  }
-
-  p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.95rem;
-    line-height: 1.5;
-  }
+.guiders-login-header {
+  text-align: center;
+  margin-bottom: var(--spacing-10);
 }
 
-.login-form {
-  .form-group {
-    margin-bottom: 1.5rem;
-
-    label {
-      display: block;
-      margin-bottom: 0.75rem;
-      font-weight: 400;
-      color: rgba(255, 255, 255, 0.9);
-      font-size: 0.9rem;
-      text-transform: capitalize;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 1rem;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 8px;
-      font-size: 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      color: #ffffff;
-      transition: all 0.3s ease;
-      box-sizing: border-box;
-
-      &::placeholder {
-        color: rgba(255, 255, 255, 0.4);
-      }
-
-      &:focus {
-        outline: none;
-        border-color: #4a90e2;
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-      }
-
-      &.ng-invalid.ng-touched {
-        border-color: #ff6b6b;
-        background: rgba(255, 107, 107, 0.05);
-      }
-
-      &.ng-valid.ng-touched {
-        border-color: #51cf66;
-        background: rgba(81, 207, 102, 0.05);
-      }
-    }
-  }
-
-  .error-message {
-    color: #ff6b6b;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
-
-    &.global-error {
-      background-color: rgba(255, 107, 107, 0.1);
-      border: 1px solid rgba(255, 107, 107, 0.3);
-      border-radius: 8px;
-      padding: 1rem;
-      margin-top: 1rem;
-      margin-bottom: 1rem;
-    }
-  }
-
-  .form-actions {
-    margin-bottom: 1.5rem;
-
-    .btn {
-      width: 100%;
-      padding: 1rem;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-
-      &.btn-primary {
-        background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-        color: white;
-        box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
-
-        &:hover:not(:disabled) {
-          background: linear-gradient(135deg, #357abd 0%, #2868a3 100%);
-          box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
-          transform: translateY(-1px);
-        }
-
-        &:disabled {
-          background: rgba(255, 255, 255, 0.1);
-          cursor: not-allowed;
-          box-shadow: none;
-          transform: none;
-        }
-      }
-    }
-  }
-
-  .form-links {
-    text-align: center;
-    margin-bottom: 1.5rem;
-
-    .link-button {
-      background: transparent;
-      border: none;
-      color: rgba(255, 255, 255, 0.6);
-      text-decoration: none;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: color 0.2s ease;
-
-      &:hover {
-        color: #4a90e2;
-      }
-    }
-  }
-
-  .signup-link {
-    text-align: center;
-    font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.6);
-
-    span {
-      margin-right: 0.5rem;
-    }
-
-    .link-button.primary {
-      background: transparent;
-      border: none;
-      color: #4a90e2;
-      font-weight: 500;
-
-      &:hover {
-        color: #357abd;
-        text-decoration: underline;
-      }
-    }
-  }
+.guiders-login-title {
+  @include tokens.typography('heading-3xl');
+  color: var(--color-on-surface);
+  margin: 0 0 var(--spacing-4) 0;
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.02em;
 }
 
-.loading-spinner {
-  width: 1rem;
-  height: 1rem;
-  border: 2px solid transparent;
-  border-top: 2px solid currentColor;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.guiders-login-subtitle {
+  @include tokens.typography('body-large');
+  color: var(--color-on-surface-secondary);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+// === FORM ===
+
+.guiders-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
 }
 
-// Responsive design
+// === ACTIONS ===
+
+.guiders-login-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.guiders-login-submit {
+  width: 100%;
+}
+
+// === ERROR MESSAGE ===
+
+.guiders-login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background-color: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
+  border-radius: var(--radius-base);
+  color: var(--color-danger);
+}
+
+.guiders-login-error-icon {
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.guiders-login-error-text {
+  @include tokens.typography('body-small');
+  line-height: var(--line-height-normal);
+  flex: 1;
+}
+
+// === LINKS ===
+
+.guiders-login-links {
+  display: flex;
+  justify-content: center;
+}
+
+.guiders-login-signup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-2);
+}
+
+.guiders-login-signup-text {
+  @include tokens.typography('body-small');
+  color: var(--color-on-surface-secondary);
+}
+
+// === RESPONSIVE ===
+
 @media (max-width: 768px) {
-  .login-container {
-    justify-content: center;
-    padding: 1rem;
+  .guiders-login-container {
+    padding: var(--spacing-4);
   }
 
-  .login-content {
-    max-width: 100%;
-    padding: 2rem;
+  .guiders-login-content {
+    padding: var(--spacing-8);
   }
 
-  .login-header {
-    h1 {
-      font-size: 2rem;
-    }
+  .guiders-login-title {
+    @include tokens.typography('heading-2xl');
   }
 }
 
 @media (max-width: 480px) {
-  .login-content {
-    padding: 1.5rem;
+  .guiders-login-content {
+    padding: var(--spacing-6);
   }
 
-  .login-header {
-    margin-bottom: 2rem;
+  .guiders-login-header {
+    margin-bottom: var(--spacing-8);
+  }
 
-    h1 {
-      font-size: 1.75rem;
-    }
+  .guiders-login-title {
+    @include tokens.typography('heading-xl');
   }
 }
 
-// Normalización del autocompletado (Chrome, Safari, Edge, Firefox) para que no rompa el diseño oscuro
-// Se aplican estilos que sustituyen el fondo amarillo/azul por el mismo esquema del input original.
-// Nota: El uso de box-shadow grande es la técnica más consistente para WebKit.
-.login-form {
-  .form-group {
-    .form-control {
-      // Especificación moderna (cuando esté soportada)
-      &:autofill {
-        background: rgba(255, 255, 255, 0.05) !important;
-        color: #ffffff !important;
-        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
-        -webkit-text-fill-color: #ffffff !important;
-        caret-color: #ffffff;
-        transition: background-color 5000s ease-in-out 0s; // Evita parpadeo
-      }
+// === CONFIGURACIÓN PARA MOTION REDUCIDO ===
 
-      // WebKit (Chrome, Safari, Edge Chromium)
-      &:-webkit-autofill,
-      &:-webkit-autofill:hover,
-      &:-webkit-autofill:focus,
-      &:-webkit-autofill:active {
-        background: rgba(255, 255, 255, 0.05) !important;
-        -webkit-box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
-        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
-        -webkit-text-fill-color: #ffffff !important;
-        caret-color: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      }
-
-      // Firefox
-      &:-moz-autofill {
-        background: rgba(255, 255, 255, 0.05) !important;
-        box-shadow: 0 0 0 1000px rgba(255, 255, 255, 0.05) inset !important;
-        -moz-text-fill-color: #ffffff !important;
-        caret-color: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-      }
-
-      // Estados con validación + autofill (inválido)
-      &:-webkit-autofill.ng-invalid.ng-touched {
-        -webkit-box-shadow: 0 0 0 1000px rgba(255, 107, 107, 0.05) inset !important;
-        box-shadow: 0 0 0 1000px rgba(255, 107, 107, 0.05) inset !important;
-        border-color: #ff6b6b !important;
-      }
-      &:-moz-autofill.ng-invalid.ng-touched {
-        box-shadow: 0 0 0 1000px rgba(255, 107, 107, 0.05) inset !important;
-        border-color: #ff6b6b !important;
-      }
-
-      // Estados con validación + autofill (válido)
-      &:-webkit-autofill.ng-valid.ng-touched {
-        -webkit-box-shadow: 0 0 0 1000px rgba(81, 207, 102, 0.05) inset !important;
-        box-shadow: 0 0 0 1000px rgba(81, 207, 102, 0.05) inset !important;
-        border-color: #51cf66 !important;
-      }
-      &:-moz-autofill.ng-valid.ng-touched {
-        box-shadow: 0 0 0 1000px rgba(81, 207, 102, 0.05) inset !important;
-        border-color: #51cf66 !important;
-      }
-    }
+@media (prefers-reduced-motion: reduce) {
+  .guiders-login-content {
+    transition: none;
   }
 }

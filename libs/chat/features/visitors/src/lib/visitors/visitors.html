@@ -1,8 +1,8 @@
-<div class="visitors-container">
-  <!-- Header con estadísticas -->
-  <div class="visitors-header">
-    <div class="header-content">
-      <div class="title-section">
+<div class="visitors-page">
+  <!-- Título y toolbar principal -->
+  <div class="visitors-header-card bento-card bento-card--3x1">
+    <div class="page-header">
+      <div class="page-info">
         <h1 class="page-title">
           <span class="title-icon">👥</span>
           Visitantes
@@ -10,84 +10,184 @@
         <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
       </div>
       
-      <!-- Estadísticas rápidas -->
-      <div class="quick-stats" *ngIf="visitorStats() as stats">
-        <div class="stat-item">
-          <span class="stat-number">{{ stats.total }}</span>
-          <span class="stat-label">Total</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ stats.online }}</span>
-          <span class="stat-label">En línea</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ stats.withActiveChat }}</span>
-          <span class="stat-label">Con chat</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ stats.newVisitors }}</span>
-          <span class="stat-label">Nuevos</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ stats.leads }}</span>
-          <span class="stat-label">Leads</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filtros de vista -->
-  <div class="view-filters">
-    <div class="filter-tabs">
-      <button
-        *ngFor="let filter of filterPresets()"
-        [class.active]="selectedFilterId() === filter.id"
-        (click)="onFilterPresetChange(filter.id)"
-        class="filter-tab"
-        [attr.title]="filter.description"
-      >
-        <span class="tab-icon">{{ filter.icon }}</span>
-        <span class="tab-label">{{ filter.label }}</span>
-        <span class="tab-count" *ngIf="filter.count > 0">{{ filter.count }}</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Contenido principal -->
-  <div class="visitors-content">
-    @if (state().error) {
-      <div class="error-banner">
-        <span class="error-icon">⚠️</span>
-        <span class="error-text">{{ state().error }}</span>
-        <button class="retry-button" (click)="loadVisitors()">
-          Reintentar
+      <!-- Tabs de filtros -->
+      <div class="filter-tabs">
+        <button
+          *ngFor="let filter of filterPresets()"
+          [class.active]="selectedFilterId() === filter.id"
+          (click)="onFilterPresetChange(filter.id)"
+          class="filter-tab"
+          [attr.title]="filter.description"
+        >
+          <span class="tab-icon">{{ filter.icon }}</span>
+          <span class="tab-label">{{ filter.label }}</span>
+          <span class="tab-count" *ngIf="filter.count > 0">{{ filter.count }}</span>
         </button>
       </div>
-    }
-
-    <!-- Lista de visitantes usando el componente UI -->
-    <lib-visitors-list
-      [visitors]="filteredVisitors()"
-      [loading]="state().loading"
-      [error]="state().error"
-      [config]="listConfig()"
-      [selectedVisitorIds]="[]"
-      (visitorClick)="onVisitorClick($event)"
-      (visitorSelect)="onVisitorSelect($event)"
-      (createChat)="onCreateChat($event)"
-      (searchChange)="onSearchChange($event)"
-      (filterChange)="onFilterChange($event)"
-      (sortChange)="onSortChange($event)"
-    />
+    </div>
   </div>
 
-  <!-- Loading overlay -->
-  @if (state().loading && state().visitors.length === 0) {
-    <div class="loading-overlay">
-      <div class="loading-spinner"></div>
-      <p>Cargando visitantes...</p>
+  <!-- Grid Bento principal -->
+  <div class="visitors-grid bento-grid bento-grid--4-cols bento-grid--comfortable">
+    
+    <!-- KPI Cards - Estadísticas -->
+    <div class="bento-kpi bento-kpi--1x1 bento-kpi--neutral">
+      <div class="kpi-container">
+        <div class="kpi-header">
+          <span class="kpi-icon">📊</span>
+          <span class="kpi-title">Total</span>
+        </div>
+        <div class="kpi-value">
+          <span class="value-number">{{ visitorStats().total }}</span>
+        </div>
+      </div>
     </div>
-  }
+    
+    <div class="bento-kpi bento-kpi--1x1 bento-kpi--success">
+      <div class="kpi-container">
+        <div class="kpi-header">
+          <span class="kpi-icon">🟢</span>
+          <span class="kpi-title">En Línea</span>
+        </div>
+        <div class="kpi-value">
+          <span class="value-number">{{ visitorStats().online }}</span>
+        </div>
+        <div class="kpi-trend" data-direction="up">
+          <span class="trend-icon">↗️</span>
+          <span class="trend-text">12%</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bento-kpi bento-kpi--1x1 bento-kpi--primary">
+      <div class="kpi-container">
+        <div class="kpi-header">
+          <span class="kpi-icon">💬</span>
+          <span class="kpi-title">Con Chat</span>
+        </div>
+        <div class="kpi-value">
+          <span class="value-number">{{ visitorStats().withActiveChat }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="bento-kpi bento-kpi--1x1 bento-kpi--warning">
+      <div class="kpi-container">
+        <div class="kpi-header">
+          <span class="kpi-icon">⭐</span>
+          <span class="kpi-title">Leads</span>
+        </div>
+        <div class="kpi-value">
+          <span class="value-number">{{ visitorStats().leads }}</span>
+        </div>
+        <div class="kpi-trend" data-direction="up">
+          <span class="trend-icon">↗️</span>
+          <span class="trend-text">8%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel principal - Lista de visitantes -->
+    <div class="bento-card bento-card--2x3">
+      <div class="bento-card-header">
+        <h3 class="bento-card-title">Lista de Visitantes</h3>
+      </div>
+      
+      <div class="bento-card-content">
+        @if (state().error) {
+          <div class="error-content">
+            <span class="error-icon">⚠️</span>
+            <span class="error-text">{{ state().error }}</span>
+            <button class="retry-button" (click)="loadVisitors()">
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          <lib-visitors-list
+            [visitors]="filteredVisitors()"
+            [loading]="state().loading"
+            [error]="state().error"
+            [config]="listConfig()"
+            [selectedVisitorIds]="[]"
+            (visitorClick)="onVisitorClick($event)"
+            (visitorSelect)="onVisitorSelect($event)"
+            (createChat)="onCreateChat($event)"
+            (searchChange)="onSearchChange($event)"
+            (filterChange)="onFilterChange($event)"
+            (sortChange)="onSortChange($event)"
+          />
+        }
+      </div>
+    </div>
+
+    <!-- Panel de acciones rápidas -->
+    <div class="bento-card bento-card--1x2 bento-card--outlined">
+      <div class="bento-card-header">
+        <h3 class="bento-card-title">Acciones Rápidas</h3>
+      </div>
+      
+      <div class="bento-card-content">
+        <div class="quick-actions">
+          <button class="action-button action-button--primary">
+            <span class="action-icon">➕</span>
+            <div class="action-content">
+              <span class="action-title">Crear Chat</span>
+              <span class="action-desc">Iniciar conversación</span>
+            </div>
+          </button>
+          
+          <button class="action-button">
+            <span class="action-icon">🔍</span>
+            <div class="action-content">
+              <span class="action-title">Búsqueda Avanzada</span>
+              <span class="action-desc">Filtros detallados</span>
+            </div>
+          </button>
+          
+          <button class="action-button">
+            <span class="action-icon">📊</span>
+            <div class="action-content">
+              <span class="action-title">Exportar Datos</span>
+              <span class="action-desc">CSV, Excel</span>
+            </div>
+          </button>
+          
+          <button class="action-button">
+            <span class="action-icon">⚙️</span>
+            <div class="action-content">
+              <span class="action-title">Configuración</span>
+              <span class="action-desc">Preferencias</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de actividad reciente -->
+    <div class="bento-card bento-card--1x1">
+      <div class="bento-card-header">
+        <h3 class="bento-card-title">Actividad Reciente</h3>
+      </div>
+      
+      <div class="bento-card-content">
+        <div class="activity-feed">
+          <div class="activity-item">
+            <span class="activity-time">Hace 5min</span>
+            <span class="activity-text">Nuevo visitante en línea</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Hace 12min</span>
+            <span class="activity-text">Chat iniciado</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Hace 25min</span>
+            <span class="activity-text">Lead convertido</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
 
   <!-- Modal para crear chat -->
   @if (selectedVisitorForChat()) {

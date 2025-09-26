@@ -27,6 +27,15 @@
       "@guiders-frontend/auth/ui/login-form": [
         "libs/auth/ui/login-form/src/index.ts"
       ],
+      "@guiders-frontend/badge": ["libs/shared/ui/badge/src/index.ts"],
+      "@guiders-frontend/bento-card": [
+        "libs/shared/ui/bento-card/src/index.ts"
+      ],
+      "@guiders-frontend/bento-grid": [
+        "libs/shared/ui/bento-grid/src/index.ts"
+      ],
+      "@guiders-frontend/bento-kpi": ["libs/shared/ui/bento-kpi/src/index.ts"],
+      "@guiders-frontend/button": ["libs/shared/ui/button/src/index.ts"],
       "@guiders-frontend/chat-list": ["libs/chat/ui/chat-list/src/index.ts"],
       "@guiders-frontend/chat-messages": [
         "libs/chat/ui/chat-messages/src/index.ts"
@@ -37,14 +46,24 @@
       "@guiders-frontend/chat/features/inbox": [
         "libs/chat/features/inbox/src/index.ts"
       ],
+      "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
       "@guiders-frontend/contacts": [
         "libs/chat/features/contacts/src/index.ts"
       ],
       "@guiders-frontend/create-chat-modal": [
         "libs/chat/ui/create-chat-modal/src/index.ts"
       ],
+      "@guiders-frontend/design-tokens": [
+        "libs/shared/design-tokens/src/index.ts"
+      ],
+      "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
+      "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
+      "@guiders-frontend/text-field": [
+        "libs/shared/ui/text-field/src/index.ts"
+      ],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/visitor-card": [
         "libs/chat/ui/visitor-card/src/index.ts"

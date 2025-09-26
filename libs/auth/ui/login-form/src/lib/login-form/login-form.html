@@ -1,90 +1,80 @@
-<div class="login-container">
-	<div class="login-content">
-		<div class="login-header">
-			<h1>Iniciar sesión</h1>
-			<p>Bienvenido al sistema Guiders.<br>Inicia sesión en tu cuenta para continuar.</p>
+<div class="guiders-login-container">
+	<div class="guiders-login-content">
+		<div class="guiders-login-header">
+			<h1 class="guiders-login-title">Iniciar sesión</h1>
+			<p class="guiders-login-subtitle">Bienvenido al sistema Guiders.<br>Inicia sesión en tu cuenta para continuar.</p>
 		</div>
 		
 		<form 
-			class="login-form" 
+			class="guiders-login-form" 
 			[formGroup]="loginForm" 
 			(ngSubmit)="onSubmit()">
 			
-			<div class="form-group">
-				<label for="email">Correo electrónico</label>
-				<input 
-					type="email" 
-					id="email" 
-					formControlName="email"
-					placeholder="tu@email.com"
-					class="form-control">
-				
-				@if (emailControl().invalid && emailControl().touched) {
-					<div class="error-message">
-						@if (emailControl().hasError('required')) {
-							<span>El correo electrónico es requerido</span>
-						}
-						@if (emailControl().hasError('email')) {
-							<span>Formato de correo electrónico inválido</span>
-						}
-					</div>
-				}
+			<!-- Campo Email -->
+			<guiders-text-field
+				label="Correo electrónico"
+				type="email"
+				placeholder="tu@email.com"
+				size="large"
+				[required]="true"
+				[disabled]="disabled() || isLoading()"
+				[errorMessage]="getEmailErrorMessage()"
+				[formControl]="emailControl()">
+			</guiders-text-field>
+
+			<!-- Campo Contraseña -->
+			<guiders-text-field
+				label="Contraseña"
+				type="password"
+				placeholder="••••••••"
+				size="large"
+				[required]="true"
+				[disabled]="disabled() || isLoading()"
+				[errorMessage]="getPasswordErrorMessage()"
+				[formControl]="passwordControl()">
+			</guiders-text-field>
+
+			<!-- Botón de envío -->
+			<div class="guiders-login-actions">
+				<guiders-button 
+					type="submit"
+					variant="primary"
+					size="large"
+					[disabled]="isSubmitDisabled()"
+					[loading]="isLoading()"
+					class="guiders-login-submit">
+					Iniciar sesión
+				</guiders-button>
 			</div>
 
-			<div class="form-group">
-				<label for="password">Contraseña</label>
-				<input 
-					type="password" 
-					id="password" 
-					formControlName="password"
-					placeholder="••••••••"
-					class="form-control">
-				
-				@if (passwordControl().invalid && passwordControl().touched) {
-					<div class="error-message">
-						@if (passwordControl().hasError('required')) {
-							<span>La contraseña es requerida</span>
-						}
-						@if (passwordControl().hasError('minlength')) {
-							<span>Mínimo 6 caracteres</span>
-						}
-					</div>
-				}
-			</div>
-
-			<div class="form-actions">
-				<button 
-					type="submit" 
-					class="btn btn-primary"
-					[disabled]="isSubmitDisabled()">
-					
-					@if (isLoading()) {
-						<span class="loading-spinner"></span>
-						<span>Iniciando sesión...</span>
-					} @else {
-						<span>Iniciar sesión</span>
-					}
-				</button>
-			</div>
-
+			<!-- Mensaje de error global -->
 			@if (errorMessage()) {
-				<div class="error-message global-error">
-					{{ errorMessage() }}
+				<div class="guiders-login-error" role="alert" aria-live="polite">
+					<span class="guiders-login-error-icon">⚠️</span>
+					<span class="guiders-login-error-text">{{ errorMessage() }}</span>
 				</div>
 			}
 
-			<div class="form-links">
-				<button 
-					type="button" 
-					class="link-button"
+			<!-- Enlaces adicionales -->
+			<div class="guiders-login-links">
+				<guiders-button 
+					variant="ghost"
+					size="medium"
+					type="button"
 					(click)="onForgotPassword()">
 					¿Olvidaste tu contraseña?
-				</button>
+				</guiders-button>
 			</div>
 
-			<div class="signup-link">
-				<span>¿No tienes una cuenta?</span>
-				<button type="button" class="link-button primary" (click)="onSignUp()">Registrarse</button>
+			<div class="guiders-login-signup">
+				<span class="guiders-login-signup-text">¿No tienes una cuenta?</span>
+				<guiders-button 
+					variant="ghost"
+					size="medium"
+					type="button"
+					(click)="onSignUp()">
+					Registrarse
+				</guiders-button>
 			</div>
 		</form>
 	</div>

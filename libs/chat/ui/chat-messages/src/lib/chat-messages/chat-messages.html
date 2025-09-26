@@ -91,8 +91,18 @@
                           (keydown.enter)="saveEdit()"
                           (keydown.escape)="cancelEdit()">
                         <div class="edit-actions">
-                          <button class="btn-save" (click)="saveEdit()">✓</button>
-                          <button class="btn-cancel" (click)="cancelEdit()">✕</button>
+                          <guiders-button 
+                            (click)="saveEdit()"
+                            variant="primary"
+                            size="small"
+                            [ariaLabel]="'Guardar cambios'"
+                            class="btn-save">✓</guiders-button>
+                          <guiders-button 
+                            (click)="cancelEdit()"
+                            variant="secondary"
+                            size="small"
+                            [ariaLabel]="'Cancelar edición'"
+                            class="btn-cancel">✕</guiders-button>
                         </div>
                       </div>
                     } @else {
@@ -144,18 +154,22 @@
                       <!-- Menú de acciones (solo para mensajes propios) -->
                       @if (isOwnMessage(message) && message.type === 'TEXT') {
                         <div class="message__actions">
-                          <button 
-                            class="action-btn"
+                          <guiders-button 
                             (click)="startEdit(message)"
-                            title="Editar mensaje">
+                            [ariaLabel]="'Editar mensaje'"
+                            variant="ghost"
+                            size="small"
+                            class="action-btn">
                             ✏️
-                          </button>
-                          <button 
-                            class="action-btn"
+                          </guiders-button>
+                          <guiders-button 
                             (click)="deleteMessage(message.messageId)"
-                            title="Eliminar mensaje">
+                            [ariaLabel]="'Eliminar mensaje'"
+                            variant="ghost"
+                            size="small"
+                            class="action-btn">
                             🗑️
-                          </button>
+                          </guiders-button>
                         </div>
                       }
                     }
@@ -173,22 +187,27 @@
   @if (canSendMessages()) {
     <div class="message-input">
       <div class="input-wrapper">
-        <input
+        <guiders-text-field
           type="text"
-          class="message-field"
           placeholder="Escribe un mensaje..."
           [value]="newMessage()"
           [disabled]="loading()"
-          (input)="onInputChange($event)"
-          (keydown)="onKeyPress($event)">
+          (valueChange)="onMessageValueChange($event)"
+          (inputKeydown)="onKeyPress($event)"
+          [ariaLabel]="'Escribir nuevo mensaje'"
+          size="medium"
+          class="message-field">
+        </guiders-text-field>
         
-        <button 
-          class="send-button"
+        <guiders-button 
           [disabled]="!newMessage().trim() || loading()"
           (click)="onSendMessage()"
-          title="Enviar mensaje">
+          [ariaLabel]="'Enviar mensaje'"
+          variant="primary"
+          size="medium"
+          class="send-button">
           📤
-        </button>
+        </guiders-button>
       </div>
       
       @if (isTyping()) {

@@ -1,0 +1,134 @@
+/**
+ * Design Tokens - Variables SASS
+ * Variables SASS para usar con @use y @import
+ */
+
+// === COLORES ===
+// Surface colors
+$color-surface-primary: #ffffff;
+$color-surface-secondary: #f8f9fa;
+$color-surface-tertiary: #f1f3f4;
+$color-surface-hover: #f1f3f4;
+$color-surface-selected: #e7f3ff;
+$color-surface-disabled: #f1f3f4;
+
+// Text colors
+$color-text-primary: #212529;
+$color-text-secondary: #495057;
+$color-text-tertiary: #6c757d;
+$color-text-disabled: #ced4da;
+
+// Brand colors
+$color-primary-500: #007bff;
+$color-primary-600: #0066cc;
+$color-primary-700: #004d99;
+
+// Borders
+$color-border-subtle: #dee2e6;
+$color-border-default: #ced4da;
+$color-border-strong: #6c757d;
+
+// Overlay
+$color-overlay-backdrop: rgba(0, 0, 0, 0.5);
+
+// === ESPACIADO ===
+$spacing-2xs: 2px;
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+$spacing-3xl: 64px;
+
+// === TAMAÑOS ===
+$size-lg: 28px;
+$size-xl: 32px;
+$size-2xl: 32px;
+$size-3xl: 48px;
+
+// === TIPOGRAFÍA ===
+$font-family-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+$font-size-xs: 12px;
+$font-size-sm: 14px;
+$font-size-base: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+$line-height-tight: 1.25;
+$line-height-relaxed: 1.625;
+
+// === BORDES ===
+$border-radius-sm: 2px;
+$border-radius-md: 6px;
+$border-radius-full: 9999px;
+
+// === SOMBRAS ===
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// === MOVIMIENTO ===
+$duration-fast: 100ms;
+$duration-normal: 150ms;
+
+$easing-standard: cubic-bezier(0.2, 0, 0, 1);
+$easing-entrance: cubic-bezier(0, 0, 0.2, 1);
+
+// === Z-INDEX ===
+$z-index-sticky: 100;
+$z-index-modal: 1300;
+
+// === BREAKPOINTS ===
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;  
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1440px;
+
+// Tema oscuro (usando CSS custom properties para soporte automático)
+[data-theme="dark"] {
+  --color-surface-primary: #212529;
+  --color-surface-secondary: #343a40;
+  --color-surface-tertiary: #495057;
+  
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #dee2e6;
+  --color-text-tertiary: #ced4da;
+  
+  --color-primary-400: #3399ff;
+  --color-primary-600: #3399ff;
+  
+  --color-border-subtle: #6c757d;
+  --color-border-default: #adb5bd;
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+}
+
+// === MODO AUTOMÁTICO OSCURO ===
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --color-surface-primary: #212529;
+    --color-surface-secondary: #343a40;
+    --color-surface-tertiary: #495057;
+    
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #dee2e6;
+    --color-text-tertiary: #ced4da;
+    
+    --color-primary-400: #3399ff;
+    --color-primary-600: #3399ff;
+    
+    --color-border-subtle: #6c757d;
+    --color-border-default: #adb5bd;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  }
+}

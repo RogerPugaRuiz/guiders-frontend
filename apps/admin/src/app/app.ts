@@ -25,30 +25,30 @@ export class App {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      icon: '📊',
+      icon: 'dashboard',
       route: '/dashboard'
     },
     {
       id: 'inbox',
       label: 'Chat Inbox',
-      icon: '📥',
+      icon: 'message-square',
       route: '/inbox'
     },
     {
       id: 'users',
       label: 'Usuarios',
-      icon: '👥',
+      icon: 'users',
       children: [
         {
           id: 'users-list',
           label: 'Lista de Usuarios',
-          icon: '📋',
+          icon: 'file-text',
           route: '/users'
         },
         {
           id: 'users-create',
           label: 'Crear Usuario',
-          icon: '➕',
+          icon: 'plus',
           route: '/users/create'
         }
       ]
@@ -56,24 +56,24 @@ export class App {
     {
       id: 'analytics',
       label: 'Analíticas',
-      icon: '📈',
+      icon: 'trending-up',
       route: '/analytics'
     },
     {
       id: 'settings',
       label: 'Configuración',
-      icon: '⚙️',
+      icon: 'settings',
       children: [
         {
           id: 'settings-general',
           label: 'General',
-          icon: '🔧',
+          icon: 'settings',
           route: '/settings/general'
         },
         {
           id: 'settings-security',
           label: 'Seguridad',
-          icon: '🔒',
+          icon: 'lock',
           route: '/settings/security'
         }
       ]

@@ -13,6 +13,10 @@ import {
   Visitor, 
   CreateChatWithVisitorRequest 
 } from '@guiders-frontend/shared/types';
+import { Button } from '@guiders-frontend/button';
+import { TextField } from '@guiders-frontend/text-field';
+import { Select } from '@guiders-frontend/select';
+import { Checkbox } from '@guiders-frontend/checkbox';
 
 export interface CreateChatModalConfig {
   departments: Array<{ id: string; name: string; }>;
@@ -35,7 +39,7 @@ export interface CreateChatFormData {
 
 @Component({
   selector: 'lib-create-chat-modal',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, Button, TextField, Select, Checkbox],
   templateUrl: './create-chat-modal.html',
   styleUrl: './create-chat-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -109,6 +113,20 @@ export class CreateChatModal {
     const form = this.chatForm();
     const priorityId = form.get('priority')?.value;
     return this.config().priorities.find(p => p.id === priorityId);
+  });
+
+  readonly departmentOptions = computed(() => {
+    return this.config().departments.map(dept => ({ 
+      value: dept.id, 
+      label: dept.name 
+    }));
+  });
+
+  readonly priorityOptions = computed(() => {
+    return this.config().priorities.map(priority => ({ 
+      value: priority.id, 
+      label: priority.name 
+    }));
   });
 
   constructor() {

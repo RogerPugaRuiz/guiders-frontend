@@ -1,0 +1,15 @@
+@if (!isEmpty()) {
+  <span 
+    [ngClass]="badgeClasses()"
+    [attr.aria-label]="ariaLabelValue()"
+    [attr.aria-describedby]="ariaDescribedBy() || undefined"
+    role="status"
+    [attr.aria-hidden]="dot() ? 'true' : 'false'">
+    
+    @if (!dot()) {
+      <span class="guiders-badge__content">
+        {{ displayText() }}
+      </span>
+    }
+  </span>
+}

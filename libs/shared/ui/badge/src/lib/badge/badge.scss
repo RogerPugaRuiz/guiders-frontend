@@ -1,0 +1,368 @@
+@use '../../../../../design-tokens/tokens.scss' as tokens;
+
+:host {
+  display: inline-flex;
+  font-family: var(--font-family-primary);
+}
+
+.guiders-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  transition: var(--transition-all);
+  user-select: none;
+  position: relative;
+
+  // === TAMAÑOS ===
+  &--small {
+    min-height: 16px;
+    padding: 1px var(--spacing-xs);
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
+    
+    &.guiders-badge--dot {
+      width: 8px;
+      height: 8px;
+      min-height: 8px;
+      padding: 0;
+    }
+  }
+
+  &--medium {
+    min-height: 20px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
+    
+    &.guiders-badge--dot {
+      width: 10px;
+      height: 10px;
+      min-height: 10px;
+      padding: 0;
+    }
+  }
+
+  &--large {
+    min-height: 24px;
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-size-sm);
+    
+    &.guiders-badge--dot {
+      width: 12px;
+      height: 12px;
+      min-height: 12px;
+      padding: 0;
+    }
+  }
+
+  // === FORMAS ===
+  &--rounded {
+    border-radius: var(--radius-md);
+  }
+
+  &--pill {
+    border-radius: var(--radius-full);
+  }
+
+  &--square {
+    border-radius: var(--radius-sm);
+  }
+
+  // Forma especial para dots
+  &--dot {
+    border-radius: var(--radius-full);
+  }
+
+  // === VARIANTES DE COLOR ===
+  &--default {
+    background: var(--color-neutral-default);
+    color: var(--color-text-on-neutral);
+    border: 1px solid var(--color-border-default);
+  }
+
+  &--primary {
+    background: var(--color-primary-default);
+    color: var(--color-text-on-primary);
+    border: 1px solid var(--color-primary-default);
+  }
+
+  &--secondary {
+    background: var(--color-secondary-default);
+    color: var(--color-text-on-secondary);
+    border: 1px solid var(--color-secondary-default);
+  }
+
+  &--success {
+    background: var(--color-success-default);
+    color: var(--color-text-on-success);
+    border: 1px solid var(--color-success-default);
+  }
+
+  &--warning {
+    background: var(--color-warning-default);
+    color: var(--color-text-on-warning);
+    border: 1px solid var(--color-warning-default);
+  }
+
+  &--danger {
+    background: var(--color-danger-default);
+    color: var(--color-text-on-danger);
+    border: 1px solid var(--color-danger-default);
+  }
+
+  &--info {
+    background: var(--color-info-default);
+    color: var(--color-text-on-info);
+    border: 1px solid var(--color-info-default);
+  }
+
+  &--neutral {
+    background: var(--color-neutral-subtle);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-default);
+  }
+
+  // === VARIANTE OUTLINE ===
+  &--outline {
+    background: transparent;
+    
+    &.guiders-badge--default {
+      color: var(--color-text-secondary);
+      border-color: var(--color-border-default);
+    }
+
+    &.guiders-badge--primary {
+      color: var(--color-primary-default);
+      border-color: var(--color-primary-default);
+    }
+
+    &.guiders-badge--secondary {
+      color: var(--color-secondary-default);
+      border-color: var(--color-secondary-default);
+    }
+
+    &.guiders-badge--success {
+      color: var(--color-success-default);
+      border-color: var(--color-success-default);
+    }
+
+    &.guiders-badge--warning {
+      color: var(--color-warning-default);
+      border-color: var(--color-warning-default);
+    }
+
+    &.guiders-badge--danger {
+      color: var(--color-danger-default);
+      border-color: var(--color-danger-default);
+    }
+
+    &.guiders-badge--info {
+      color: var(--color-info-default);
+      border-color: var(--color-info-default);
+    }
+
+    &.guiders-badge--neutral {
+      color: var(--color-text-secondary);
+      border-color: var(--color-border-default);
+    }
+  }
+
+  // === ESTADO DESHABILITADO ===
+  &--disabled {
+    background: var(--color-background-disabled) !important;
+    color: var(--color-text-disabled) !important;
+    border-color: var(--color-border-disabled) !important;
+    cursor: not-allowed;
+  }
+
+  // === ESTADO VACÍO ===
+  &--empty {
+    display: none;
+  }
+
+  // === CONTENIDO ===
+  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    min-width: 0;
+  }
+}
+
+// === MODIFICADORES ESPECIALES ===
+
+// Badge como dot (sin contenido, solo indicador)
+.guiders-badge--dot {
+  .guiders-badge__content {
+    display: none;
+  }
+}
+
+// Animación para badges dinámicos
+.guiders-badge {
+  @keyframes badge-appear {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  animation: badge-appear var(--duration-fast) ease-out;
+
+  // Pulso para badges de notificación
+  &--primary.guiders-badge--dot,
+  &--danger.guiders-badge--dot {
+    animation: badge-pulse var(--duration-slow) ease-in-out infinite;
+  }
+}
+
+// === ESTADOS DE ACCESIBILIDAD ===
+@media (prefers-reduced-motion: reduce) {
+  .guiders-badge {
+    animation: none;
+  }
+}
+
+// === ESTADOS DE ALTO CONTRASTE ===
+@media (prefers-contrast: high) {
+  .guiders-badge {
+    border-width: 2px;
+    font-weight: var(--font-weight-bold);
+    
+    &--outline {
+      border-width: 2px;
+    }
+  }
+}
+
+// === TEMA OSCURO ===
+@media (prefers-color-scheme: dark) {
+  .guiders-badge {
+    // Los design tokens manejan automáticamente el tema oscuro
+    box-shadow: var(--shadow-sm);
+    
+    // Ajuste específico para mejor contraste en tema oscuro
+    &--default,
+    &--neutral {
+      border-color: var(--color-border-strong);
+    }
+  }
+}
+
+// === VARIANTES CONTEXTUALES ESPECÍFICAS ===
+
+// Badge de contador (optimizado para números)
+:host(.counter) .guiders-badge {
+  min-width: var(--size-lg);
+  font-family: var(--font-family-mono);
+  font-weight: var(--font-weight-bold);
+  
+  &--small {
+    min-width: 16px;
+  }
+  
+  &--medium {
+    min-width: 20px;
+  }
+  
+  &--large {
+    min-width: 24px;
+  }
+}
+
+// Badge de estado (optimizado para indicadores)
+:host(.status) .guiders-badge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// Badge inline (para uso dentro de texto)
+:host(.inline) {
+  .guiders-badge {
+    vertical-align: middle;
+    margin: 0 var(--spacing-xs);
+    
+    &--small {
+      margin: 0 2px;
+    }
+  }
+}
+
+// Badge flotante (posicionado absolutamente)
+:host(.floating) {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: var(--z-index-tooltip);
+  
+  .guiders-badge {
+    box-shadow: var(--shadow-md);
+    
+    &--small {
+      top: -6px;
+      right: -6px;
+    }
+    
+    &--large {
+      top: -10px;
+      right: -10px;
+    }
+  }
+}
+
+// === RESPONSIVE ===
+@media (max-width: 768px) {
+  .guiders-badge {
+    // En móviles, hacer badges ligeramente más grandes para mejor accesibilidad
+    &--small {
+      min-height: 18px;
+      padding: 2px var(--spacing-xs);
+      font-size: var(--font-size-xs);
+    }
+    
+    &--medium {
+      min-height: 22px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+    }
+  }
+}
+
+// === UTILIDADES PARA INTEGRACIÓN ===
+
+// Espaciado cuando se usa junto a otros elementos
+:host + * {
+  margin-left: var(--spacing-xs);
+}
+
+* + :host {
+  margin-left: var(--spacing-xs);
+}
+
+// Reset para uso específico
+:host(.no-margin) {
+  * + &,
+  & + * {
+    margin-left: 0;
+  }
+}

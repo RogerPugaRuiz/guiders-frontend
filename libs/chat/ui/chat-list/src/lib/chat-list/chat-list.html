@@ -2,16 +2,16 @@
   <!-- Barra de búsqueda -->
   @if (showSearch()) {
     <div class="chat-list__search">
-      <div class="search-input-wrapper">
-        <span class="search-icon">🔍</span>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Buscar chats..."
-          [value]="searchQuery()"
-          (input)="onSearchInput($event)"
-          [disabled]="loading()">
-      </div>
+      <guiders-text-field
+        type="search"
+        placeholder="Buscar chats..."
+        [value]="searchQuery()"
+        [disabled]="loading()"
+        (valueChange)="onSearchValueChange($event)"
+        size="medium"
+        [ariaLabel]="'Buscar en la lista de chats'"
+        class="chat-list__search-field">
+      </guiders-text-field>
     </div>
   }
 

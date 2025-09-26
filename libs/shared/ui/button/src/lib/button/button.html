@@ -1,0 +1,24 @@
+<button
+  [ngClass]="buttonClasses()"
+  [type]="type()"
+  [disabled]="!isInteractive()"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-busy]="loading()"
+  [attr.aria-expanded]="ariaExpanded()"
+  [attr.aria-current]="ariaCurrent()"
+  (click)="onButtonClick($event)">
+  
+  <!-- Indicador de loading -->
+  @if (loading()) {
+    <span class="guiders-button__loading" aria-hidden="true">
+      <span class="guiders-button__spinner"></span>
+    </span>
+  }
+  
+  <!-- Contenido del botón -->
+  <span 
+    class="guiders-button__content"
+    [class.guiders-button__content--hidden]="loading()">
+    <ng-content></ng-content>
+  </span>
+</button>

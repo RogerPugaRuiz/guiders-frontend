@@ -24,15 +24,13 @@
   <!-- Barra de búsqueda y filtros -->
   <div class="visitors-controls">
     @if (config().showSearch) {
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Buscar visitantes..."
-          [value]="searchQuery()"
-          (input)="onSearchChange($any($event.target).value)"
-          class="search-input">
-        <span class="search-icon">🔍</span>
-      </div>
+      <guiders-text-field
+        placeholder="Buscar visitantes..."
+        [value]="searchQuery()"
+        (valueChange)="onSearchChange($event)"
+        class="visitors-search"
+        size="medium">
+      </guiders-text-field>
     }
 
     @if (config().showFilters) {
@@ -112,100 +110,17 @@
     } @else {
       <div class="visitors-grid">
         @for (visitor of filteredVisitors(); track visitor.id) {
-          <div 
-            class="visitor-card"
-            [class.selected]="isSelected(visitor.id)"
-            [class.has-active-chat]="visitor.hasActiveChat"
-            tabindex="0"
-            role="button"
-            (click)="onVisitorClick(visitor)"
-            (keyup.enter)="onVisitorClick(visitor)"
-            (keyup.space)="onVisitorClick(visitor)"
-            [attr.aria-label]="'Visitante: ' + (visitor.name || 'Anónimo')">
-            
-            <!-- Checkbox para selección múltiple -->
-            @if (config().allowMultiSelect) {
-              <div class="visitor-checkbox">
-                <input 
-                  type="checkbox"
-                  [checked]="isSelected(visitor.id)"
-                  (click)="onVisitorSelect(visitor, $event)">
-              </div>
-            }
-
-            <!-- Avatar y estado -->
-            <div class="visitor-avatar">
-              <div class="avatar-circle">
-                @if (visitor.name) {
-                  {{ visitor.name.charAt(0).toUpperCase() }}
-                } @else {
-                  👤
-                }
-              </div>
-              <span class="status-indicator" [class]="visitor.status">
-                {{ getVisitorStatusIcon(visitor) }}
-              </span>
-            </div>
-
-            <!-- Información principal -->
-            <div class="visitor-info">
-              <div class="visitor-header">
-                <h4 class="visitor-name">
-                  {{ visitor.name || 'Visitante Anónimo' }}
-                </h4>
-                <span class="visitor-lifecycle">
-                  {{ getLifecycleIcon(visitor.lifecycle) }}
-                </span>
-              </div>
-              
-              <div class="visitor-details">
-                @if (visitor.email) {
-                  <span class="visitor-email">📧 {{ visitor.email }}</span>
-                }
-                <span class="visitor-domain">🌐 {{ visitor.domain }}</span>
-                <span class="visitor-last-visit">
-                  🕒 {{ formatLastVisit(visitor.lastVisit) }}
-                </span>
-              </div>
-
-              @if (visitor.hasActiveChat) {
-                <div class="active-chat-indicator">
-                  💬 Chat activo
-                </div>
-              }
-
-              <!-- Tags de intenciones -->
-              @if (visitor.tags && visitor.tags.length > 0) {
-                <div class="visitor-tags">
-                  @for (tag of visitor.tags.slice(0, 3); track tag.id) {
-                    <span class="tag">{{ tag.name }}</span>
-                  }
-                  @if (visitor.tags.length > 3) {
-                    <span class="tag-more">+{{ visitor.tags.length - 3 }}</span>
-                  }
-                </div>
-              }
-            </div>
-
-            <!-- Acciones -->
-            @if (config().showActions) {
-              <div class="visitor-actions">
-                @if (!visitor.hasActiveChat) {
-                  <button 
-                    class="action-button create-chat"
-                    (click)="onCreateChat(visitor, $event)"
-                    title="Iniciar chat">
-                    💬
-                  </button>
-                }
-                <button 
-                  class="action-button view-details"
-                  title="Ver detalles">
-                  👁️
-                </button>
-              </div>
-            }
-          </div>
+          <lib-visitor-card
+            [visitor]="visitor"
+            [selected]="isSelected(visitor.id)"
+            [selectable]="config().allowMultiSelect"
+            [showActions]="config().showActions"
+            size="default"
+            (visitorClick)="onVisitorClickFromCard($event)"
+            (visitorSelect)="handleVisitorSelect($event)"
+            (createChat)="onCreateChatFromCard($event)"
+            (viewDetails)="onViewDetails($event)">
+          </lib-visitor-card>
         }
       </div>
     }
@@ -218,9 +133,15 @@
         {{ selectedVisitors().length }} seleccionados
       </span>
       <div class="bulk-actions">
-        <button class="bulk-action-button">Crear chats</button>
-        <button class="bulk-action-button">Asignar tags</button>
-        <button class="bulk-action-button secondary">Deseleccionar</button>
+        <guiders-button variant="primary" size="medium" (click)="onBulkCreateChats()">
+          Crear chats
+        </guiders-button>
+        <guiders-button variant="outline" size="medium" (click)="onBulkAssignTags()">
+          Asignar tags
+        </guiders-button>
+        <guiders-button variant="ghost" size="medium" (click)="onDeselectAll()">
+          Deseleccionar
+        </guiders-button>
       </div>
     </div>
   }

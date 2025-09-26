@@ -1,6 +1,9 @@
 import { Component, input, output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Button } from '@guiders-frontend/button';
+import { TextField } from '@guiders-frontend/text-field';
+import { VisitorCard } from '@guiders-frontend/visitor-card';
 import { 
   Visitor, 
   VisitorFilters, 
@@ -20,7 +23,7 @@ export interface VisitorListConfig {
 @Component({
   selector: 'lib-visitors-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Button, TextField, VisitorCard],
   templateUrl: './visitors-list.html',
   styleUrls: ['./visitors-list.scss']
 })
@@ -155,6 +158,50 @@ export class VisitorsListComponent {
     };
     
     this.createChat.emit(request);
+  }
+
+  onViewDetails(visitor: Visitor): void {
+    // Emit an event for viewing visitor details
+    // This could navigate to a detail page or open a modal
+    console.log('View details for visitor:', visitor.id);
+  }
+
+  onCreateChatFromCard(request: CreateChatWithVisitorRequest): void {
+    this.createChat.emit(request);
+  }
+
+  onVisitorClickFromCard(visitor: Visitor): void {
+    this.visitorClick.emit(visitor);
+  }
+
+  handleVisitorSelect(event: { visitor: Visitor; selected: boolean }): void {
+    const selected = new Set(this.internalSelectedIds());
+    
+    if (event.selected) {
+      selected.add(event.visitor.id);
+    } else {
+      selected.delete(event.visitor.id);
+    }
+    
+    this.internalSelectedIds.set(selected);
+    this.visitorSelect.emit(this.selectedVisitors());
+  }
+
+  onBulkCreateChats(): void {
+    const selectedVisitors = this.selectedVisitors();
+    // TODO: Implement bulk chat creation logic
+    console.log('Creating chats for', selectedVisitors.length, 'visitors');
+  }
+
+  onBulkAssignTags(): void {
+    const selectedVisitors = this.selectedVisitors();
+    // TODO: Implement bulk tag assignment logic
+    console.log('Assigning tags to', selectedVisitors.length, 'visitors');
+  }
+
+  onDeselectAll(): void {
+    this.internalSelectedIds.set(new Set());
+    this.visitorSelect.emit([]);
   }
 
   onFilterChange(filterType: keyof VisitorFilters, values: string[]): void {

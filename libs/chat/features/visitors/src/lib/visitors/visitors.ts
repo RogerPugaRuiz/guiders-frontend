@@ -20,7 +20,11 @@ import {
 @Component({
   selector: 'lib-visitors',
   standalone: true,
-  imports: [CommonModule, VisitorsListComponent, CreateChatModal],
+  imports: [
+    CommonModule, 
+    VisitorsListComponent, 
+    CreateChatModal
+  ],
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.css'],
 })

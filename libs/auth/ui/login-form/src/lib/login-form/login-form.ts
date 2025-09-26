@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, signal, computed, output, input } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { inject } from '@angular/core';
+import { Button } from '@guiders-frontend/button';
+import { TextField } from '@guiders-frontend/text-field';
 
 interface LoginCredentials {
   email: string;
@@ -9,7 +11,7 @@ interface LoginCredentials {
 
 @Component({
   selector: 'guiders-login-form',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, Button, TextField],
   templateUrl: './login-form.html',
   styleUrl: './login-form.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,6 +52,33 @@ export class LoginForm {
   // Computed signals for individual form controls
   readonly emailControl = computed(() => this.loginForm.controls.email);
   readonly passwordControl = computed(() => this.loginForm.controls.password);
+
+  // Error message getters
+  getEmailErrorMessage(): string {
+    const control = this.emailControl();
+    if (control.invalid && control.touched) {
+      if (control.hasError('required')) {
+        return 'El correo electrónico es requerido';
+      }
+      if (control.hasError('email')) {
+        return 'Formato de correo electrónico inválido';
+      }
+    }
+    return '';
+  }
+
+  getPasswordErrorMessage(): string {
+    const control = this.passwordControl();
+    if (control.invalid && control.touched) {
+      if (control.hasError('required')) {
+        return 'La contraseña es requerida';
+      }
+      if (control.hasError('minlength')) {
+        return 'Mínimo 6 caracteres';
+      }
+    }
+    return '';
+  }
 
   onSubmit(): void {
     if (this.loginForm.valid && !this.isLoading()) {

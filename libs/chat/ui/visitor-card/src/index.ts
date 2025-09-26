@@ -1,1 +1,1 @@
-export * from './lib/visitor-card';
+export * from './lib/visitor-card/visitor-card';

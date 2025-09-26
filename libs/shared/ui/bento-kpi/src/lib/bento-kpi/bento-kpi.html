@@ -1,0 +1,29 @@
+<div [class]="cssClasses()">
+  <div class="kpi-container">
+    <!-- Header con título e icono -->
+    <div class="kpi-header">
+      <span class="kpi-icon" *ngIf="icon()">{{ icon() }}</span>
+      <span class="kpi-title">{{ title() }}</span>
+    </div>
+    
+    <!-- Valor principal -->
+    <div class="kpi-value">
+      <span class="value-number">{{ formattedValue() }}</span>
+      <span class="value-unit" *ngIf="unit()">{{ unit() }}</span>
+    </div>
+    
+    <!-- Trend indicator -->
+    <div class="kpi-trend" *ngIf="trend()" [attr.data-direction]="trend()?.direction">
+      <span class="trend-icon">{{ trendIcon() }}</span>
+      <span class="trend-text">{{ trend()?.value }}%</span>
+    </div>
+    
+    <!-- Mini chart placeholder -->
+    <div class="kpi-chart" *ngIf="showChart()">
+      <div class="chart-placeholder">
+        <div class="chart-bar" *ngFor="let bar of chartData(); trackBy: trackByIndex" 
+             [style.height.%]="bar"></div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,261 @@
+@use '../../../../../design-tokens/tokens.scss' as tokens;
+
+// === BENTO CARD COMPONENT ===
+// Contenedor base del sistema Bento UI
+// Soporta diferentes tamaños de grid, variantes visuales y estados
+
+.guiders-bento-card {
+  display: flex;
+  flex-direction: column;
+  background: tokens.$color-surface-primary;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+  overflow: hidden;
+  position: relative;
+  min-height: 200px;
+  
+  &:hover:not(&--disabled):not(&--loading) {
+    border-color: tokens.$color-border-default;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+  }
+  
+  &:focus-within {
+    @include tokens.focus-ring;
+  }
+}
+
+// === TAMAÑOS DE GRID ===
+.guiders-bento-card--1x1 {
+  grid-column: span 1;
+  grid-row: span 1;
+}
+
+.guiders-bento-card--2x1 {
+  grid-column: span 2;
+  grid-row: span 1;
+}
+
+.guiders-bento-card--1x2 {
+  grid-column: span 1;
+  grid-row: span 2;
+}
+
+.guiders-bento-card--2x2 {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.guiders-bento-card--3x1 {
+  grid-column: span 3;
+  grid-row: span 1;
+}
+
+.guiders-bento-card--1x3 {
+  grid-column: span 1;
+  grid-row: span 3;
+}
+
+.guiders-bento-card--3x2 {
+  grid-column: span 3;
+  grid-row: span 2;
+}
+
+.guiders-bento-card--2x3 {
+  grid-column: span 2;
+  grid-row: span 3;
+}
+
+// === VARIANTES ===
+.guiders-bento-card--elevated {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  
+  &:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.guiders-bento-card--outlined {
+  border: 2px solid tokens.$color-border-default;
+  box-shadow: none;
+  
+  &:hover {
+    border-color: tokens.$color-border-strong;
+  }
+}
+
+.guiders-bento-card--filled {
+  background: tokens.$color-surface-secondary;
+  border-color: transparent;
+}
+
+// === PADDING VARIANTS ===
+.guiders-bento-card--padding-none {
+  .guiders-bento-card__header,
+  .guiders-bento-card__content {
+    padding: 0;
+  }
+}
+
+.guiders-bento-card--padding-sm {
+  .guiders-bento-card__header,
+  .guiders-bento-card__content {
+    padding: tokens.$spacing-sm;
+  }
+}
+
+.guiders-bento-card--padding-default {
+  .guiders-bento-card__header,
+  .guiders-bento-card__content {
+    padding: tokens.$spacing-lg;
+  }
+}
+
+.guiders-bento-card--padding-lg {
+  .guiders-bento-card__header,
+  .guiders-bento-card__content {
+    padding: tokens.$spacing-xl;
+  }
+}
+
+// === HEADER ===
+.guiders-bento-card__header {
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  background: tokens.$color-surface-primary;
+}
+
+.guiders-bento-card__title {
+  margin: 0;
+  @include tokens.typography('heading-2xl');
+  color: tokens.$color-text-primary;
+  font-weight: tokens.$font-weight-semibold;
+}
+
+// === CONTENIDO ===
+.guiders-bento-card__content {
+  flex: 1;
+  padding: tokens.$spacing-lg;
+  overflow-y: auto;
+  
+  // Scroll suave en contenido largo
+  scrollbar-width: thin;
+  scrollbar-color: tokens.$color-border-default transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: tokens.$color-border-default;
+    border-radius: tokens.$border-radius-full;
+  }
+}
+
+// === ESTADOS ===
+.guiders-bento-card--loading {
+  pointer-events: none;
+  
+  .guiders-bento-card__content {
+    opacity: 0.5;
+  }
+}
+
+.guiders-bento-card--disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  background: tokens.$color-surface-disabled;
+  
+  .guiders-bento-card__title {
+    color: tokens.$color-text-disabled;
+  }
+}
+
+.guiders-bento-card--error {
+  border-color: #dc2626;
+}
+
+// === LOADING ===
+.guiders-bento-card__loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(tokens.$color-surface-primary, 0.9);
+  z-index: 10;
+}
+
+.guiders-bento-card__spinner {
+  @include tokens.loading-spinner;
+  margin-bottom: tokens.$spacing-sm;
+}
+
+.guiders-bento-card__loading-text {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+}
+
+// === ERROR ===
+.guiders-bento-card__error {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  background: #fef2f2;
+  border-bottom: 1px solid #fee2e2;
+  color: #dc2626;
+}
+
+.guiders-bento-card__error-icon {
+  flex-shrink: 0;
+  font-size: tokens.$font-size-lg;
+}
+
+.guiders-bento-card__error-text {
+  @include tokens.typography('body-small');
+  font-weight: tokens.$font-weight-medium;
+}
+
+// === RESPONSIVE ===
+@media (max-width: tokens.$breakpoint-lg) {
+  .guiders-bento-card--3x1,
+  .guiders-bento-card--3x2 {
+    grid-column: span 2;
+  }
+  
+  .guiders-bento-card--2x3 {
+    grid-column: span 1;
+    grid-row: span 2;
+  }
+}
+
+@media (max-width: tokens.$breakpoint-md) {
+  .guiders-bento-card--2x1,
+  .guiders-bento-card--2x2,
+  .guiders-bento-card--1x3,
+  .guiders-bento-card--1x2 {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+  
+  .guiders-bento-card__header,
+  .guiders-bento-card__content {
+    padding: tokens.$spacing-md !important;
+  }
+  
+  .guiders-bento-card {
+    min-height: 150px;
+  }
+}

@@ -25,42 +25,42 @@ export class App {
     {
       id: 'inbox',
       label: 'Bandeja de Entrada',
-      icon: '📥',
+      icon: 'message-square',
       route: '/inbox'
     },
     {
       id: 'visitors',
       label: 'Visitantes',
-      icon: '�',
+      icon: 'users',
       children: [
         {
           id: 'visitors-unassigned',
           label: 'No asignados',
-          icon: '⚪',
+          icon: 'user-minus',
           route: '/visitors?filter=unassigned'
         },
         {
           id: 'visitors-mine',
           label: 'Míos',
-          icon: '�',
+          icon: 'user',
           route: '/visitors?filter=mine'
         },
         {
           id: 'visitors-all',
           label: 'Todos',
-          icon: '�',
+          icon: 'users',
           route: '/visitors?filter=all'
         },
         {
           id: 'visitors-queue',
           label: 'En cola',
-          icon: '⏳',
+          icon: 'clock',
           route: '/visitors?filter=queue'
         },
         {
           id: 'visitors',
           label: 'Lista',
-          icon: '�',
+          icon: 'file-text',
           route: '/visitors'
         }
       ]
@@ -68,24 +68,24 @@ export class App {
     {
       id: 'contacts',
       label: 'Contactos',
-      icon: '📇',
+      icon: 'bookmark',
       children: [
         {
           id: 'contacts-mine',
           label: 'Mis contactos',
-          icon: '👤',
+          icon: 'user',
           route: '/contacts?view=mine'
         },
         {
           id: 'contacts-recent',
           label: 'Recientes',
-          icon: '�',
+          icon: 'clock',
           route: '/contacts?view=recent'
         },
         {
           id: 'contacts-search',
           label: 'Buscar',
-          icon: '🔍',
+          icon: 'search',
           route: '/contacts?view=search'
         }
       ]

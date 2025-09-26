@@ -2,10 +2,12 @@ import { Component, computed, input, output, signal, ViewChild, ElementRef, Afte
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Message, Chat } from '@guiders-frontend/shared/types';
+import { TextField } from '@guiders-frontend/text-field';
+import { Button } from '@guiders-frontend/button';
 
 @Component({
   selector: 'guiders-chat-messages',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TextField, Button],
   templateUrl: './chat-messages.html',
   styleUrl: './chat-messages.scss',
 })
@@ -76,6 +78,17 @@ export class ChatMessages implements AfterViewInit {
     
     // Scroll al final después de enviar
     setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+  onMessageValueChange(value: string): void {
+    this.newMessage.set(value);
+    
+    // Indicador de escritura
+    if (value.trim()) {
+      this.setTyping(true);
+    } else {
+      this.setTyping(false);
+    }
   }
 
   onInputChange(event: Event): void {

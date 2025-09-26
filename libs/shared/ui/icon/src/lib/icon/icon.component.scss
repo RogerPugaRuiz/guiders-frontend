@@ -1,0 +1,235 @@
+@use '../../../../../design-tokens/tokens.scss' as tokens;
+
+// === COMPONENTE ICON ===
+// Sistema de iconografía SVG con soporte completo para accesibilidad
+// y configuración flexible de tamaños y colores
+
+.guiders-icon {
+  // === LAYOUT BASE ===
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  vertical-align: middle;
+  
+  // === COLOR PERSONALIZABLE ===
+  color: var(--icon-color, currentColor);
+  
+  // === SVG STYLES ===
+  svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    
+    // Garantizar que el color se aplique correctamente
+    color: inherit;
+    
+    // Optimización de renderizado
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    
+    // Suavizado para mejor calidad visual
+    shape-rendering: geometricPrecision;
+    
+    // Transiciones suaves para estados hover
+    transition: color tokens.$duration-fast tokens.$easing-standard;
+  }
+  
+  // === TAMAÑOS ===
+  // Cada tamaño con dimensiones específicas para garantizar consistencia
+  
+  &--xs {
+    width: 12px; // Extra small icon size
+    height: 12px;
+    min-width: 12px;
+    min-height: 12px;
+  }
+  
+  &--sm {
+    width: 16px; // 16px
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+  }
+  
+  &--md {
+    width: 20px; // 20px
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+  
+  &--lg {
+    width: 24px; // 24px
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
+  }
+  
+  &--xl {
+    width: 32px; // 32px
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+  
+  &--2xl {
+    width: 48px; // 48px
+    height: 48px;
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+// === UTILIDADES DE COLOR ===
+// Clases helper para colores semánticos comunes
+
+.guiders-icon--primary {
+  --icon-color: #{tokens.$color-primary-600};
+  
+  &:hover {
+    --icon-color: #{tokens.$color-primary-700};
+  }
+}
+
+.guiders-icon--secondary {
+  --icon-color: #{tokens.$color-text-secondary};
+  
+  &:hover {
+    --icon-color: #{tokens.$color-text-primary};
+  }
+}
+
+.guiders-icon--success {
+  --icon-color: #{tokens.$color-primary-600};
+  
+  &:hover {
+    --icon-color: #{tokens.$color-primary-700};
+  }
+}
+
+.guiders-icon--warning {
+  --icon-color: #{tokens.$color-primary-600};
+  
+  &:hover {
+    --icon-color: #{tokens.$color-primary-700};
+  }
+}
+
+.guiders-icon--danger {
+  --icon-color: #{tokens.$color-text-primary};
+  
+  &:hover {
+    --icon-color: #{tokens.$color-text-secondary};
+  }
+}
+
+.guiders-icon--info {
+  --icon-color: #{tokens.$color-primary-600};
+  
+  &:hover {
+    --icon-color: #{tokens.$color-primary-700};
+  }
+}
+
+// === ESTADOS INTERACTIVOS ===
+// Para iconos dentro de elementos clickeables
+
+.guiders-icon--interactive {
+  cursor: pointer;
+  transition: 
+    color tokens.$duration-fast tokens.$easing-standard,
+    transform tokens.$duration-fast tokens.$easing-standard;
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+  
+  // Focus para accesibilidad
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: 2px;
+    border-radius: tokens.$border-radius-sm;
+  }
+}
+
+// === ESTADOS DISABLED ===
+.guiders-icon--disabled {
+  --icon-color: #{tokens.$color-text-disabled};
+  opacity: 0.6;
+  cursor: not-allowed;
+  
+  &:hover {
+    transform: none;
+  }
+}
+
+// === LOADING STATE ===
+// Animación de rotación para icono de loading
+.guiders-icon--loading {
+  svg {
+    animation: icon-spin 1s linear infinite;
+  }
+}
+
+@keyframes icon-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// === RESPONSIVE ===
+// Ajustes para diferentes viewports si es necesario
+
+@media (max-width: tokens.$breakpoint-md) {
+  // En móviles, hacer iconos ligeramente más grandes para mejor touch target
+  .guiders-icon--xs {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    min-height: 16px;
+  }
+  
+  .guiders-icon--sm {
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+  }
+}
+
+// === HIGH CONTRAST MODE ===
+// Soporte para modo de alto contraste
+@media (prefers-contrast: high) {
+  .guiders-icon svg {
+    stroke-width: 2;
+  }
+}
+
+// === REDUCED MOTION ===
+// Respeto por preferencias de movimiento reducido
+@media (prefers-reduced-motion: reduce) {
+  .guiders-icon,
+  .guiders-icon svg {
+    transition: none;
+    animation: none;
+  }
+  
+  .guiders-icon--interactive:hover {
+    transform: none;
+  }
+  
+  .guiders-icon--loading svg {
+    animation: none;
+  }
+}

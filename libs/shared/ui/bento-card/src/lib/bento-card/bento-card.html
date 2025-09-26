@@ -1,0 +1,34 @@
+<div 
+  class="guiders-bento-card" 
+  [ngClass]="cssClasses()"
+  [attr.aria-label]="ariaLabel()"
+  role="region">
+  
+  <!-- Header opcional -->
+  @if (title()) {
+    <header class="guiders-bento-card__header">
+      <h3 class="guiders-bento-card__title">{{ title() }}</h3>
+    </header>
+  }
+  
+  <!-- Estado de error -->
+  @if (error()) {
+    <div class="guiders-bento-card__error" role="alert">
+      <span class="guiders-bento-card__error-icon">⚠️</span>
+      <span class="guiders-bento-card__error-text">{{ error() }}</span>
+    </div>
+  }
+  
+  <!-- Estado de carga -->
+  @if (loading()) {
+    <div class="guiders-bento-card__loading" aria-hidden="true">
+      <div class="guiders-bento-card__spinner"></div>
+      <span class="guiders-bento-card__loading-text">Cargando...</span>
+    </div>
+  }
+  
+  <!-- Contenido principal -->
+  <div class="guiders-bento-card__content" [attr.aria-hidden]="loading() || !!error()">
+    <ng-content></ng-content>
+  </div>
+</div>

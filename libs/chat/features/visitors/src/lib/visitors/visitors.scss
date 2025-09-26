@@ -1,0 +1,315 @@
+@use '../../../../../../../shared/design-tokens/tokens.scss' as tokens;
+
+/* Contenedor principal */
+.visitors-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: tokens.$color-surface-secondary;
+  overflow: hidden;
+}
+
+/* Header con estadísticas */
+.visitors-header {
+  background: tokens.$color-surface-primary;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  padding: tokens.$spacing-xl tokens.$spacing-2xl;
+  box-shadow: tokens.$shadow-sm;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: tokens.$spacing-2xl;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.title-section {
+  flex: 1;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  margin: 0 0 tokens.$spacing-sm 0;
+  @include tokens.typography('heading-3xl');
+  color: tokens.$color-text-primary;
+}
+
+.title-icon {
+  font-size: tokens.$font-size-2xl;
+}
+
+.page-description {
+  margin: 0;
+  color: tokens.$color-text-secondary;
+  @include tokens.typography('body-base');
+}
+
+/* Estadísticas rápidas */
+.quick-stats {
+  display: flex;
+  gap: tokens.$spacing-xl;
+  align-items: center;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  background: tokens.$color-surface-tertiary;
+  border-radius: tokens.$border-radius-md;
+  color: tokens.$color-text-primary;
+  min-width: 4rem;
+  text-align: center;
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+  cursor: default;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: tokens.$shadow-xl;
+  }
+}
+
+.stat-number {
+  @include tokens.typography('heading-2xl');
+  line-height: 1;
+  margin-bottom: tokens.$spacing-xs;
+}
+
+.stat-label {
+  @include tokens.typography('label-large');
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  opacity: 0.9;
+}
+
+/* Filtros de vista */
+.view-filters {
+  background: tokens.$color-surface-primary;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  padding: 0 tokens.$spacing-2xl;
+  overflow-x: auto;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.filter-tab {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-md tokens.$spacing-xl;
+  border: none;
+  background: transparent;
+  color: tokens.$color-text-secondary;
+  @include tokens.typography('label-large');
+  cursor: pointer;
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+  position: relative;
+
+  &:hover {
+    color: tokens.$color-text-primary;
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  &.active {
+    color: tokens.$color-primary-600;
+    border-bottom-color: tokens.$color-primary-600;
+    background: rgba(tokens.$color-primary-500, 0.06);
+  }
+}
+
+.tab-icon {
+  font-size: tokens.$font-size-base;
+}
+
+.tab-label {
+  font-weight: tokens.$font-weight-semibold;
+}
+
+.tab-count {
+  background: tokens.$color-primary-600;
+  color: tokens.$color-surface-primary;
+  padding: tokens.$spacing-2xs tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-full;
+  @include tokens.typography('body-small');
+  min-width: 1.25rem;
+  text-align: center;
+
+  .filter-tab:not(.active) & {
+    background: tokens.$color-text-secondary;
+  }
+}
+
+/* Contenido principal */
+.visitors-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0 tokens.$spacing-2xl tokens.$spacing-2xl;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Banner de error */
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-md tokens.$spacing-xl;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  border-radius: tokens.$border-radius-md;
+  color: #dc2626;
+  margin: tokens.$spacing-xl 0;
+}
+
+.error-icon {
+  font-size: tokens.$font-size-lg;
+  flex-shrink: 0;
+}
+
+.error-text {
+  flex: 1;
+  font-weight: tokens.$font-weight-medium;
+}
+
+.retry-button {
+  @include tokens.button-base;
+  background: #dc2626;
+  color: tokens.$color-surface-primary;
+  border-color: #dc2626;
+
+  &:hover {
+    background: #b91c1c;
+    border-color: #b91c1c;
+  }
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(248, 250, 252, 0.9);
+  backdrop-filter: blur(4px);
+  z-index: tokens.$z-index-sticky;
+}
+
+.loading-spinner {
+  @include tokens.loading-spinner;
+  margin-bottom: tokens.$spacing-md;
+}
+
+.loading-overlay p {
+  color: tokens.$color-text-secondary;
+  @include tokens.typography('label-large');
+}
+
+/* Responsive design */
+@media (max-width: tokens.$breakpoint-lg) {
+  .visitors-container {
+    padding: 0;
+  }
+  
+  .visitors-header,
+  .view-filters,
+  .visitors-content {
+    padding-left: tokens.$spacing-md;
+    padding-right: tokens.$spacing-md;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: tokens.$spacing-md;
+  }
+  
+  .quick-stats {
+    justify-content: flex-start;
+    gap: tokens.$spacing-md;
+    overflow-x: auto;
+    padding-bottom: tokens.$spacing-sm;
+  }
+  
+  .page-title {
+    font-size: tokens.$font-size-xl;
+  }
+  
+  .title-icon {
+    font-size: tokens.$font-size-xl;
+  }
+}
+
+@media (max-width: tokens.$breakpoint-md) {
+  .visitors-header {
+    padding: tokens.$spacing-md;
+  }
+  
+  .view-filters {
+    padding: 0 tokens.$spacing-md;
+  }
+  
+  .visitors-content {
+    padding: 0 tokens.$spacing-md tokens.$spacing-md;
+  }
+  
+  .filter-tabs {
+    gap: 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+  
+  .filter-tab {
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+  
+  .quick-stats {
+    gap: tokens.$spacing-sm;
+  }
+  
+  .stat-item {
+    padding: tokens.$spacing-sm;
+    min-width: 3.5rem;
+  }
+  
+  .stat-number {
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .stat-label {
+    font-size: tokens.$font-size-xs;
+  }
+  
+  .page-title {
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .title-icon {
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .page-description {
+    font-size: tokens.$font-size-sm;
+  }
+}

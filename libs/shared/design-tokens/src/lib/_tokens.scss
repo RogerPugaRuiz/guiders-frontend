@@ -1,0 +1,9 @@
+/**
+ * Design Tokens - Main Export for @use
+ * Exporta todas las variables para uso con @use
+ */
+
+@forward 'variables';
+
+// Re-exporta todo para compatibilidad con @import
+@use 'variables' as *;
