@@ -128,7 +128,7 @@
                  role="menu" 
                  tabindex="-1"
                  [attr.aria-labelledby]="'nav-item-' + item.id"
-                 (click)="closePopover(); $event.preventDefault(); $event.stopPropagation()"
+                 (click)="closePopover()"
                  (keydown.escape)="closePopover()"
                  style="
                    position: fixed !important;

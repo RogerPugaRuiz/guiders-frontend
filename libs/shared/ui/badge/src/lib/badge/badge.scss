@@ -206,6 +206,9 @@
 
 // Animación para badges dinámicos
 .guiders-badge {
+  // Animación por defecto
+  animation: badge-appear var(--duration-fast) ease-out;
+
   @keyframes badge-appear {
     from {
       transform: scale(0.8);
@@ -225,8 +228,6 @@
       transform: scale(1.1);
     }
   }
-
-  animation: badge-appear var(--duration-fast) ease-out;
 
   // Pulso para badges de notificación
   &--primary.guiders-badge--dot,

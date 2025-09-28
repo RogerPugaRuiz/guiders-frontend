@@ -26,7 +26,7 @@ import {
     CreateChatModal
   ],
   templateUrl: './visitors.html',
-  styleUrls: ['./visitors.css'],
+  styleUrls: ['./visitors.scss'],
 })
 export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly visitorsService = inject(VisitorsDataService);

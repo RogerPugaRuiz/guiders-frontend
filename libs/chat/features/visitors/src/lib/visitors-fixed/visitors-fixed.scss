@@ -1,0 +1,289 @@
+@use '../../../../../shared/design-tokens/src/lib/tokens' as tokens;
+
+/* Estilos para visitors-fixed usando design tokens */
+
+.visitors-container {
+  padding: tokens.$spacing-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.filters-section {
+  margin-bottom: tokens.$spacing-lg;
+}
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: tokens.$spacing-sm;
+}
+
+.filter-tab {
+  background: tokens.$color-surface-tertiary;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  border-radius: tokens.$border-radius-md;
+  cursor: pointer;
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+  box-shadow: tokens.$shadow-sm;
+  border: none;
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-primary;
+
+  &:hover {
+    background: tokens.$color-surface-hover;
+  }
+
+  &.active {
+    background: tokens.$color-primary-500;
+    color: tokens.$color-surface-primary;
+    border-color: tokens.$color-primary-500;
+  }
+}
+
+.count {
+  @include tokens.typography('caption');
+  opacity: 0.7;
+}
+
+.search-section {
+  margin-bottom: tokens.$spacing-lg;
+}
+
+.search-input {
+  width: 100%;
+  padding: tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-md;
+  @include tokens.typography('body-base');
+  box-shadow: tokens.$shadow-sm;
+  border: 1px solid tokens.$color-border-subtle;
+  color: tokens.$color-text-primary;
+
+  &:focus {
+    outline: none;
+    border-color: tokens.$color-primary-500;
+    box-shadow: 0 0 0 2px rgba(tokens.$color-primary-500, 0.2);
+  }
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: tokens.$spacing-md;
+  margin-bottom: tokens.$spacing-lg;
+}
+
+.stat-card {
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  padding: tokens.$spacing-md;
+  text-align: center;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  display: block;
+  @include tokens.typography('h3');
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-primary-500;
+}
+
+.stat-label {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-secondary;
+}
+
+.loading-section, 
+.error-section, 
+.empty-section {
+  text-align: center;
+  padding: tokens.$spacing-2xl;
+  background: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-md;
+  margin: tokens.$spacing-lg 0;
+  color: tokens.$color-text-secondary;
+}
+
+.error-section {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.retry-btn, 
+.clear-btn {
+  background: tokens.$color-primary-500;
+  color: tokens.$color-surface-primary;
+  border: none;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  border-radius: tokens.$border-radius-sm;
+  cursor: pointer;
+  margin-top: tokens.$spacing-sm;
+  @include tokens.typography('button');
+  transition: background tokens.$duration-normal tokens.$easing-standard;
+
+  &:hover {
+    background: tokens.$color-primary-600;
+  }
+
+  &:active {
+    background: tokens.$color-primary-700;
+  }
+}
+
+.visitors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: tokens.$spacing-lg;
+}
+
+.visitor-card {
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  padding: tokens.$spacing-md;
+  cursor: pointer;
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.visitor-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: tokens.$spacing-sm;
+}
+
+.visitor-avatar {
+  width: 40px;
+  height: 40px;
+  background: tokens.$color-primary-500;
+  color: tokens.$color-surface-primary;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: tokens.$font-weight-bold;
+  margin-right: tokens.$spacing-sm;
+}
+
+.visitor-info {
+  flex: 1;
+}
+
+.visitor-name {
+  font-weight: tokens.$font-weight-medium;
+  margin-bottom: 2px;
+  color: tokens.$color-text-primary;
+  @include tokens.typography('body-medium');
+}
+
+.visitor-email {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+}
+
+.visitor-status {
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-sm;
+  @include tokens.typography('caption');
+  font-weight: tokens.$font-weight-medium;
+
+  &.status-online {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &.status-idle {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  &.status-offline {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+  }
+}
+
+.visitor-details {
+  margin-bottom: tokens.$spacing-sm;
+}
+
+.detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: tokens.$spacing-xs 0;
+  @include tokens.typography('body-small');
+}
+
+.detail-label {
+  color: tokens.$color-text-secondary;
+}
+
+.detail-value {
+  font-weight: tokens.$font-weight-medium;
+  color: tokens.$color-text-primary;
+}
+
+.visitor-actions {
+  display: flex;
+  gap: tokens.$spacing-sm;
+}
+
+.action-btn {
+  flex: 1;
+  padding: tokens.$spacing-sm tokens.$spacing-sm;
+  border: none;
+  border-radius: tokens.$border-radius-sm;
+  cursor: pointer;
+  @include tokens.typography('caption');
+  transition: background tokens.$duration-normal tokens.$easing-standard;
+
+  &.primary {
+    background: tokens.$color-primary-500;
+    color: tokens.$color-surface-primary;
+
+    &:hover {
+      background: tokens.$color-primary-600;
+    }
+  }
+
+  &.secondary {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+
+    &:hover {
+      background: tokens.$color-surface-hover;
+    }
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: tokens.$breakpoint-md) {
+  .visitors-container {
+    padding: tokens.$spacing-md;
+  }
+
+  .visitors-grid {
+    grid-template-columns: 1fr;
+    gap: tokens.$spacing-md;
+  }
+
+  .stats-section {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-tabs {
+    gap: tokens.$spacing-xs;
+  }
+
+  .filter-tab {
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+  }
+
+  .stats-section {
+    grid-template-columns: 1fr;
+  }
+}

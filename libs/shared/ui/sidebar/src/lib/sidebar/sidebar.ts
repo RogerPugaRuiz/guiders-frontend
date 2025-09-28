@@ -49,22 +49,28 @@ export class Sidebar {
 
   constructor() {
     // Effect para expandir automáticamente elementos padre cuando sus hijos están activos
+    // SOLO se ejecuta en la inicialización, no interfiere con expansiones manuales
+    let isInitialized = false;
+    
     effect(() => {
       const items = this.items();
-      const expanded = new Set(this.expandedItems());
       
-      items.forEach(item => {
-        if (item.children && item.children.length > 0) {
-          const hasActiveChild = item.children.some(child => this.isItemActive(child));
-          if (hasActiveChild) {
-            expanded.add(item.id);
+      // Solo auto-expandir en la primera carga o cuando cambian los items
+      if (!isInitialized) {
+        const expanded = new Set(this.expandedItems());
+        
+        items.forEach(item => {
+          if (item.children && item.children.length > 0) {
+            const hasActiveChild = item.children.some(child => this.isItemActive(child));
+            if (hasActiveChild) {
+              expanded.add(item.id);
+            }
           }
-        }
-      });
-      
-      if (expanded.size !== this.expandedItems().size || 
-          !Array.from(expanded).every(id => this.expandedItems().has(id))) {
+        });
+        
         this.expandedItems.set(expanded);
+        isInitialized = true;
+        console.log('Auto-expansión inicial completada:', Array.from(expanded));
       }
     });
   }
@@ -73,11 +79,19 @@ export class Sidebar {
 
   // Métodos
   onItemClick(item: SidebarItem): void {
-    console.log(`Click en item: ${item.label}`);
+    console.log(`Click en item: ${item.label}`, {
+      isCollapsed: this.isCollapsed(),
+      hasChildren: item.children && item.children.length > 0,
+      hasRoute: !!item.route,
+      isExpanded: this.isItemExpanded(item.id),
+      isActive: this.isItemActive(item)
+    });
+    
     this.itemClick.emit(item);
     
     // Si el sidebar está colapsado y el item tiene hijos, mostrar popover
     if (this.isCollapsed() && item.children && item.children.length > 0) {
+      console.log(`Mostrando popover para: ${item.label}`);
       this.currentPopoverItem = item;
       // Capturar posición precisa al momento del clic
       this.captureElementPosition(item);
@@ -87,7 +101,8 @@ export class Sidebar {
     
     // Si el sidebar no está colapsado, manejar expansión/navegación
     if (item.children && item.children.length > 0) {
-      // Si tiene hijos, expandir/contraer
+      // Si tiene hijos, expandir/contraer SIEMPRE
+      console.log(`Toggling expansión para: ${item.label}`);
       this.toggleItemExpansion(item.id);
     } else if (item.route) {
       // Si tiene ruta, navegar
@@ -129,12 +144,17 @@ export class Sidebar {
     const expanded = this.expandedItems();
     const newExpanded = new Set(expanded);
     
-    if (newExpanded.has(itemId)) {
+    const wasExpanded = newExpanded.has(itemId);
+    if (wasExpanded) {
       newExpanded.delete(itemId);
+      console.log(`Colapsando item: ${itemId}`);
     } else {
       newExpanded.add(itemId);
+      console.log(`Expandiendo item: ${itemId}`);
     }
     
+    console.log(`Estado expansión antes:`, Array.from(expanded));
+    console.log(`Estado expansión después:`, Array.from(newExpanded));
     this.expandedItems.set(newExpanded);
   }
 

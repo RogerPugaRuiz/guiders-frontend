@@ -31,22 +31,19 @@
   gap: 1rem;
   padding: var(--card-padding);
   background: var(--surface-color);
-  border: 1px solid var(--border-color);
   border-radius: var(--card-border-radius);
   transition: var(--transition);
   cursor: pointer;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
   
   &:hover {
     background: var(--hover-bg);
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
   }
   
   &.selected {
     background: var(--selected-bg);
-    border-color: var(--selected-border);
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    box-shadow: 3px 3px 10px rgba(59, 130, 246, 0.2);
   }
   
   &.selectable {
@@ -83,14 +80,14 @@
     width: 1.25rem;
     height: 1.25rem;
     border-radius: 0.25rem;
-    border: 2px solid var(--border-color);
     background: var(--surface-color);
     cursor: pointer;
     transition: var(--transition);
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
     
     &:checked {
       background: var(--primary-color);
-      border-color: var(--primary-color);
+      box-shadow: 1px 1px 6px rgba(59, 130, 246, 0.3);
     }
     
     &:focus-visible {
@@ -260,7 +257,7 @@
   padding: 0.75rem;
   background: rgba(0, 0, 0, 0.02);
   border-radius: 0.5rem;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 1rem;
   
   .meta-item {
@@ -318,7 +315,6 @@
       
       &:hover {
         background: #4338ca;
-        transform: translateY(-1px);
       }
       
       &:focus-visible {
@@ -330,12 +326,12 @@
     &.secondary {
       background: transparent;
       color: var(--text-secondary);
-      border: 1px solid var(--border-color);
+      box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.1);
       
       &:hover {
         background: var(--hover-bg);
         color: var(--text-primary);
-        border-color: var(--primary-color);
+        box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.15);
       }
       
       &:focus-visible {

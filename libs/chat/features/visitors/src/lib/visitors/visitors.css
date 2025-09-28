@@ -47,49 +47,52 @@
   overflow-x: auto;
 }
 
-/* Header card */
+/* Header card simplificado */
 .visitors-header-card .page-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
-  gap: var(--spacing-6);
-}
-
-@media (max-width: 1024px) {
-  .visitors-header-card .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-4);
-  }
+  gap: var(--spacing-4);
+  padding: var(--spacing-6);
 }
 
 .page-info {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
+  flex: 1;
 }
 
 .page-title {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin: 0;
+  line-height: 1.2;
 }
 
 .title-icon {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
+  opacity: 0.8;
 }
 
 .page-description {
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin: 0;
+  margin-top: var(--spacing-1);
+  font-weight: var(--font-weight-medium);
 }
 
-/* Filter tabs */
+/* Filter tabs - Ocultos en la UI pero funcionales */
+.hidden-filter-controls {
+  display: none !important;
+}
+
+/* Estilos comentados - ya no se muestran en el header
 .filter-tabs {
   display: flex;
   gap: var(--spacing-1);
@@ -133,6 +136,7 @@
   background: var(--color-primary-500);
   color: var(--color-white);
 }
+*/
 
 .tab-icon {
   font-size: var(--font-size-sm);
@@ -217,7 +221,6 @@
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-3);
-  border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md);
   background: var(--color-white);
   color: var(--color-text-primary);
@@ -225,29 +228,27 @@
   cursor: pointer;
   transition: all var(--transition-duration-fast) var(--transition-timing);
   flex: 1;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .action-button:hover {
   background: var(--color-gray-50);
-  border-color: var(--color-primary-200);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
 }
 
 .action-button:active {
-  transform: translateY(0);
   box-shadow: none;
 }
 
 .action-button--primary {
   background: var(--color-primary-50);
-  border-color: var(--color-primary-200);
   color: var(--color-primary-800);
+  box-shadow: 2px 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .action-button--primary:hover {
   background: var(--color-primary-100);
-  border-color: var(--color-primary-300);
+  box-shadow: 3px 3px 12px rgba(59, 130, 246, 0.2);
 }
 
 .action-icon {
@@ -331,22 +332,21 @@
 /* Bento Card Base */
 .bento-card {
   background: var(--color-white);
-  border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   transition: all var(--transition-duration-fast) var(--transition-timing);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .bento-card:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
 }
 
 .bento-card--outlined {
-  border-width: 2px;
   background: transparent;
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 /* Bento Card Sizes */
@@ -382,18 +382,17 @@
 /* Bento KPI Styles */
 .bento-kpi {
   background: var(--color-white);
-  border: 1px solid var(--color-border);
   border-radius: var(--border-radius-md);
   padding: var(--spacing-4);
   display: flex;
   flex-direction: column;
   height: 100%;
   transition: all var(--transition-duration-fast) var(--transition-timing);
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .bento-kpi:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* KPI Size variants */

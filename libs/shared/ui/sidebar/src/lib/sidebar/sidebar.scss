@@ -380,7 +380,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    z-index: tokens.$z-index-modal;
+    z-index: 150;
     transform: translateX(-100%);
     transition: transform tokens.$duration-normal tokens.$easing-standard;
     box-shadow: tokens.$shadow-xl;
@@ -489,7 +489,7 @@
   right: 0 !important;
   bottom: 0 !important;
   background: rgba(0, 0, 0, 0.5) !important;
-  z-index: 1300 !important;
+  z-index: 120 !important;
   display: flex !important;
   align-items: flex-start !important;
   padding: tokens.$spacing-xl 0 0 tokens.$spacing-xl !important;
