@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { catchError, of, finalize } from 'rxjs';
+import { catchError, of, finalize, switchMap } from 'rxjs';
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
 import { CreateChatModal, CreateChatModalConfig } from '@guiders-frontend/create-chat-modal';
+import { BentoKpiComponent } from '@guiders-frontend/bento-kpi';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import {
   Visitor,
@@ -23,7 +24,8 @@ import {
   imports: [
     CommonModule, 
     VisitorsListComponent, 
-    CreateChatModal
+    CreateChatModal,
+    BentoKpiComponent
   ],
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.scss'],
@@ -33,15 +35,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
-  // Contexto del sitio resuelto dinámicamente
-  readonly siteId = signal<string | null>(null);
+  // ID del tenant (empresa) resuelto dinámicamente
+  readonly tenantId = signal<string | null>(null);
 
   // Estado reactivo del componente
   readonly state = signal<VisitorState>({
     visitors: [],
     selectedVisitor: null,
     filters: {
-      includeOffline: false,
+      includeOffline: true,
       hasActiveChat: false
     },
     sort: { field: 'lastVisit', direction: 'desc' },
@@ -59,7 +61,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       label: 'Sin Asignar',
       icon: '👥',
       description: 'Visitantes sin chat activo',
-      filters: { hasActiveChat: false, includeOffline: false } as VisitorFilters,
+      filters: { hasActiveChat: false, includeOffline: true } as VisitorFilters,
       count: 0
     },
     {
@@ -91,7 +93,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       label: 'Mis Visitantes',
       icon: '👤',
       description: 'Visitantes asignados a mi usuario',
-      filters: { hasActiveChat: true, includeOffline: false } as VisitorFilters,
+      filters: { hasActiveChat: true, includeOffline: true } as VisitorFilters,
       count: 0
     },
     {
@@ -120,20 +122,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   // Modal configuration
   readonly modalConfig = signal<CreateChatModalConfig>({
-    departments: [
-      { id: 'sales', name: 'Ventas' },
-      { id: 'support', name: 'Soporte Técnico' },
-      { id: 'marketing', name: 'Marketing' },
-      { id: 'general', name: 'Atención General' }
-    ],
-    priorities: [
-      { id: 'LOW', name: 'Baja', color: '#6b7280' },
-      { id: 'MEDIUM', name: 'Media', color: '#f59e0b' },
-      { id: 'HIGH', name: 'Alta', color: '#ef4444' },
-      { id: 'URGENT', name: 'Urgente', color: '#dc2626' }
-    ],
-    defaultDepartment: 'sales',
-    defaultPriority: 'MEDIUM',
     requireMessage: true,
     maxMessageLength: 500
   });
@@ -164,7 +152,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       visitors = visitors.filter(v => v.hasActiveChat === filters.hasActiveChat);
     }
 
-    if (!filters.includeOffline) {
+    if (filters.includeOffline === false) {
       visitors = visitors.filter(v => v.status !== 'offline');
     }
 
@@ -234,19 +222,81 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Resolver siteId a partir del host y luego cargar datos
-    const hostname = window.location.hostname;
-    this.visitorsService.resolveSite(hostname)
+    // Obtener sitios de la empresa usando el endpoint correcto /api/companies/{companyId}/sites
+    this.visitorsService.getCompanySites()
       .pipe(
         catchError((error: Error) => {
-          console.error('Error resolving site:', error);
-          this.updateState({ error: 'No se pudo resolver el sitio para este host.' });
-          return of(null);
+          console.error('Error obteniendo sitios de la empresa:', error);
+          
+          // Fallback: intentar con el método original si falla
+          console.log('[Visitors] Intentando método fallback...');
+          const hostname = window.location.hostname;
+          return this.visitorsService.resolveSite(hostname).pipe(
+            switchMap(resolveResponse => {
+              // Convertir respuesta de resolveSite al formato esperado
+              return of({
+                sites: [{
+                  siteId: resolveResponse.siteId,
+                  tenantId: resolveResponse.tenantId,
+                  siteName: resolveResponse.siteName,
+                  domain: hostname,
+                  isActive: true
+                }],
+                companyId: '',
+                companyName: resolveResponse.companyName,
+                totalSites: 1
+              });
+            }),
+            catchError((fallbackError: Error) => {
+              console.error('Error en fallback:', fallbackError);
+              this.updateState({ error: 'No se pudieron obtener los sitios de la empresa.' });
+              return of(null);
+            })
+          );
         })
       )
-      .subscribe((res) => {
-        if (!res) return;
-        this.siteId.set(res.siteId);
+      .subscribe((response: {
+        sites: Array<{
+          siteId: string;
+          tenantId: string;
+          siteName: string;
+          domain: string;
+          isActive: boolean;
+        }>;
+        companyId: string;
+        companyName: string;
+        totalSites: number;
+      } | null) => {
+        if (!response) {
+          return; // Error ya manejado en catchError
+        }
+
+        // La respuesta viene de getCompanySites() que tiene el formato { sites: [], companyId: "", ... }
+        if (!response.sites || !response.sites.length) {
+          this.updateState({ error: 'No se encontraron sitios activos para esta empresa.' });
+          return;
+        }
+
+        // Buscar el sitio que coincida con el hostname actual o usar el primero activo
+        const hostname = window.location.hostname;
+        let selectedSite = response.sites.find(site => 
+          site.domain.toLowerCase() === hostname.toLowerCase() || 
+          site.domain.toLowerCase().includes(hostname.toLowerCase())
+        );
+
+        // Si no se encuentra coincidencia por dominio, usar el primer sitio activo
+        if (!selectedSite) {
+          selectedSite = response.sites.find(site => site.isActive);
+        }
+
+        if (!selectedSite) {
+          this.updateState({ error: 'No se encontró un sitio activo disponible.' });
+          return;
+        }
+
+        console.log(`[Visitors] Usando tenant: ${selectedSite.siteName} (${selectedSite.tenantId}) de la empresa: ${response.companyName}`);
+        this.tenantId.set(selectedSite.tenantId);
+
         this.loadVisitors();
         this.loadStats();
 
@@ -279,7 +329,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       filtered = filtered.filter(v => v.hasActiveChat === filters.hasActiveChat);
     }
 
-    if (!filters.includeOffline) {
+    if (filters.includeOffline === false) {
       filtered = filtered.filter(v => v.status !== 'offline');
     }
 
@@ -288,9 +338,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   // Métodos para cargar datos
   loadVisitors(): void {
-    // Aún no hay siteId resuelto
-    const siteId = this.siteId();
-    if (!siteId) {
+    // Aún no hay tenantId resuelto
+    const tenantId = this.tenantId();
+    if (!tenantId) {
       return;
     }
     this.updateState({ loading: true, error: null });
@@ -305,7 +355,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       search: currentState.searchQuery || undefined
     };
 
-    this.visitorsService.getVisitors(siteId, queryParams)
+    this.visitorsService.getVisitors(tenantId, queryParams)
       .pipe(
         catchError((error: Error) => {
           console.error('Error loading visitors:', error);
@@ -322,9 +372,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   private loadStats(): void {
-    const siteId = this.siteId();
-    if (!siteId) return;
-    this.visitorsService.getVisitorStats(siteId)
+    const tenantId = this.tenantId();
+    if (!tenantId) return;
+    this.visitorsService.getVisitorStats(tenantId)
       .pipe(
         catchError((error: Error) => {
           console.error('Error loading visitor stats:', error);
@@ -340,8 +390,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   private refreshVisitors(): void {
     if (this.state().loading) return;
-    const siteId = this.siteId();
-    if (!siteId) return;
+    const tenantId = this.tenantId();
+    if (!tenantId) return;
     const currentState = this.state();
     
     const queryParams = {
@@ -351,7 +401,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       search: currentState.searchQuery || undefined
     };
 
-    this.visitorsService.getVisitors(siteId, queryParams)
+    this.visitorsService.getVisitors(tenantId, queryParams)
       .pipe(
         catchError(() => of({ visitors: [], total: 0, hasMore: false }))
       )

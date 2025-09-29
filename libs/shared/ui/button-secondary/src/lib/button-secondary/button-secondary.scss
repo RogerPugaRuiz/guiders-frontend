@@ -1,0 +1,49 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: inline-block;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  border: 1px solid tokens.$color-primary-500;
+  border-radius: tokens.$border-radius-md;
+  font-family: tokens.$font-family-ui;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
+  line-height: tokens.$line-height-tight;
+  cursor: pointer;
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+  text-decoration: none;
+  background: transparent;
+  color: tokens.$color-primary-500;
+  box-shadow: none;
+  
+  &:hover {
+    background: rgba(0, 123, 255, 0.05);
+    border-color: tokens.$color-primary-600;
+    color: tokens.$color-primary-600;
+  }
+  
+  &:active {
+    background: rgba(0, 123, 255, 0.1);
+    border-color: tokens.$color-primary-700;
+    color: tokens.$color-primary-700;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: 2px;
+  }
+  
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: transparent;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-disabled;
+  }
+}

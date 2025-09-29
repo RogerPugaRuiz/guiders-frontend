@@ -8,14 +8,17 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
-import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
+import { ENVIRONMENT_TOKEN, authRefreshInterceptor } from '@guiders-frontend/auth/data-access/session';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
-    provideHttpClient(withInterceptors([authInterceptor()])),
+    provideHttpClient(withInterceptors([
+      authRefreshInterceptor, // Refresh automático antes que el auth interceptor  
+      authInterceptor()
+    ])),
     provideAuth({
       config: {
         authority: environment.auth.authority,

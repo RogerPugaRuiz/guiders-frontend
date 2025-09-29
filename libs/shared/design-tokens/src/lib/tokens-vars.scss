@@ -1,7 +1,4 @@
-/**
- * Design Tokens - Variables SASS Completas
- * Variables SASS para usar con @use y @import
- */
+/* Design Tokens - Variables SASS */
 
 // === COLORES ===
 // Surface colors
@@ -17,15 +14,24 @@ $color-text-primary: #212529;
 $color-text-secondary: #495057;
 $color-text-tertiary: #6c757d;
 $color-text-disabled: #ced4da;
+$color-text-inverse: #ffffff;
 
 // Brand colors
+$color-brand-primary: #007bff;
 $color-primary-500: #007bff;
 $color-primary-600: #0066cc;
 $color-primary-700: #004d99;
 
+// Danger colors
+$color-danger-500: #dc3545;
+$color-danger-600: #b02a37;
+$color-danger-700: #842029;
+
 // Borders
 $color-border-subtle: #dee2e6;
 $color-border-default: #ced4da;
+$color-border-primary: #007bff;
+$color-border-secondary: #e9ecef;
 $color-border-strong: #6c757d;
 
 // Overlay
@@ -77,7 +83,6 @@ $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 
 // === MOVIMIENTO ===
 $duration-fast: 100ms;
 $duration-normal: 150ms;
-
 $easing-standard: cubic-bezier(0.2, 0, 0, 1);
 $easing-entrance: cubic-bezier(0, 0, 0.2, 1);
 
@@ -87,13 +92,12 @@ $z-index-modal: 1300;
 
 // === BREAKPOINTS ===
 $breakpoint-md: 768px;
-$breakpoint-lg: 1024px;  
+$breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 $breakpoint-2xl: 1440px;
 
 // === MIXINS ===
 
-// Typography mixin
 @mixin typography($size) {
   @if $size == 'heading-3xl' {
     font-size: $font-size-2xl;
@@ -111,6 +115,10 @@ $breakpoint-2xl: 1440px;
     font-size: $font-size-xs;
     font-weight: $font-weight-regular;
     line-height: $line-height-relaxed;
+  } @else if $size == 'caption' {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    line-height: $line-height-tight;
   } @else if $size == 'h1' {
     font-size: $font-size-2xl;
     font-weight: $font-weight-bold;
@@ -123,7 +131,6 @@ $breakpoint-2xl: 1440px;
   font-family: $font-family-ui;
 }
 
-// Button base mixin
 @mixin button-base {
   display: inline-flex;
   align-items: center;
@@ -158,7 +165,6 @@ $breakpoint-2xl: 1440px;
   }
 }
 
-// Loading spinner mixin
 @mixin loading-spinner {
   display: inline-block;
   width: 20px;
@@ -169,14 +175,13 @@ $breakpoint-2xl: 1440px;
   animation: spin 1s ease-in-out infinite;
 }
 
+@mixin focus-ring {
+  outline: 2px solid $color-primary-500;
+  outline-offset: 2px;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
-}
-
-// Focus ring mixin
-@mixin focus-ring {
-  outline: 2px solid $color-primary-500;
-  outline-offset: 2px;
 }

@@ -1,7 +1,7 @@
-@use '../../../../../../shared/design-tokens/tokens.scss' as tokens;
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
 :host {
-  font-family: var(--font-family-primary);
+  font-family: tokens.$font-family-ui;
 }
 
 // Overlay del modal
@@ -11,13 +11,13 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: var(--color-overlay-backdrop);
+  background: tokens.$color-overlay-backdrop;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-index-modal);
+  z-index: tokens.$z-index-modal;
   backdrop-filter: blur(4px);
-  animation: modal-overlay-enter var(--duration-fast) ease-out;
+  animation: modal-overlay-enter tokens.$duration-fast ease-out;
 }
 
 @keyframes modal-overlay-enter {
@@ -33,17 +33,17 @@
 
 // Contenedor del modal
 .modal-container {
-  background: var(--color-background-primary);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-2xl);
+  background: tokens.$color-surface-primary;
+  border-radius: 12px;
+  box-shadow: tokens.$shadow-xl;
   width: 100%;
   max-width: 600px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  margin: var(--spacing-lg);
-  border: 1px solid var(--color-border-subtle);
-  animation: modal-container-enter var(--duration-fast) ease-out;
+  margin: tokens.$spacing-lg;
+  border: 1px solid tokens.$color-border-subtle;
+  animation: modal-container-enter tokens.$duration-fast ease-out;
 }
 
 @keyframes modal-container-enter {
@@ -59,8 +59,8 @@
 
 // Header del modal
 .modal-header {
-  padding: var(--spacing-xl);
-  border-bottom: 1px solid var(--color-border-subtle);
+  padding: tokens.$spacing-xl;
+  border-bottom: 1px solid tokens.$color-border-subtle;
   flex-shrink: 0;
 }
 
@@ -68,32 +68,32 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--spacing-lg);
+  gap: tokens.$spacing-lg;
 }
 
 .visitor-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: tokens.$spacing-md;
   flex: 1;
 }
 
 .visitor-avatar {
-  width: var(--size-3xl);
-  height: var(--size-3xl);
-  border-radius: var(--radius-full);
-  background: var(--color-primary-subtle);
+  width: tokens.$size-3xl;
+  height: tokens.$size-3xl;
+  border-radius: tokens.$border-radius-full;
+  background: tokens.$color-surface-selected;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--color-border-subtle);
+  border: 2px solid tokens.$color-border-subtle;
   flex-shrink: 0;
 }
 
 .avatar-text {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-primary-default);
+  font-size: tokens.$font-size-lg;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-primary-600;
 }
 
 .visitor-details {
@@ -102,43 +102,43 @@
 }
 
 .modal-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
-  line-height: var(--line-height-tight);
+  font-size: tokens.$font-size-xl;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-text-primary;
+  margin: 0 0 tokens.$spacing-xs 0;
+  line-height: tokens.$line-height-tight;
 }
 
 .visitor-name {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-secondary);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: tokens.$font-size-base;
+  font-weight: tokens.$font-weight-medium;
+  color: tokens.$color-text-secondary;
+  margin: 0 0 tokens.$spacing-xs 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .visitor-status {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-full);
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-full;
   display: inline-block;
 
   &.status-online {
-    background: var(--color-success-subtle);
-    color: var(--color-success-default);
+    background: #dcfce7;
+    color: #15803d;
   }
 
   &.status-offline {
-    background: var(--color-neutral-subtle);
-    color: var(--color-text-tertiary);
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-tertiary;
   }
 
   &.status-idle {
-    background: var(--color-warning-subtle);
-    color: var(--color-warning-default);
+    background: #fef3c7;
+    color: #d97706;
   }
 }
 
@@ -149,13 +149,13 @@
 
 // Cuerpo del modal
 .modal-body {
-  padding: var(--spacing-xl);
+  padding: tokens.$spacing-xl;
   overflow-y: auto;
   flex: 1;
   
   // Scroll personalizado
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border-default) transparent;
+  scrollbar-color: tokens.$color-border-default transparent;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -166,18 +166,18 @@
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border-default);
-    border-radius: var(--radius-md);
+    background: tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: var(--color-border-strong);
+    background: tokens.$color-border-strong;
   }
 }
 
 // Grupos de formulario
 .form-group {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: tokens.$spacing-lg;
   
   &:last-child {
     margin-bottom: 0;
@@ -187,26 +187,26 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-lg);
+  gap: tokens.$spacing-lg;
   
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: tokens.$spacing-md;
   }
 }
 
 // Labels y elementos de formulario nativos (para textarea)
 .form-label {
   display: block;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-sm);
-  line-height: var(--line-height-tight);
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
+  color: tokens.$color-text-primary;
+  margin-bottom: tokens.$spacing-sm;
+  line-height: tokens.$line-height-tight;
   
   .optional-label {
-    color: var(--color-text-tertiary);
-    font-weight: var(--font-weight-regular);
+    color: tokens.$color-text-tertiary;
+    font-weight: tokens.$font-weight-regular;
   }
 }
 
@@ -217,112 +217,122 @@
 .form-textarea {
   width: 100%;
   min-height: 80px;
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-md);
-  background: var(--color-background-primary);
-  color: var(--color-text-primary);
-  font-family: var(--font-family-primary);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-relaxed);
+  padding: tokens.$spacing-md;
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-md;
+  background: tokens.$color-surface-primary;
+  color: tokens.$color-text-primary;
+  font-family: tokens.$font-family-ui;
+  font-size: tokens.$font-size-base;
+  line-height: tokens.$line-height-relaxed;
   resize: vertical;
-  transition: var(--transition-all);
+  transition: all tokens.$duration-normal tokens.$easing-standard;
   
   &:focus-visible {
-    @include tokens.focus-ring;
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: 2px;
   }
   
   &::placeholder {
-    color: var(--color-text-placeholder);
+    color: tokens.$color-text-tertiary;
   }
   
   &.error {
-    border-color: var(--color-danger-default);
-    background: var(--color-danger-subtle);
+    border-color: #ef4444;
+    background: #fef2f2;
   }
   
   &:disabled {
-    background: var(--color-background-disabled);
-    color: var(--color-text-disabled);
+    background: tokens.$color-surface-disabled;
+    color: tokens.$color-text-disabled;
     cursor: not-allowed;
   }
 }
 
 .character-count {
   position: absolute;
-  bottom: var(--spacing-sm);
-  right: var(--spacing-md);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-mono);
-  color: var(--color-text-tertiary);
-  background: var(--color-background-primary);
-  padding: var(--spacing-xs);
-  border-radius: var(--radius-sm);
+  bottom: tokens.$spacing-sm;
+  right: tokens.$spacing-md;
+  font-size: tokens.$font-size-xs;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  color: tokens.$color-text-tertiary;
+  background: tokens.$color-surface-primary;
+  padding: tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-sm;
   
   .count-text {
     &.warning {
-      color: var(--color-warning-default);
+      color: #f59e0b;
     }
     
     &.error {
-      color: var(--color-danger-default);
-      font-weight: var(--font-weight-semibold);
+      color: #ef4444;
+      font-weight: tokens.$font-weight-semibold;
     }
   }
 }
 
 .error-message {
   display: block;
-  margin-top: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-danger-default);
-  font-weight: var(--font-weight-medium);
+  margin-top: tokens.$spacing-sm;
+  font-size: tokens.$font-size-sm;
+  color: #ef4444;
+  font-weight: tokens.$font-weight-medium;
+}
+
+// Selectores personalizados en el modal
+.department-select,
+.priority-select {
+  guiders-select {
+    width: 100%;
+  }
 }
 
 // Indicador de prioridad
 .priority-indicator {
-  margin-top: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-on-primary);
+  margin-top: tokens.$spacing-sm;
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-full;
+  font-size: tokens.$font-size-xs;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-text-inverse;
   display: inline-block;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
 // Sección de opciones avanzadas
 .advanced-section {
-  margin-top: var(--spacing-xl);
-  border-top: 1px solid var(--color-border-subtle);
-  padding-top: var(--spacing-xl);
+  margin-top: tokens.$spacing-xl;
+  border-top: 1px solid tokens.$color-border-subtle;
+  padding-top: tokens.$spacing-xl;
 }
 
 .toggle-advanced {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: tokens.$spacing-sm;
   background: none;
   border: none;
-  color: var(--color-text-secondary);
-  font-family: var(--font-family-primary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  color: tokens.$color-text-secondary;
+  font-family: tokens.$font-family-ui;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
   cursor: pointer;
-  padding: var(--spacing-sm) 0;
-  transition: var(--transition-all);
+  padding: tokens.$spacing-sm 0;
+  transition: all tokens.$duration-normal tokens.$easing-standard;
   
   &:hover {
-    color: var(--color-text-primary);
+    color: tokens.$color-text-primary;
   }
   
   &:focus-visible {
-    @include tokens.focus-ring;
-    border-radius: var(--radius-sm);
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: 2px;
+    border-radius: tokens.$border-radius-sm;
   }
   
   &.active {
-    color: var(--color-primary-default);
+    color: tokens.$color-brand-primary;
     
     .toggle-icon {
       transform: rotate(0deg);
@@ -331,14 +341,14 @@
 }
 
 .toggle-icon {
-  font-size: var(--font-size-xs);
-  transition: transform var(--duration-fast);
+  font-size: tokens.$font-size-xs;
+  transition: transform tokens.$duration-fast tokens.$easing-standard;
   transform: rotate(-90deg);
 }
 
 .advanced-content {
-  margin-top: var(--spacing-lg);
-  animation: advanced-content-enter var(--duration-normal) ease-out;
+  margin-top: tokens.$spacing-lg;
+  animation: advanced-content-enter tokens.$duration-normal ease-out;
 }
 
 @keyframes advanced-content-enter {
@@ -354,40 +364,40 @@
 
 // Sección de información del visitante
 .visitor-form-section {
-  margin-top: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-border-subtle);
+  margin-top: tokens.$spacing-lg;
+  padding: tokens.$spacing-lg;
+  background: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-md;
+  border: 1px solid tokens.$color-border-subtle;
 }
 
 .section-title {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-lg) 0;
-  line-height: var(--line-height-tight);
+  font-size: tokens.$font-size-base;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-text-primary;
+  margin: 0 0 tokens.$spacing-lg 0;
+  line-height: tokens.$line-height-tight;
 }
 
 // Grupo de checkbox
 .checkbox-group {
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: tokens.$spacing-lg;
 }
 
 // Footer del modal
 .modal-footer {
-  padding: var(--spacing-xl);
-  border-top: 1px solid var(--color-border-subtle);
-  background: var(--color-background-secondary);
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  padding: tokens.$spacing-xl;
+  border-top: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+  border-radius: 0 0 12px 12px;
   flex-shrink: 0;
 }
 
 .footer-actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: tokens.$spacing-md;
   justify-content: flex-end;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: tokens.$spacing-md;
 }
 
 // Hints de teclado
@@ -397,22 +407,22 @@
 }
 
 .hint-text {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  font-size: tokens.$font-size-xs;
+  color: tokens.$color-text-tertiary;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: tokens.$spacing-sm;
   
   kbd {
-    background: var(--color-background-neutral);
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-sm);
-    padding: 2px var(--spacing-xs);
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-text-secondary);
-    box-shadow: var(--shadow-sm);
+    background: tokens.$color-surface-tertiary;
+    border: 1px solid tokens.$color-border-default;
+    border-radius: tokens.$border-radius-sm;
+    padding: 2px tokens.$spacing-xs;
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-secondary;
+    box-shadow: tokens.$shadow-sm;
   }
 }
 
@@ -523,12 +533,7 @@
   }
 }
 
-// Tema oscuro
-@media (prefers-color-scheme: dark) {
-  :host {
-    // Los design tokens ya manejan el tema oscuro automáticamente
-  }
-}
+// El tema oscuro se maneja automáticamente a través de los design tokens
 
 // Variante compacta
 :host(.compact) {

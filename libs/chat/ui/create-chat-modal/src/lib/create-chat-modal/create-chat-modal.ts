@@ -14,32 +14,20 @@ import {
   CreateChatWithVisitorRequest 
 } from '@guiders-frontend/shared/types';
 import { Button } from '@guiders-frontend/button';
-import { TextField } from '@guiders-frontend/text-field';
-import { Select } from '@guiders-frontend/select';
-import { Checkbox } from '@guiders-frontend/checkbox';
 
 export interface CreateChatModalConfig {
-  departments: Array<{ id: string; name: string; }>;
-  priorities: Array<{ id: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'; name: string; color: string; }>;
-  defaultDepartment?: string;
-  defaultPriority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
   requireMessage: boolean;
   maxMessageLength: number;
 }
 
 export interface CreateChatFormData {
   message: string;
-  department: string;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  visitorName?: string;
-  visitorEmail?: string;
-  visitorPhone?: string;
-  updateVisitorInfo: boolean;
 }
 
 @Component({
   selector: 'lib-create-chat-modal',
-  imports: [CommonModule, ReactiveFormsModule, Button, TextField, Select, Checkbox],
+  imports: [CommonModule, ReactiveFormsModule, Button],
+  standalone: true,
   templateUrl: './create-chat-modal.html',
   styleUrl: './create-chat-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,19 +38,6 @@ export class CreateChatModal {
   readonly isOpen = input<boolean>(false);
   readonly loading = input<boolean>(false);
   readonly config = input<CreateChatModalConfig>({
-    departments: [
-      { id: 'sales', name: 'Ventas' },
-      { id: 'support', name: 'Soporte' },
-      { id: 'general', name: 'General' }
-    ],
-    priorities: [
-      { id: 'LOW', name: 'Baja', color: '#6b7280' },
-      { id: 'MEDIUM', name: 'Media', color: '#f59e0b' },
-      { id: 'HIGH', name: 'Alta', color: '#ef4444' },
-      { id: 'URGENT', name: 'Urgente', color: '#dc2626' }
-    ],
-    defaultDepartment: 'sales',
-    defaultPriority: 'MEDIUM',
     requireMessage: true,
     maxMessageLength: 500
   });
@@ -74,7 +49,6 @@ export class CreateChatModal {
   // Internal state
   private readonly fb = new FormBuilder();
   readonly chatForm = signal<FormGroup>(this.createForm());
-  readonly showAdvancedOptions = signal<boolean>(false);
 
   // Computed values
   readonly isFormValid = computed(() => {
@@ -109,34 +83,8 @@ export class CreateChatModal {
     return config.maxMessageLength - count;
   });
 
-  readonly selectedPriority = computed(() => {
-    const form = this.chatForm();
-    const priorityId = form.get('priority')?.value;
-    return this.config().priorities.find(p => p.id === priorityId);
-  });
-
-  readonly departmentOptions = computed(() => {
-    return this.config().departments.map(dept => ({ 
-      value: dept.id, 
-      label: dept.name 
-    }));
-  });
-
-  readonly priorityOptions = computed(() => {
-    return this.config().priorities.map(priority => ({ 
-      value: priority.id, 
-      label: priority.name 
-    }));
-  });
-
   constructor() {
-    // Effect para reinicializar el formulario cuando cambie el visitante
-    effect(() => {
-      const visitor = this.visitor();
-      if (visitor) {
-        this.initializeFormForVisitor(visitor);
-      }
-    });
+
 
     // Effect para manejar el estado del modal
     effect(() => {
@@ -152,30 +100,11 @@ export class CreateChatModal {
   private createForm(): FormGroup {
     const config = this.config();
     return this.fb.group({
-      message: ['', config.requireMessage ? [Validators.required, Validators.maxLength(config.maxMessageLength)] : [Validators.maxLength(config.maxMessageLength)]],
-      department: [config.defaultDepartment || '', Validators.required],
-      priority: [config.defaultPriority || 'MEDIUM', Validators.required],
-      visitorName: [''],
-      visitorEmail: ['', Validators.email],
-      visitorPhone: [''],
-      updateVisitorInfo: [false]
+      message: ['', config.requireMessage ? [Validators.required, Validators.maxLength(config.maxMessageLength)] : [Validators.maxLength(config.maxMessageLength)]]
     });
   }
 
-  private initializeFormForVisitor(visitor: Visitor): void {
-    const config = this.config();
-    const form = this.fb.group({
-      message: ['', config.requireMessage ? [Validators.required, Validators.maxLength(config.maxMessageLength)] : [Validators.maxLength(config.maxMessageLength)]],
-      department: [config.defaultDepartment || '', Validators.required],
-      priority: [config.defaultPriority || 'MEDIUM', Validators.required],
-      visitorName: [visitor.name || ''],
-      visitorEmail: [visitor.email || '', visitor.email ? Validators.email : ''],
-      visitorPhone: [visitor.phone || ''],
-      updateVisitorInfo: [false]
-    });
 
-    this.chatForm.set(form);
-  }
 
   private onModalOpen(): void {
     // Focus en el primer campo del formulario
@@ -188,7 +117,6 @@ export class CreateChatModal {
   private onModalClose(): void {
     // Resetear el formulario al cerrar
     this.chatForm().reset();
-    this.showAdvancedOptions.set(false);
   }
 
   // Event handlers
@@ -215,27 +143,17 @@ export class CreateChatModal {
         content: formData.message,
         type: 'TEXT'
       } : undefined,
-      visitorInfo: formData.updateVisitorInfo ? {
-        name: formData.visitorName || undefined,
-        email: formData.visitorEmail || undefined,
-        phone: formData.visitorPhone || undefined
-      } : {
+      visitorInfo: {
         name: visitor.name,
         email: visitor.email,
         phone: visitor.phone
       },
       metadata: {
-        department: formData.department,
-        source: 'proactive_chat',
-        priority: formData.priority
+        source: 'proactive_chat'
       }
     };
 
     this.createChat.emit(request);
-  }
-
-  toggleAdvancedOptions(): void {
-    this.showAdvancedOptions.update(current => !current);
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -244,11 +162,6 @@ export class CreateChatModal {
     } else if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       this.onSubmit();
     }
-  }
-
-  getPriorityColor(priorityId: string): string {
-    const priority = this.config().priorities.find(p => p.id === priorityId);
-    return priority?.color || '#6b7280';
   }
 
   // Validación helpers

@@ -161,6 +161,24 @@ export interface GetVisitorsResponse {
   nextCursor?: string;
 }
 
+// Respuesta del endpoint tenant-visitors
+export interface GetTenantVisitorsResponse {
+  tenantId: string;
+  companyName: string;
+  visitors: Array<{
+    id: string;
+    fingerprint: string;
+    connectionStatus: "ONLINE" | "OFFLINE";
+    siteId: string;
+    siteName: string;
+    createdAt: string;
+    lastActivity: string;
+  }>;
+  totalCount: number;
+  activeSitesCount: number;
+  timestamp: string;
+}
+
 export interface GetVisitorResponse {
   visitor: Visitor;
   sessions: VisitorSession[];

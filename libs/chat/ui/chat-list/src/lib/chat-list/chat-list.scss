@@ -1,4 +1,4 @@
-@use '../../../../../../shared/design-tokens/tokens.scss' as tokens;
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
 :host {
   display: block;

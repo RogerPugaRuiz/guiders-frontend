@@ -44,12 +44,6 @@
     <form [formGroup]="chatForm()" (ngSubmit)="onSubmit()" class="modal-body">
       <!-- Mensaje inicial -->
       <div class="form-group">
-        <label for="message" class="form-label">
-          Mensaje inicial
-          @if (!config().requireMessage) {
-            <span class="optional-label">(opcional)</span>
-          }
-        </label>
         <div class="textarea-container">
           <label for="message" class="form-label">
             Mensaje inicial
@@ -77,106 +71,7 @@
         </div>
       </div>
 
-      <!-- Configuración del chat -->
-      <div class="form-row">
-        <div class="form-group">
-          <guiders-select
-            label="Departamento"
-            [options]="departmentOptions()"
-            [value]="chatForm().get('department')?.value || ''"
-            [errorMessage]="getFieldError('department') || undefined"
-            [required]="true"
-            placeholder="Seleccionar departamento"
-            (valueChange)="chatForm().get('department')?.setValue($event)"
-            class="department-select">
-          </guiders-select>
-        </div>
 
-        <div class="form-group">
-          <guiders-select
-            label="Prioridad"
-            [options]="priorityOptions()"
-            [value]="chatForm().get('priority')?.value || ''"
-            (valueChange)="chatForm().get('priority')?.setValue($event)"
-            class="priority-select">
-          </guiders-select>
-          @if (selectedPriority()) {
-            <div class="priority-indicator" [style.background-color]="selectedPriority()?.color">
-              {{ selectedPriority()?.name }}
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Opciones avanzadas -->
-      <div class="advanced-section">
-        <button
-          type="button"
-          class="toggle-advanced"
-          (click)="toggleAdvancedOptions()"
-          [class.active]="showAdvancedOptions()"
-        >
-          <span class="toggle-icon">{{ showAdvancedOptions() ? '▼' : '▶' }}</span>
-          <span class="toggle-text">Opciones avanzadas</span>
-        </button>
-
-        @if (showAdvancedOptions()) {
-          <div class="advanced-content">
-            <!-- Actualizar información del visitante -->
-            <div class="form-group checkbox-group" [formGroup]="chatForm()">
-              <guiders-checkbox
-                label="Actualizar información del visitante"
-                formControlName="updateVisitorInfo"
-                class="update-visitor-checkbox">
-              </guiders-checkbox>
-            </div>
-
-            @if (chatForm().get('updateVisitorInfo')?.value) {
-              <div class="visitor-form-section">
-                <h4 class="section-title">Información del visitante</h4>
-                
-                <div class="form-group">
-                  <guiders-text-field
-                    type="text"
-                    label="Nombre completo"
-                    placeholder="Nombre del visitante"
-                    [value]="chatForm().get('visitorName')?.value || ''"
-                    [errorMessage]="getFieldError('visitorName') || undefined"
-                    (valueChange)="chatForm().get('visitorName')?.setValue($event)"
-                    class="visitor-name-field">
-                  </guiders-text-field>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <guiders-text-field
-                      type="email"
-                      label="Email"
-                      placeholder="email@ejemplo.com"
-                      [value]="chatForm().get('visitorEmail')?.value || ''"
-                      [errorMessage]="getFieldError('visitorEmail') || undefined"
-                      (valueChange)="chatForm().get('visitorEmail')?.setValue($event)"
-                      class="visitor-email-field">
-                    </guiders-text-field>
-                  </div>
-
-                  <div class="form-group">
-                    <guiders-text-field
-                      type="tel"
-                      label="Teléfono"
-                      placeholder="+34 XXX XXX XXX"
-                      [value]="chatForm().get('visitorPhone')?.value || ''"
-                      [errorMessage]="getFieldError('visitorPhone') || undefined"
-                      (valueChange)="chatForm().get('visitorPhone')?.setValue($event)"
-                      class="visitor-phone-field">
-                    </guiders-text-field>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
     </form>
 
     <!-- Modal Footer -->
@@ -184,7 +79,7 @@
       <div class="footer-actions">
         <guiders-button
           type="button"
-          variant="secondary"
+          variant="cancel"
           (click)="onCancel()"
           [disabled]="loading()"
           [ariaLabel]="'Cancelar creación de chat'">
@@ -201,7 +96,7 @@
           @if (loading()) {
             Creando...
           } @else {
-            💬 Iniciar Chat
+            Iniciar Chat
           }
         </guiders-button>
       </div>

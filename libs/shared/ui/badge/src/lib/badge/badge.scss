@@ -1,4 +1,4 @@
-@use '../../../../../design-tokens/tokens.scss' as tokens;
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
 
 :host {
   display: inline-flex;

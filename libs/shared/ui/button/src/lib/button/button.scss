@@ -4,7 +4,7 @@
  * Cumple WCAG 2.2 AA
  */
 
-@use '../../../../../design-tokens/tokens.scss' as tokens;
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
 
 :host {
   display: inline-block;
@@ -46,21 +46,21 @@
 
   // === VARIANTES ===
   
-  // Primary - Acción principal
+  // Primary - Acción principal con degradado sutil
   &--primary {
-    background-color: var(--color-brand);
+    background: linear-gradient(135deg, var(--color-brand) 0%, color-mix(in srgb, var(--color-brand) 90%, black) 100%);
     color: var(--color-on-brand);
     border-color: var(--color-brand);
     
     &:hover:not(:disabled) {
-      background-color: var(--color-brand-hover);
+      background: linear-gradient(135deg, var(--color-brand-hover) 0%, color-mix(in srgb, var(--color-brand-hover) 85%, black) 100%);
       border-color: var(--color-brand-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
     
     &:active:not(:disabled) {
-      background-color: var(--color-brand-active);
+      background: linear-gradient(135deg, var(--color-brand-active) 0%, color-mix(in srgb, var(--color-brand-active) 80%, black) 100%);
       border-color: var(--color-brand-active);
       transform: translateY(0);
       box-shadow: var(--shadow-sm);
@@ -171,6 +171,32 @@
       background-color: var(--color-brand-disabled);
       color: var(--color-on-surface-disabled);
       border-color: var(--color-brand-disabled);
+    }
+  }
+  
+  // Cancel - Botón de cancelar con estilo rojo outline
+  &--cancel {
+    background-color: transparent;
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+    
+    &:hover:not(:disabled) {
+      background-color: var(--color-danger);
+      color: var(--color-on-danger);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: color-mix(in srgb, var(--color-danger) 85%, black);
+      transform: translateY(0);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    &:disabled,
+    &.guiders-button--disabled {
+      color: var(--color-on-surface-disabled);
+      border-color: var(--color-border-disabled);
     }
   }
 

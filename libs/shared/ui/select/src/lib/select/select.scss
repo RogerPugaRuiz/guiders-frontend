@@ -4,7 +4,7 @@
  * Cumple WCAG 2.2 AA
  */
 
-@use '../../../../../design-tokens/tokens.scss' as tokens;
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
 
 :host {
   display: block;
@@ -13,7 +13,7 @@
 .guiders-select {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: tokens.$spacing-xs;
   
   &--disabled {
     opacity: 0.6;
@@ -25,20 +25,20 @@
 
 .guiders-select__label {
   @include tokens.typography('label-large');
-  color: var(--color-on-surface);
-  font-weight: var(--font-weight-medium);
+  color: tokens.$color-text-primary;
+  font-weight: tokens.$font-weight-medium;
   display: block;
-  margin-bottom: var(--spacing-1);
+  margin-bottom: tokens.$spacing-xs;
   
   .guiders-select--disabled & {
-    color: var(--color-on-surface-disabled);
+    color: tokens.$color-text-disabled;
   }
 }
 
 .guiders-select__required {
-  color: var(--color-danger);
-  margin-left: var(--spacing-1);
-  font-weight: var(--font-weight-semibold);
+  color: #ef4444;
+  margin-left: tokens.$spacing-xs;
+  font-weight: tokens.$font-weight-semibold;
 }
 
 // === SELECT WRAPPER ===
@@ -53,13 +53,13 @@
 
 .guiders-select__control {
   width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  background-color: var(--color-surface);
-  color: var(--color-on-surface);
-  font-family: var(--font-family-ui);
-  font-weight: var(--font-weight-regular);
-  transition: all var(--duration-fast) var(--easing-standard);
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-md;
+  background-color: tokens.$color-surface-primary;
+  color: tokens.$color-text-primary;
+  font-family: tokens.$font-family-ui;
+  font-weight: tokens.$font-weight-regular;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
   cursor: pointer;
   
   // Quitar estilos por defecto del navegador
@@ -69,42 +69,42 @@
   -moz-appearance: none;
   
   // Espacio para el icono de dropdown
-  padding-right: var(--spacing-10);
+  padding-right: tokens.$spacing-xl;
   
   // Estados
   &:hover:not(:disabled) {
-    border-color: var(--color-border-hover);
+    border-color: tokens.$color-border-primary;
   }
   
   &:focus {
-    border-color: var(--color-border-focus);
-    box-shadow: var(--shadow-focus-brand);
-    background-color: var(--color-surface);
+    border-color: tokens.$color-brand-primary;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    background-color: tokens.$color-surface-primary;
   }
   
   &:disabled {
-    background-color: var(--color-surface-disabled);
-    border-color: var(--color-border-disabled);
-    color: var(--color-on-surface-disabled);
+    background-color: tokens.$color-surface-disabled;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-disabled;
     cursor: not-allowed;
   }
   
   &--has-error {
-    border-color: var(--color-danger);
+    border-color: #ef4444;
     
     &:focus {
-      border-color: var(--color-danger);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+      border-color: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
     }
   }
   
   &--placeholder {
-    color: var(--color-on-surface-tertiary);
+    color: tokens.$color-text-tertiary;
   }
   
   // Opciones múltiples
   .guiders-select--multiple & {
-    min-height: var(--spacing-20); // Más altura para múltiples opciones
+    min-height: 80px; // Más altura para múltiples opciones
   }
 }
 
@@ -112,23 +112,23 @@
 
 .guiders-select__icon {
   position: absolute;
-  right: var(--spacing-3);
+  right: tokens.$spacing-sm;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  color: var(--color-on-surface-secondary);
+  color: tokens.$color-text-secondary;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform var(--duration-fast) var(--easing-standard);
+  transition: transform tokens.$duration-fast tokens.$easing-standard;
   
   .guiders-select--disabled & {
-    color: var(--color-on-surface-disabled);
+    color: tokens.$color-text-disabled;
   }
   
   .guiders-select--focused & {
     transform: translateY(-50%) rotate(180deg);
-    color: var(--color-brand);
+    color: tokens.$color-brand-primary;
   }
   
   // Ocultar en selects múltiples
@@ -142,40 +142,41 @@
 .guiders-select--small {
   .guiders-select__control {
     @include tokens.typography('body-small');
-    min-height: var(--spacing-8); // 32px
-    padding: var(--spacing-1) var(--spacing-10) var(--spacing-1) var(--spacing-3); // 4px 40px 4px 12px
+    min-height: 32px;
+    padding: tokens.$spacing-xs tokens.$spacing-xl tokens.$spacing-xs tokens.$spacing-sm;
   }
   
   .guiders-select__label {
-    @include tokens.typography('label-medium');
+    @include tokens.typography('label-large');
+    font-size: tokens.$font-size-sm;
   }
   
   .guiders-select__icon {
-    right: var(--spacing-2);
+    right: tokens.$spacing-2xs;
   }
 }
 
 .guiders-select--medium {
   .guiders-select__control {
     @include tokens.typography('body-base');
-    min-height: var(--spacing-10); // 40px
-    padding: var(--spacing-2) var(--spacing-10) var(--spacing-2) var(--spacing-4); // 8px 40px 8px 16px
+    min-height: 40px;
+    padding: tokens.$spacing-2xs tokens.$spacing-xl tokens.$spacing-2xs tokens.$spacing-md;
   }
 }
 
 .guiders-select--large {
   .guiders-select__control {
-    @include tokens.typography('body-large');
-    min-height: var(--spacing-12); // 48px
-    padding: var(--spacing-3) var(--spacing-12) var(--spacing-3) var(--spacing-6); // 12px 48px 12px 24px
+    @include tokens.typography('body-base');
+    min-height: 48px;
+    padding: tokens.$spacing-sm tokens.$spacing-2xl tokens.$spacing-sm tokens.$spacing-lg;
   }
   
   .guiders-select__label {
-    font-size: var(--font-size-lg);
+    font-size: tokens.$font-size-lg;
   }
   
   .guiders-select__icon {
-    right: var(--spacing-4);
+    right: tokens.$spacing-md;
   }
 }
 
@@ -183,20 +184,20 @@
 
 .guiders-select--focused {
   .guiders-select__label {
-    color: var(--color-brand);
+    color: tokens.$color-brand-primary;
   }
 }
 
 .guiders-select--error {
   .guiders-select__label {
-    color: var(--color-danger);
+    color: #ef4444;
   }
 }
 
 .guiders-select--required {
   .guiders-select__label::after {
     content: ' *';
-    color: var(--color-danger);
+    color: #ef4444;
   }
 }
 
@@ -204,28 +205,29 @@
 
 .guiders-select__helper {
   @include tokens.typography('caption');
-  color: var(--color-on-surface-secondary);
-  margin-top: var(--spacing-1);
-  line-height: var(--line-height-normal);
+  color: tokens.$color-text-secondary;
+  margin-top: tokens.$spacing-xs;
+  line-height: tokens.$line-height-relaxed;
 }
 
 // === ERROR MESSAGE ===
 
 .guiders-select__error {
   @include tokens.typography('caption');
-  color: var(--color-danger);
-  margin-top: var(--spacing-1);
-  line-height: var(--line-height-normal);
+  color: #ef4444;
+  margin-top: tokens.$spacing-xs;
+  line-height: tokens.$line-height-relaxed;
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-1);
+  gap: tokens.$spacing-xs;
   
   // Icono de error
   &::before {
-    content: '⚠️';
-    font-size: var(--font-size-sm);
+    content: '⚠';
+    font-size: tokens.$font-size-sm;
     flex-shrink: 0;
     margin-top: 2px;
+    font-weight: tokens.$font-weight-bold;
   }
 }
 
@@ -233,36 +235,36 @@
 
 .guiders-select__control {
   option {
-    padding: var(--spacing-2) var(--spacing-3);
-    color: var(--color-on-surface);
-    background-color: var(--color-surface);
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    color: tokens.$color-text-primary;
+    background-color: tokens.$color-surface-primary;
     
     &:disabled {
-      color: var(--color-on-surface-disabled);
-      background-color: var(--color-surface-disabled);
+      color: tokens.$color-text-disabled;
+      background-color: tokens.$color-surface-disabled;
     }
     
     &:hover,
     &:focus {
-      background-color: var(--color-surface-hover);
+      background-color: tokens.$color-surface-hover;
     }
     
     &:checked,
     &:selected {
-      background-color: var(--color-brand);
-      color: var(--color-on-brand);
+      background-color: tokens.$color-brand-primary;
+      color: tokens.$color-text-inverse;
     }
   }
   
   optgroup {
-    font-weight: var(--font-weight-semibold);
-    color: var(--color-on-surface-secondary);
-    background-color: var(--color-surface-secondary);
-    padding: var(--spacing-2) var(--spacing-3);
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-secondary;
+    background-color: tokens.$color-surface-secondary;
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
     
     option {
-      padding-left: var(--spacing-6);
-      font-weight: var(--font-weight-regular);
+      padding-left: tokens.$spacing-lg;
+      font-weight: tokens.$font-weight-regular;
     }
   }
 }
@@ -272,7 +274,7 @@
 @media (prefers-reduced-motion: reduce) {
   .guiders-select__control,
   .guiders-select__icon {
-    transition-duration: var(--duration-instant);
+    transition-duration: 0ms;
   }
   
   .guiders-select--focused .guiders-select__icon {
@@ -280,40 +282,13 @@
   }
 }
 
-// === MODO OSCURO ===
-
-[data-theme="dark"] {
-  .guiders-select__control {
-    option {
-      background-color: var(--color-surface);
-      color: var(--color-on-surface);
-      
-      &:hover,
-      &:focus {
-        background-color: var(--color-surface-hover);
-      }
-      
-      &:checked,
-      &:selected {
-        background-color: var(--color-brand);
-        color: var(--color-on-brand);
-      }
-    }
-    
-    optgroup {
-      background-color: var(--color-surface-secondary);
-      color: var(--color-on-surface-secondary);
-    }
-  }
-}
-
 // === RESPONSIVE ===
 
-@media (max-width: 768px) {
+@media (max-width: tokens.$breakpoint-md) {
   .guiders-select--large {
     .guiders-select__control {
-      min-height: var(--spacing-10); // Reducir en móvil
-      padding: var(--spacing-2) var(--spacing-10) var(--spacing-2) var(--spacing-4);
+      min-height: 40px; // Reducir en móvil
+      padding: tokens.$spacing-2xs tokens.$spacing-xl tokens.$spacing-2xs tokens.$spacing-md;
     }
   }
 }

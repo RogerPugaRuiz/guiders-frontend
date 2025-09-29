@@ -4,7 +4,6 @@
     <div class="page-header">
       <div class="page-info">
         <h1 class="page-title">
-          <span class="title-icon">👥</span>
           Visitantes - {{ getFilterDescription(selectedFilterId()) }}
         </h1>
         <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
@@ -16,72 +15,45 @@
   <div class="visitors-grid bento-grid bento-grid--4-cols bento-grid--comfortable">
     
     <!-- KPI Cards - Estadísticas -->
-    <div class="bento-kpi bento-kpi--1x1 bento-kpi--neutral">
-      <div class="kpi-container">
-        <div class="kpi-header">
-          <span class="kpi-icon">📊</span>
-          <span class="kpi-title">Total</span>
-        </div>
-        <div class="kpi-value">
-          <span class="value-number">{{ visitorStats().total }}</span>
-        </div>
-      </div>
-    </div>
+    <guiders-bento-kpi
+      size="1x1"
+      variant="neutral"
+      title="Total"
+      [value]="visitorStats().total"
+    />
     
-    <div class="bento-kpi bento-kpi--1x1 bento-kpi--success">
-      <div class="kpi-container">
-        <div class="kpi-header">
-          <span class="kpi-icon">🟢</span>
-          <span class="kpi-title">En Línea</span>
-        </div>
-        <div class="kpi-value">
-          <span class="value-number">{{ visitorStats().online }}</span>
-        </div>
-        <div class="kpi-trend" data-direction="up">
-          <span class="trend-icon">↗️</span>
-          <span class="trend-text">12%</span>
-        </div>
-      </div>
-    </div>
+    <guiders-bento-kpi
+      size="1x1"
+      variant="success"
+      title="En Línea"
+      [value]="visitorStats().online"
+      [trend]="{ value: 12, direction: 'up' }"
+    />
     
-    <div class="bento-kpi bento-kpi--1x1 bento-kpi--primary">
-      <div class="kpi-container">
-        <div class="kpi-header">
-          <span class="kpi-icon">💬</span>
-          <span class="kpi-title">Con Chat</span>
-        </div>
-        <div class="kpi-value">
-          <span class="value-number">{{ visitorStats().withActiveChat }}</span>
-        </div>
-      </div>
-    </div>
+    <guiders-bento-kpi
+      size="1x1"
+      variant="primary"
+      title="Con Chat"
+      [value]="visitorStats().withActiveChat"
+    />
     
-    <div class="bento-kpi bento-kpi--1x1 bento-kpi--warning">
-      <div class="kpi-container">
-        <div class="kpi-header">
-          <span class="kpi-icon">⭐</span>
-          <span class="kpi-title">Leads</span>
-        </div>
-        <div class="kpi-value">
-          <span class="value-number">{{ visitorStats().leads }}</span>
-        </div>
-        <div class="kpi-trend" data-direction="up">
-          <span class="trend-icon">↗️</span>
-          <span class="trend-text">8%</span>
-        </div>
-      </div>
-    </div>
+    <guiders-bento-kpi
+      size="1x1"
+      variant="warning"
+      title="Leads"
+      [value]="visitorStats().leads"
+      [trend]="{ value: 8, direction: 'up' }"
+    />
 
     <!-- Panel principal - Lista de visitantes -->
-    <div class="bento-card bento-card--2x3">
+    <div class="bento-card bento-card--4x3">
       <div class="bento-card-header">
         <h3 class="bento-card-title">Lista de Visitantes</h3>
       </div>
       
       <div class="bento-card-content">
-        @if (state().error) {
+                @if (state().error) {
           <div class="error-content">
-            <span class="error-icon">⚠️</span>
             <span class="error-text">{{ state().error }}</span>
             <button class="retry-button" (click)="loadVisitors()">
               Reintentar
@@ -106,7 +78,7 @@
     </div>
 
     <!-- Panel de acciones rápidas -->
-    <div class="bento-card bento-card--1x2 bento-card--outlined">
+    <!-- <div class="bento-card bento-card--1x2">
       <div class="bento-card-header">
         <h3 class="bento-card-title">Acciones Rápidas</h3>
       </div>
@@ -146,10 +118,10 @@
           </button>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- Panel de actividad reciente -->
-    <div class="bento-card bento-card--1x1">
+    <!-- <div class="bento-card bento-card--1x1">
       <div class="bento-card-header">
         <h3 class="bento-card-title">Actividad Reciente</h3>
       </div>
@@ -170,7 +142,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
 
   </div>
 

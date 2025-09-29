@@ -15,6 +15,11 @@ export interface KpiTrend {
   imports: [CommonModule],
   templateUrl: './bento-kpi.html',
   styleUrl: './bento-kpi.scss',
+  host: {
+    '[class]': 'cssClasses()',
+    '[style.grid-column]': 'gridColumn()',
+    '[style.grid-row]': 'gridRow()'
+  }
 })
 export class BentoKpiComponent {
   // Inputs usando la nueva API de signals
@@ -62,6 +67,18 @@ export class BentoKpiComponent {
       `bento-kpi--${this.size()}`,
       `bento-kpi--${this.variant()}`
     ].join(' ');
+  });
+
+  readonly gridColumn = computed(() => {
+    const size = this.size();
+    const cols = size.charAt(0);
+    return `span ${cols}`;
+  });
+
+  readonly gridRow = computed(() => {
+    const size = this.size();
+    const rows = size.charAt(2);
+    return `span ${rows}`;
   });
 
   // Track by function para el *ngFor

@@ -36,6 +36,15 @@
       ],
       "@guiders-frontend/bento-kpi": ["libs/shared/ui/bento-kpi/src/index.ts"],
       "@guiders-frontend/button": ["libs/shared/ui/button/src/index.ts"],
+      "@guiders-frontend/button-primary": [
+        "libs/shared/ui/button-primary/src/index.ts"
+      ],
+      "@guiders-frontend/button-secondary": [
+        "libs/shared/ui/button-secondary/src/index.ts"
+      ],
+      "@guiders-frontend/button-tertiary": [
+        "libs/shared/ui/button-tertiary/src/index.ts"
+      ],
       "@guiders-frontend/chat-list": ["libs/chat/ui/chat-list/src/index.ts"],
       "@guiders-frontend/chat-messages": [
         "libs/chat/ui/chat-messages/src/index.ts"

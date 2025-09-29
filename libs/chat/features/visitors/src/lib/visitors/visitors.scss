@@ -1,4 +1,4 @@
-@use '../../../../../../shared/design-tokens/tokens.scss' as tokens;
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 @use 'sass:color';
 
 /* Estilos Bento UI para vista de visitantes */
@@ -114,28 +114,24 @@
   color: tokens.$color-text-primary;
   text-align: left;
   cursor: pointer;
-  transition: all tokens.$duration-normal tokens.$easing-standard;
   flex: 1;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-  border: none;
+  border: 1px solid #e5e7eb;
 
   &:hover {
     background: tokens.$color-surface-hover;
-    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
   }
 
   &:active {
-    box-shadow: none;
+    background: tokens.$color-surface-hover;
   }
 
   &--primary {
     background: tokens.$color-surface-selected;
     color: tokens.$color-primary-700;
-    box-shadow: 2px 2px 8px rgba(59, 130, 246, 0.15);
+    border: 1px solid #c7d2fe;
 
     &:hover {
       background: color.adjust(tokens.$color-surface-selected, $lightness: 3%);
-      box-shadow: 3px 3px 12px rgba(59, 130, 246, 0.2);
     }
   }
 }
@@ -225,16 +221,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: all tokens.$duration-normal tokens.$easing-standard;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
-  }
+  border: 1px solid #e5e7eb;
 
   &--outlined {
     background: transparent;
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #f3f4f6;
   }
 }
 
@@ -247,11 +238,12 @@
 .bento-card--1x3 { grid-column: span 1; grid-row: span 3; }
 .bento-card--3x2 { grid-column: span 3; grid-row: span 2; }
 .bento-card--2x3 { grid-column: span 2; grid-row: span 3; }
+.bento-card--4x1 { grid-column: span 4; grid-row: span 1; }
+.bento-card--4x2 { grid-column: span 4; grid-row: span 2; }
+.bento-card--4x3 { grid-column: span 4; grid-row: span 3; }
 
 .bento-card-header {
   padding: tokens.$spacing-md tokens.$spacing-md 0;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  margin-bottom: tokens.$spacing-sm;
 }
 
 .bento-card-title {
@@ -268,123 +260,7 @@
   overflow: auto;
 }
 
-/* Bento KPI Styles */
-.bento-kpi {
-  background: tokens.$color-surface-primary;
-  border-radius: tokens.$border-radius-md;
-  padding: tokens.$spacing-md;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  transition: all tokens.$duration-normal tokens.$easing-standard;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
-  }
-
-  /* KPI Size variants */
-  &--1x1 { grid-column: span 1; grid-row: span 1; }
-  &--2x1 { grid-column: span 2; grid-row: span 1; }
-  &--1x2 { grid-column: span 1; grid-row: span 2; }
-
-  /* KPI Variant styles */
-  &--primary {
-    border-color: tokens.$color-primary-500;
-    background: linear-gradient(135deg, tokens.$color-surface-selected 0%, tokens.$color-surface-primary 100%);
-
-    .kpi-title { color: tokens.$color-primary-700; }
-    .value-number { color: tokens.$color-primary-700; }
-  }
-
-  &--success {
-    border-color: #16a34a;
-    background: linear-gradient(135deg, #dcfce7 0%, tokens.$color-surface-primary 100%);
-
-    .kpi-title { color: #15803d; }
-    .value-number { color: #166534; }
-  }
-
-  &--warning {
-    border-color: #f59e0b;
-    background: linear-gradient(135deg, #fef3c7 0%, tokens.$color-surface-primary 100%);
-
-    .kpi-title { color: #d97706; }
-    .value-number { color: #92400e; }
-  }
-
-  &--neutral {
-    border-color: tokens.$color-border-subtle;
-    background: linear-gradient(135deg, tokens.$color-surface-secondary 0%, tokens.$color-surface-primary 100%);
-
-    .kpi-title { color: tokens.$color-text-secondary; }
-    .value-number { color: tokens.$color-text-primary; }
-  }
-}
-
-.kpi-container {
-  display: flex;
-  flex-direction: column;
-  gap: tokens.$spacing-2xs;
-  height: 100%;
-}
-
-.kpi-header {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-xs;
-}
-
-.kpi-icon {
-  font-size: tokens.$font-size-sm;
-}
-
-.kpi-title {
-  @include tokens.typography('caption');
-  color: tokens.$color-text-secondary;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  font-weight: tokens.$font-weight-medium;
-}
-
-.kpi-value {
-  display: flex;
-  align-items: baseline;
-  gap: tokens.$spacing-xs;
-  margin: tokens.$spacing-xs 0;
-}
-
-.value-number {
-  font-size: tokens.$font-size-2xl;
-  font-weight: tokens.$font-weight-bold;
-  color: tokens.$color-text-primary;
-  line-height: 1;
-  font-feature-settings: 'tnum';
-}
-
-.kpi-trend {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-xs;
-  @include tokens.typography('caption');
-  font-weight: tokens.$font-weight-medium;
-
-  &[data-direction="up"] {
-    color: #16a34a;
-  }
-
-  &[data-direction="down"] {
-    color: #ef4444;
-  }
-
-  &[data-direction="stable"] {
-    color: tokens.$color-text-secondary;
-  }
-}
-
-.trend-icon {
-  font-size: tokens.$font-size-xs;
-}
+/* Los estilos de KPI ahora se gestionan desde el componente shared BentoKpiComponent */
 
 /* Responsive adjustments */
 @media (max-width: tokens.$breakpoint-lg) {

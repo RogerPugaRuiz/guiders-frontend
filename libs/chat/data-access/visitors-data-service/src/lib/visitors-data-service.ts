@@ -1,10 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError } from 'rxjs/operators';
+import { tap, catchError, switchMap, map } from 'rxjs/operators';
+import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { 
   Visitor, 
   GetVisitorsResponse,
+  GetTenantVisitorsResponse,
   GetVisitorResponse,
   GetVisitorSessionsResponse,
   CreateChatWithVisitorRequest,
@@ -35,10 +37,11 @@ interface VisitorQueryParams {
 })
 export class VisitorsDataService {
   private readonly http = inject(HttpClient);
+  private readonly sessionService = inject(SessionService);
   private readonly baseUrl = 'http://localhost:3000/api';
 
-  // Obtener visitantes con filtros y paginación
-  getVisitors(siteId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
+  // Obtener visitantes con filtros y paginación usando tenant-visitors endpoint
+  getVisitors(tenantId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
     const { limit = 10, offset = 0, status, search, includeOffline } = params;
     
     let queryParams = new HttpParams()
@@ -57,26 +60,49 @@ export class VisitorsDataService {
       queryParams = queryParams.set('includeOffline', includeOffline.toString());
     }
 
-    // Configurar headers de autenticación
-    const token = localStorage.getItem('access-token');
-    console.log(`[VisitorsDataService] Calling API: ${this.baseUrl}/site-visitors/${siteId}/visitors`);
+    // Usar el endpoint tenant-visitors con el ID de la empresa obtenido de /api/me/company
+    console.log(`[VisitorsDataService] Calling API: ${this.baseUrl}/tenant-visitors/${tenantId}/visitors`);
     console.log('[VisitorsDataService] Query params:', queryParams.toString());
-    console.log('[VisitorsDataService] Auth token:', token ? 'Present' : 'Missing');
     
-    const options = token ? 
-      { 
-        params: queryParams, 
-        headers: { 'Authorization': `Bearer ${token}` },
-        withCredentials: true 
-      } : 
-      { 
-        params: queryParams,
-        withCredentials: true 
-      };
+    // Usar cookies BFF para autenticación (no token manual)
+    const options = { 
+      params: queryParams,
+      withCredentials: true // Usa las cookies BFF automáticamente
+    };
     
-    return this.http.get<GetVisitorsResponse>(`${this.baseUrl}/site-visitors/${siteId}/visitors`, options)
+    return this.http.get<GetTenantVisitorsResponse>(`${this.baseUrl}/tenant-visitors/${tenantId}/visitors`, options)
       .pipe(
-        tap(response => console.log('[VisitorsDataService] Response:', response)),
+        tap(response => console.log('[VisitorsDataService] Raw API Response:', response)),
+        map(response => {
+          // Mapear la respuesta del tenant-visitors al formato GetVisitorsResponse
+          const mappedVisitors: Visitor[] = response.visitors.map(apiVisitor => ({
+            id: apiVisitor.id,
+            fingerprint: apiVisitor.fingerprint,
+            lifecycle: 'ANON' as const, // Valor por defecto
+            isNewVisitor: false, // Se puede calcular basado en createdAt
+            status: apiVisitor.connectionStatus === 'ONLINE' ? 'online' as const : 'offline' as const,
+            domain: apiVisitor.siteName,
+            siteId: apiVisitor.siteId,
+            tenantId: response.tenantId,
+            firstVisit: new Date(apiVisitor.createdAt),
+            lastVisit: new Date(apiVisitor.lastActivity),
+            totalSessions: 1, // Valor por defecto
+            totalPageViews: 0, // Valor por defecto
+            averageSessionDuration: 0, // Valor por defecto
+            hasActiveChat: false, // Valor por defecto
+            totalChats: 0 // Valor por defecto
+          }));
+
+          const mappedResponse: GetVisitorsResponse = {
+            visitors: mappedVisitors,
+            total: response.totalCount,
+            hasMore: false, // No hay paginación en este endpoint
+            nextCursor: undefined
+          };
+
+          console.log('[VisitorsDataService] Mapped Response:', mappedResponse);
+          return mappedResponse;
+        }),
         catchError(error => {
           console.error('[VisitorsDataService] Error:', error);
           return throwError(() => error);
@@ -268,32 +294,225 @@ export class VisitorsDataService {
     }>(`${this.baseUrl}/tracking/intent-tags/${visitorId}`, { withCredentials: true });
   }
 
-  // Obtener estadísticas de visitantes
-  getVisitorStats(siteId: string): Observable<VisitorStats> {
-    return this.http.get<VisitorStats>(`${this.baseUrl}/sites/${siteId}/visitors/stats`, { withCredentials: true });
+  // Obtener estadísticas de visitantes usando tenant-visitors endpoint
+  getVisitorStats(tenantId: string): Observable<VisitorStats> {
+    return this.http.get<VisitorStats>(`${this.baseUrl}/tenant-visitors/${tenantId}/visitors/stats`, { withCredentials: true });
   }
 
-  // Resolver sitio por host
+  // Obtener información de la empresa del usuario autenticado
+  getCompanySites(): Observable<{
+    sites: Array<{
+      siteId: string;
+      tenantId: string;
+      siteName: string;
+      domain: string;
+      isActive: boolean;
+    }>;
+    companyId: string;
+    companyName: string;
+    totalSites: number;
+  }> {
+    console.log('[VisitorsDataService] Obteniendo información de la empresa del usuario autenticado');
+    
+    // Usar el endpoint /api/me/company que requiere autenticación (cookies BFF)
+    return this.http.get<{
+      id: string;
+      companyName: string;
+      domains: string[];
+    }>(`${this.baseUrl}/me/company`, { 
+      withCredentials: true // Requiere autenticación via cookies BFF
+    }).pipe(
+      switchMap(companyInfo => {
+        console.log('[VisitorsDataService] Información de empresa obtenida:', companyInfo);
+        
+        // Transformar la respuesta de /me/company al formato esperado
+        // El companyId ES el siteId válido que espera el backend
+        const sites = companyInfo.domains.map(domain => ({
+          siteId: companyInfo.id, // Usar directamente el company id como siteId (es un UUID válido)
+          tenantId: companyInfo.id, // Usar el company id como tenant id
+          siteName: domain,
+          domain: domain,
+          isActive: true // Asumir que todos los dominios están activos
+        }));
+
+        return new Observable<{
+          sites: Array<{
+            siteId: string;
+            tenantId: string;
+            siteName: string;
+            domain: string;
+            isActive: boolean;
+          }>;
+          companyId: string;
+          companyName: string;
+          totalSites: number;
+        }>(subscriber => {
+          subscriber.next({
+            sites: sites,
+            companyId: companyInfo.id,
+            companyName: companyInfo.companyName,
+            totalSites: sites.length
+          });
+          subscriber.complete();
+        });
+      }),
+      tap(response => {
+        console.log('[VisitorsDataService] Sitios procesados:', response);
+      }),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error al obtener información de la empresa:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+
+
+  /**
+   * @deprecated Usar getCompanySites() directamente en su lugar
+   * Método simple para obtener sitios - mantenido para compatibilidad
+   */
+  getUserSites(): Observable<Array<{
+    siteId: string;
+    tenantId: string;
+    siteName: string;
+    domain: string;
+    isActive: boolean;
+  }>> {
+    console.warn('[VisitorsDataService] getUserSites() está deprecado, usar getCompanySites() directamente');
+    
+    // Usar el método completo y extraer solo los sitios
+    return this.getCompanySites().pipe(
+      switchMap(response => {
+        return new Observable<Array<{
+          siteId: string;
+          tenantId: string;
+          siteName: string;
+          domain: string;
+          isActive: boolean;
+        }>>(subscriber => {
+          subscriber.next(response.sites);
+          subscriber.complete();
+        });
+      })
+    );
+  }
+
+  /**
+   * Método fallback para obtener sitios cuando el endpoint principal no está disponible
+   */
+  private getCompanySitesFallback(): Observable<{
+    sites: Array<{
+      siteId: string;
+      tenantId: string;
+      siteName: string;
+      domain: string;
+      isActive: boolean;
+    }>;
+    companyId: string;
+    companyName: string;
+    totalSites: number;
+  }> {
+    return this.sessionService.ensureSession$().pipe(
+      switchMap(user => {
+        console.log('[VisitorsDataService] Usuario obtenido para fallback:', user);
+        
+        // Usar directamente el endpoint /api/me/company que requiere autenticación
+        console.log('[VisitorsDataService] Fallback: Usando endpoint /api/me/company');
+        return this.getCompanySites();
+      }),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error en fallback:', error);
+        
+        // Como último recurso, intentar obtener todos los sitios del usuario
+        console.log('[VisitorsDataService] Último recurso: obteniendo sitios del usuario');
+        return this.http.get<{
+          sites: Array<{
+            siteId: string;
+            tenantId: string;
+            siteName: string;
+            domain: string;
+            isActive: boolean;
+          }>;
+          companyId: string;
+          companyName: string;
+          totalSites: number;
+        }>(`${this.baseUrl}/sites/user`, { 
+          withCredentials: true 
+        });
+      })
+    );
+  }
+
+  // Obtener sitio específico por ID (para compatibilidad)
+  getSiteById(siteId: string): Observable<{
+    siteId: string;
+    tenantId: string;
+    siteName: string;
+    companyName: string;
+    domain: string;
+    isActive: boolean;
+  }> {
+    console.log(`[VisitorsDataService] Obteniendo sitio por ID: ${siteId}`);
+    
+    return this.http.get<{
+      siteId: string;
+      tenantId: string;
+      siteName: string;
+      companyName: string;
+      domain: string;
+      isActive: boolean;
+    }>(`${this.baseUrl}/sites/${siteId}`, { 
+      withCredentials: true 
+    }).pipe(
+      tap(response => console.log('[VisitorsDataService] Sitio obtenido:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error al obtener sitio:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * @deprecated Usar getCompanySites() o getSiteById() en su lugar
+   * Método legacy mantenido para compatibilidad temporal
+   */
   resolveSite(host: string): Observable<{
     siteId: string;
     tenantId: string;
     siteName: string;
     companyName: string;
   }> {
-    // Asegurar que enviamos solo el hostname (sin puerto)
-    const hostname = (host || '').split(':')[0].trim().toLowerCase();
-    return this.http.post<{
-      siteId: string;
-      tenantId: string;
-      siteName: string;
-      companyName: string;
-    }>(
-      `${this.baseUrl}/sites/resolve`,
-      { host: hostname },
-      {
-        withCredentials: true,
-        params: new HttpParams().set('host', hostname)
-      }
+    console.warn('[VisitorsDataService] resolveSite() está deprecado, usar getCompanySites() en su lugar');
+    
+    // Buscar en los sitios de la empresa el que coincida con el host
+    return this.getCompanySites().pipe(
+      switchMap(response => {
+        const hostname = (host || '').split(':')[0].trim().toLowerCase();
+        const matchingSite = response.sites.find(site => 
+          site.domain.toLowerCase() === hostname || 
+          site.domain.toLowerCase().includes(hostname)
+        );
+
+        if (matchingSite) {
+          return new Observable<{
+            siteId: string;
+            tenantId: string;
+            siteName: string;
+            companyName: string;
+          }>(subscriber => {
+            subscriber.next({
+              siteId: matchingSite.siteId,
+              tenantId: matchingSite.tenantId,
+              siteName: matchingSite.siteName,
+              companyName: response.companyName
+            });
+            subscriber.complete();
+          });
+        } else {
+          return throwError(() => new Error(`No se encontró sitio para el host: ${hostname}`));
+        }
+      })
     );
   }
 }

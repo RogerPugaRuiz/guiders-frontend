@@ -1,14 +1,13 @@
 /**
- * Design Tokens - Variables CSS/SCSS
- * Generado automáticamente a partir de los tokens de diseño
+ * Design Tokens - Variables SASS Completas
+ * Variables SASS para usar con @use y @import
  */
 
-// Importar la función generadora de variables CSS
-@use 'sass:map';
-
-// Variables CSS personalizadas para modo claro (default)
-/**
- * Design Tokens - Import Compatible
+// === COLORES ===
+// Surface colors
+$color-surface-primary: #ffffff;
+$color-surface-secondary: #f8f9fa;
+$color-surface-tertiary: #f1f3f4;
  * Incluye variables y clases para uso con @import
  */
 

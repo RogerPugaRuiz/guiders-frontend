@@ -1,15 +1,13 @@
 import { Component, input, output, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { Button } from '@guiders-frontend/button';
-import { TextField } from '@guiders-frontend/text-field';
-import { VisitorCard } from '@guiders-frontend/visitor-card';
 import { 
   Visitor, 
   VisitorFilters, 
   VisitorSort,
   CreateChatWithVisitorRequest 
 } from '@guiders-frontend/shared/types';
+import { ButtonPrimaryComponent } from '@guiders-frontend/button-primary';
+import { ButtonTertiaryComponent } from '@guiders-frontend/button-tertiary';
 
 export interface VisitorListConfig {
   showSearch: boolean;
@@ -23,7 +21,7 @@ export interface VisitorListConfig {
 @Component({
   selector: 'lib-visitors-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, Button, TextField, VisitorCard],
+  imports: [CommonModule, ButtonPrimaryComponent, ButtonTertiaryComponent],
   templateUrl: './visitors-list.html',
   styleUrls: ['./visitors-list.scss']
 })
@@ -55,6 +53,7 @@ export class VisitorsListComponent {
   readonly currentFilters = signal<VisitorFilters>({});
   readonly currentSort = signal<VisitorSort>({ field: 'lastVisit', direction: 'desc' });
   readonly internalSelectedIds = signal<Set<string>>(new Set());
+  readonly showDropdown = signal<string | null>(null);
 
   // Computed values
   readonly filteredVisitors = computed(() => {
@@ -94,15 +93,15 @@ export class VisitorsListComponent {
   // Filter options
   readonly filterOptions = {
     status: [
-      { value: 'online', label: 'En línea', icon: '🟢' },
-      { value: 'offline', label: 'Fuera de línea', icon: '⚫' },
-      { value: 'idle', label: 'Inactivo', icon: '🟡' }
+      { value: 'online', label: 'En línea', icon: 'status-online' },
+      { value: 'offline', label: 'Fuera de línea', icon: 'status-offline' },
+      { value: 'idle', label: 'Inactivo', icon: 'status-idle' }
     ],
     lifecycle: [
-      { value: 'ANON', label: 'Anónimo', icon: '👤' },
-      { value: 'ENGAGED', label: 'Interesado', icon: '👀' },
-      { value: 'LEAD', label: 'Lead', icon: '📧' },
-      { value: 'CONVERTED', label: 'Convertido', icon: '✅' }
+      { value: 'ANON', label: 'Anónimo', icon: 'lifecycle-anon' },
+      { value: 'ENGAGED', label: 'Interesado', icon: 'lifecycle-engaged' },
+      { value: 'LEAD', label: 'Lead', icon: 'lifecycle-lead' },
+      { value: 'CONVERTED', label: 'Convertido', icon: 'lifecycle-converted' }
     ]
   };
 
@@ -164,6 +163,49 @@ export class VisitorsListComponent {
     // Emit an event for viewing visitor details
     // This could navigate to a detail page or open a modal
     console.log('View details for visitor:', visitor.id);
+  }
+
+  onViewChat(visitor: Visitor, event: Event): void {
+    event.stopPropagation();
+    console.log('View chat for visitor:', visitor.id);
+    // Navigate to active chat or emit event
+  }
+
+  onViewHistory(visitor: Visitor): void {
+    console.log('View history for visitor:', visitor.id);
+    // Open history modal or navigate to history page
+  }
+
+  onAddTag(visitor: Visitor): void {
+    console.log('Add tag to visitor:', visitor.id);
+    // Open tag modal or inline editor
+  }
+
+  onCreateChatFromButton(visitor: Visitor): void {
+    // Create a mock event for compatibility
+    const mockEvent = new Event('click');
+    this.onCreateChat(visitor, mockEvent);
+  }
+
+  onViewChatFromButton(visitor: Visitor): void {
+    // Create a mock event for compatibility
+    const mockEvent = new Event('click');
+    this.onViewChat(visitor, mockEvent);
+  }
+
+  onRemoveVisitor(visitor: Visitor): void {
+    console.log('Remove visitor:', visitor.id);
+    this.closeDropdown();
+    // Implement visitor removal logic
+  }
+
+  toggleDropdown(visitorId: string, event: Event): void {
+    event.stopPropagation();
+    this.showDropdown.set(this.showDropdown() === visitorId ? null : visitorId);
+  }
+
+  closeDropdown(): void {
+    this.showDropdown.set(null);
   }
 
   onCreateChatFromCard(request: CreateChatWithVisitorRequest): void {
@@ -268,20 +310,20 @@ export class VisitorsListComponent {
 
   getVisitorStatusIcon(visitor: Visitor): string {
     switch (visitor.status) {
-      case 'online': return '🟢';
-      case 'offline': return '⚫';
-      case 'idle': return '🟡';
-      default: return '⚫';
+      case 'online': return 'status-online';
+      case 'offline': return 'status-offline'; 
+      case 'idle': return 'status-idle';
+      default: return 'status-offline';
     }
   }
 
   getLifecycleIcon(lifecycle: string): string {
     switch (lifecycle) {
-      case 'ANON': return '👤';
-      case 'ENGAGED': return '👀';
-      case 'LEAD': return '📧';
-      case 'CONVERTED': return '✅';
-      default: return '👤';
+      case 'ANON': return 'lifecycle-anon';
+      case 'ENGAGED': return 'lifecycle-engaged';
+      case 'LEAD': return 'lifecycle-lead';
+      case 'CONVERTED': return 'lifecycle-converted';
+      default: return 'lifecycle-anon';
     }
   }
 
@@ -298,6 +340,24 @@ export class VisitorsListComponent {
     if (diffDays < 7) return `Hace ${diffDays}d`;
     
     return new Date(date).toLocaleDateString();
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    const names = name.trim().split(' ');
+    if (names.length === 1) {
+      return names[0].charAt(0).toUpperCase();
+    }
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'online': return 'En línea';
+      case 'offline': return 'Desconectado'; 
+      case 'idle': return 'Inactivo';
+      default: return status;
+    }
   }
 
   isSelected(visitorId: string): boolean {
