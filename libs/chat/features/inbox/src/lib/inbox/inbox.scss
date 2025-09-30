@@ -1,7 +1,11 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
 :host {
   display: block;
   height: 100%;
   width: 100%;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); // Bento UI: gradiente sutil
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .inbox-container {
@@ -9,25 +13,29 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  background: var(--color-surface);
+  background: #f8fafc; // Bento UI: background consistente
+  padding: 24px; // Bento UI: espaciado generoso
+  gap: 24px; // Bento UI: espaciado entre elementos
 }
 
-// Loading indicator
+// Loading indicator - Bento UI style
 .inbox-loading {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: var(--color-primary);
-  color: var(--color-primary-text);
-  font-size: 0.875rem;
+  gap: 16px;
+  padding: 32px;
+  background: white;
+  color: #64748b;
+  font-size: 14px;
+  border-radius: 16px; // Bento UI: bordes redondeados generosos
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); // Bento UI: sombra sutil
 
   .loading-spinner {
-    width: 1rem;
-    height: 1rem;
-    border: 2px solid transparent;
-    border-top-color: currentColor;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #e2e8f0;
+    border-top: 2px solid #3b82f6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
@@ -39,97 +47,100 @@
   }
 }
 
-// Error message
+// Error state - Bento UI style
 .inbox-error {
-  background: var(--color-error);
-  color: var(--color-error-text);
-  padding: 0.75rem 1rem;
-
-  .error-content {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-
-  .error-icon {
-    font-size: 1.125rem;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: #fef2f2; // Bento UI: background suave en lugar de borde
+  color: #dc2626;
+  text-align: center;
+  border-radius: 16px; // Bento UI: bordes redondeados
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); // Bento UI: sombra en lugar de borde
 
   .error-message {
-    flex: 1;
-    font-size: 0.875rem;
-  }
-
-  .error-dismiss {
-    background: none;
-    border: none;
-    color: currentColor;
-    font-size: 1.25rem;
-    cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
+    font-size: 14px;
+    font-weight: 500;
   }
 }
 
-// Main layout
+// Main layout - Bento UI style
 .inbox-layout {
   display: flex;
   flex: 1;
-  height: 100%;
+  height: calc(100vh - 96px); // Considerar padding del container
+  overflow: hidden;
+  gap: 24px; // Bento UI: espaciado entre paneles
+  border-radius: 20px; // Bento UI: bordes redondeados del container
+  background: white; // Bento UI: background del área de trabajo
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); // Bento UI: sombra profunda
   overflow: hidden;
 }
 
-// Chat list panel
+// Chat list panel - Bento UI style
 .chat-list-panel {
-  width: 320px;
-  min-width: 280px;
-  max-width: 400px;
-  border-right: 1px solid var(--color-border);
+  width: 380px; // Bento UI: ancho ligeramente mayor
+  min-width: 320px;
+  max-width: 420px; // Bento UI: máximo más generoso
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
+  background: rgba(248, 250, 252, 0.8); // Bento UI: background semi-transparente
+  backdrop-filter: blur(8px); // Bento UI: efecto glassmorphism
+  border-radius: 20px; // Bento UI: bordes más redondeados
+  border: 1px solid rgba(255, 255, 255, 0.2); // Bento UI: borde sutil
+  overflow: hidden;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); // Bento UI: sombra más sofisticada
 
   .chat-list-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-surface-elevated);
+    padding: 28px 28px 24px 28px; // Bento UI: padding más generoso
+    background: rgba(241, 245, 249, 0.6); // Bento UI: background semi-transparente
+    border-bottom: 1px solid rgba(226, 232, 240, 0.3); // Bento UI: separador sutil
 
     h2 {
       margin: 0;
-      font-size: 1.125rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
+      font-size: 20px; // Bento UI: título más grande
+      font-weight: 700; // Bento UI: peso más fuerte
+      color: #1e293b;
+      letter-spacing: -0.04em; // Bento UI: espaciado más compacto
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // Bento UI: sombra sutil en texto
     }
 
     .chat-list-actions {
       display: flex;
-      gap: 0.5rem;
+      gap: 16px; // Bento UI: espaciado más generoso
 
       button {
-        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px; // Bento UI: botones ligeramente más grandes
+        height: 44px;
         border: none;
-        padding: 0.5rem;
-        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9); // Bento UI: background semi-transparente
+        backdrop-filter: blur(8px); // Bento UI: efecto glassmorphism
+        border-radius: 14px; // Bento UI: bordes más redondeados
         cursor: pointer;
-        font-size: 1rem;
-        transition: background-color 0.2s ease;
+        font-size: 18px; // Bento UI: iconos ligeramente más grandes
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Bento UI: transición más suave
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08), 0 1px 4px 0 rgba(0, 0, 0, 0.04); // Bento UI: sombra más sofisticada
+        border: 1px solid rgba(255, 255, 255, 0.3); // Bento UI: borde sutil
 
         &:hover {
-          background: var(--color-surface-hover);
+          background: rgba(255, 255, 255, 1);
+          transform: translateY(-2px) scale(1.05); // Bento UI: elevación y escala en hover
+          box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.15), 0 4px 10px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        &:active {
+          transform: translateY(-1px) scale(1.02);
         }
 
         &:focus {
-          outline: 2px solid var(--color-primary);
+          outline: 3px solid rgba(59, 130, 246, 0.5); // Bento UI: focus más suave
           outline-offset: 2px;
         }
       }
@@ -139,37 +150,50 @@
   .chat-list-content {
     flex: 1;
     overflow: hidden;
+    padding: 0 16px 16px 16px; // Bento UI: padding interno
   }
 }
 
-// Chat messages panel
+// Chat messages panel - Bento UI style
 .chat-messages-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--color-surface);
+  background: rgba(255, 255, 255, 0.9); // Bento UI: background semi-transparente
+  backdrop-filter: blur(12px); // Bento UI: glassmorphism más pronunciado
+  border-radius: 20px; // Bento UI: bordes más redondeados
+  border: 1px solid rgba(255, 255, 255, 0.3); // Bento UI: borde sutil
   overflow: hidden;
+  box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.1), 0 4px 16px 0 rgba(0, 0, 0, 0.05); // Bento UI: sombra más sofisticada
 
   .chat-messages-header {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1rem;
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-surface-elevated);
+    gap: 24px; // Bento UI: espaciado más generoso
+    padding: 28px 32px 24px 32px; // Bento UI: padding más generoso
+    background: rgba(250, 251, 252, 0.6); // Bento UI: background semi-transparente
+    border-bottom: 1px solid rgba(226, 232, 240, 0.3); // Bento UI: separador sutil
 
     .btn-back-mobile {
       display: none;
-      background: none;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
       border: none;
-      font-size: 1.25rem;
-      padding: 0.5rem;
+      background: white;
+      border-radius: 12px;
       cursor: pointer;
-      border-radius: 50%;
-      transition: background-color 0.2s ease;
+      font-size: 18px;
+      font-weight: 600;
+      color: #64748b;
+      transition: all 0.2s ease;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 
       &:hover {
-        background: var(--color-surface-hover);
+        background: #f1f5f9;
+        color: #334155;
+        transform: translateY(-1px);
       }
     }
 
@@ -177,15 +201,25 @@
       flex: 1;
 
       h3 {
-        margin: 0 0 0.25rem 0;
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--color-text-primary);
+        margin: 0 0 6px 0; // Bento UI: espaciado ligeramente mayor
+        font-size: 18px; // Bento UI: título más grande
+        font-weight: 700; // Bento UI: peso más fuerte
+        color: #1e293b;
+        letter-spacing: -0.04em; // Bento UI: espaciado más compacto
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // Bento UI: sombra sutil
       }
 
       .chat-id {
-        font-size: 0.75rem;
-        color: var(--color-text-secondary);
+        font-size: 12px; // Bento UI: ligeramente menor
+        color: #64748b;
+        font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace; // Bento UI: fuente mono para IDs
+        background: rgba(241, 245, 249, 0.8); // Bento UI: background semi-transparente
+        backdrop-filter: blur(4px); // Bento UI: glassmorphism sutil
+        padding: 6px 12px; // Bento UI: padding más generoso
+        border-radius: 8px; // Bento UI: bordes más redondeados
+        border: 1px solid rgba(226, 232, 240, 0.5); // Bento UI: borde sutil
+        display: inline-block;
+        font-weight: 500; // Bento UI: peso ligeramente mayor
       }
     }
   }
@@ -193,62 +227,91 @@
   .chat-messages-content {
     flex: 1;
     overflow: hidden;
+    background: white; // Bento UI: background consistente
   }
 }
 
-// Empty state
+// Empty state - Bento UI style
 .no-chat-selected {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 64px 40px; // Bento UI: padding más generoso
 
   .empty-state {
     text-align: center;
-    max-width: 300px;
+    max-width: 380px; // Bento UI: ancho mayor
+    background: rgba(248, 250, 252, 0.6); // Bento UI: background semi-transparente
+    backdrop-filter: blur(12px); // Bento UI: glassmorphism
+    padding: 64px 48px; // Bento UI: padding más generoso
+    border-radius: 28px; // Bento UI: bordes más redondeados
+    border: 1px solid rgba(255, 255, 255, 0.3); // Bento UI: borde sutil
+    box-shadow: 0 16px 48px 0 rgba(31, 38, 135, 0.1), 0 8px 24px 0 rgba(0, 0, 0, 0.05); // Bento UI: sombra sofisticada
 
     .empty-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.6;
+      font-size: 72px; // Bento UI: icono más grande
+      margin-bottom: 32px; // Bento UI: espaciado mayor
+      opacity: 0.8;
+      filter: grayscale(0.2); // Bento UI: efecto más sutil
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); // Bento UI: sombra en el icono
     }
 
     h3 {
-      margin: 0 0 0.5rem 0;
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--color-text-primary);
+      margin: 0 0 16px 0; // Bento UI: espaciado mayor
+      font-size: 22px; // Bento UI: título más grande
+      font-weight: 700; // Bento UI: peso más fuerte
+      color: #1e293b;
+      letter-spacing: -0.04em; // Bento UI: espaciado más compacto
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // Bento UI: sombra sutil
     }
 
     p {
       margin: 0;
-      font-size: 0.875rem;
-      color: var(--color-text-secondary);
-      line-height: 1.4;
+      font-size: 16px; // Bento UI: texto más grande
+      color: #64748b;
+      line-height: 1.6; // Bento UI: interlineado más espacioso
+      font-weight: 400;
     }
   }
 }
 
-// Mobile responsive
+// Mobile responsive - Bento UI style
 @media (max-width: 768px) {
+  .inbox-container {
+    padding: 16px; // Bento UI: padding reducido en móvil
+    gap: 16px;
+  }
+
   .inbox-layout {
     position: relative;
+    height: calc(100vh - 64px); // Ajustar para padding móvil
+    border-radius: 16px; // Bento UI: bordes menos redondeados en móvil
+    gap: 0; // Sin gap en móvil para aprovechar espacio
 
     .chat-list-panel {
       width: 100%;
       max-width: none;
-      border-right: none;
       position: absolute;
       left: 0;
       top: 0;
       bottom: 0;
       z-index: 2;
+      border-radius: 16px; // Bento UI: mantener bordes redondeados
       transform: translateX(0);
       transition: transform 0.3s ease;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); // Bento UI: sombra más pronunciada en móvil
 
       &.hidden-mobile {
         transform: translateX(-100%);
+      }
+
+      .chat-list-header {
+        padding: 20px 20px 16px 20px; // Bento UI: padding ajustado para móvil
+      }
+
+      .chat-list-content {
+        padding: 0 12px 12px 12px; // Bento UI: padding ajustado para móvil
       }
     }
 
@@ -259,44 +322,42 @@
       top: 0;
       bottom: 0;
       z-index: 1;
+      border-radius: 16px; // Bento UI: mantener consistencia
 
       &.hidden-mobile {
         display: none;
       }
 
-      .chat-messages-header .btn-back-mobile {
-        display: flex;
+      .chat-messages-header {
+        padding: 20px 20px 16px 20px; // Bento UI: padding ajustado para móvil
+
+        .btn-back-mobile {
+          display: flex; // Mostrar botón de regreso en móvil
+        }
       }
     }
   }
 }
 
-// Dark mode support
-@media (prefers-color-scheme: dark) {
-  .inbox-container {
-    --color-surface: #1e1e1e;
-    --color-surface-elevated: #2d2d2d;
-    --color-surface-hover: #404040;
-    --color-border: #404040;
-    --color-text-primary: #ffffff;
-    --color-text-secondary: #b3b3b3;
-    --color-primary: #0078d4;
-    --color-primary-text: #ffffff;
-    --color-error: #d13438;
-    --color-error-text: #ffffff;
+// Bento UI: Estilos adicionales para mejorar la experiencia
+.inbox-layout {
+  // Transiciones suaves para interacciones
+  * {
+    scroll-behavior: smooth;
   }
-}
 
-// Light mode (default)
-.inbox-container {
-  --color-surface: #ffffff;
-  --color-surface-elevated: #f5f5f5;
-  --color-surface-hover: #e5e5e5;
-  --color-border: #e1e1e1;
-  --color-text-primary: #1f1f1f;
-  --color-text-secondary: #6b6b6b;
-  --color-primary: #0078d4;
-  --color-primary-text: #ffffff;
-  --color-error: #d13438;
-  --color-error-text: #ffffff;
+  // Mejorar la legibilidad de texto
+  .chat-list-panel,
+  .chat-messages-panel {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  // Focus states mejorados para accesibilidad
+  button:focus,
+  [tabindex]:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }

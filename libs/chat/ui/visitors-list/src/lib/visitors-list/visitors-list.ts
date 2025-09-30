@@ -6,8 +6,6 @@ import {
   VisitorSort,
   CreateChatWithVisitorRequest 
 } from '@guiders-frontend/shared/types';
-import { ButtonPrimaryComponent } from '@guiders-frontend/button-primary';
-import { ButtonTertiaryComponent } from '@guiders-frontend/button-tertiary';
 
 export interface VisitorListConfig {
   showSearch: boolean;
@@ -21,7 +19,7 @@ export interface VisitorListConfig {
 @Component({
   selector: 'lib-visitors-list',
   standalone: true,
-  imports: [CommonModule, ButtonPrimaryComponent, ButtonTertiaryComponent],
+  imports: [CommonModule],
   templateUrl: './visitors-list.html',
   styleUrls: ['./visitors-list.scss']
 })
@@ -47,6 +45,7 @@ export class VisitorsListComponent {
   readonly filterChange = output<VisitorFilters>();
   readonly sortChange = output<VisitorSort>();
   readonly searchChange = output<string>();
+  readonly viewPendingChats = output<{visitor: Visitor, pendingChatIds: string[]}>();
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -193,6 +192,38 @@ export class VisitorsListComponent {
     this.onViewChat(visitor, mockEvent);
   }
 
+  onViewPendingChats(visitor: Visitor): void {
+    const pendingChatIds = visitor.pendingChatIds || [];
+    console.log('View pending chats for visitor:', visitor.id, pendingChatIds);
+    this.closeDropdown();
+
+    // Emit event to navigate to pending chats or show modal
+    // Siempre emitir el evento, incluso si no hay chats pendientes
+    // El modal puede mostrar un mensaje apropiado
+    this.viewPendingChats.emit({
+      visitor,
+      pendingChatIds
+    });
+  }
+
+
+  // Método para agregar chats pendientes de prueba a los visitantes (solo para demostración)
+  addTestPendingChats(): void {
+    // Este método sería llamado en desarrollo para agregar datos de prueba
+    // En la implementación real, los pendingChatIds vendrían del backend
+    const visitors = this.visitors();
+    if (visitors.length > 0) {
+      // Agregar chats pendientes a los primeros visitantes para prueba
+      visitors[0].pendingChatIds = ['chat-001', 'chat-002'];
+      if (visitors[1]) {
+        visitors[1].pendingChatIds = ['chat-003'];
+      }
+      if (visitors[2]) {
+        visitors[2].pendingChatIds = ['chat-004', 'chat-005', 'chat-006'];
+      }
+    }
+  }
+
   onRemoveVisitor(visitor: Visitor): void {
     console.log('Remove visitor:', visitor.id);
     this.closeDropdown();
@@ -201,7 +232,40 @@ export class VisitorsListComponent {
 
   toggleDropdown(visitorId: string, event: Event): void {
     event.stopPropagation();
-    this.showDropdown.set(this.showDropdown() === visitorId ? null : visitorId);
+    const target = event.target as HTMLElement;
+    const isCurrentlyOpen = this.showDropdown() === visitorId;
+    
+    if (isCurrentlyOpen) {
+      this.showDropdown.set(null);
+    } else {
+      this.showDropdown.set(visitorId);
+      
+      // Posicionar dropdown dinámicamente para evitar corte
+      setTimeout(() => {
+        const dropdown = document.querySelector('.dropdown-menu') as HTMLElement;
+        if (dropdown && target) {
+          const buttonRect = target.getBoundingClientRect();
+          const dropdownRect = dropdown.getBoundingClientRect();
+          const viewportHeight = window.innerHeight;
+          const viewportWidth = window.innerWidth;
+          
+          // Calcular posición vertical (preferir abajo, pero subir si se corta)
+          let top = buttonRect.bottom + 4;
+          if (top + dropdownRect.height > viewportHeight - 10) {
+            top = buttonRect.top - dropdownRect.height - 4;
+          }
+          
+          // Calcular posición horizontal (alineado a la derecha del botón)
+          let left = buttonRect.right - dropdownRect.width;
+          if (left < 10) {
+            left = buttonRect.left;
+          }
+          
+          dropdown.style.top = `${Math.max(10, top)}px`;
+          dropdown.style.left = `${Math.min(viewportWidth - dropdownRect.width - 10, left)}px`;
+        }
+      }, 0);
+    }
   }
 
   closeDropdown(): void {

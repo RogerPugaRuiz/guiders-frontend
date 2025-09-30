@@ -90,7 +90,8 @@ export class VisitorsDataService {
             totalPageViews: 0, // Valor por defecto
             averageSessionDuration: 0, // Valor por defecto
             hasActiveChat: false, // Valor por defecto
-            totalChats: 0 // Valor por defecto
+            totalChats: 0, // Valor por defecto
+            pendingChatIds: apiVisitor.pendingChatIds || [] // ¡IMPORTANTE! Mapear los chats pendientes del backend
           }));
 
           const mappedResponse: GetVisitorsResponse = {

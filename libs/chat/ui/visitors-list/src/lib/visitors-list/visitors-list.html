@@ -217,26 +217,50 @@
               <td class="visitors-table__cell visitors-table__cell--actions">
                 <div class="visitor-actions">
                   @if (!visitor.hasActiveChat) {
-                    <guiders-button-primary
-                      (clicked)="onCreateChatFromButton(visitor)"
+                    <button
+                      type="button"
+                      class="action-button action-button--primary"
+                      (click)="onCreateChat(visitor, $event)"
                       title="Iniciar conversación"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
                       </svg>
                       Chat
-                    </guiders-button-primary>
+                    </button>
                   } @else {
-                    <guiders-button-primary
-                      (clicked)="onViewChatFromButton(visitor)"
+                    <button
+                      type="button"
+                      class="action-button action-button--active"
+                      (click)="onViewChat(visitor, $event)"
                       title="Ver conversación activa"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
                       </svg>
                       Ver chat
-                    </guiders-button-primary>
+                    </button>
                   }
+
+                  <button
+                    type="button"
+                    class="action-button"
+                    [class.action-button--warning]="visitor.pendingChatIds && visitor.pendingChatIds.length > 0"
+                    [class.action-button--secondary]="!visitor.pendingChatIds || visitor.pendingChatIds.length === 0"
+                    (click)="onViewPendingChats(visitor)"
+                    [title]="visitor.pendingChatIds && visitor.pendingChatIds.length > 0 ? 'Chats pendientes (' + visitor.pendingChatIds.length + ')' : 'Ver chats pendientes'"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                      <circle cx="9" cy="10" r="1"/>
+                      <circle cx="15" cy="10" r="1"/>
+                    </svg>
+                    @if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
+                      <span class="pending-count">{{ visitor.pendingChatIds.length }}</span>
+                    } @else {
+                      <span class="pending-text">Pendientes</span>
+                    }
+                  </button>
                   <div class="dropdown-actions">
                     <button
                       type="button"
@@ -266,16 +290,24 @@
                           </svg>
                           Historial
                         </button>
-                        <guiders-button-tertiary
-                          (clicked)="onRemoveVisitor(visitor)"
-                          class="dropdown-item-button"
-                        >
+                        <button class="dropdown-item" (click)="onAddTag(visitor); closeDropdown()">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
                             <line x1="7" y1="7" x2="7.01" y2="7"/>
                           </svg>
-                          Remover visitante
-                        </guiders-button-tertiary>
+                          Etiquetar
+                        </button>
+                        @if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
+                          <button class="dropdown-item" (click)="onViewPendingChats(visitor); closeDropdown()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                              <circle cx="9" cy="10" r="1"/>
+                              <circle cx="15" cy="10" r="1"/>
+                              <path d="M10 14s1.5 2 5 0"/>
+                            </svg>
+                            Chats pendientes ({{ visitor.pendingChatIds.length }})
+                          </button>
+                        }
                       </div>
                     }
                   </div>

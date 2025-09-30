@@ -8,6 +8,16 @@ $color-surface-tertiary: #f1f3f4;
 $color-surface-hover: #f1f3f4;
 $color-surface-selected: #e7f3ff;
 $color-surface-disabled: #f1f3f4;
+$color-surface-pressed: #e9ecef;
+
+// Primary variant colors
+$color-primary-50: #e7f3ff;
+
+// Info colors
+$color-info-50: #e3f2fd;
+
+// Warning colors 
+$color-warning-50: #fff8e1;
 
 // Text colors
 $color-text-primary: #212529;
@@ -22,10 +32,13 @@ $color-primary-500: #007bff;
 $color-primary-600: #0066cc;
 $color-primary-700: #004d99;
 
-// Danger colors
+// Danger/Error colors
 $color-danger-500: #dc3545;
 $color-danger-600: #b02a37;
 $color-danger-700: #842029;
+$color-error-50: #fdf2f2;
+$color-error-200: #f5b7b1;
+$color-error-600: #dc3545;
 
 // Borders
 $color-border-subtle: #dee2e6;
@@ -55,6 +68,7 @@ $size-3xl: 48px;
 
 // === TIPOGRAFÍA ===
 $font-family-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+$font-family-body: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
 $font-size-xs: 12px;
 $font-size-sm: 14px;
@@ -86,6 +100,10 @@ $duration-normal: 150ms;
 $easing-standard: cubic-bezier(0.2, 0, 0, 1);
 $easing-entrance: cubic-bezier(0, 0, 0.2, 1);
 
+// Transiciones comunes
+$transition-fast: all $duration-fast $easing-standard;
+$transition-normal: all $duration-normal $easing-standard;
+
 // === Z-INDEX ===
 $z-index-sticky: 100;
 $z-index-modal: 1300;
@@ -107,12 +125,24 @@ $breakpoint-2xl: 1440px;
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
     line-height: $line-height-tight;
+  } @else if $size == 'heading-small' {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-tight;
   } @else if $size == 'label-large' {
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    line-height: $line-height-tight;
+  } @else if $size == 'label-medium' {
     font-size: $font-size-sm;
     font-weight: $font-weight-medium;
     line-height: $line-height-relaxed;
+  } @else if $size == 'body-medium' {
+    font-size: $font-size-base;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-relaxed;
   } @else if $size == 'body-small' {
-    font-size: $font-size-xs;
+    font-size: $font-size-sm;
     font-weight: $font-weight-regular;
     line-height: $line-height-relaxed;
   } @else if $size == 'caption' {
@@ -178,6 +208,14 @@ $breakpoint-2xl: 1440px;
 @mixin focus-ring {
   outline: 2px solid $color-primary-500;
   outline-offset: 2px;
+}
+
+@mixin button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 @keyframes spin {

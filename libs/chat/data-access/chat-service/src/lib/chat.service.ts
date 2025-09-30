@@ -15,20 +15,50 @@ import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 
 // Tipos internos para las respuestas de la API
 interface ApiChatResponse {
-  chatId: string;
-  status: 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  department: string;
-  subject: string;
-  visitorId: string;
+  // Campos comunes a ambos formatos
+  id?: string; // Nuevo formato del backend
+  chatId?: string; // Formato anterior
+  status: 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED' | 'ASSIGNED'; // ASSIGNED es el nuevo estado
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'NORMAL'; // NORMAL es nueva prioridad
+
+  // Campos del formato anterior
+  department?: string;
+  subject?: string;
+  visitorId?: string;
   commercialId?: string;
+
+  // Campos del nuevo formato del backend
+  visitorInfo?: {
+    id: string;
+    name?: string;
+    email?: string;
+    additionalData?: Record<string, unknown>;
+  };
+  assignedCommercialId?: string;
+  availableCommercialIds?: string[];
+  metadata?: {
+    department?: string;
+    source?: string;
+    tags?: string[];
+    customFields?: Record<string, unknown>;
+  };
+
+  // Campos comunes
   queuePosition?: number;
   estimatedWaitTime?: number;
   lastMessage?: ApiMessageResponse;
   unreadCount?: number;
+  unreadMessagesCount?: number; // Nuevo formato
+  totalMessages?: number; // Nuevo formato
+  isActive?: boolean; // Nuevo formato
+
+  // Fechas
   createdAt: string;
   updatedAt: string;
   closedAt?: string;
+
+  // Campos adicionales del nuevo formato
+  tags?: string[];
 }
 
 interface ApiMessageResponse {
@@ -53,11 +83,16 @@ interface CreateChatWithMessageResponse {
 
 interface ApiGetChatsResponse {
   chats: ApiChatResponse[];
+  // Campos del formato anterior
   pagination?: {
     hasNext: boolean;
     cursor?: string;
     total?: number;
   };
+  // Campos del nuevo formato del backend
+  total?: number;
+  hasMore?: boolean;
+  nextCursor?: string | null;
 }
 
 interface ApiGetMessagesResponse {
@@ -497,46 +532,66 @@ export class ChatService {
   // ===== MÉTODOS PRIVADOS =====
 
   private transformChatFromApi(apiChat: ApiChatResponse): Chat {
-    // Crear participantes simulados (en una app real esto vendría de la API)
+    // Normalizar campos entre los dos formatos
+    const chatId = apiChat.id || apiChat.chatId || '';
+    const visitorId = apiChat.visitorInfo?.id || apiChat.visitorId || '';
+    const commercialId = apiChat.assignedCommercialId || apiChat.commercialId;
+    const department = apiChat.metadata?.department || apiChat.department || 'general';
+    const unreadCount = apiChat.unreadMessagesCount || apiChat.unreadCount || 0;
+
+    // Crear participantes
     const participants: User[] = [];
-    
-    if (apiChat.visitorId) {
+
+    if (visitorId) {
       participants.push({
-        id: apiChat.visitorId,
-        name: 'Visitante',
+        id: visitorId,
+        name: apiChat.visitorInfo?.name || 'Visitante',
+        email: apiChat.visitorInfo?.email,
         role: 'visitor',
         status: 'online'
       });
     }
-    
-    if (apiChat.commercialId) {
+
+    if (commercialId) {
       participants.push({
-        id: apiChat.commercialId,
+        id: commercialId,
         name: 'Comercial',
         role: 'commercial',
         status: 'online'
       });
     }
 
+    // Normalizar prioridad
+    let priority = apiChat.priority;
+    if (priority === 'NORMAL') {
+      priority = 'MEDIUM'; // Mapear NORMAL a MEDIUM para consistencia
+    }
+
+    // Normalizar status
+    let status = apiChat.status;
+    if (status === 'ASSIGNED') {
+      status = 'ACTIVE'; // Mapear ASSIGNED a ACTIVE para consistencia
+    }
+
     return {
-      chatId: apiChat.chatId,
-      status: apiChat.status,
-      priority: apiChat.priority,
-      department: apiChat.department,
+      chatId,
+      status: status as 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED',
+      priority: priority as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+      department,
       subject: apiChat.subject,
-      visitorId: apiChat.visitorId,
-      commercialId: apiChat.commercialId,
+      visitorId,
+      commercialId,
       queuePosition: apiChat.queuePosition,
       estimatedWaitTime: apiChat.estimatedWaitTime,
       lastMessage: apiChat.lastMessage ? this.transformMessageFromApi(apiChat.lastMessage) : undefined,
-      unreadCount: apiChat.unreadCount || 0,
+      unreadCount,
       isTyping: false,
       typingUsers: [],
       createdAt: new Date(apiChat.createdAt),
       updatedAt: new Date(apiChat.updatedAt),
       closedAt: apiChat.closedAt ? new Date(apiChat.closedAt) : undefined,
       participants,
-      name: apiChat.subject || 'Chat sin título',
+      name: apiChat.subject || apiChat.visitorInfo?.name || apiChat.visitorInfo?.email || 'Visitante',
       archived: false,
       muted: false,
       pinned: false

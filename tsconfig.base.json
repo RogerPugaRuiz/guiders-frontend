@@ -66,6 +66,9 @@
         "libs/shared/design-tokens/src/index.ts"
       ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/pending-chats-modal": [
+        "libs/chat/ui/pending-chats-modal/src/index.ts"
+      ],
       "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],

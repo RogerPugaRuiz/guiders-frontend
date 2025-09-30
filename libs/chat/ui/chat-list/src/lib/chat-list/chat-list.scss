@@ -3,22 +3,22 @@
 :host {
   display: block;
   height: 100%;
-  font-family: var(--font-family-primary);
+  font-family: tokens.$font-family-body;
 }
 
 .chat-list {
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--color-background-primary);
-  border-right: 1px solid var(--color-border-subtle);
+  background: tokens.$color-surface-primary;
+  border-right: 1px solid tokens.$color-border-primary;
 }
 
 // Barra de búsqueda
 .chat-list__search {
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border-subtle);
-  background: var(--color-background-secondary);
+  padding: tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
 
   .chat-list__search-field {
     width: 100%;
@@ -32,18 +32,15 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: var(--spacing-lg);
-  color: var(--color-text-secondary);
+  gap: tokens.$spacing-lg;
+  color: tokens.$color-text-secondary;
   
   .loading-spinner {
     @include tokens.loading-spinner;
-    width: var(--size-2xl);
-    height: var(--size-2xl);
   }
 
   span {
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
+    @include tokens.typography('body-medium');
   }
 }
 
@@ -54,7 +51,7 @@
   
   // Scroll personalizado
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border-default) transparent;
+  scrollbar-color: tokens.$color-border-primary transparent;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -65,12 +62,12 @@
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border-default);
-    border-radius: var(--radius-md);
+    background: tokens.$color-border-primary;
+    border-radius: tokens.$border-radius-md;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: var(--color-border-strong);
+    background: tokens.$color-border-strong;
   }
 }
 
@@ -80,9 +77,9 @@
   align-items: center;
   justify-content: center;
   height: 200px;
-  padding: var(--spacing-lg);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  padding: tokens.$spacing-lg;
+  color: tokens.$color-text-secondary;
+  @include tokens.typography('body-small');
   text-align: center;
   font-style: italic;
 }
@@ -92,19 +89,19 @@
   width: 100%;
   display: flex;
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: tokens.$spacing-md tokens.$spacing-lg;
   border: none;
   background: transparent;
   cursor: pointer;
   text-align: left;
   position: relative;
-  border-bottom: 1px solid var(--color-border-subtle);
-  min-height: var(--size-4xl);
-  transition: var(--transition-all);
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  min-height: 64px;
+  transition: background-color tokens.$transition-fast ease;
 
   // Estados de interacción
   &:hover {
-    background: var(--color-background-hover);
+    background: tokens.$color-surface-hover;
   }
 
   &:focus-visible {
@@ -113,36 +110,36 @@
   }
 
   &:active {
-    background: var(--color-background-pressed);
+    background: tokens.$color-surface-pressed;
   }
 
   // Estados especiales
   &--selected {
-    background: var(--color-background-selected);
-    border-left: 3px solid var(--color-primary-default);
+    background: tokens.$color-primary-50;
+    border-left: 3px solid tokens.$color-primary-500;
     
     &:hover {
-      background: var(--color-background-selected);
+      background: tokens.$color-primary-50;
     }
   }
 
   &--unread {
-    background: var(--color-background-accent-subtle);
+    background: tokens.$color-info-50;
     
     .chat-item__name {
-      font-weight: var(--font-weight-semibold);
-      color: var(--color-text-primary);
+      font-weight: tokens.$font-weight-semibold;
+      color: tokens.$color-text-primary;
     }
 
     .chat-item__message {
-      color: var(--color-text-primary);
-      font-weight: var(--font-weight-medium);
+      color: tokens.$color-text-primary;
+      font-weight: tokens.$font-weight-medium;
     }
   }
 
   &--pinned {
     order: -1;
-    background: var(--color-background-info-subtle);
+    background: tokens.$color-warning-50;
   }
 }
 
@@ -399,12 +396,7 @@
   }
 }
 
-// Tema oscuro
-@media (prefers-color-scheme: dark) {
-  :host {
-    // Los design tokens ya manejan el tema oscuro automáticamente
-  }
-}
+// Tema oscuro - Los design tokens ya manejan el tema oscuro automáticamente
 
 // Variante compacta (opcional)
 :host(.compact) {

@@ -1,5 +1,8 @@
 /* === GUIDERS CONSOLE - ESTILOS GLOBALES === */
 
+// Importar tokens de diseño
+@use '../../../libs/shared/design-tokens/src/lib/tokens-vars.scss' as tokens;
+
 /* Reset y normalización */
 *, *::before, *::after {
   box-sizing: border-box;

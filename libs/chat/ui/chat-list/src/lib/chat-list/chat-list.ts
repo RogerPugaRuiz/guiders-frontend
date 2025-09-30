@@ -54,13 +54,32 @@ export class ChatList {
   }
 
   getChatName(chat: Chat): string {
+    // Si el chat tiene un nombre específico, usarlo
+    if (chat.name && chat.name !== 'Chat sin título') {
+      return chat.name;
+    }
+
     if (chat.participants && chat.participants.length > 2) {
       return chat.name || 'Grupo sin nombre';
     }
-    
+
     // Para chats directos, obtener el nombre del otro participante
-    const otherParticipant = chat.participants.find(p => p.id !== 'current-user-id');
-    return otherParticipant?.name || 'Usuario desconocido';
+    const otherParticipant = chat.participants?.find(p => p.id !== 'current-user-id');
+
+    if (otherParticipant?.name && otherParticipant.name.trim()) {
+      return otherParticipant.name;
+    }
+
+    if (otherParticipant?.email && otherParticipant.email.trim()) {
+      return otherParticipant.email;
+    }
+
+    // Usar el nombre calculado del chat si está disponible
+    if (chat.name && chat.name !== 'Chat sin título') {
+      return chat.name;
+    }
+
+    return 'Visitante';
   }
 
   getChatAvatar(chat: Chat): string {
@@ -72,19 +91,37 @@ export class ChatList {
     return otherParticipant?.avatar || '👤';
   }
 
-  formatLastMessageTime(timestamp: Date): string {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+  formatLastMessageTime(timestamp: Date | string | undefined): string {
+    if (!timestamp) return '';
 
-    if (minutes < 1) return 'Ahora';
-    if (minutes < 60) return `${minutes}m`;
-    if (hours < 24) return `${hours}h`;
-    if (days < 7) return `${days}d`;
-    
-    return timestamp.toLocaleDateString();
+    try {
+      const date = new Date(timestamp);
+
+      // Verificar si la fecha es válida
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (minutes < 1) return 'Ahora';
+      if (minutes < 60) return `${minutes}m`;
+      if (hours < 24) return `${hours}h`;
+      if (days < 7) return `${days}d`;
+
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: '2-digit'
+      });
+    } catch (error) {
+      console.warn('Error al formatear fecha:', timestamp, error);
+      return '';
+    }
   }
 
   formatLastMessage(chat: Chat): string {

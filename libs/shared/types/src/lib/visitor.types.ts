@@ -49,6 +49,7 @@ export interface Visitor {
   hasActiveChat: boolean;
   lastChatId?: string;
   totalChats: number;
+  pendingChatIds?: string[]; // IDs de chats pendientes
   
   // Para UI
   isSelected?: boolean;
@@ -129,6 +130,7 @@ export interface VisitorFilters {
   status?: VisitorStatus[];
   lifecycle?: VisitorLifecycle[];
   hasActiveChat?: boolean;
+  hasPendingChats?: boolean;
   siteId?: string;
   includeOffline?: boolean;
   department?: string;
@@ -161,19 +163,23 @@ export interface GetVisitorsResponse {
   nextCursor?: string;
 }
 
+// Tipo para visitante en el contexto de tenant-visitors
+export interface TenantVisitor {
+  id: string;
+  fingerprint: string;
+  connectionStatus: "ONLINE" | "OFFLINE";
+  siteId: string;
+  siteName: string;
+  createdAt: string;
+  lastActivity: string;
+  pendingChatIds: string[];
+}
+
 // Respuesta del endpoint tenant-visitors
 export interface GetTenantVisitorsResponse {
   tenantId: string;
   companyName: string;
-  visitors: Array<{
-    id: string;
-    fingerprint: string;
-    connectionStatus: "ONLINE" | "OFFLINE";
-    siteId: string;
-    siteName: string;
-    createdAt: string;
-    lastActivity: string;
-  }>;
+  visitors: TenantVisitor[];
   totalCount: number;
   activeSitesCount: number;
   timestamp: string;
@@ -257,6 +263,7 @@ export interface VisitorStats {
   onlineVisitors: number;
   newVisitors: number;
   returningVisitors: number;
+  withPendingChats: number;
   averageSessionDuration: number;
   bounceRate: number;
   conversionRate: number;

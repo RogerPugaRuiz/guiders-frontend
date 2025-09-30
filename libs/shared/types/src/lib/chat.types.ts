@@ -32,8 +32,8 @@ export interface Message {
 
 export interface Chat {
   chatId: string; // API usa chatId
-  status: 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED'; // Estados de la API
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'; // Prioridades de la API
+  status: 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED' | 'ASSIGNED'; // Estados de la API (ASSIGNED añadido)
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT' | 'NORMAL'; // Prioridades de la API (NORMAL añadido)
   department?: string; // Departamento de la API
   subject?: string; // Asunto del chat
   visitorId: string; // ID del visitante

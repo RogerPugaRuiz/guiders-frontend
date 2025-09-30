@@ -9,12 +9,13 @@
   padding: tokens.$spacing-md;
   height: 100%;
   position: relative;
-  transition: all tokens.$duration-normal tokens.$easing-standard;
+  // transition: all tokens.$duration-normal tokens.$easing-standard; // Deshabilitado - sin efectos hover
 
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: tokens.$shadow-xl;
-  }
+  // Efectos hover deshabilitados por solicitud del usuario
+  // &:hover {
+  //   transform: translateY(-1px);
+  //   box-shadow: tokens.$shadow-xl;
+  // }
 
   // Variant styles
   &.bento-kpi--primary {

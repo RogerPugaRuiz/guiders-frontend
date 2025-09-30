@@ -6,8 +6,10 @@ import { catchError, of, finalize, switchMap } from 'rxjs';
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
 import { CreateChatModal, CreateChatModalConfig } from '@guiders-frontend/create-chat-modal';
+import { PendingChatsModal } from '@guiders-frontend/pending-chats-modal';
 import { BentoKpiComponent } from '@guiders-frontend/bento-kpi';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
+import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import {
   Visitor,
   VisitorFilters,
@@ -22,9 +24,10 @@ import {
   selector: 'lib-visitors',
   standalone: true,
   imports: [
-    CommonModule, 
-    VisitorsListComponent, 
+    CommonModule,
+    VisitorsListComponent,
     CreateChatModal,
+    PendingChatsModal,
     BentoKpiComponent
   ],
   templateUrl: './visitors.html',
@@ -32,6 +35,7 @@ import {
 })
 export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly visitorsService = inject(VisitorsDataService);
+  private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -119,6 +123,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Modal state
   readonly showCreateChatModal = signal<boolean>(false);
   readonly selectedVisitorForChat = signal<Visitor | null>(null);
+
+  // Pending chats modal state
+  readonly showPendingChatsModal = signal<boolean>(false);
+  readonly pendingChatsModalData = signal<{visitor: Visitor, pendingChatIds: string[]} | null>(null);
 
   // Modal configuration
   readonly modalConfig = signal<CreateChatModalConfig>({
@@ -504,5 +512,92 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   getFilterDescription(filterId: string): string {
     const filter = this.filterPresets().find(f => f.id === filterId);
     return filter?.description || '';
+  }
+
+  // Pending chats modal methods
+  onViewPendingChats(data: {visitor: Visitor, pendingChatIds: string[]}): void {
+    this.pendingChatsModalData.set(data);
+    this.showPendingChatsModal.set(true);
+  }
+
+  closePendingChatsModal(): void {
+    this.showPendingChatsModal.set(false);
+    this.pendingChatsModalData.set(null);
+  }
+
+  onTakePendingChat(chatId: string): void {
+    console.log('Taking pending chat:', chatId);
+
+    // Activar loading
+    this.updateState({ loading: true });
+
+    // Primero obtener el usuario actual de la sesión
+    this.sessionService.ensureSession$().pipe(
+      switchMap(user => {
+        if (!user?.sub) {
+          throw new Error('No se pudo obtener el ID del usuario actual');
+        }
+
+        console.log('Assigning chat', chatId, 'to user', user.sub);
+
+        // Usar el método del servicio para asignar el chat al comercial actual
+        return this.visitorsService.assignChatToCommercial(chatId, user.sub);
+      }),
+      catchError((error: Error) => {
+        console.error('Error al tomar el chat:', error);
+        this.updateState({
+          error: 'Error al tomar el chat. Inténtalo de nuevo.',
+          loading: false
+        });
+        return of(null);
+      }),
+      finalize(() => this.updateState({ loading: false }))
+    ).subscribe((response: { success: boolean; assignedAt: string } | null) => {
+      if (response?.success) {
+        console.log('Chat asignado exitosamente:', response);
+
+        // Cerrar el modal
+        this.closePendingChatsModal();
+
+        // Mostrar mensaje de éxito (opcional)
+        // this.updateState({ successMessage: 'Chat asignado exitosamente' });
+
+        // Refrescar la lista de visitantes para actualizar los chats pendientes
+        this.refreshVisitors();
+
+        // Opcionalmente, navegar al chat asignado
+        // this.router.navigate(['/chat', chatId]);
+      }
+    });
+  }
+
+  onTransferPendingChat(data: {chatId: string, targetUserId: string}): void {
+    console.log('Transferring pending chat:', data.chatId, 'to user:', data.targetUserId);
+
+    this.updateState({ loading: true });
+
+    this.visitorsService.assignChatToCommercial(data.chatId, data.targetUserId)
+      .pipe(
+        catchError((error: Error) => {
+          console.error('Error al transferir el chat:', error);
+          this.updateState({
+            error: 'Error al transferir el chat. Inténtalo de nuevo.',
+            loading: false
+          });
+          return of(null);
+        }),
+        finalize(() => this.updateState({ loading: false }))
+      )
+      .subscribe((response: { success: boolean; assignedAt: string } | null) => {
+        if (response?.success) {
+          console.log('Chat transferido exitosamente:', response);
+
+          // Cerrar el modal
+          this.closePendingChatsModal();
+
+          // Refrescar la lista de visitantes
+          this.refreshVisitors();
+        }
+      });
   }
 }

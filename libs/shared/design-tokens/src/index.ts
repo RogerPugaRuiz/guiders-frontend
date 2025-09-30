@@ -1,14 +1,18 @@
-// Design Tokens Exports
-export * from './lib/tokens/colors';
-export * from './lib/tokens/typography';
-export * from './lib/tokens/spacing';
-export * from './lib/tokens/elevation';
-export * from './lib/tokens/motion';
-export * from './lib/tokens/sizing';
+/**
+ * Design Tokens - SCSS Variables Export
+ * 
+ * Este paquete proporciona variables SCSS para el sistema de design tokens.
+ * Los tokens están disponibles para importación usando @use:
+ * 
+ * @example
+ * @use '@guiders-frontend/shared/design-tokens/tokens-vars' as tokens;
+ * 
+ * background: tokens.$color-primary-500;
+ * padding: tokens.$spacing-md;
+ */
 
-// Re-export all tokens as a single object for convenience
-// Export TypeScript tokens
-export * from './lib/design-tokens';
-
-// Export SCSS tokens for @use imports
-// Available at '@guiders-frontend/shared/design-tokens/tokens'
+// El archivo principal de tokens SCSS está disponible en:
+// libs/shared/design-tokens/src/lib/tokens-vars.scss
+// 
+// Se puede importar usando la ruta:
+// '@guiders-frontend/shared/design-tokens/src/lib/tokens-vars'

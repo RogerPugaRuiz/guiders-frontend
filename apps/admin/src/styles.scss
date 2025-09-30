@@ -1,7 +1,7 @@
 /* === GUIDERS ADMIN - ESTILOS GLOBALES === */
 
 // Importar tokens de diseño
-@use '../../../libs/shared/design-tokens/tokens.scss' as tokens;
+@use '../../../libs/shared/design-tokens/src/lib/tokens-vars.scss' as tokens;
 
 /* Reset y normalización */
 *, *::before, *::after {
@@ -23,11 +23,11 @@ body {
   padding: 0;
   height: 100%;
   width: 100%;
-  font-family: var(--font-family-ui);
-  font-size: var(--font-size-base);
-  line-height: var(--line-height-normal);
-  color: var(--color-on-surface);
-  background-color: var(--color-surface);
+  font-family: tokens.$font-family-ui;
+  font-size: tokens.$font-size-base;
+  line-height: tokens.$line-height-relaxed;
+  color: tokens.$color-text-primary;
+  background-color: tokens.$color-surface-primary;
   
   // Configuración de accesibilidad
   scroll-behavior: smooth;
@@ -48,19 +48,19 @@ body {
 
 // Base typography
 h1, h2, h3, h4, h5, h6 {
-  margin: 0 0 var(--spacing-4) 0;
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-tight);
-  color: var(--color-on-surface);
+  margin: 0 0 tokens.$spacing-md 0;
+  font-weight: tokens.$font-weight-semibold;
+  line-height: tokens.$line-height-tight;
+  color: tokens.$color-text-primary;
 }
 
-h1 { @include typography('h1'); }
-h2 { @include typography('h2'); }
-h3 { @include typography('h3'); }
+h1 { @include tokens.typography('h1'); }
+h2 { @include tokens.typography('heading-2xl'); }
+h3 { @include tokens.typography('heading-small'); }
 
 p {
-  margin: 0 0 var(--spacing-4) 0;
-  @include typography('body-base');
+  margin: 0 0 tokens.$spacing-md 0;
+  @include tokens.typography('body-medium');
 }
 
 // Enlaces

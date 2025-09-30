@@ -69,6 +69,7 @@
             (visitorClick)="onVisitorClick($event)"
             (visitorSelect)="onVisitorSelect($event)"
             (createChat)="onCreateChat($event)"
+            (viewPendingChats)="onViewPendingChats($event)"
             (searchChange)="onSearchChange($event)"
             (filterChange)="onFilterChange($event)"
             (sortChange)="onSortChange($event)"
@@ -155,6 +156,18 @@
       [config]="modalConfig()"
       (modalClose)="closeCreateChatModal()"
       (createChat)="onModalCreateChat($event)"
+    />
+  }
+
+  <!-- Modal para chats pendientes -->
+  @if (pendingChatsModalData()) {
+    <guiders-pending-chats-modal
+      [isOpen]="showPendingChatsModal()"
+      [data]="pendingChatsModalData()!"
+      [loading]="state().loading"
+      (closeModal)="closePendingChatsModal()"
+      (takeChat)="onTakePendingChat($event)"
+      (transferChat)="onTransferPendingChat($event)"
     />
   }
 </div>

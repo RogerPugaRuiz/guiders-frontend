@@ -152,32 +152,78 @@ export class ChatMessages implements AfterViewInit {
     return message.senderId === this.currentUserId();
   }
 
-  formatMessageTime(timestamp: Date): string {
-    return new Date(timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+  formatMessageTime(timestamp: Date | string | undefined): string {
+    if (!timestamp) return '';
+
+    try {
+      const date = new Date(timestamp);
+
+      // Verificar si la fecha es válida
+      if (isNaN(date.getTime())) {
+        return '';
+      }
+
+      return date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.warn('Error al formatear hora:', timestamp, error);
+      return '';
+    }
   }
 
   formatDateHeader(date: string): string {
-    const messageDate = new Date(date);
-    const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    
-    if (messageDate.toDateString() === today.toDateString()) {
-      return 'Hoy';
-    } else if (messageDate.toDateString() === yesterday.toDateString()) {
-      return 'Ayer';
-    } else {
-      return messageDate.toLocaleDateString();
+    if (!date) return '';
+
+    try {
+      const messageDate = new Date(date);
+
+      // Verificar si la fecha es válida
+      if (isNaN(messageDate.getTime())) {
+        return '';
+      }
+
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+
+      if (messageDate.toDateString() === today.toDateString()) {
+        return 'Hoy';
+      } else if (messageDate.toDateString() === yesterday.toDateString()) {
+        return 'Ayer';
+      } else {
+        return messageDate.toLocaleDateString('es-ES', {
+          weekday: 'long',
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric'
+        });
+      }
+    } catch (error) {
+      console.warn('Error al formatear fecha de encabezado:', date, error);
+      return '';
     }
   }
 
   getSenderName(senderId: string): string {
     const chat = this.chat();
-    const sender = chat.participants.find(p => p.id === senderId);
-    return sender?.name || 'Usuario desconocido';
+    const sender = chat.participants?.find(p => p.id === senderId);
+
+    if (sender?.name && sender.name.trim()) {
+      return sender.name;
+    }
+
+    if (sender?.email && sender.email.trim()) {
+      return sender.email;
+    }
+
+    // Si es el usuario actual
+    if (senderId === this.currentUserId()) {
+      return 'Tú';
+    }
+
+    return 'Visitante';
   }
 
   getSenderAvatar(senderId: string): string {
