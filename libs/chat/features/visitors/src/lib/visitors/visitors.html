@@ -1,18 +1,17 @@
 <div class="visitors-page">
-  <!-- Título simplificado -->
-  <div class="visitors-header-card bento-card bento-card--3x1">
-    <div class="page-header">
-      <div class="page-info">
-        <h1 class="page-title">
-          Visitantes - {{ getFilterDescription(selectedFilterId()) }}
-        </h1>
-        <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
-      </div>
-    </div>
-  </div>
-
   <!-- Grid Bento principal -->
   <div class="visitors-grid bento-grid bento-grid--4-cols bento-grid--comfortable">
+    <!-- Título simplificado -->
+    <div class="visitors-header-card bento-card bento-card--4x1">
+      <div class="page-header">
+        <div class="page-info">
+          <h1 class="page-title">
+            Visitantes - {{ getFilterDescription(selectedFilterId()) }}
+          </h1>
+          <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
+        </div>
+      </div>
+    </div>
     
     <!-- KPI Cards - Estadísticas -->
     <guiders-bento-kpi

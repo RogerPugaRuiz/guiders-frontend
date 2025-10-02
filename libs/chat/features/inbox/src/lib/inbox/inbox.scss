@@ -1,843 +1,106 @@
 @use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
-// === INBOX CONTAINER ===
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+// === INBOX COORDINADOR ===
+// Estilos simplificados para el coordinador principal
+// Los estilos específicos de cada área están en sus respectivos componentes:
+// - InboxSidebar: Panel lateral completo
+// - ChatWelcomeState: Estado de bienvenida
+// - ChatPlaceholder: Placeholder del chat
+
 .inbox {
   display: flex;
-  height: 100vh;
-  background: tokens.$color-surface-secondary;
+  height: 100%;
+  width: 100%;
+  background-color: tokens.$color-surface-secondary;
   font-family: tokens.$font-family-ui;
   overflow: hidden;
-  gap: tokens.$spacing-md;
-  padding: tokens.$spacing-md;
-}
-
-// === HEADER ===
-.inbox__header {
-  flex-shrink: 0;
-  background: tokens.$color-surface-primary;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  padding: tokens.$spacing-lg tokens.$spacing-xl;
-  box-shadow: tokens.$shadow-sm;
-}
-
-.inbox__header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.inbox__title-section {
-  display: flex;
-  flex-direction: column;
-  gap: tokens.$spacing-xs;
-}
-
-.inbox__title {
-  @include tokens.typography('heading-3xl');
-  color: tokens.$color-text-primary;
-  margin: 0;
-}
-
-.inbox__subtitle {
-  @include tokens.typography('body-small');
-  color: tokens.$color-text-secondary;
-}
-
-.inbox__header-actions {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-md;
-}
-
-.inbox__action-icon {
-  font-size: tokens.$font-size-lg;
-}
-
-.inbox__action-text {
-  margin-left: tokens.$spacing-xs;
-}
-
-// === ALERTS ===
-.inbox__alert {
-  display: flex;
-  align-items: flex-start;
-  gap: tokens.$spacing-md;
-  padding: tokens.$spacing-md tokens.$spacing-xl;
-  margin: 0 tokens.$spacing-xl tokens.$spacing-md;
-  border-radius: tokens.$border-radius-md;
-
-  &--error {
-    background: tokens.$color-error-50;
-    border: 1px solid tokens.$color-error-200;
-    color: tokens.$color-error-600;
-  }
-}
-
-.inbox__alert-icon {
-  flex-shrink: 0;
-  font-size: tokens.$font-size-lg;
-}
-
-.inbox__alert-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: tokens.$spacing-xs;
-}
-
-.inbox__alert-title {
-  @include tokens.typography('label-medium');
-  font-weight: tokens.$font-weight-semibold;
-}
-
-.inbox__alert-message {
-  @include tokens.typography('body-small');
-}
-
-.inbox__alert-dismiss {
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-// === LAYOUT ===
-.inbox__layout {
-  display: flex;
-  flex: 1;
-  gap: tokens.$spacing-lg;
-  padding: 0 tokens.$spacing-xl;
-  padding-bottom: tokens.$spacing-xl;
-  overflow: hidden;
-}
-
-// === SIDEBAR ===
-.inbox__sidebar {
-  width: 400px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  background: tokens.$color-surface-primary;
-  border-radius: tokens.$border-radius-md;
-  border: 1px solid tokens.$color-border-subtle;
-  overflow: hidden;
-  box-shadow: tokens.$shadow-sm;
-
-  @media (max-width: tokens.$breakpoint-lg) {
-    width: 320px;
-  }
-
-  @media (max-width: tokens.$breakpoint-md) {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    z-index: tokens.$z-index-modal;
-    border-radius: 0;
-    border: none;
-    transform: translateX(-100%);
-    transition: transform tokens.$duration-normal tokens.$easing-standard;
-
-    &--visible {
-      transform: translateX(0);
-    }
-  }
-}
-
-.inbox__sidebar-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: tokens.$spacing-lg;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  background: tokens.$color-surface-secondary;
-}
-
-.inbox__title {
-  @include tokens.typography('heading-large');
-  color: tokens.$color-text-primary;
-  margin: 0;
-}
-
-.inbox__new-chat-btn {
-  flex-shrink: 0;
-}
-
-.inbox__conversations {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.inbox__conversation-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.inbox__conversation-item {
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: tokens.$spacing-md;
-  padding: tokens.$spacing-md tokens.$spacing-lg;
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  text-align: left;
-  cursor: pointer;
-  transition: background-color tokens.$duration-fast tokens.$easing-standard;
-
-  &:hover {
-    background: tokens.$color-surface-tertiary;
-  }
-
-  &:focus-visible {
-    @include tokens.focus-ring;
-    outline-offset: -2px;
-  }
-
-  &--selected {
-    background: tokens.$color-surface-tertiary;
-    
-    .inbox__conversation-name {
-      font-weight: tokens.$font-weight-semibold;
-    }
-  }
-}
-
-.inbox__conversation-avatar {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: tokens.$color-surface-secondary;
-  border-radius: tokens.$border-radius-full;
-  flex-shrink: 0;
-  font-size: tokens.$font-size-xl;
-}
-
-.inbox__conversation-content {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: tokens.$spacing-xs;
-}
-
-.inbox__conversation-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: tokens.$spacing-sm;
-}
-
-.inbox__conversation-name {
-  @include tokens.typography('label-large');
-  color: tokens.$color-text-primary;
-  margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.inbox__conversation-time {
-  @include tokens.typography('caption');
-  color: tokens.$color-text-tertiary;
-  flex-shrink: 0;
-}
-
-.inbox__conversation-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: tokens.$spacing-sm;
-}
-
-.inbox__conversation-preview {
-  @include tokens.typography('body-small');
-  color: tokens.$color-text-secondary;
-  margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: tokens.$line-height-tight;
-}
-
-.inbox__conversation-badge {
-  @include tokens.typography('caption');
-  background: tokens.$color-primary-500;
-  color: tokens.$color-text-inverse;
-  padding: 2px tokens.$spacing-xs;
-  border-radius: tokens.$border-radius-full;
-  min-width: 20px;
-  text-align: center;
-  line-height: 1.2;
-  flex-shrink: 0;
-  font-weight: tokens.$font-weight-semibold;
-}
-
-// === SEARCH ===
-.inbox__search {
-  padding: tokens.$spacing-lg;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-}
-
-.inbox__search-field {
-  width: 100%;
-}
-
-// === FILTERS ===
-.inbox__filters {
-  padding: tokens.$spacing-md tokens.$spacing-lg;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  display: flex;
-  flex-wrap: wrap;
-  gap: tokens.$spacing-sm;
-}
-
-.inbox__filter {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-xs;
-  padding: tokens.$spacing-xs tokens.$spacing-sm;
-  border-radius: tokens.$border-radius-full;
-  @include tokens.typography('label-medium');
-  transition: tokens.$transition-normal;
-}
-
-.inbox__filter-icon {
-  font-size: tokens.$font-size-sm;
-}
-
-.inbox__filter-label {
-  white-space: nowrap;
-}
-
-.inbox__filter-badge {
-  background: tokens.$color-primary-500;
-  color: tokens.$color-text-inverse;
-  font-size: tokens.$font-size-xs;
-  font-weight: tokens.$font-weight-semibold;
-  padding: 2px tokens.$spacing-xs;
-  border-radius: tokens.$border-radius-full;
-  min-width: 18px;
-  text-align: center;
-  line-height: 1;
-}
-
-// === CHAT LIST ===
-.inbox__chat-list {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.inbox__loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: tokens.$spacing-md;
-  padding: tokens.$spacing-2xl;
-  color: tokens.$color-text-secondary;
-}
-
-.inbox__loading-spinner {
-  @include tokens.loading-spinner;
-}
-
-.inbox__loading-text {
-  @include tokens.typography('body-medium');
-}
-
-.inbox__empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: tokens.$spacing-3xl tokens.$spacing-xl;
-  text-align: center;
-}
-
-.inbox__empty-icon {
-  font-size: 48px;
-  margin-bottom: tokens.$spacing-lg;
-  opacity: 0.6;
-}
-
-.inbox__empty-title {
-  @include tokens.typography('heading-small');
-  color: tokens.$color-text-primary;
-  margin: 0 0 tokens.$spacing-sm 0;
-}
-
-.inbox__empty-description {
-  @include tokens.typography('body-medium');
-  color: tokens.$color-text-secondary;
-  margin: 0;
-  max-width: 300px;
-}
-
-// === CHAT ITEMS ===
-.inbox__chat-items {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.inbox__chat-item {
-  border-bottom: 1px solid tokens.$color-border-subtle;
-
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.inbox__chat-button {
-  @include tokens.button-reset;
-  width: 100%;
-  display: flex;
-  align-items: flex-start;
-  gap: tokens.$spacing-md;
-  padding: tokens.$spacing-lg;
-  background: transparent;
-  transition: tokens.$transition-normal;
-  text-align: left;
-
-  &:hover {
-    background: tokens.$color-surface-hover;
-  }
-
-  &:focus-visible {
-    @include tokens.focus-ring;
-    outline-offset: -2px;
-  }
-
-  &--selected {
-    background: tokens.$color-surface-selected;
-
-    &:hover {
-      background: tokens.$color-surface-selected;
-    }
-  }
-
-  &--unread {
-    .inbox__chat-name {
-      font-weight: tokens.$font-weight-semibold;
-    }
-
-    .inbox__chat-preview {
-      font-weight: tokens.$font-weight-medium;
-      color: tokens.$color-text-primary;
-    }
-  }
-}
-
-// === CHAT AVATAR ===
-.inbox__chat-avatar {
   position: relative;
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: tokens.$color-surface-tertiary;
-  border-radius: tokens.$border-radius-full;
-  font-size: tokens.$font-size-xl;
-}
 
-.inbox__chat-avatar-icon {
-  line-height: 1;
-}
+  &__sidebar {
+    flex: 0 0 320px;
+    min-width: 280px;
+    max-width: 400px;
+    height: 100%;
+    overflow: hidden;
+    border-right: 1px solid tokens.$color-border-subtle;
+    background-color: tokens.$color-surface-primary;
+  }
 
-.inbox__chat-status {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 12px;
-  height: 12px;
-  border-radius: tokens.$border-radius-full;
-  border: 2px solid tokens.$color-surface-primary;
-
-  &--unread {
-    background: tokens.$color-primary-500;
+  &__main {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    min-width: 0; // Permite que el contenido se contraiga
+    background-color: tokens.$color-surface-primary;
   }
 }
 
-// === CHAT CONTENT ===
-.inbox__chat-content {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: tokens.$spacing-xs;
-}
-
-.inbox__chat-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: tokens.$spacing-sm;
-}
-
-.inbox__chat-name {
-  @include tokens.typography('label-large');
-  color: tokens.$color-text-primary;
-  margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.inbox__chat-time {
-  @include tokens.typography('caption');
-  color: tokens.$color-text-tertiary;
-  flex-shrink: 0;
-}
-
-.inbox__chat-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: tokens.$spacing-sm;
-}
-
-.inbox__chat-preview {
-  @include tokens.typography('body-small');
-  color: tokens.$color-text-secondary;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  line-height: tokens.$line-height-tight;
-}
-
-.inbox__typing {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-xs;
-  color: tokens.$color-primary-500;
-  font-style: italic;
-}
-
-.inbox__typing-dots {
-  display: flex;
-  gap: 2px;
-
-  span {
-    width: 3px;
-    height: 3px;
-    background: currentColor;
-    border-radius: tokens.$border-radius-full;
-    animation: typing-bounce 1.4s ease-in-out infinite both;
-
-    &:nth-child(2) {
-      animation-delay: 0.16s;
-    }
-
-    &:nth-child(3) {
-      animation-delay: 0.32s;
+// Responsive design
+@media (max-width: tokens.$breakpoint-lg) {
+  .inbox {
+    &__sidebar {
+      flex: 0 0 280px;
+      min-width: 260px;
     }
   }
 }
 
-.inbox__unread-badge {
-  @include tokens.typography('caption');
-  background: tokens.$color-primary-500;
-  color: tokens.$color-text-inverse;
-  padding: 2px tokens.$spacing-xs;
-  border-radius: tokens.$border-radius-full;
-  min-width: 20px;
-  text-align: center;
-  line-height: 1.2;
-  flex-shrink: 0;
-}
-
-// === MAIN CONTENT ===
-.inbox__main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: tokens.$color-surface-primary;
-  border-radius: tokens.$border-radius-md;
-  border: 1px solid tokens.$color-border-subtle;
-  overflow: hidden;
-  min-width: 0;
-  box-shadow: tokens.$shadow-sm;
-
-  @media (max-width: tokens.$breakpoint-md) {
-    border-radius: 0;
-    border: none;
-    box-shadow: none;
-  }
-}
-
-.inbox__chat-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.inbox__chat {
-  flex: 1;
-  min-height: 0;
-}
-
-// === WELCOME STATE ===
-.inbox__welcome-state {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: tokens.$spacing-3xl;
-  background: tokens.$color-surface-secondary;
-}
-
-.inbox__welcome-content {
-  text-align: center;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: tokens.$spacing-lg;
-}
-
-.inbox__welcome-icon {
-  font-size: 80px;
-  color: tokens.$color-text-tertiary;
-  opacity: 0.6;
-}
-
-.inbox__welcome-title {
-  @include tokens.typography('heading-2xl');
-  color: tokens.$color-text-primary;
-  margin: 0;
-}
-
-.inbox__welcome-description {
-  @include tokens.typography('body-medium');
-  color: tokens.$color-text-secondary;
-  margin: 0;
-  line-height: tokens.$line-height-relaxed;
-}
-
-// === CHAT PLACEHOLDER ===
-.inbox__chat-placeholder {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.inbox__chat-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: tokens.$spacing-md;
-  padding: tokens.$spacing-lg tokens.$spacing-xl;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  background: tokens.$color-surface-secondary;
-}
-
-.inbox__chat-title {
-  @include tokens.typography('heading-large');
-  color: tokens.$color-text-primary;
-  margin: 0;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.inbox__chat-content {
-  flex: 1;
-  padding: tokens.$spacing-xl;
-  display: flex;
-  flex-direction: column;
-  gap: tokens.$spacing-md;
-  
-  p {
-    @include tokens.typography('body-medium');
-    color: tokens.$color-text-secondary;
-    margin: 0;
-  }
-}
-
-// === CONVERSATION HEADER ===
-.inbox__conversation-header {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-lg;
-  padding: tokens.$spacing-lg tokens.$spacing-xl;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  background: tokens.$color-surface-primary;
-}
-
-.inbox__back-button {
-  display: none;
-
-  @media (max-width: tokens.$breakpoint-md) {
-    display: flex;
-  }
-}
-
-.inbox__conversation-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.inbox__conversation-title {
-  @include tokens.typography('heading-2xl');
-  color: tokens.$color-text-primary;
-  margin: 0 0 tokens.$spacing-xs 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.inbox__conversation-id {
-  @include tokens.typography('caption');
-  color: tokens.$color-text-tertiary;
-  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
-  background: tokens.$color-surface-tertiary;
-  padding: 2px tokens.$spacing-xs;
-  border-radius: tokens.$border-radius-sm;
-}
-
-.inbox__conversation-actions {
-  display: flex;
-  align-items: center;
-  gap: tokens.$spacing-sm;
-}
-
-// === MESSAGES CONTAINER ===
-.inbox__messages-container {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.inbox__messages {
-  flex: 1;
-  min-height: 0;
-}
-
-// === WELCOME STATE ===
-.inbox__welcome {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: tokens.$spacing-3xl;
-}
-
-.inbox__welcome-content {
-  text-align: center;
-  max-width: 400px;
-}
-
-.inbox__welcome-icon {
-  font-size: 80px;
-  margin-bottom: tokens.$spacing-xl;
-  opacity: 0.6;
-}
-
-.inbox__welcome-title {
-  @include tokens.typography('heading-3xl');
-  color: tokens.$color-text-primary;
-  margin: 0 0 tokens.$spacing-md 0;
-}
-
-.inbox__welcome-description {
-  @include tokens.typography('body-medium');
-  color: tokens.$color-text-secondary;
-  margin: 0 0 tokens.$spacing-xl 0;
-  line-height: tokens.$line-height-relaxed;
-}
-
-.inbox__welcome-action {
-  display: inline-flex;
-  align-items: center;
-  gap: tokens.$spacing-xs;
-}
-
-// === RESPONSIVE ===
 @media (max-width: tokens.$breakpoint-md) {
   .inbox {
-    gap: 0;
-    padding: 0;
-  }
-
-  .inbox__sidebar-header {
-    padding: tokens.$spacing-md tokens.$spacing-lg;
-  }
-
-  .inbox__title {
-    @include tokens.typography('heading-medium');
-  }
-
-  .inbox__welcome-state {
-    padding: tokens.$spacing-2xl tokens.$spacing-lg;
-  }
-
-  .inbox__welcome-icon {
-    font-size: 60px;
-  }
-
-  .inbox__welcome-title {
-    @include tokens.typography('heading-large');
+    flex-direction: column;
+    
+    &__sidebar {
+      flex: 0 0 200px;
+      width: 100%;
+      max-width: none;
+      border-right: none;
+      border-bottom: 1px solid tokens.$color-border-subtle;
+    }
+    
+    &__main {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+    }
   }
 }
 
-@media (max-width: tokens.$breakpoint-sm) {
-  .inbox__sidebar {
-    width: 100%;
+// Estados de carga y error a nivel global
+.inbox {
+  &--loading {
+    .inbox__main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &::before {
+        content: 'Cargando...';
+        color: tokens.$color-text-secondary;
+        font-size: tokens.$font-size-lg;
+      }
+    }
   }
 
-  .inbox__sidebar-header {
-    padding: tokens.$spacing-sm tokens.$spacing-md;
-  }
-
-  .inbox__title {
-    @include tokens.typography('heading-medium');
-  }
-
-  .inbox__new-chat-btn {
-    padding: tokens.$spacing-xs;
-  }
-
-  .inbox__welcome-content {
-    gap: tokens.$spacing-md;
-  }
-
-  .inbox__welcome-icon {
-    font-size: 48px;
-  }
-
-  .inbox__welcome-title {
-    @include tokens.typography('heading-medium');
-  }
-
-  .inbox__welcome-description {
-    @include tokens.typography('body-small');
-  }
-}
-
-// === ANIMATIONS ===
-@keyframes typing-bounce {
-  0%, 60%, 100% {
-    transform: initial;
-  }
-  30% {
-    transform: translateY(-4px);
+  &--error {
+    .inbox__main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: tokens.$spacing-md;
+      
+      &::before {
+        content: 'Error al cargar';
+        color: #ef4444; // Rojo para estado de error
+        font-size: tokens.$font-size-lg;
+      }
+    }
   }
 }

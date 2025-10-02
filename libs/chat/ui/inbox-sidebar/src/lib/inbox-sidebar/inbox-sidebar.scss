@@ -1,0 +1,79 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+// === INBOX SIDEBAR COMPONENT ===
+// Panel lateral completo del inbox con header y lista de conversaciones
+// - Header con título y botón de nueva conversación (opcional)
+// - ConversationList integrado con scroll automático
+// - Layout flexible y responsive
+
+:host {
+  display: block;
+  font-family: tokens.$font-family-ui;
+  height: 100%;
+ width: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.guiders-inbox-sidebar {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+ width: 100%;
+  background-color: tokens.$color-surface-primary;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: tokens.$spacing-md tokens.$spacing-lg;
+    border-bottom: 1px solid tokens.$color-border-subtle;
+    background-color: tokens.$color-surface-primary;
+    min-height: 64px; // Altura fija para el header
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+    margin: 0;
+    line-height: tokens.$line-height-tight;
+  }
+
+  &__new-chat-btn {
+    flex-shrink: 0;
+    
+    // Focus visible state
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+  }
+
+  &__conversations {
+    flex: 1;
+    height: 0; // Permite que el flex funcione correctamente
+    min-height: 0; // Permite que el flex hijo se contraiga
+    overflow: hidden; // El scroll lo maneja ConversationList
+    padding: 0 tokens.$spacing-md;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: tokens.$breakpoint-md) {
+  .guiders-inbox-sidebar {
+    &__header {
+      padding: tokens.$spacing-sm tokens.$spacing-md;
+      min-height: 56px;
+    }
+    
+    &__title {
+      font-size: tokens.$font-size-base;
+    }
+    
+    &__conversations {
+      padding: 0 tokens.$spacing-sm;
+    }
+  }
+}

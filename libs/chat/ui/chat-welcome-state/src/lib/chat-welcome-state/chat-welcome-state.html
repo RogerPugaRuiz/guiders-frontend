@@ -1,0 +1,26 @@
+<div class="guiders-chat-welcome-state">
+  <div class="guiders-chat-welcome-state__content">
+    <guiders-icon 
+      name="message-circle" 
+      size="xl" 
+      class="guiders-chat-welcome-state__icon"
+      [config]="{ decorative: true }" />
+    
+    <h3 class="guiders-chat-welcome-state__title">{{ title }}</h3>
+    
+    <p class="guiders-chat-welcome-state__description">
+      {{ description }}
+    </p>
+    
+    @if (showNewChatButton) {
+      <guiders-button
+        variant="primary"
+        size="medium"
+        [ariaLabel]="newChatButtonText"
+        class="guiders-chat-welcome-state__new-chat-btn"
+        (click)="onNewChatClick()">
+        {{ newChatButtonText }}
+      </guiders-button>
+    }
+  </div>
+</div>

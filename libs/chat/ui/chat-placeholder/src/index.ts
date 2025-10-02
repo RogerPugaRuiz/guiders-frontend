@@ -1,0 +1,1 @@
+export * from './lib/chat-placeholder/chat-placeholder';

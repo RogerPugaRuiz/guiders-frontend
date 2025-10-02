@@ -14,6 +14,8 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -26,10 +28,17 @@ body {
   background-color: #ffffff;
   
   // Configuración de accesibilidad
+  height: 100%;
   min-height: 100vh;
+  overflow: hidden;
   scroll-behavior: smooth;
 }
 
+app-root, #root, .app-root {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
 // Configuración de motion para accesibilidad
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

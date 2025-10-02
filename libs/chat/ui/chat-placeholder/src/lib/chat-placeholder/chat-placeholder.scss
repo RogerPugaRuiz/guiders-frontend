@@ -1,0 +1,192 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+// === CHAT PLACEHOLDER COMPONENT ===
+// Placeholder mostrado cuando hay un chat seleccionado pero la interfaz real no está disponible
+// - Header con información del chat y acciones opcionales
+// - Contenido centrado con mensaje informativo
+// - Información de debug para desarrollo
+// - Estados visuales por tipo de chat
+
+:host {
+  display: block;
+  font-family: tokens.$font-family-ui;
+  height: 100%;
+ width: 100%;
+  min-height: 0; // Ensure min-height is set to 0 to avoid unexpected scroll
+}
+
+.guiders-chat-placeholder {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+ width: 100%;
+  background-color: tokens.$color-surface-primary;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: tokens.$spacing-md tokens.$spacing-lg;
+    border-bottom: 1px solid tokens.$color-border-subtle;
+    background-color: tokens.$color-surface-primary;
+    min-height: 64px;
+    flex-shrink: 0;
+  }
+
+  &__chat-info {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-xs;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__title {
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+    margin: 0;
+    line-height: tokens.$line-height-tight;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-xs;
+    
+    &[data-status="ACTIVE"] {
+      .guiders-chat-placeholder__status-icon {
+        color: #22c55e; // Verde para estado activo
+      }
+    }
+    
+    &[data-status="PENDING"] {
+      .guiders-chat-placeholder__status-icon {
+        color: #f59e0b; // Amarillo para estado pendiente
+      }
+    }
+    
+    &[data-status="CLOSED"] {
+      .guiders-chat-placeholder__status-icon {
+        color: tokens.$color-text-secondary;
+      }
+    }
+    
+    &[data-status="TRANSFERRED"],
+    &[data-status="ASSIGNED"] {
+      .guiders-chat-placeholder__status-icon {
+        color: #3b82f6; // Azul para estados transferido/asignado
+      }
+    }
+  }
+
+  &__status-icon {
+    flex-shrink: 0;
+  }
+
+  &__status-text {
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-secondary;
+    font-weight: tokens.$font-weight-medium;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-xs;
+    flex-shrink: 0;
+    
+    guiders-button {
+      &:focus-visible {
+        outline: 2px solid tokens.$color-primary-500;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: tokens.$spacing-xl;
+    background-color: tokens.$color-surface-secondary;
+  }
+
+  &__message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+
+  &__message-icon {
+    margin-bottom: tokens.$spacing-lg;
+    color: tokens.$color-text-secondary;
+    opacity: 0.6;
+  }
+
+  &__message-title {
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+    margin: 0 0 tokens.$spacing-md 0;
+    line-height: tokens.$line-height-tight;
+  }
+
+  &__message-text {
+    font-size: tokens.$font-size-base;
+    color: tokens.$color-text-secondary;
+    margin: 0 0 tokens.$spacing-lg 0;
+    line-height: 1.5;
+  }
+
+  &__debug {
+    margin-top: tokens.$spacing-md;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    background-color: tokens.$color-surface-tertiary;
+    border-radius: tokens.$border-radius-sm;
+    border: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__debug-text {
+    font-size: tokens.$font-size-xs;
+    color: tokens.$color-text-tertiary;
+    font-family: 'Monaco', 'Courier New', monospace;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: tokens.$breakpoint-md) {
+  .guiders-chat-placeholder {
+    &__header {
+      padding: tokens.$spacing-sm tokens.$spacing-md;
+      min-height: 56px;
+    }
+    
+    &__title {
+      font-size: tokens.$font-size-base;
+    }
+    
+    &__content {
+      padding: tokens.$spacing-lg;
+    }
+    
+    &__message {
+      max-width: 300px;
+    }
+    
+    &__message-title {
+      font-size: tokens.$font-size-base;
+    }
+    
+    &__message-text {
+      font-size: tokens.$font-size-sm;
+    }
+  }
+}

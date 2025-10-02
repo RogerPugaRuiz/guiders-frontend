@@ -7,9 +7,18 @@
 
 .console-content {
   flex: 1;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
   background: #f8f9fa;
-  padding: 2rem;
+  padding: 0;
+}
+
+.console-content > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
 }
 
 // Responsive design for mobile
@@ -19,6 +28,6 @@
   }
   
   .console-content {
-    padding: 1rem;
+    padding: 0;
   }
 }

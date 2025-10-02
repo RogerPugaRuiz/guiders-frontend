@@ -59,7 +59,21 @@
       "@guiders-frontend/contacts": [
         "libs/chat/features/contacts/src/index.ts"
       ],
-      "@guiders-frontend/conversation-item": ["libs/chat/ui/src/index.ts"],
+      "@guiders-frontend/chat/ui/conversation-item": [
+        "libs/chat/ui/conversation-item/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/conversation-list": [
+        "libs/chat/ui/conversation-list/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/inbox-sidebar": [
+        "libs/chat/ui/inbox-sidebar/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/chat-welcome-state": [
+        "libs/chat/ui/chat-welcome-state/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/chat-placeholder": [
+        "libs/chat/ui/chat-placeholder/src/index.ts"
+      ],
       "@guiders-frontend/create-chat-modal": [
         "libs/chat/ui/create-chat-modal/src/index.ts"
       ],
