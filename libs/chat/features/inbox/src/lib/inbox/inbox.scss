@@ -1,363 +1,843 @@
 @use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
-:host {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); // Bento UI: gradiente sutil
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.inbox-container {
+// === INBOX CONTAINER ===
+.inbox {
   display: flex;
-  flex-direction: column;
-  height: 100%;
-  width: 100%;
-  background: #f8fafc; // Bento UI: background consistente
-  padding: 24px; // Bento UI: espaciado generoso
-  gap: 24px; // Bento UI: espaciado entre elementos
+  height: 100vh;
+  background: tokens.$color-surface-secondary;
+  font-family: tokens.$font-family-ui;
+  overflow: hidden;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md;
 }
 
-// Loading indicator - Bento UI style
-.inbox-loading {
+// === HEADER ===
+.inbox__header {
+  flex-shrink: 0;
+  background: tokens.$color-surface-primary;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  padding: tokens.$spacing-lg tokens.$spacing-xl;
+  box-shadow: tokens.$shadow-sm;
+}
+
+.inbox__header-content {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 32px;
-  background: white;
-  color: #64748b;
-  font-size: 14px;
-  border-radius: 16px; // Bento UI: bordes redondeados generosos
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); // Bento UI: sombra sutil
-
-  .loading-spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #e2e8f0;
-    border-top: 2px solid #3b82f6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-// Error state - Bento UI style
-.inbox-error {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  background: #fef2f2; // Bento UI: background suave en lugar de borde
-  color: #dc2626;
-  text-align: center;
-  border-radius: 16px; // Bento UI: bordes redondeados
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); // Bento UI: sombra en lugar de borde
-
-  .error-message {
-    font-size: 14px;
-    font-weight: 500;
-  }
-}
-
-// Main layout - Bento UI style
-.inbox-layout {
-  display: flex;
-  flex: 1;
-  height: calc(100vh - 96px); // Considerar padding del container
-  overflow: hidden;
-  gap: 24px; // Bento UI: espaciado entre paneles
-  border-radius: 20px; // Bento UI: bordes redondeados del container
-  background: white; // Bento UI: background del área de trabajo
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); // Bento UI: sombra profunda
-  overflow: hidden;
-}
-
-// Chat list panel - Bento UI style
-.chat-list-panel {
-  width: 380px; // Bento UI: ancho ligeramente mayor
-  min-width: 320px;
-  max-width: 420px; // Bento UI: máximo más generoso
+.inbox__title-section {
   display: flex;
   flex-direction: column;
-  background: rgba(248, 250, 252, 0.8); // Bento UI: background semi-transparente
-  backdrop-filter: blur(8px); // Bento UI: efecto glassmorphism
-  border-radius: 20px; // Bento UI: bordes más redondeados
-  border: 1px solid rgba(255, 255, 255, 0.2); // Bento UI: borde sutil
-  overflow: hidden;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1); // Bento UI: sombra más sofisticada
+  gap: tokens.$spacing-xs;
+}
 
-  .chat-list-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 28px 28px 24px 28px; // Bento UI: padding más generoso
-    background: rgba(241, 245, 249, 0.6); // Bento UI: background semi-transparente
-    border-bottom: 1px solid rgba(226, 232, 240, 0.3); // Bento UI: separador sutil
+.inbox__title {
+  @include tokens.typography('heading-3xl');
+  color: tokens.$color-text-primary;
+  margin: 0;
+}
 
-    h2 {
-      margin: 0;
-      font-size: 20px; // Bento UI: título más grande
-      font-weight: 700; // Bento UI: peso más fuerte
-      color: #1e293b;
-      letter-spacing: -0.04em; // Bento UI: espaciado más compacto
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // Bento UI: sombra sutil en texto
-    }
+.inbox__subtitle {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+}
 
-    .chat-list-actions {
-      display: flex;
-      gap: 16px; // Bento UI: espaciado más generoso
+.inbox__header-actions {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-md;
+}
 
-      button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px; // Bento UI: botones ligeramente más grandes
-        height: 44px;
-        border: none;
-        background: rgba(255, 255, 255, 0.9); // Bento UI: background semi-transparente
-        backdrop-filter: blur(8px); // Bento UI: efecto glassmorphism
-        border-radius: 14px; // Bento UI: bordes más redondeados
-        cursor: pointer;
-        font-size: 18px; // Bento UI: iconos ligeramente más grandes
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Bento UI: transición más suave
-        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08), 0 1px 4px 0 rgba(0, 0, 0, 0.04); // Bento UI: sombra más sofisticada
-        border: 1px solid rgba(255, 255, 255, 0.3); // Bento UI: borde sutil
+.inbox__action-icon {
+  font-size: tokens.$font-size-lg;
+}
 
-        &:hover {
-          background: rgba(255, 255, 255, 1);
-          transform: translateY(-2px) scale(1.05); // Bento UI: elevación y escala en hover
-          box-shadow: 0 8px 25px 0 rgba(0, 0, 0, 0.15), 0 4px 10px 0 rgba(0, 0, 0, 0.1);
-        }
+.inbox__action-text {
+  margin-left: tokens.$spacing-xs;
+}
 
-        &:active {
-          transform: translateY(-1px) scale(1.02);
-        }
+// === ALERTS ===
+.inbox__alert {
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md tokens.$spacing-xl;
+  margin: 0 tokens.$spacing-xl tokens.$spacing-md;
+  border-radius: tokens.$border-radius-md;
 
-        &:focus {
-          outline: 3px solid rgba(59, 130, 246, 0.5); // Bento UI: focus más suave
-          outline-offset: 2px;
-        }
-      }
-    }
-  }
-
-  .chat-list-content {
-    flex: 1;
-    overflow: hidden;
-    padding: 0 16px 16px 16px; // Bento UI: padding interno
+  &--error {
+    background: tokens.$color-error-50;
+    border: 1px solid tokens.$color-error-200;
+    color: tokens.$color-error-600;
   }
 }
 
-// Chat messages panel - Bento UI style
-.chat-messages-panel {
+.inbox__alert-icon {
+  flex-shrink: 0;
+  font-size: tokens.$font-size-lg;
+}
+
+.inbox__alert-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.9); // Bento UI: background semi-transparente
-  backdrop-filter: blur(12px); // Bento UI: glassmorphism más pronunciado
-  border-radius: 20px; // Bento UI: bordes más redondeados
-  border: 1px solid rgba(255, 255, 255, 0.3); // Bento UI: borde sutil
-  overflow: hidden;
-  box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.1), 0 4px 16px 0 rgba(0, 0, 0, 0.05); // Bento UI: sombra más sofisticada
-
-  .chat-messages-header {
-    display: flex;
-    align-items: center;
-    gap: 24px; // Bento UI: espaciado más generoso
-    padding: 28px 32px 24px 32px; // Bento UI: padding más generoso
-    background: rgba(250, 251, 252, 0.6); // Bento UI: background semi-transparente
-    border-bottom: 1px solid rgba(226, 232, 240, 0.3); // Bento UI: separador sutil
-
-    .btn-back-mobile {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      width: 40px;
-      height: 40px;
-      border: none;
-      background: white;
-      border-radius: 12px;
-      cursor: pointer;
-      font-size: 18px;
-      font-weight: 600;
-      color: #64748b;
-      transition: all 0.2s ease;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-
-      &:hover {
-        background: #f1f5f9;
-        color: #334155;
-        transform: translateY(-1px);
-      }
-    }
-
-    .chat-info {
-      flex: 1;
-
-      h3 {
-        margin: 0 0 6px 0; // Bento UI: espaciado ligeramente mayor
-        font-size: 18px; // Bento UI: título más grande
-        font-weight: 700; // Bento UI: peso más fuerte
-        color: #1e293b;
-        letter-spacing: -0.04em; // Bento UI: espaciado más compacto
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // Bento UI: sombra sutil
-      }
-
-      .chat-id {
-        font-size: 12px; // Bento UI: ligeramente menor
-        color: #64748b;
-        font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace; // Bento UI: fuente mono para IDs
-        background: rgba(241, 245, 249, 0.8); // Bento UI: background semi-transparente
-        backdrop-filter: blur(4px); // Bento UI: glassmorphism sutil
-        padding: 6px 12px; // Bento UI: padding más generoso
-        border-radius: 8px; // Bento UI: bordes más redondeados
-        border: 1px solid rgba(226, 232, 240, 0.5); // Bento UI: borde sutil
-        display: inline-block;
-        font-weight: 500; // Bento UI: peso ligeramente mayor
-      }
-    }
-  }
-
-  .chat-messages-content {
-    flex: 1;
-    overflow: hidden;
-    background: white; // Bento UI: background consistente
-  }
+  gap: tokens.$spacing-xs;
 }
 
-// Empty state - Bento UI style
-.no-chat-selected {
-  flex: 1;
+.inbox__alert-title {
+  @include tokens.typography('label-medium');
+  font-weight: tokens.$font-weight-semibold;
+}
+
+.inbox__alert-message {
+  @include tokens.typography('body-small');
+}
+
+.inbox__alert-dismiss {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+// === LAYOUT ===
+.inbox__layout {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 40px; // Bento UI: padding más generoso
-
-  .empty-state {
-    text-align: center;
-    max-width: 380px; // Bento UI: ancho mayor
-    background: rgba(248, 250, 252, 0.6); // Bento UI: background semi-transparente
-    backdrop-filter: blur(12px); // Bento UI: glassmorphism
-    padding: 64px 48px; // Bento UI: padding más generoso
-    border-radius: 28px; // Bento UI: bordes más redondeados
-    border: 1px solid rgba(255, 255, 255, 0.3); // Bento UI: borde sutil
-    box-shadow: 0 16px 48px 0 rgba(31, 38, 135, 0.1), 0 8px 24px 0 rgba(0, 0, 0, 0.05); // Bento UI: sombra sofisticada
-
-    .empty-icon {
-      font-size: 72px; // Bento UI: icono más grande
-      margin-bottom: 32px; // Bento UI: espaciado mayor
-      opacity: 0.8;
-      filter: grayscale(0.2); // Bento UI: efecto más sutil
-      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); // Bento UI: sombra en el icono
-    }
-
-    h3 {
-      margin: 0 0 16px 0; // Bento UI: espaciado mayor
-      font-size: 22px; // Bento UI: título más grande
-      font-weight: 700; // Bento UI: peso más fuerte
-      color: #1e293b;
-      letter-spacing: -0.04em; // Bento UI: espaciado más compacto
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); // Bento UI: sombra sutil
-    }
-
-    p {
-      margin: 0;
-      font-size: 16px; // Bento UI: texto más grande
-      color: #64748b;
-      line-height: 1.6; // Bento UI: interlineado más espacioso
-      font-weight: 400;
-    }
-  }
+  flex: 1;
+  gap: tokens.$spacing-lg;
+  padding: 0 tokens.$spacing-xl;
+  padding-bottom: tokens.$spacing-xl;
+  overflow: hidden;
 }
 
-// Mobile responsive - Bento UI style
-@media (max-width: 768px) {
-  .inbox-container {
-    padding: 16px; // Bento UI: padding reducido en móvil
-    gap: 16px;
+// === SIDEBAR ===
+.inbox__sidebar {
+  width: 400px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  border: 1px solid tokens.$color-border-subtle;
+  overflow: hidden;
+  box-shadow: tokens.$shadow-sm;
+
+  @media (max-width: tokens.$breakpoint-lg) {
+    width: 320px;
   }
 
-  .inbox-layout {
-    position: relative;
-    height: calc(100vh - 64px); // Ajustar para padding móvil
-    border-radius: 16px; // Bento UI: bordes menos redondeados en móvil
-    gap: 0; // Sin gap en móvil para aprovechar espacio
+  @media (max-width: tokens.$breakpoint-md) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    z-index: tokens.$z-index-modal;
+    border-radius: 0;
+    border: none;
+    transform: translateX(-100%);
+    transition: transform tokens.$duration-normal tokens.$easing-standard;
 
-    .chat-list-panel {
-      width: 100%;
-      max-width: none;
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      z-index: 2;
-      border-radius: 16px; // Bento UI: mantener bordes redondeados
+    &--visible {
       transform: translateX(0);
-      transition: transform 0.3s ease;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); // Bento UI: sombra más pronunciada en móvil
-
-      &.hidden-mobile {
-        transform: translateX(-100%);
-      }
-
-      .chat-list-header {
-        padding: 20px 20px 16px 20px; // Bento UI: padding ajustado para móvil
-      }
-
-      .chat-list-content {
-        padding: 0 12px 12px 12px; // Bento UI: padding ajustado para móvil
-      }
-    }
-
-    .chat-messages-panel {
-      width: 100%;
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      z-index: 1;
-      border-radius: 16px; // Bento UI: mantener consistencia
-
-      &.hidden-mobile {
-        display: none;
-      }
-
-      .chat-messages-header {
-        padding: 20px 20px 16px 20px; // Bento UI: padding ajustado para móvil
-
-        .btn-back-mobile {
-          display: flex; // Mostrar botón de regreso en móvil
-        }
-      }
     }
   }
 }
 
-// Bento UI: Estilos adicionales para mejorar la experiencia
-.inbox-layout {
-  // Transiciones suaves para interacciones
-  * {
-    scroll-behavior: smooth;
+.inbox__sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+}
+
+.inbox__title {
+  @include tokens.typography('heading-large');
+  color: tokens.$color-text-primary;
+  margin: 0;
+}
+
+.inbox__new-chat-btn {
+  flex-shrink: 0;
+}
+
+.inbox__conversations {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.inbox__conversation-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.inbox__conversation-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color tokens.$duration-fast tokens.$easing-standard;
+
+  &:hover {
+    background: tokens.$color-surface-tertiary;
   }
 
-  // Mejorar la legibilidad de texto
-  .chat-list-panel,
-  .chat-messages-panel {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  &:focus-visible {
+    @include tokens.focus-ring;
+    outline-offset: -2px;
   }
 
-  // Focus states mejorados para accesibilidad
-  button:focus,
-  [tabindex]:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-    border-radius: 8px;
+  &--selected {
+    background: tokens.$color-surface-tertiary;
+    
+    .inbox__conversation-name {
+      font-weight: tokens.$font-weight-semibold;
+    }
+  }
+}
+
+.inbox__conversation-avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-full;
+  flex-shrink: 0;
+  font-size: tokens.$font-size-xl;
+}
+
+.inbox__conversation-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+}
+
+.inbox__conversation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
+}
+
+.inbox__conversation-name {
+  @include tokens.typography('label-large');
+  color: tokens.$color-text-primary;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox__conversation-time {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.inbox__conversation-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
+}
+
+.inbox__conversation-preview {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: tokens.$line-height-tight;
+}
+
+.inbox__conversation-badge {
+  @include tokens.typography('caption');
+  background: tokens.$color-primary-500;
+  color: tokens.$color-text-inverse;
+  padding: 2px tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-full;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.2;
+  flex-shrink: 0;
+  font-weight: tokens.$font-weight-semibold;
+}
+
+// === SEARCH ===
+.inbox__search {
+  padding: tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+}
+
+.inbox__search-field {
+  width: 100%;
+}
+
+// === FILTERS ===
+.inbox__filters {
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  display: flex;
+  flex-wrap: wrap;
+  gap: tokens.$spacing-sm;
+}
+
+.inbox__filter {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-full;
+  @include tokens.typography('label-medium');
+  transition: tokens.$transition-normal;
+}
+
+.inbox__filter-icon {
+  font-size: tokens.$font-size-sm;
+}
+
+.inbox__filter-label {
+  white-space: nowrap;
+}
+
+.inbox__filter-badge {
+  background: tokens.$color-primary-500;
+  color: tokens.$color-text-inverse;
+  font-size: tokens.$font-size-xs;
+  font-weight: tokens.$font-weight-semibold;
+  padding: 2px tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-full;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1;
+}
+
+// === CHAT LIST ===
+.inbox__chat-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.inbox__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-2xl;
+  color: tokens.$color-text-secondary;
+}
+
+.inbox__loading-spinner {
+  @include tokens.loading-spinner;
+}
+
+.inbox__loading-text {
+  @include tokens.typography('body-medium');
+}
+
+.inbox__empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: tokens.$spacing-3xl tokens.$spacing-xl;
+  text-align: center;
+}
+
+.inbox__empty-icon {
+  font-size: 48px;
+  margin-bottom: tokens.$spacing-lg;
+  opacity: 0.6;
+}
+
+.inbox__empty-title {
+  @include tokens.typography('heading-small');
+  color: tokens.$color-text-primary;
+  margin: 0 0 tokens.$spacing-sm 0;
+}
+
+.inbox__empty-description {
+  @include tokens.typography('body-medium');
+  color: tokens.$color-text-secondary;
+  margin: 0;
+  max-width: 300px;
+}
+
+// === CHAT ITEMS ===
+.inbox__chat-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.inbox__chat-item {
+  border-bottom: 1px solid tokens.$color-border-subtle;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.inbox__chat-button {
+  @include tokens.button-reset;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-lg;
+  background: transparent;
+  transition: tokens.$transition-normal;
+  text-align: left;
+
+  &:hover {
+    background: tokens.$color-surface-hover;
+  }
+
+  &:focus-visible {
+    @include tokens.focus-ring;
+    outline-offset: -2px;
+  }
+
+  &--selected {
+    background: tokens.$color-surface-selected;
+
+    &:hover {
+      background: tokens.$color-surface-selected;
+    }
+  }
+
+  &--unread {
+    .inbox__chat-name {
+      font-weight: tokens.$font-weight-semibold;
+    }
+
+    .inbox__chat-preview {
+      font-weight: tokens.$font-weight-medium;
+      color: tokens.$color-text-primary;
+    }
+  }
+}
+
+// === CHAT AVATAR ===
+.inbox__chat-avatar {
+  position: relative;
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: tokens.$color-surface-tertiary;
+  border-radius: tokens.$border-radius-full;
+  font-size: tokens.$font-size-xl;
+}
+
+.inbox__chat-avatar-icon {
+  line-height: 1;
+}
+
+.inbox__chat-status {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: tokens.$border-radius-full;
+  border: 2px solid tokens.$color-surface-primary;
+
+  &--unread {
+    background: tokens.$color-primary-500;
+  }
+}
+
+// === CHAT CONTENT ===
+.inbox__chat-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+}
+
+.inbox__chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
+}
+
+.inbox__chat-name {
+  @include tokens.typography('label-large');
+  color: tokens.$color-text-primary;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox__chat-time {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.inbox__chat-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
+}
+
+.inbox__chat-preview {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: tokens.$line-height-tight;
+}
+
+.inbox__typing {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+  color: tokens.$color-primary-500;
+  font-style: italic;
+}
+
+.inbox__typing-dots {
+  display: flex;
+  gap: 2px;
+
+  span {
+    width: 3px;
+    height: 3px;
+    background: currentColor;
+    border-radius: tokens.$border-radius-full;
+    animation: typing-bounce 1.4s ease-in-out infinite both;
+
+    &:nth-child(2) {
+      animation-delay: 0.16s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.32s;
+    }
+  }
+}
+
+.inbox__unread-badge {
+  @include tokens.typography('caption');
+  background: tokens.$color-primary-500;
+  color: tokens.$color-text-inverse;
+  padding: 2px tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-full;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+// === MAIN CONTENT ===
+.inbox__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  border: 1px solid tokens.$color-border-subtle;
+  overflow: hidden;
+  min-width: 0;
+  box-shadow: tokens.$shadow-sm;
+
+  @media (max-width: tokens.$breakpoint-md) {
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+.inbox__chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.inbox__chat {
+  flex: 1;
+  min-height: 0;
+}
+
+// === WELCOME STATE ===
+.inbox__welcome-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: tokens.$spacing-3xl;
+  background: tokens.$color-surface-secondary;
+}
+
+.inbox__welcome-content {
+  text-align: center;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: tokens.$spacing-lg;
+}
+
+.inbox__welcome-icon {
+  font-size: 80px;
+  color: tokens.$color-text-tertiary;
+  opacity: 0.6;
+}
+
+.inbox__welcome-title {
+  @include tokens.typography('heading-2xl');
+  color: tokens.$color-text-primary;
+  margin: 0;
+}
+
+.inbox__welcome-description {
+  @include tokens.typography('body-medium');
+  color: tokens.$color-text-secondary;
+  margin: 0;
+  line-height: tokens.$line-height-relaxed;
+}
+
+// === CHAT PLACEHOLDER ===
+.inbox__chat-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.inbox__chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-lg tokens.$spacing-xl;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+}
+
+.inbox__chat-title {
+  @include tokens.typography('heading-large');
+  color: tokens.$color-text-primary;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox__chat-content {
+  flex: 1;
+  padding: tokens.$spacing-xl;
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-md;
+  
+  p {
+    @include tokens.typography('body-medium');
+    color: tokens.$color-text-secondary;
+    margin: 0;
+  }
+}
+
+// === CONVERSATION HEADER ===
+.inbox__conversation-header {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-lg;
+  padding: tokens.$spacing-lg tokens.$spacing-xl;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-primary;
+}
+
+.inbox__back-button {
+  display: none;
+
+  @media (max-width: tokens.$breakpoint-md) {
+    display: flex;
+  }
+}
+
+.inbox__conversation-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.inbox__conversation-title {
+  @include tokens.typography('heading-2xl');
+  color: tokens.$color-text-primary;
+  margin: 0 0 tokens.$spacing-xs 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.inbox__conversation-id {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-tertiary;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+  background: tokens.$color-surface-tertiary;
+  padding: 2px tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-sm;
+}
+
+.inbox__conversation-actions {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+}
+
+// === MESSAGES CONTAINER ===
+.inbox__messages-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.inbox__messages {
+  flex: 1;
+  min-height: 0;
+}
+
+// === WELCOME STATE ===
+.inbox__welcome {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: tokens.$spacing-3xl;
+}
+
+.inbox__welcome-content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.inbox__welcome-icon {
+  font-size: 80px;
+  margin-bottom: tokens.$spacing-xl;
+  opacity: 0.6;
+}
+
+.inbox__welcome-title {
+  @include tokens.typography('heading-3xl');
+  color: tokens.$color-text-primary;
+  margin: 0 0 tokens.$spacing-md 0;
+}
+
+.inbox__welcome-description {
+  @include tokens.typography('body-medium');
+  color: tokens.$color-text-secondary;
+  margin: 0 0 tokens.$spacing-xl 0;
+  line-height: tokens.$line-height-relaxed;
+}
+
+.inbox__welcome-action {
+  display: inline-flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+}
+
+// === RESPONSIVE ===
+@media (max-width: tokens.$breakpoint-md) {
+  .inbox {
+    gap: 0;
+    padding: 0;
+  }
+
+  .inbox__sidebar-header {
+    padding: tokens.$spacing-md tokens.$spacing-lg;
+  }
+
+  .inbox__title {
+    @include tokens.typography('heading-medium');
+  }
+
+  .inbox__welcome-state {
+    padding: tokens.$spacing-2xl tokens.$spacing-lg;
+  }
+
+  .inbox__welcome-icon {
+    font-size: 60px;
+  }
+
+  .inbox__welcome-title {
+    @include tokens.typography('heading-large');
+  }
+}
+
+@media (max-width: tokens.$breakpoint-sm) {
+  .inbox__sidebar {
+    width: 100%;
+  }
+
+  .inbox__sidebar-header {
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+  }
+
+  .inbox__title {
+    @include tokens.typography('heading-medium');
+  }
+
+  .inbox__new-chat-btn {
+    padding: tokens.$spacing-xs;
+  }
+
+  .inbox__welcome-content {
+    gap: tokens.$spacing-md;
+  }
+
+  .inbox__welcome-icon {
+    font-size: 48px;
+  }
+
+  .inbox__welcome-title {
+    @include tokens.typography('heading-medium');
+  }
+
+  .inbox__welcome-description {
+    @include tokens.typography('body-small');
+  }
+}
+
+// === ANIMATIONS ===
+@keyframes typing-bounce {
+  0%, 60%, 100% {
+    transform: initial;
+  }
+  30% {
+    transform: translateY(-4px);
   }
 }

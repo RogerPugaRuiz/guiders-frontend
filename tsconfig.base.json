@@ -59,6 +59,7 @@
       "@guiders-frontend/contacts": [
         "libs/chat/features/contacts/src/index.ts"
       ],
+      "@guiders-frontend/conversation-item": ["libs/chat/ui/src/index.ts"],
       "@guiders-frontend/create-chat-modal": [
         "libs/chat/ui/create-chat-modal/src/index.ts"
       ],

@@ -2,19 +2,19 @@ import { Component, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
-import { ChatList } from '@guiders-frontend/chat-list';
-import { ChatMessages } from '@guiders-frontend/chat-messages';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { Chat, Message } from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
+import { Button } from '@guiders-frontend/button';
+import { IconComponent } from '@guiders-frontend/icon';
 
 @Component({
   selector: 'chat-inbox',
   imports: [
     CommonModule,
     HttpClientModule,
-    ChatList,
-    ChatMessages
+    Button,
+    IconComponent
   ],
   templateUrl: './inbox.html',
   styleUrl: './inbox.scss',
@@ -25,13 +25,13 @@ export class Inbox {
   private readonly sessionService = inject(SessionService);
 
   // Señales para el estado del componente
-  readonly selectedChatId = signal<string | null>(null);
+  readonly selectedConversationId = signal<string | null>(null);
   readonly showChatList = signal<boolean>(true);
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   
   // Señales para datos sincronizados
-  readonly chats = signal<Chat[]>([]);
+  readonly conversations = signal<Chat[]>([]);
   readonly allMessages = signal<{ [chatId: string]: Message[] }>({});
 
   // Observables del servicio
@@ -44,16 +44,16 @@ export class Inbox {
   // Computed values
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
   readonly currentUserId = computed(() => this.currentUser()?.sub || null);
-  readonly hasSelectedChat = computed(() => this.selectedChatId() !== null);
+  readonly hasSelectedChat = computed(() => this.selectedConversationId() !== null);
   readonly selectedChat = computed(() => {
-    const chatId = this.selectedChatId();
+    const chatId = this.selectedConversationId();
     if (!chatId) return null;
     
-    const chats = this.chats();
-    return chats.find(chat => chat.chatId === chatId) || null;
+    const chats = this.conversations();
+    return chats.find((chat: Chat) => chat.chatId === chatId) || null;
   });
   readonly currentChatMessages = computed(() => {
-    const chatId = this.selectedChatId();
+    const chatId = this.selectedConversationId();
     if (!chatId) return [];
     
     const allMessages = this.allMessages();
@@ -79,7 +79,7 @@ export class Inbox {
 
     // Sincronizar señales con observables
     this.chats$.subscribe(chats => {
-      this.chats.set(chats || []);
+      this.conversations.set(chats || []);
     });
 
     this.messages$.subscribe(messages => {
@@ -88,7 +88,7 @@ export class Inbox {
 
     // Suscribirse a cambios de chat seleccionado
     this.selectedChat$.subscribe(chatId => {
-      this.selectedChatId.set(chatId);
+      this.selectedConversationId.set(chatId);
       if (chatId) {
         this.loadMessages(chatId);
       }
@@ -188,12 +188,12 @@ export class Inbox {
         console.log(`📈 Inbox: Total de chats a mostrar: ${filteredChats.length}`);
         
         // Si no hay chat seleccionado y hay chats disponibles, seleccionar el primero
-        const currentSelectedChatId = this.selectedChatId();
+        const currentSelectedChatId = this.selectedConversationId();
         console.log('🎯 Inbox: Chat actualmente seleccionado:', currentSelectedChatId);
         
         if (filteredChats.length > 0 && !currentSelectedChatId) {
           console.log('🔄 Inbox: Auto-seleccionando primer chat:', filteredChats[0].chatId);
-          this.onChatSelected(filteredChats[0]);
+          this.onUserSelected(filteredChats[0]);
         } else if (filteredChats.length === 0) {
           console.log('📭 Inbox: No hay chats disponibles para mostrar');
         } else {
@@ -220,9 +220,9 @@ export class Inbox {
   /**
    * Seleccionar un chat
    */
-  onChatSelected(chat: Chat): void {
+  onUserSelected(chat: Chat): void {
     this.chatService.selectChat(chat.chatId);
-    this.selectedChatId.set(chat.chatId);
+    this.selectedConversationId.set(chat.chatId);
     
     // En dispositivos móviles, ocultar la lista de chats
     if (this.isMobile()) {
@@ -249,7 +249,7 @@ export class Inbox {
    * Enviar mensaje
    */
   onMessageSent(content: string): void {
-    const chatId = this.selectedChatId();
+    const chatId = this.selectedConversationId();
     if (!chatId) return;
 
     const userId = this.currentUserId();
@@ -297,7 +297,7 @@ export class Inbox {
   goBackToChatList(): void {
     this.showChatList.set(true);
     this.chatService.selectChat(null);
-    this.selectedChatId.set(null);
+    this.selectedConversationId.set(null);
   }
 
   /**
@@ -361,7 +361,7 @@ export class Inbox {
    */
   refresh(): void {
     this.loadChats();
-    const chatId = this.selectedChatId();
+    const chatId = this.selectedConversationId();
     if (chatId) {
       this.loadMessages(chatId);
     }
@@ -381,5 +381,149 @@ export class Inbox {
    */
   private isMobile(): boolean {
     return window.innerWidth < 768;
+  }
+
+  // ===== MÉTODOS ADICIONALES PARA EL NUEVO TEMPLATE =====
+
+  /**
+   * Obtener nombre para mostrar del chat
+   */
+  getChatDisplayName(chat: Chat): string {
+    if (chat.name && chat.name !== 'Chat sin título' && chat.name !== 'Visitante') {
+      return chat.name;
+    }
+
+    const visitor = chat.participants?.find(p => p.role === 'visitor');
+    if (visitor?.name && visitor.name.trim()) {
+      return visitor.name;
+    }
+
+    if (visitor?.email && visitor.email.trim()) {
+      return visitor.email;
+    }
+
+    return 'Visitante';
+  }
+
+  /**
+   * Obtener avatar del chat
+   */
+  getChatAvatar(chat: Chat): string {
+    if (chat.participants && chat.participants.length > 2) {
+      return '👥';
+    }
+
+    const visitor = chat.participants?.find(p => p.role === 'visitor');
+    return visitor?.avatar || '👤';
+  }
+
+  /**
+   * Obtener preview del último mensaje
+   */
+  getChatPreview(chat: Chat): string {
+    if (!chat.lastMessage) {
+      return 'Sin mensajes';
+    }
+
+    const message = chat.lastMessage;
+    if (message.type === 'TEXT') {
+      return message.content.length > 60
+        ? message.content.substring(0, 60) + '...'
+        : message.content;
+    }
+
+    switch (message.type) {
+      case 'IMAGE': return '📷 Imagen';
+      case 'FILE': return '📎 Archivo';
+      case 'AUDIO': return '🎵 Audio';
+      case 'VIDEO': return '🎥 Video';
+      case 'SYSTEM': return '📢 Mensaje del sistema';
+      default: return 'Mensaje';
+    }
+  }
+
+  /**
+   * Formatear tiempo del chat
+   */
+  formatChatTime(timestamp: Date | string | undefined): string {
+    if (!timestamp) return '';
+
+    try {
+      const date = new Date(timestamp);
+      if (isNaN(date.getTime())) return '';
+
+      const now = new Date();
+      const diff = now.getTime() - date.getTime();
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(diff / 3600000);
+      const days = Math.floor(diff / 86400000);
+
+      if (minutes < 1) return 'Ahora';
+      if (minutes < 60) return `${minutes}m`;
+      if (hours < 24) return `${hours}h`;
+      if (days < 7) return `${days}d`;
+
+      return date.toLocaleDateString('es-ES', {
+        day: '2-digit',
+        month: '2-digit'
+      });
+    } catch (error) {
+      console.warn('Error al formatear fecha:', timestamp, error);
+      return '';
+    }
+  }
+
+  /**
+   * Obtener filtros disponibles
+   */
+  getAvailableFilters(): Array<{id: string, label: string, icon: string, count: number}> {
+    const allChats = this.conversations();
+
+    return [
+      {
+        id: 'all',
+        label: 'Todos',
+        icon: '💬',
+        count: allChats.length
+      },
+      {
+        id: 'ACTIVE',
+        label: 'Activos',
+        icon: '🟢',
+        count: allChats.filter((chat: Chat) => chat.status === 'ACTIVE').length
+      },
+      {
+        id: 'PENDING',
+        label: 'Pendientes',
+        icon: '🟡',
+        count: allChats.filter((chat: Chat) => chat.status === 'PENDING').length
+      },
+      {
+        id: 'unread',
+        label: 'No leídos',
+        icon: '🔴',
+        count: allChats.filter((chat: Chat) => chat.unreadCount > 0).length
+      }
+    ];
+  }
+
+  /**
+   * Obtener datetime string para el atributo HTML
+   */
+  getChatDatetime(chat: Chat): string | null {
+    if (!chat.lastMessage?.sentAt) return null;
+
+    try {
+      return new Date(chat.lastMessage.sentAt).toISOString();
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Formatear tiempo del chat con validación de safety
+   */
+  formatChatTimeFromChat(chat: Chat): string {
+    return this.formatChatTime(chat.lastMessage?.sentAt);
   }
 }
