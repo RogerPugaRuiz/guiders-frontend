@@ -15,11 +15,12 @@ import { Chat, User } from '@guiders-frontend/shared/types';
 import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Message } from '@guiders-frontend/shared/types';
+import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
 
 @Component({
   selector: 'guiders-chat-placeholder',
   standalone: true,
-  imports: [CommonModule, Button, IconComponent],
+  imports: [CommonModule, Button, IconComponent, MessageInput],
   templateUrl: './chat-placeholder.html',
   styleUrl: './chat-placeholder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,7 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
 
   @Output() settingsClicked = new EventEmitter<void>();
   @Output() closeChat = new EventEmitter<void>();
+  @Output() messageSent = new EventEmitter<string>();
 
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
 
@@ -174,6 +176,10 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  }
+
+  onMessageSent(content: string): void {
+    this.messageSent.emit(content);
   }
 
   private scheduleScrollToBottom(): void {

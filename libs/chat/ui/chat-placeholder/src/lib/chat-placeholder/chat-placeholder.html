@@ -98,4 +98,10 @@
       </div>
     }
   </div>
+
+  @if (messages.length > 0) {
+    <guiders-message-input
+      (messageSent)="onMessageSent($event)"
+    />
+  }
 </div>

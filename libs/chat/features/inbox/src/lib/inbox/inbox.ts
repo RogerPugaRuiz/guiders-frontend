@@ -180,6 +180,34 @@ export class Inbox implements OnInit {
     this.chatService.selectChat(null);
   }
 
+  /**
+   * Manejar envío de mensaje
+   */
+  onSendMessage(content: string): void {
+    const chatId = this.selectedConversationId();
+
+    if (!chatId) {
+      console.error('No se puede enviar el mensaje: falta chatId');
+      return;
+    }
+
+    this.chatService.sendMessage({
+      chatId,
+      content,
+      type: 'text'
+    }).pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (message) => {
+          console.log('Mensaje enviado:', message);
+          // Los mensajes se actualizarán automáticamente vía messagesMap signal
+        },
+        error: (error) => {
+          console.error('Error al enviar mensaje:', error);
+          this.error.set('Error al enviar el mensaje');
+        }
+      });
+  }
+
   // ===== MÉTODOS AUXILIARES =====
 
   private loadMessages(chatId: string): void {

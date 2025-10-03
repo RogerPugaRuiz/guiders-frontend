@@ -23,6 +23,7 @@
 				[isLoading]="isLoading()"
 				(settingsClicked)="onChatSettings()"
 				(closeChat)="onCloseChat()"
+				(messageSent)="onSendMessage($event)"
 			/>
 		} @else {
 			<guiders-chat-welcome-state

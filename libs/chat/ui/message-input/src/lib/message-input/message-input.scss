@@ -1,0 +1,85 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+.message-input {
+  display: flex;
+  align-items: flex-end;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-md;
+  background-color: tokens.$color-surface-primary;
+  border-top: 1px solid tokens.$color-border-subtle;
+
+  &__textarea {
+    flex: 1;
+    min-height: 40px;
+    max-height: 120px;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    font-family: tokens.$font-family-ui;
+    font-size: tokens.$font-size-base;
+    line-height: tokens.$line-height-relaxed;
+    color: tokens.$color-text-primary;
+    background-color: tokens.$color-surface-secondary;
+    border: 1px solid tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
+    resize: none;
+    overflow-y: auto;
+    transition: border-color 150ms ease;
+
+    &::placeholder {
+      color: tokens.$color-text-tertiary;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: tokens.$color-primary-500;
+      box-shadow: 0 0 0 3px tokens.$color-primary-50;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__send-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    color: tokens.$color-text-inverse;
+    background-color: tokens.$color-primary-600;
+    border: none;
+    border-radius: tokens.$border-radius-md;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+
+    &:hover:not(:disabled) {
+      background-color: tokens.$color-primary-700;
+    }
+
+    &:active:not(:disabled) {
+      background-color: tokens.$color-primary-700;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    svg {
+      display: block;
+    }
+  }
+}

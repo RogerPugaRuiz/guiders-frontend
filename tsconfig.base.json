@@ -55,9 +55,11 @@
       "@guiders-frontend/chat/features/inbox": [
         "libs/chat/features/inbox/src/index.ts"
       ],
-      "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
-      "@guiders-frontend/contacts": [
-        "libs/chat/features/contacts/src/index.ts"
+      "@guiders-frontend/chat/ui/chat-placeholder": [
+        "libs/chat/ui/chat-placeholder/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/chat-welcome-state": [
+        "libs/chat/ui/chat-welcome-state/src/index.ts"
       ],
       "@guiders-frontend/chat/ui/conversation-item": [
         "libs/chat/ui/conversation-item/src/index.ts"
@@ -68,11 +70,12 @@
       "@guiders-frontend/chat/ui/inbox-sidebar": [
         "libs/chat/ui/inbox-sidebar/src/index.ts"
       ],
-      "@guiders-frontend/chat/ui/chat-welcome-state": [
-        "libs/chat/ui/chat-welcome-state/src/index.ts"
+      "@guiders-frontend/chat/ui/message-input": [
+        "libs/chat/ui/message-input/src/index.ts"
       ],
-      "@guiders-frontend/chat/ui/chat-placeholder": [
-        "libs/chat/ui/chat-placeholder/src/index.ts"
+      "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
+      "@guiders-frontend/contacts": [
+        "libs/chat/features/contacts/src/index.ts"
       ],
       "@guiders-frontend/create-chat-modal": [
         "libs/chat/ui/create-chat-modal/src/index.ts"

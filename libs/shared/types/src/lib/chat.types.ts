@@ -101,7 +101,7 @@ export interface CreateChatWithMessageRequest {
 export interface SendMessageRequest {
   chatId: string;
   content: string;
-  type: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' | 'VIDEO';
+  type: 'text' | 'image' | 'file' | 'audio' | 'video';
 }
 
 export interface MarkAsReadRequest {
