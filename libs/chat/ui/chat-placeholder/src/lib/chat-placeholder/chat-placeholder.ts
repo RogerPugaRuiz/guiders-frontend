@@ -1,8 +1,20 @@
-import { ChangeDetectionStrategy, Component, Input, Output, EventEmitter } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+  SimpleChanges,
+  AfterViewInit,
+  ViewChild,
+  ElementRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat, User } from '@guiders-frontend/shared/types';
 import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
+import { Message } from '@guiders-frontend/shared/types';
 
 @Component({
   selector: 'guiders-chat-placeholder',
@@ -12,13 +24,18 @@ import { IconComponent } from '@guiders-frontend/icon';
   styleUrl: './chat-placeholder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GuidersChatPlaceholderComponent {
+export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) selectedChat!: Chat;
   @Input() showActions = true;
-  @Input() placeholderMessage = 'Aquí se mostraría la interfaz de chat cuando esté disponible';
+  @Input() placeholderMessage = 'Envía un mensaje para iniciar la conversación';
+  @Input() messages: Message[] = [];
+  @Input() currentUserId: string | null = null;
+  @Input() isLoading = false;
 
   @Output() settingsClicked = new EventEmitter<void>();
   @Output() closeChat = new EventEmitter<void>();
+
+  @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
 
   /**
    * Obtener nombre para mostrar del chat
@@ -89,5 +106,85 @@ export class GuidersChatPlaceholderComponent {
    */
   onCloseChat(): void {
     this.closeChat.emit();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['messages']) {
+      this.scheduleScrollToBottom();
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.scheduleScrollToBottom();
+  }
+
+  trackMessageById(index: number, message: Message): string {
+    return message.messageId;
+  }
+
+  isOwnMessage(message: Message): boolean {
+    if (this.currentUserId) {
+      return message.senderId === this.currentUserId;
+    }
+    return message.senderType === 'COMMERCIAL';
+  }
+
+  isSystemMessage(message: Message): boolean {
+    return message.senderType === 'SYSTEM';
+  }
+
+  getSenderLabel(message: Message): string {
+    if (this.isSystemMessage(message)) {
+      return 'Sistema';
+    }
+
+    if (this.isOwnMessage(message)) {
+      return 'Tú';
+    }
+
+    const participant = this.selectedChat.participants?.find((p: User) => p.id === message.senderId);
+    if (participant?.name) {
+      return participant.name;
+    }
+    if (participant?.email) {
+      return participant.email;
+    }
+
+    switch (message.senderType) {
+      case 'VISITOR':
+        return 'Visitante';
+      case 'COMMERCIAL':
+        return 'Agente';
+      default:
+        return 'Sistema';
+    }
+  }
+
+  formatMessageTime(value: Date | string | number | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return new Intl.DateTimeFormat('es-ES', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  }
+
+  private scheduleScrollToBottom(): void {
+    queueMicrotask(() => this.scrollToBottom());
+  }
+
+  private scrollToBottom(): void {
+    const container = this.messagesContainer?.nativeElement;
+    if (!container) {
+      return;
+    }
+    container.scrollTop = container.scrollHeight;
   }
 }

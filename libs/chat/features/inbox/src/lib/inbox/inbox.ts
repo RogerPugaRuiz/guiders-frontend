@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
-import { Chat } from '@guiders-frontend/shared/types';
+import { Chat, Message } from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-sidebar';
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
@@ -47,10 +47,18 @@ export class Inbox implements OnInit {
   readonly isLoading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly conversations = signal<Chat[]>([]);
+  readonly messagesMap = signal<Record<string, Message[]>>({});
 
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
   readonly currentUserId = computed(() => this.currentUser()?.sub || null);
+  readonly currentMessages = computed(() => {
+    const chatId = this.selectedConversationId();
+    if (!chatId) {
+      return [] as Message[];
+    }
+    return this.messagesMap()[chatId] ?? [];
+  });
   
   readonly selectedChat = computed(() => {
     const chatId = this.selectedConversationId();
@@ -93,6 +101,13 @@ export class Inbox implements OnInit {
       .subscribe((chatId: string | null) => {
         this.selectedConversationId.set(chatId);
       });
+
+    // Sincronizar mensajes por chat
+    this.chatService.messages$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((messagesByChat: Record<string, Message[]>) => {
+        this.messagesMap.set({ ...messagesByChat });
+      });
   }
 
   private loadInitialData(): void {
@@ -109,7 +124,9 @@ export class Inbox implements OnInit {
     const commercialId = this.currentUserId();
     if (!commercialId) return;
 
-    this.chatService.getCommercialChats(commercialId).subscribe({
+    this.chatService.getCommercialChats(commercialId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (chats) => {
         console.log('Chats cargados:', chats.length);
       },
@@ -166,7 +183,9 @@ export class Inbox implements OnInit {
   // ===== MÉTODOS AUXILIARES =====
 
   private loadMessages(chatId: string): void {
-    this.chatService.getMessages(chatId).subscribe({
+    this.chatService.getMessages(chatId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
       next: (messages) => {
         console.log(`Mensajes cargados para ${chatId}:`, messages.length);
       },

@@ -36,27 +36,66 @@
   </div>
   
   <div class="guiders-chat-placeholder__content">
-    <div class="guiders-chat-placeholder__message">
-      <guiders-icon 
-        name="message-square" 
-        size="xl" 
-        class="guiders-chat-placeholder__message-icon" />
-      
-      <h3 class="guiders-chat-placeholder__message-title">
-        Chat con {{ getChatDisplayName() }}
-      </h3>
-      
-      <p class="guiders-chat-placeholder__message-text">
-        {{ placeholderMessage }}
-      </p>
-      
-      @if (selectedChat.chatId) {
-        <div class="guiders-chat-placeholder__debug">
-          <small class="guiders-chat-placeholder__debug-text">
-            ID: {{ selectedChat.chatId }}
-          </small>
+    @if (isLoading && messages.length === 0) {
+      <div class="guiders-chat-placeholder__state">
+        <span class="guiders-chat-placeholder__state-text">Cargando mensajes…</span>
+      </div>
+    } @else if (messages.length > 0) {
+      <div class="guiders-chat-placeholder__conversation" #messagesContainer>
+        <div class="guiders-chat-placeholder__messages">
+          @for (message of messages; track trackMessageById($index, message)) {
+            @let own = isOwnMessage(message);
+            @let system = isSystemMessage(message);
+            <div
+              class="guiders-chat-placeholder__message-row"
+              [class.guiders-chat-placeholder__message-row--own]="own"
+              [class.guiders-chat-placeholder__message-row--system]="system"
+            >
+              @if (!system) {
+                <span
+                  class="guiders-chat-placeholder__message-author"
+                  [class.guiders-chat-placeholder__message-author--own]="own"
+                >
+                  {{ getSenderLabel(message) }}
+                </span>
+              }
+              <div
+                class="guiders-chat-placeholder__message-body"
+                [class.guiders-chat-placeholder__message-body--own]="own"
+                [class.guiders-chat-placeholder__message-body--system]="system"
+              >
+                {{ message.content }}
+              </div>
+              <span class="guiders-chat-placeholder__message-meta">
+                {{ formatMessageTime(message.sentAt) }}
+              </span>
+            </div>
+          }
         </div>
-      }
-    </div>
+      </div>
+    } @else {
+      <div class="guiders-chat-placeholder__empty">
+        <guiders-icon 
+          name="message-square" 
+          size="xl" 
+          class="guiders-chat-placeholder__empty-icon" />
+        
+        <h3 class="guiders-chat-placeholder__empty-title">
+          Chat con {{ getChatDisplayName() }}
+        </h3>
+        
+        <p class="guiders-chat-placeholder__empty-text">
+          {{ placeholderMessage }}
+        </p>
+        
+        @if (selectedChat.chatId) {
+          <div class="guiders-chat-placeholder__debug">
+            <small class="guiders-chat-placeholder__debug-text">
+              ID: {{ selectedChat.chatId }}
+            </small>
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>

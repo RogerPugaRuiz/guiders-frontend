@@ -1,17 +1,16 @@
 @use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
 // === CHAT PLACEHOLDER COMPONENT ===
-// Placeholder mostrado cuando hay un chat seleccionado pero la interfaz real no está disponible
+// Componente que actúa como vista temporal de conversación
 // - Header con información del chat y acciones opcionales
-// - Contenido centrado con mensaje informativo
-// - Información de debug para desarrollo
-// - Estados visuales por tipo de chat
+// - Lista de mensajes moderna y simple sin animaciones ni sombras
+// - Estado vacío reutiliza el mensaje informativo original
 
 :host {
   display: block;
   font-family: tokens.$font-family-ui;
   height: 100%;
- width: 100%;
+  width: 100%;
   min-height: 0; // Ensure min-height is set to 0 to avoid unexpected scroll
 }
 
@@ -19,7 +18,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
- width: 100%;
+  width: 100%;
   background-color: tokens.$color-surface-primary;
 
   &__header {
@@ -110,40 +109,134 @@
   &__content {
     flex: 1;
     display: flex;
+    flex-direction: column;
+    background-color: tokens.$color-surface-secondary;
+    min-height: 0;
+  }
+
+  &__state {
+    flex: 1;
+    display: flex;
     align-items: center;
     justify-content: center;
     padding: tokens.$spacing-xl;
-    background-color: tokens.$color-surface-secondary;
+    color: tokens.$color-text-secondary;
+    font-size: tokens.$font-size-base;
   }
 
-  &__message {
+  &__state-text {
+    margin: 0;
+  }
+
+  &__conversation {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  &__messages {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-md;
+    padding: tokens.$spacing-lg;
+  overflow-y: auto;
+  }
+
+  &__message-row {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-2xs;
+    max-width: min(75%, 520px);
+    align-self: flex-start;
+  }
+
+  &__message-row--own {
+    align-self: flex-end;
+    text-align: right;
+  }
+
+  &__message-row--system {
+    align-self: center;
+    max-width: 60%;
+    text-align: center;
+  }
+
+  &__message-author {
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-medium;
+    color: tokens.$color-text-tertiary;
+  }
+
+  &__message-author--own {
+    color: tokens.$color-primary-600;
+  }
+
+  &__message-body {
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-primary;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__message-body--own {
+    background: tokens.$color-primary-50;
+    color: tokens.$color-primary-700;
+  }
+
+  &__message-body--system {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-secondary;
+    text-align: center;
+  }
+
+  &__message-meta {
+    font-size: tokens.$font-size-xs;
+    color: tokens.$color-text-tertiary;
+  }
+
+  &__message-row--own &__message-meta {
+    align-self: flex-end;
+  }
+
+  &__message-row--system &__message-author {
+    display: none;
+  }
+
+  &__empty {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    gap: tokens.$spacing-md;
+    padding: tokens.$spacing-xl;
     text-align: center;
-    max-width: 400px;
-    width: 100%;
   }
 
-  &__message-icon {
-    margin-bottom: tokens.$spacing-lg;
+  &__empty-icon {
     color: tokens.$color-text-secondary;
     opacity: 0.6;
   }
 
-  &__message-title {
+  &__empty-title {
     font-size: tokens.$font-size-lg;
     font-weight: tokens.$font-weight-semibold;
     color: tokens.$color-text-primary;
-    margin: 0 0 tokens.$spacing-md 0;
+    margin: 0;
     line-height: tokens.$line-height-tight;
   }
 
-  &__message-text {
+  &__empty-text {
     font-size: tokens.$font-size-base;
     color: tokens.$color-text-secondary;
-    margin: 0 0 tokens.$spacing-lg 0;
+    margin: 0;
     line-height: 1.5;
+    max-width: 420px;
   }
 
   &__debug {
@@ -174,18 +267,22 @@
     }
     
     &__content {
+      min-height: 0;
+    }
+
+    &__messages {
+      padding: tokens.$spacing-md;
+    }
+
+    &__empty {
       padding: tokens.$spacing-lg;
     }
-    
-    &__message {
-      max-width: 300px;
-    }
-    
-    &__message-title {
+
+    &__empty-title {
       font-size: tokens.$font-size-base;
     }
-    
-    &__message-text {
+
+    &__empty-text {
       font-size: tokens.$font-size-sm;
     }
   }
