@@ -8,6 +8,7 @@ interface Environment {
   };
   api: {
     baseUrl: string;
+    wsUrl?: string; // URL específica para WebSocket (opcional)
   };
 }
 
@@ -20,6 +21,7 @@ export const environment: Environment = {
     secureRoutes: ['https://guiders.es/api'] // API de staging
   },
   api: {
-    baseUrl: 'https://guiders.es/api' // API de staging
+    baseUrl: 'https://guiders.es/api', // API de staging
+    wsUrl: 'https://guiders.es' // WebSocket de staging (sin /api)
   }
 };

@@ -52,6 +52,9 @@
       "@guiders-frontend/chat-service": [
         "libs/chat/data-access/chat-service/src/index.ts"
       ],
+      "@guiders-frontend/chat/data-access/websocket-service": [
+        "libs/chat/data-access/websocket-service/src/index.ts"
+      ],
       "@guiders-frontend/chat/features/inbox": [
         "libs/chat/features/inbox/src/index.ts"
       ],

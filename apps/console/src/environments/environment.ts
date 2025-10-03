@@ -8,6 +8,7 @@ interface Environment {
   };
   api: {
     baseUrl: string;
+    wsUrl?: string; // URL específica para WebSocket (opcional)
   };
 }
 
@@ -20,6 +21,7 @@ export const environment: Environment = {
     secureRoutes: ['http://localhost:3000/api']
   },
   api: {
-    baseUrl: 'http://localhost:3000/api'
+    baseUrl: 'http://localhost:3000/api',
+    wsUrl: 'http://localhost:3000' // URL específica para WebSocket (sin /api)
   }
 };

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, map, catchError, of, filter } from 'rxjs';
 import { 
   Chat, 
   Message, 
@@ -12,6 +12,7 @@ import {
   User
 } from '@guiders-frontend/shared/types';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
+import { WebSocketService, ChatStatusUpdate } from '@guiders-frontend/chat/data-access/websocket-service';
 
 // Tipos internos para las respuestas de la API
 interface ApiChatResponse {
@@ -110,6 +111,7 @@ interface ApiGetMessagesResponse {
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly webSocket = inject(WebSocketService);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
   
   // Estado global del chat
@@ -133,6 +135,36 @@ export class ChatService {
     // Inicializar con token del localStorage si existe
     this.authToken = localStorage.getItem('access-token');
     this.currentUserId = localStorage.getItem('user-id');
+
+    // Inicializar WebSocket
+    this.initializeWebSocket();
+  }
+
+  /**
+   * Inicializar conexión WebSocket y suscribirse a eventos
+   */
+  private initializeWebSocket(): void {
+    // Conectar al servidor WebSocket
+    this.webSocket.connect({
+      authToken: this.authToken,
+      autoConnect: true
+    });
+
+    // Suscribirse a mensajes nuevos
+    this.webSocket.messageReceived$
+      .pipe(filter((message): message is Message => message !== null))
+      .subscribe(message => {
+        console.log('[ChatService] Mensaje recibido via WebSocket:', message);
+        this.addMessageToState(message.chatId, message);
+      });
+
+    // Suscribirse a cambios de estado del chat
+    this.webSocket.chatStatus$
+      .pipe(filter((status): status is ChatStatusUpdate => status !== null))
+      .subscribe(status => {
+        console.log('[ChatService] Estado del chat actualizado:', status);
+        this.updateChatStatus(status.chatId, status.status);
+      });
   }
 
   // Configuración de headers para autenticación
@@ -522,6 +554,18 @@ export class ChatService {
   // ===== MÉTODOS DE ESTADO =====
 
   selectChat(chatId: string | null): void {
+    const previousChatId = this.selectedChatSubject.value;
+    
+    // Salir de la sala anterior si existe
+    if (previousChatId && this.webSocket.isConnected()) {
+      this.webSocket.leaveRoom(previousChatId);
+    }
+
+    // Unirse a la nueva sala si existe
+    if (chatId && this.webSocket.isConnected()) {
+      this.webSocket.joinRoom(chatId);
+    }
+
     this.selectedChatSubject.next(chatId);
   }
 
@@ -668,6 +712,28 @@ export class ChatService {
     this.messagesSubject.next(updatedMessages);
   }
 
+  private updateChatStatus(chatId: string, newStatus: string): void {
+    const currentChats = this.chatsSubject.value;
+    const validStatuses: Array<'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED' | 'ASSIGNED'> = [
+      'PENDING', 'ACTIVE', 'CLOSED', 'TRANSFERRED', 'ASSIGNED'
+    ];
+    
+    // Validar que el status sea válido
+    if (!validStatuses.includes(newStatus as never)) {
+      console.warn('[ChatService] Estado inválido recibido:', newStatus);
+      return;
+    }
+
+    const status = newStatus as 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED' | 'ASSIGNED';
+    const updatedChats = currentChats.map(chat => 
+      chat.chatId === chatId 
+        ? { ...chat, status }
+        : chat
+    );
+    
+    this.chatsSubject.next(updatedChats);
+  }
+
   private setLoading(loading: boolean): void {
     this.loadingSubject.next(loading);
   }
@@ -676,5 +742,21 @@ export class ChatService {
     console.error(message, error);
     this.errorSubject.next(message);
     this.setLoading(false);
+  }
+
+  // ===== MÉTODOS PÚBLICOS WEBSOCKET =====
+
+  /**
+   * Obtener estado de conexión WebSocket
+   */
+  get isWebSocketConnected(): boolean {
+    return this.webSocket.isConnected();
+  }
+
+  /**
+   * Obtener servicio WebSocket (para uso avanzado)
+   */
+  get webSocketService(): WebSocketService {
+    return this.webSocket;
   }
 }

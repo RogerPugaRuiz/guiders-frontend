@@ -8,5 +8,6 @@ export interface Environment {
   };
   api: {
     baseUrl: string;
+    wsUrl?: string; // URL específica para WebSocket (opcional)
   };
 }
