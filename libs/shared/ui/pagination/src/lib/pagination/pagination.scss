@@ -1,0 +1,209 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-lg;
+  padding: tokens.$spacing-md;
+  background: tokens.$color-surface-primary;
+  border-top: 1px solid tokens.$color-border-subtle;
+  font-family: tokens.$font-family-ui;
+
+  &__info {
+    flex-shrink: 0;
+  }
+
+  &__text {
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-secondary;
+    font-weight: tokens.$font-weight-medium;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-lg;
+    flex-wrap: wrap;
+  }
+
+  &__page-size {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-sm;
+    flex-shrink: 0;
+  }
+
+  &__label {
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-secondary;
+    font-weight: tokens.$font-weight-medium;
+  }
+
+  &__select {
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-primary;
+    font-size: tokens.$font-size-sm;
+    font-family: tokens.$font-family-ui;
+    cursor: pointer;
+    transition: border-color tokens.$duration-normal tokens.$easing-standard;
+
+    &:hover:not(:disabled) {
+      border-color: tokens.$color-border-primary;
+    }
+
+    &:focus {
+      outline: 2px solid tokens.$color-border-primary;
+      outline-offset: 1px;
+      border-color: tokens.$color-border-primary;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: tokens.$color-surface-disabled;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: tokens.$spacing-xs;
+    border: 1px solid tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-secondary;
+    cursor: pointer;
+    transition: all tokens.$duration-normal tokens.$easing-standard;
+
+    svg {
+      stroke: currentColor;
+    }
+
+    &:hover:not(:disabled) {
+      background: tokens.$color-surface-hover;
+      border-color: tokens.$color-border-primary;
+      color: tokens.$color-brand-primary;
+    }
+
+    &:active:not(:disabled) {
+      background: tokens.$color-surface-pressed;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: tokens.$color-surface-disabled;
+      color: tokens.$color-text-disabled;
+    }
+  }
+
+  &__pages {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+  }
+
+  &__page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-primary;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-normal tokens.$easing-standard;
+
+    &:hover:not(:disabled):not(&--active) {
+      background: tokens.$color-surface-hover;
+      border-color: tokens.$color-border-primary;
+      color: tokens.$color-brand-primary;
+    }
+
+    &:active:not(:disabled):not(&--active) {
+      background: tokens.$color-surface-pressed;
+    }
+
+    &--active {
+      background: tokens.$color-brand-primary;
+      border-color: tokens.$color-brand-primary;
+      color: tokens.$color-text-inverse;
+      font-weight: tokens.$font-weight-semibold;
+      cursor: default;
+
+      &:hover {
+        background: tokens.$color-primary-600;
+        border-color: tokens.$color-primary-600;
+      }
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: tokens.$color-surface-disabled;
+      color: tokens.$color-text-disabled;
+    }
+  }
+
+  &__ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    color: tokens.$color-text-tertiary;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    user-select: none;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: tokens.$spacing-md;
+
+    &__info {
+      text-align: center;
+    }
+
+    &__controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__page-size {
+      justify-content: center;
+    }
+
+    &__buttons {
+      justify-content: center;
+    }
+
+    // En móvil, ocultar algunos botones de página para ahorrar espacio
+    &__pages {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+  }
+}

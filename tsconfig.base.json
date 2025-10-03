@@ -87,6 +87,9 @@
         "libs/shared/design-tokens/src/index.ts"
       ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/pagination": [
+        "libs/shared/ui/pagination/src/index.ts"
+      ],
       "@guiders-frontend/pending-chats-modal": [
         "libs/chat/ui/pending-chats-modal/src/index.ts"
       ],

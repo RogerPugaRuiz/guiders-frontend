@@ -153,6 +153,8 @@ export interface VisitorPagination {
   limit: number;
   offset?: number;
   cursor?: string;
+  totalCount?: number; // Total de registros disponibles
+  currentPage?: number; // Página actual (calculada desde offset)
 }
 
 // Respuestas de la API

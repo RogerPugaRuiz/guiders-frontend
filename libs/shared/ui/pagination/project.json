@@ -1,0 +1,17 @@
+{
+  "name": "pagination",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/ui/pagination/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["type:ui", "scope:shared"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/shared/ui/pagination"
+      }
+    }
+  }
+}

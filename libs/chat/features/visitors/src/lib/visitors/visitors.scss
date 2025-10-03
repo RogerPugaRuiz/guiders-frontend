@@ -260,6 +260,38 @@
   overflow: auto;
 }
 
+/* Panel de visitantes con scroll controlado */
+.visitors-panel {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 0; // Removemos el padding del contenedor
+    overflow: hidden; // Evitamos scroll en el contenedor principal
+  }
+
+  &__list-container {
+    flex: 1;
+    overflow-y: auto; // Solo este contenedor tiene scroll
+    padding: 0 tokens.$spacing-md; // Padding lateral para la lista
+    min-height: 0; // Importante para que funcione el flex con overflow
+  }
+
+  &__pagination {
+    flex-shrink: 0; // El paginador no se reduce
+    border-top: 1px solid tokens.$color-border-subtle;
+    background: tokens.$color-surface-primary;
+    
+    // El componente de paginación ya tiene su propio padding
+    // pero aseguramos que no haya padding duplicado
+    ::ng-deep guiders-pagination {
+      .pagination {
+        border-top: none; // Removemos el borde del componente ya que lo ponemos aquí
+      }
+    }
+  }
+}
+
 /* Los estilos de KPI ahora se gestionan desde el componente shared BentoKpiComponent */
 
 /* Responsive adjustments */

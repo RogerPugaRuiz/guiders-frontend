@@ -8,6 +8,7 @@ import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
 import { CreateChatModal, CreateChatModalConfig } from '@guiders-frontend/create-chat-modal';
 import { PendingChatsModal } from '@guiders-frontend/pending-chats-modal';
 import { BentoKpiComponent } from '@guiders-frontend/bento-kpi';
+import { PaginationComponent } from '@guiders-frontend/pagination';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import {
@@ -28,7 +29,8 @@ import {
     VisitorsListComponent,
     CreateChatModal,
     PendingChatsModal,
-    BentoKpiComponent
+    BentoKpiComponent,
+    PaginationComponent
   ],
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.scss'],
@@ -51,7 +53,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       hasActiveChat: false
     },
     sort: { field: 'lastVisit', direction: 'desc' },
-    pagination: { limit: 50, offset: 0 },
+    pagination: { 
+      limit: 20, 
+      offset: 0,
+      totalCount: 0,
+      currentPage: 1
+    },
     loading: false,
     error: null,
     stats: null,
@@ -374,7 +381,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       .subscribe((response: GetVisitorsResponse) => {
         this.updateState({
           visitors: response.visitors,
-          error: null
+          error: null,
+          pagination: {
+            ...currentState.pagination,
+            totalCount: response.total
+          }
         });
       });
   }
@@ -414,7 +425,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         catchError(() => of({ visitors: [], total: 0, hasMore: false }))
       )
       .subscribe((response: GetVisitorsResponse) => {
-        this.updateState({ visitors: response.visitors });
+        this.updateState({ 
+          visitors: response.visitors,
+          pagination: {
+            ...currentState.pagination,
+            totalCount: response.total
+          }
+        });
       });
   }
 
@@ -501,6 +518,63 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   onSortChange(sort: VisitorSort): void {
     this.updateState({ sort });
     this.loadVisitors();
+  }
+
+  // Métodos de paginación
+  onPageChange(page: number): void {
+    const currentState = this.state();
+    const offset = (page - 1) * currentState.pagination.limit;
+    
+    this.updateState({
+      pagination: {
+        ...currentState.pagination,
+        currentPage: page,
+        offset
+      }
+    });
+    
+    this.loadVisitors();
+  }
+
+  onPageSizeChange(pageSize: number): void {
+    // Al cambiar el tamaño de página, volver a la primera página
+    this.updateState({
+      pagination: {
+        limit: pageSize,
+        offset: 0,
+        currentPage: 1,
+        totalCount: this.state().pagination.totalCount
+      }
+    });
+    
+    this.loadVisitors();
+  }
+
+  firstPage(): void {
+    this.onPageChange(1);
+  }
+
+  previousPage(): void {
+    const currentPage = this.state().pagination.currentPage || 1;
+    if (currentPage > 1) {
+      this.onPageChange(currentPage - 1);
+    }
+  }
+
+  nextPage(): void {
+    const currentState = this.state();
+    const currentPage = currentState.pagination.currentPage || 1;
+    const totalPages = Math.ceil((currentState.pagination.totalCount || 0) / currentState.pagination.limit);
+    
+    if (currentPage < totalPages) {
+      this.onPageChange(currentPage + 1);
+    }
+  }
+
+  lastPage(): void {
+    const currentState = this.state();
+    const totalPages = Math.ceil((currentState.pagination.totalCount || 0) / currentState.pagination.limit);
+    this.onPageChange(totalPages);
   }
 
   // Métodos de utilidad
