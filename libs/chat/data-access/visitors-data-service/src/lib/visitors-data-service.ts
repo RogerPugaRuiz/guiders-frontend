@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError, switchMap, map } from 'rxjs/operators';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
+import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { 
   Visitor, 
   GetVisitorsResponse,
@@ -38,7 +39,8 @@ interface VisitorQueryParams {
 export class VisitorsDataService {
   private readonly http = inject(HttpClient);
   private readonly sessionService = inject(SessionService);
-  private readonly baseUrl = 'http://localhost:3000/api';
+  private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly baseUrl = `${this.environment.api.baseUrl}`;
 
   // Obtener visitantes con filtros y paginación usando tenant-visitors endpoint
   getVisitors(tenantId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {

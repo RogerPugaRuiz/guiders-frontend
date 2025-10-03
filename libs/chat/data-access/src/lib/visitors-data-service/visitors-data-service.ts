@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { 
   Visitor, 
   VisitorFilters,
@@ -20,14 +21,14 @@ import {
   Chat,
   GetChatsResponse
 } from '@guiders-frontend/shared/types';
-// import { environment } from '@guiders-frontend/shared/types';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VisitorsDataService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = 'http://localhost:3000'; // TODO: Use environment configuration
+  private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly baseUrl = `${this.environment.api.baseUrl}`;
 
   // Obtener visitantes con filtros y paginación
   getVisitors(
