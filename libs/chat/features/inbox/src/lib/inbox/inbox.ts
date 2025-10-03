@@ -116,13 +116,12 @@ export class Inbox implements OnInit {
         this.selectedConversationId.set(chatId);
       });
 
-    // Sincronizar mensajes que llegan por WebSocket
+    // Sincronizar mensajes que llegan por WebSocket o se envían
     this.chatService.messages$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((messagesMap) => {
-        // Actualizar solo si hay mensajes nuevos para el chat seleccionado
-        const chatId = this.selectedConversationId();
-        if (chatId && messagesMap[chatId]) {
+        // Obtener todos los chats que tienen mensajes en el servicio
+        Object.keys(messagesMap).forEach(chatId => {
           const serviceMessages = messagesMap[chatId];
           const currentMessages = this.messagesMap()[chatId] || [];
           
@@ -132,13 +131,13 @@ export class Inbox implements OnInit {
           );
           
           if (newMessages.length > 0) {
-            console.log(`[Inbox] Sincronizando ${newMessages.length} mensajes nuevos del servicio`);
+            console.log(`[Inbox] Sincronizando ${newMessages.length} mensajes nuevos para chat ${chatId}`);
             this.messagesMap.update(map => ({
               ...map,
               [chatId]: [...currentMessages, ...newMessages]
             }));
           }
-        }
+        });
       });
   }
 
@@ -231,17 +230,8 @@ export class Inbox implements OnInit {
       .subscribe({
         next: (message) => {
           console.log('Mensaje enviado:', message);
-          
-          // Actualizar messagesMap del componente con el nuevo mensaje
-          if (message) {
-            this.messagesMap.update(map => {
-              const currentMessages = map[chatId] || [];
-              return {
-                ...map,
-                [chatId]: [...currentMessages, message]
-              };
-            });
-          }
+          // El mensaje se sincronizará automáticamente vía la suscripción a messages$
+          // No es necesario actualizar messagesMap manualmente aquí
         },
         error: (error) => {
           console.error('Error al enviar mensaje:', error);

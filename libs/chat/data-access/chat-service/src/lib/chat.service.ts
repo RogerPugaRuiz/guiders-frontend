@@ -162,7 +162,10 @@ export class ChatService {
   constructor() {
     // Inicializar con token del localStorage si existe
     this.authToken = localStorage.getItem('access-token');
-    this.currentUserId = localStorage.getItem('user-id');
+    
+    // Obtener el userId (sub) del token JWT
+    this.currentUserId = this.getCurrentUserId();
+    console.log('[ChatService] Usuario actual inicializado (sub del token):', this.currentUserId);
 
     // Inicializar WebSocket
     this.initializeWebSocket();
@@ -183,13 +186,15 @@ export class ChatService {
       .pipe(filter((message): message is Message => message !== null))
       .subscribe(message => {
         console.log('[ChatService] Mensaje recibido via WebSocket:', message);
+        console.log('[ChatService] Comparando senderId:', message.senderId, 'con currentUserId:', this.currentUserId);
         
         // Ignorar mensajes propios - ya fueron agregados por la respuesta HTTP
         if (message.senderId === this.currentUserId) {
-          console.log('[ChatService] Mensaje propio ignorado (ya fue agregado por HTTP):', message.messageId);
+          console.log('[ChatService] ✅ Mensaje propio ignorado (ya fue agregado por HTTP):', message.messageId);
           return;
         }
         
+        console.log('[ChatService] ✅ Mensaje de otro usuario, agregando al estado');
         // Normalizar el mensaje para asegurar que sentAt sea Date
         const normalizedMessage = this.normalizeMessage(message);
         this.addMessageToState(normalizedMessage.chatId, normalizedMessage);
