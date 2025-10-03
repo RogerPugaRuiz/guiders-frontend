@@ -21,9 +21,12 @@
 				[messages]="currentMessages()"
 				[currentUserId]="currentUserId()"
 				[isLoading]="isLoading()"
+				[isLoadingMore]="currentPagination().isLoadingMore"
+				[hasMoreMessages]="currentPagination().hasMore"
 				(settingsClicked)="onChatSettings()"
 				(closeChat)="onCloseChat()"
 				(messageSent)="onSendMessage($event)"
+				(loadMoreMessages)="onLoadMoreMessages()"
 			/>
 		} @else {
 			<guiders-chat-welcome-state

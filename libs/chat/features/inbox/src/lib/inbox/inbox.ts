@@ -48,6 +48,14 @@ export class Inbox implements OnInit {
   readonly error = signal<string | null>(null);
   readonly conversations = signal<Chat[]>([]);
   readonly messagesMap = signal<Record<string, Message[]>>({});
+  
+  // Estado de paginación de mensajes
+  readonly messagePaginationMap = signal<Record<string, {
+    total: number;
+    hasMore: boolean;
+    nextCursor?: string;
+    isLoadingMore: boolean;
+  }>>({});
 
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
@@ -64,6 +72,12 @@ export class Inbox implements OnInit {
     const chatId = this.selectedConversationId();
     if (!chatId) return null;
     return this.conversations().find(chat => chat.chatId === chatId) || null;
+  });
+
+  readonly currentPagination = computed(() => {
+    const chatId = this.selectedConversationId();
+    if (!chatId) return { total: 0, hasMore: false, isLoadingMore: false };
+    return this.messagePaginationMap()[chatId] ?? { total: 0, hasMore: false, isLoadingMore: false };
   });
 
   // ===== LIFECYCLE =====
@@ -211,16 +225,111 @@ export class Inbox implements OnInit {
   // ===== MÉTODOS AUXILIARES =====
 
   private loadMessages(chatId: string): void {
-    this.chatService.getMessages(chatId)
+    this.chatService.getMessagesV2(chatId, {
+      limit: 50
+      // El endpoint por defecto devuelve sentAt DESC (más recientes primero)
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-      next: (messages) => {
-        console.log(`Mensajes cargados para ${chatId}:`, messages.length);
-      },
-      error: (error) => {
-        console.error('Error al cargar mensajes:', error);
+        next: (response) => {
+          console.log(`Mensajes cargados para ${chatId}:`, response.messages.length);
+          
+          // Los mensajes vienen en orden descendente (más recientes primero)
+          // Los revertimos para mostrarlos ascendente (más antiguos arriba)
+          const messages = [...response.messages].reverse();
+          
+          // Actualizar mensajes
+          this.messagesMap.update(map => ({
+            ...map,
+            [chatId]: messages
+          }));
+          
+          // Actualizar información de paginación
+          this.messagePaginationMap.update(map => ({
+            ...map,
+            [chatId]: {
+              total: response.total,
+              hasMore: response.hasMore,
+              nextCursor: response.nextCursor,
+              isLoadingMore: false
+            }
+          }));
+        },
+        error: (error) => {
+          console.error('Error al cargar mensajes:', error);
+          this.error.set('Error al cargar los mensajes');
+        }
+      });
+  }
+
+  /**
+   * Cargar más mensajes antiguos (scroll infinito)
+   */
+  onLoadMoreMessages(): void {
+    const chatId = this.selectedConversationId();
+    if (!chatId) return;
+
+    const pagination = this.messagePaginationMap()[chatId];
+    if (!pagination?.hasMore || pagination.isLoadingMore) {
+      console.log('No hay más mensajes para cargar o ya está cargando');
+      return;
+    }
+
+    console.log(`Cargando más mensajes para ${chatId} con cursor:`, pagination.nextCursor);
+
+    // Marcar como cargando
+    this.messagePaginationMap.update(map => ({
+      ...map,
+      [chatId]: {
+        ...map[chatId],
+        isLoadingMore: true
       }
-    });
+    }));
+
+    this.chatService.getMessagesV2(chatId, {
+      cursor: pagination.nextCursor,
+      limit: 50
+      // El endpoint por defecto devuelve sentAt DESC
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          console.log(`Mensajes antiguos cargados: ${response.messages.length}`);
+          
+          // Los mensajes vienen en orden descendente
+          // Los revertimos y los agregamos AL INICIO del array existente
+          const newMessages = [...response.messages].reverse();
+          const currentMessages = this.messagesMap()[chatId] || [];
+          
+          this.messagesMap.update(map => ({
+            ...map,
+            [chatId]: [...newMessages, ...currentMessages]
+          }));
+          
+          // Actualizar paginación
+          this.messagePaginationMap.update(map => ({
+            ...map,
+            [chatId]: {
+              total: response.total,
+              hasMore: response.hasMore,
+              nextCursor: response.nextCursor,
+              isLoadingMore: false
+            }
+          }));
+        },
+        error: (error) => {
+          console.error('Error al cargar más mensajes:', error);
+          
+          // Desmarcar loading en caso de error
+          this.messagePaginationMap.update(map => ({
+            ...map,
+            [chatId]: {
+              ...map[chatId],
+              isLoadingMore: false
+            }
+          }));
+        }
+      });
   }
 
   /**

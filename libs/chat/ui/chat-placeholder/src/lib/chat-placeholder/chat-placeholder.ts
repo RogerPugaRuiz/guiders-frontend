@@ -8,6 +8,7 @@ import {
   OnChanges,
   SimpleChanges,
   AfterViewInit,
+  OnDestroy,
   ViewChild,
   ElementRef,
   inject
@@ -27,7 +28,7 @@ import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
   styleUrl: './chat-placeholder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit {
+export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   
   @Input({ required: true }) selectedChat!: Chat;
@@ -36,12 +37,20 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   @Input() messages: Message[] = [];
   @Input() currentUserId: string | null = null;
   @Input() isLoading = false;
+  @Input() isLoadingMore = false; // Loading para scroll infinito
+  @Input() hasMoreMessages = false; // Indica si hay más mensajes antiguos
 
   @Output() settingsClicked = new EventEmitter<void>();
   @Output() closeChat = new EventEmitter<void>();
   @Output() messageSent = new EventEmitter<string>();
+  @Output() loadMoreMessages = new EventEmitter<void>(); // Evento para cargar más mensajes
 
   @ViewChild('messagesContainer') private messagesContainer?: ElementRef<HTMLDivElement>;
+  @ViewChild('scrollAnchor') private scrollAnchor?: ElementRef<HTMLDivElement>;
+
+  private intersectionObserver?: IntersectionObserver;
+  private shouldScrollToBottom = true;
+  private previousScrollHeight = 0;
 
   /**
    * Obtener nombre para mostrar del chat
@@ -115,14 +124,158 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Hacer scroll al final cuando cambian los mensajes o el chat seleccionado
-    if (changes['messages'] || changes['selectedChat']) {
+    // Si cambia el chat seleccionado, hacer scroll al final
+    if (changes['selectedChat']) {
+      this.shouldScrollToBottom = true;
       this.scheduleScrollToBottom();
+      // Limpiar y reconfigurar observer cuando cambia el chat
+      this.cleanupIntersectionObserver();
+    }
+
+    // Si se agregan mensajes nuevos (al final), hacer scroll al final
+    if (changes['messages'] && !changes['messages'].firstChange) {
+      const prev = changes['messages'].previousValue as Message[];
+      const curr = changes['messages'].currentValue as Message[];
+      
+      // Si hay más mensajes y el último mensaje cambió, es un mensaje nuevo al final
+      if (curr.length > prev.length) {
+        const lastPrevMessage = prev[prev.length - 1];
+        const lastCurrMessage = curr[curr.length - 1];
+        
+        if (!lastPrevMessage || lastPrevMessage.messageId !== lastCurrMessage.messageId) {
+          // Mensaje nuevo al final, hacer scroll
+          this.shouldScrollToBottom = true;
+          this.scheduleScrollToBottom();
+        } else {
+          // Mensajes agregados al inicio (scroll infinito), preservar posición
+          this.shouldScrollToBottom = false;
+          this.preserveScrollPosition();
+        }
+      }
+    }
+
+    // Si cambia hasMoreMessages, reconfigurar el observer
+    if (changes['hasMoreMessages']) {
+      console.log('[ChatPlaceholder] hasMoreMessages cambió:', changes['hasMoreMessages'].currentValue);
+      this.cleanupIntersectionObserver();
+      if (changes['hasMoreMessages'].currentValue) {
+        // Esperar a que el DOM se actualice antes de configurar el observer
+        setTimeout(() => {
+          this.setupIntersectionObserver();
+        }, 100);
+      }
     }
   }
 
   ngAfterViewInit(): void {
     this.scheduleScrollToBottom();
+    // Configurar observer si hay más mensajes
+    if (this.hasMoreMessages) {
+      setTimeout(() => {
+        this.setupIntersectionObserver();
+      }, 100);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.cleanupIntersectionObserver();
+  }
+
+  /**
+   * Configurar IntersectionObserver para detectar scroll al inicio
+   */
+  private setupIntersectionObserver(): void {
+    console.log('[ChatPlaceholder] Configurando IntersectionObserver...');
+    console.log('[ChatPlaceholder] scrollAnchor existe?', !!this.scrollAnchor);
+    console.log('[ChatPlaceholder] messagesContainer existe?', !!this.messagesContainer);
+    console.log('[ChatPlaceholder] hasMoreMessages:', this.hasMoreMessages);
+    
+    if (!this.scrollAnchor) {
+      console.warn('[ChatPlaceholder] No se puede configurar observer: scrollAnchor no disponible');
+      return;
+    }
+
+    if (!this.messagesContainer) {
+      console.warn('[ChatPlaceholder] No se puede configurar observer: messagesContainer no disponible');
+      return;
+    }
+
+    // Limpiar observer anterior si existe
+    this.cleanupIntersectionObserver();
+
+    const options: IntersectionObserverInit = {
+      root: this.messagesContainer.nativeElement,
+      rootMargin: '50px', // Aumentado de 20px a 50px para detectar antes
+      threshold: 0.1
+    };
+
+    console.log('[ChatPlaceholder] Creando IntersectionObserver con opciones:', options);
+
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        console.log('[ChatPlaceholder] IntersectionObserver callback:', {
+          isIntersecting: entry.isIntersecting,
+          intersectionRatio: entry.intersectionRatio,
+          isLoadingMore: this.isLoadingMore,
+          hasMoreMessages: this.hasMoreMessages
+        });
+
+        if (entry.isIntersecting && !this.isLoadingMore && this.hasMoreMessages) {
+          console.log('[ChatPlaceholder] ✅ Condiciones cumplidas, emitiendo loadMoreMessages');
+          this.loadMoreMessages.emit();
+        } else {
+          if (!entry.isIntersecting) {
+            console.log('[ChatPlaceholder] ⏸️ Scroll anchor no visible');
+          }
+          if (this.isLoadingMore) {
+            console.log('[ChatPlaceholder] ⏸️ Ya está cargando más mensajes');
+          }
+          if (!this.hasMoreMessages) {
+            console.log('[ChatPlaceholder] ⏸️ No hay más mensajes para cargar');
+          }
+        }
+      });
+    }, options);
+
+    this.intersectionObserver.observe(this.scrollAnchor.nativeElement);
+    console.log('[ChatPlaceholder] ✅ Observer configurado y observando scrollAnchor');
+  }
+
+  /**
+   * Limpiar IntersectionObserver
+   */
+  private cleanupIntersectionObserver(): void {
+    if (this.intersectionObserver) {
+      console.log('[ChatPlaceholder] Limpiando IntersectionObserver');
+      this.intersectionObserver.disconnect();
+      this.intersectionObserver = undefined;
+    }
+  }
+
+  /**
+   * Preservar posición del scroll al insertar mensajes antiguos
+   */
+  private preserveScrollPosition(): void {
+    const container = this.messagesContainer?.nativeElement;
+    if (!container) return;
+
+    // Guardar altura antes de la actualización
+    this.previousScrollHeight = container.scrollHeight;
+
+    // Forzar detección de cambios
+    this.cdr.detectChanges();
+
+    // Ajustar scroll después de renderizar
+    setTimeout(() => {
+      if (!container) return;
+      const newScrollHeight = container.scrollHeight;
+      const scrollDiff = newScrollHeight - this.previousScrollHeight;
+      
+      if (scrollDiff > 0) {
+        container.scrollTop += scrollDiff;
+        console.log(`[ChatPlaceholder] Preserved scroll position. Adjusted by ${scrollDiff}px`);
+      }
+    }, 0);
   }
 
   trackMessageById(index: number, message: Message): string {
@@ -188,6 +341,8 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   }
 
   private scheduleScrollToBottom(): void {
+    if (!this.shouldScrollToBottom) return;
+    
     // Forzar detección de cambios antes del scroll (OnPush strategy)
     this.cdr.detectChanges();
     

@@ -9,7 +9,8 @@ import {
   SendMessageRequest, 
   MarkAsReadRequest,
   CreateChatResponse,
-  User
+  User,
+  MessageListResponse
 } from '@guiders-frontend/shared/types';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { WebSocketService, ChatStatusUpdate } from '@guiders-frontend/chat/data-access/websocket-service';
@@ -503,6 +504,104 @@ export class ChatService {
   }
 
   // ===== MÉTODOS DE MENSAJES =====
+
+  /**
+   * Obtener mensajes de un chat con el endpoint V2 (incluye paginación completa)
+   * Retorna la respuesta completa con información de paginación cursor
+   */
+  getMessagesV2(chatId: string, options?: {
+    cursor?: string;
+    limit?: number;
+    filters?: {
+      types?: string[];
+      dateFrom?: string;
+      dateTo?: string;
+      senderId?: string;
+      senderType?: string;
+      isRead?: boolean;
+      hasAttachments?: boolean;
+      keyword?: string;
+    };
+    sort?: {
+      field?: 'sentAt' | 'readAt' | 'type';
+      direction?: 'ASC' | 'DESC';
+    };
+  }): Observable<MessageListResponse> {
+    this.setLoading(true);
+    
+    const url = new URL(`${this.baseUrl}/messages/chat/${chatId}`);
+    const params = url.searchParams;
+    
+    // Paginación
+    if (options?.limit) params.set('limit', options.limit.toString());
+    if (options?.cursor) params.set('cursor', options.cursor);
+    
+    // Filtros
+    if (options?.filters?.types) {
+      options.filters.types.forEach(type => 
+        params.append('filters[types][]', type)
+      );
+    }
+    if (options?.filters?.dateFrom) {
+      params.set('filters[dateFrom]', options.filters.dateFrom);
+    }
+    if (options?.filters?.dateTo) {
+      params.set('filters[dateTo]', options.filters.dateTo);
+    }
+    if (options?.filters?.senderId) {
+      params.set('filters[senderId]', options.filters.senderId);
+    }
+    if (options?.filters?.senderType) {
+      params.set('filters[senderType]', options.filters.senderType);
+    }
+    if (options?.filters?.isRead !== undefined) {
+      params.set('filters[isRead]', String(options.filters.isRead));
+    }
+    if (options?.filters?.hasAttachments !== undefined) {
+      params.set('filters[hasAttachments]', String(options.filters.hasAttachments));
+    }
+    if (options?.filters?.keyword) {
+      params.set('filters[keyword]', options.filters.keyword);
+    }
+    
+    // Ordenamiento
+    if (options?.sort?.field) {
+      params.set('sort[field]', options.sort.field);
+      params.set('sort[direction]', options.sort.direction || 'DESC');
+    }
+
+    return this.http.get<{
+      messages: ApiMessageResponse[];
+      total: number;
+      hasMore: boolean;
+      nextCursor?: string;
+    }>(url.toString(), this.getHttpOptions())
+      .pipe(
+        map(response => {
+          // Transformar mensajes pero NO revertir el orden
+          // El endpoint V2 devuelve en DESC por defecto (más recientes primero)
+          const messages = response.messages.map(msg => this.transformMessageFromApi(msg));
+          
+          this.setLoading(false);
+          
+          return {
+            messages,
+            total: response.total,
+            hasMore: response.hasMore,
+            nextCursor: response.nextCursor
+          };
+        }),
+        catchError(error => {
+          this.handleError('Error al obtener mensajes (V2)', error);
+          return of({
+            messages: [],
+            total: 0,
+            hasMore: false,
+            nextCursor: undefined
+          });
+        })
+      );
+  }
 
   /**
    * Obtener mensajes de un chat

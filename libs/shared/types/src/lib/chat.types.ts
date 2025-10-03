@@ -143,3 +143,17 @@ export interface GetMessagesResponse {
     total?: number;
   };
 }
+
+// Tipos para el endpoint V2 de mensajes con paginación cursor
+export interface MessageListResponse {
+  messages: Message[];
+  total: number;
+  hasMore: boolean;
+  nextCursor?: string;
+}
+
+export interface MessagePaginationInfo {
+  total: number;
+  hasMore: boolean;
+  nextCursor?: string;
+}

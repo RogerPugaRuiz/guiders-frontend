@@ -43,6 +43,23 @@
     } @else if (messages.length > 0) {
       <div class="guiders-chat-placeholder__conversation">
         <div class="guiders-chat-placeholder__messages" #messagesContainer>
+          <!-- Anchor para scroll infinito -->
+          @if (hasMoreMessages) {
+            <div #scrollAnchor class="guiders-chat-placeholder__scroll-anchor">
+              @if (isLoadingMore) {
+                <div class="guiders-chat-placeholder__loading-more">
+                  <span class="guiders-chat-placeholder__loading-spinner"></span>
+                  <span class="guiders-chat-placeholder__loading-text">Cargando mensajes anteriores…</span>
+                </div>
+              } @else {
+                <!-- Indicador visible para debug -->
+                <div class="guiders-chat-placeholder__scroll-indicator">
+                  <span>↑ Hacer scroll hacia arriba para cargar más ↑</span>
+                </div>
+              }
+            </div>
+          }
+          
           @for (message of messages; track trackMessageById($index, message)) {
             @let own = isOwnMessage(message);
             @let system = isSystemMessage(message);
