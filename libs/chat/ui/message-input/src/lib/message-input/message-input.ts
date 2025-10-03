@@ -24,6 +24,8 @@ export class MessageInput implements AfterViewInit {
 
   readonly messageText = signal('');
   readonly isSending = signal(false);
+  private sendingTimestamp = 0;
+  private readonly SEND_DEBOUNCE_MS = 500; // Prevenir envíos duplicados dentro de 500ms
 
   ngAfterViewInit(): void {
     this.adjustTextareaHeight();
@@ -48,13 +50,27 @@ export class MessageInput implements AfterViewInit {
       return;
     }
 
+    // Prevenir envíos duplicados
+    const now = Date.now();
+    if (now - this.sendingTimestamp < this.SEND_DEBOUNCE_MS) {
+      console.warn('[MessageInput] Envío bloqueado por debounce');
+      return;
+    }
+
+    this.sendingTimestamp = now;
     this.isSending.set(true);
+    
+    console.log('[MessageInput] Enviando mensaje:', text);
     this.messageSent.emit(text);
 
     // Limpiar después de enviar
     this.messageText.set('');
     this.adjustTextareaHeight();
-    this.isSending.set(false);
+    
+    // Pequeño delay antes de permitir otro envío
+    setTimeout(() => {
+      this.isSending.set(false);
+    }, 300);
 
     // Refocus en el textarea
     this.textareaRef?.nativeElement.focus();

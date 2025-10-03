@@ -183,6 +183,13 @@ export class ChatService {
       .pipe(filter((message): message is Message => message !== null))
       .subscribe(message => {
         console.log('[ChatService] Mensaje recibido via WebSocket:', message);
+        
+        // Ignorar mensajes propios - ya fueron agregados por la respuesta HTTP
+        if (message.senderId === this.currentUserId) {
+          console.log('[ChatService] Mensaje propio ignorado (ya fue agregado por HTTP):', message.messageId);
+          return;
+        }
+        
         // Normalizar el mensaje para asegurar que sentAt sea Date
         const normalizedMessage = this.normalizeMessage(message);
         this.addMessageToState(normalizedMessage.chatId, normalizedMessage);
@@ -849,12 +856,20 @@ export class ChatService {
     const currentMessages = this.messagesSubject.value;
     const chatMessages = currentMessages[chatId] || [];
     
-    chatMessages.push(message);
+    // Verificar si el mensaje ya existe para evitar duplicados
+    const messageExists = chatMessages.some(m => m.messageId === message.messageId);
     
-    this.messagesSubject.next({
-      ...currentMessages,
-      [chatId]: [...chatMessages]
-    });
+    if (!messageExists) {
+      // Crear un nuevo array con todos los mensajes existentes más el nuevo
+      const updatedMessages = [...chatMessages, message];
+      
+      this.messagesSubject.next({
+        ...currentMessages,
+        [chatId]: updatedMessages
+      });
+    } else {
+      console.log('[ChatService] Mensaje duplicado ignorado:', message.messageId);
+    }
   }
 
   private setMessagesForChat(chatId: string, messages: Message[]): void {

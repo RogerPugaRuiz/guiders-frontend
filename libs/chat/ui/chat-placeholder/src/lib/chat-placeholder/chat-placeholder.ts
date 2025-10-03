@@ -51,6 +51,7 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   private intersectionObserver?: IntersectionObserver;
   private shouldScrollToBottom = true;
   private previousScrollHeight = 0;
+  private isHandlingIntersection = false; // Flag para evitar llamadas duplicadas
 
   /**
    * Obtener nombre para mostrar del chat
@@ -130,6 +131,7 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
       this.scheduleScrollToBottom();
       // Limpiar y reconfigurar observer cuando cambia el chat
       this.cleanupIntersectionObserver();
+      this.isHandlingIntersection = false;
     }
 
     // Si se agregan mensajes nuevos (al final), hacer scroll al final
@@ -154,12 +156,28 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
       }
     }
 
-    // Si cambia hasMoreMessages, reconfigurar el observer
-    if (changes['hasMoreMessages']) {
-      console.log('[ChatPlaceholder] hasMoreMessages cambió:', changes['hasMoreMessages'].currentValue);
-      this.cleanupIntersectionObserver();
-      if (changes['hasMoreMessages'].currentValue) {
-        // Esperar a que el DOM se actualice antes de configurar el observer
+    // Si cambia hasMoreMessages O isLoadingMore, reconfigurar el observer
+    if (changes['hasMoreMessages'] || changes['isLoadingMore']) {
+      const hasMore = this.hasMoreMessages;
+      const isLoading = this.isLoadingMore;
+      
+      console.log('[ChatPlaceholder] Estado de carga cambió:', { hasMore, isLoading });
+      
+      // Solo reconfigurar si terminó de cargar
+      if (changes['isLoadingMore'] && !isLoading && changes['isLoadingMore'].previousValue) {
+        console.log('[ChatPlaceholder] Carga completada, reseteando flag');
+        this.isHandlingIntersection = false;
+        
+        // Reconfigurar observer después de cargar mensajes
+        if (hasMore) {
+          this.cleanupIntersectionObserver();
+          setTimeout(() => {
+            this.setupIntersectionObserver();
+          }, 200);
+        }
+      } else if (changes['hasMoreMessages']?.currentValue && !isLoading) {
+        // Solo configurar si no está cargando
+        this.cleanupIntersectionObserver();
         setTimeout(() => {
           this.setupIntersectionObserver();
         }, 100);
@@ -217,12 +235,21 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
           isIntersecting: entry.isIntersecting,
           intersectionRatio: entry.intersectionRatio,
           isLoadingMore: this.isLoadingMore,
-          hasMoreMessages: this.hasMoreMessages
+          hasMoreMessages: this.hasMoreMessages,
+          isHandlingIntersection: this.isHandlingIntersection
         });
 
-        if (entry.isIntersecting && !this.isLoadingMore && this.hasMoreMessages) {
+        // Usar flag para evitar llamadas duplicadas
+        if (entry.isIntersecting && 
+            !this.isLoadingMore && 
+            this.hasMoreMessages && 
+            !this.isHandlingIntersection) {
+          
           console.log('[ChatPlaceholder] ✅ Condiciones cumplidas, emitiendo loadMoreMessages');
+          this.isHandlingIntersection = true; // Marcar como manejando
           this.loadMoreMessages.emit();
+          
+          // El flag se reseteará cuando isLoadingMore cambie en ngOnChanges
         } else {
           if (!entry.isIntersecting) {
             console.log('[ChatPlaceholder] ⏸️ Scroll anchor no visible');
@@ -232,6 +259,9 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
           }
           if (!this.hasMoreMessages) {
             console.log('[ChatPlaceholder] ⏸️ No hay más mensajes para cargar');
+          }
+          if (this.isHandlingIntersection) {
+            console.log('[ChatPlaceholder] ⏸️ Ya se está manejando una intersección');
           }
         }
       });
