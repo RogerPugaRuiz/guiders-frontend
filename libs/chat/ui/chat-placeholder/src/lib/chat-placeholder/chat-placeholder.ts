@@ -1,5 +1,6 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   Output,
@@ -8,7 +9,8 @@ import {
   SimpleChanges,
   AfterViewInit,
   ViewChild,
-  ElementRef
+  ElementRef,
+  inject
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat, User } from '@guiders-frontend/shared/types';
@@ -26,6 +28,8 @@ import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  
   @Input({ required: true }) selectedChat!: Chat;
   @Input() showActions = true;
   @Input() placeholderMessage = 'Envía un mensaje para iniciar la conversación';
@@ -111,7 +115,8 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['messages']) {
+    // Hacer scroll al final cuando cambian los mensajes o el chat seleccionado
+    if (changes['messages'] || changes['selectedChat']) {
       this.scheduleScrollToBottom();
     }
   }
@@ -183,7 +188,11 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   }
 
   private scheduleScrollToBottom(): void {
-    queueMicrotask(() => this.scrollToBottom());
+    // Forzar detección de cambios antes del scroll (OnPush strategy)
+    this.cdr.detectChanges();
+    
+    // Usar setTimeout para dar tiempo al DOM a renderizar completamente
+    setTimeout(() => this.scrollToBottom(), 0);
   }
 
   private scrollToBottom(): void {
@@ -191,6 +200,10 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
     if (!container) {
       return;
     }
-    container.scrollTop = container.scrollHeight;
+    
+    // Verificar que realmente hay contenido para hacer scroll
+    if (container.scrollHeight > container.clientHeight) {
+      container.scrollTop = container.scrollHeight;
+    }
   }
 }

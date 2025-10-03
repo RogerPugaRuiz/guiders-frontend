@@ -528,7 +528,11 @@ export class ChatService {
     return this.http.get<ApiGetMessagesResponse>(url, this.getHttpOptions())
       .pipe(
         map(response => {
-          const messages = response.messages.map(msg => this.transformMessageFromApi(msg));
+          // Transformar y revertir el orden: backend devuelve descendente, necesitamos ascendente
+          const messages = response.messages
+            .map(msg => this.transformMessageFromApi(msg))
+            .reverse(); // Del más antiguo al más reciente
+          
           this.setMessagesForChat(chatId, messages);
           this.setLoading(false);
           return messages;

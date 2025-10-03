@@ -41,8 +41,8 @@
         <span class="guiders-chat-placeholder__state-text">Cargando mensajes…</span>
       </div>
     } @else if (messages.length > 0) {
-      <div class="guiders-chat-placeholder__conversation" #messagesContainer>
-        <div class="guiders-chat-placeholder__messages">
+      <div class="guiders-chat-placeholder__conversation">
+        <div class="guiders-chat-placeholder__messages" #messagesContainer>
           @for (message of messages; track trackMessageById($index, message)) {
             @let own = isOwnMessage(message);
             @let system = isSystemMessage(message);
