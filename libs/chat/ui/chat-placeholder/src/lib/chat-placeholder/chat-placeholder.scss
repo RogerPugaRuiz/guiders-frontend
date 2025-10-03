@@ -201,8 +201,10 @@
 
   &__message-meta {
     font-size: tokens.$font-size-xs;
-    color: tokens.$color-text-tertiary;
+    color: tokens.$color-text-secondary;
+    line-height: 1.2;
     padding: 0 tokens.$spacing-xs;
+    margin-top: tokens.$spacing-2xs;
   }
 
   &__message-row--own &__message-meta {

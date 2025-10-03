@@ -63,18 +63,29 @@ interface ApiChatResponse {
 }
 
 interface ApiMessageResponse {
-  messageId: string;
+  // Campos que pueden venir en diferentes formatos
+  id?: string; // Formato nuevo del backend
+  messageId?: string; // Formato anterior
   chatId: string;
   senderId: string;
-  senderType: 'VISITOR' | 'COMMERCIAL' | 'SYSTEM';
+  senderType?: 'VISITOR' | 'COMMERCIAL' | 'SYSTEM';
   content: string;
   type: 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
-  sentAt: string;
-  status: 'SENT' | 'DELIVERED' | 'READ';
+  
+  // Fechas en diferentes formatos
+  sentAt?: string; // Formato anterior
+  createdAt?: string; // Formato nuevo del backend
+  
+  status?: 'SENT' | 'DELIVERED' | 'READ';
   replyTo?: string;
   edited?: boolean;
   editedAt?: string;
+  updatedAt?: string; // Formato nuevo del backend
   metadata?: Record<string, unknown>;
+  
+  // Campos adicionales del nuevo formato
+  isInternal?: boolean;
+  isFirstResponse?: boolean;
 }
 
 // Tipo para mensajes del WebSocket (pueden venir con sentAt como string o Date)
@@ -665,18 +676,32 @@ export class ChatService {
   }
 
   private transformMessageFromApi(apiMessage: ApiMessageResponse): Message {
+    // Usar el campo que esté disponible (id o messageId)
+    const messageId = apiMessage.messageId || apiMessage.id || '';
+    
+    // Usar la fecha que esté disponible (sentAt o createdAt)
+    const dateString = apiMessage.sentAt || apiMessage.createdAt || new Date().toISOString();
+    
+    // Determinar senderType si no está presente
+    let senderType: 'VISITOR' | 'COMMERCIAL' | 'SYSTEM' = apiMessage.senderType || 'VISITOR';
+    if (apiMessage.type === 'SYSTEM') {
+      senderType = 'SYSTEM';
+    }
+    
     return {
-      messageId: apiMessage.messageId,
+      messageId: messageId,
       chatId: apiMessage.chatId,
       senderId: apiMessage.senderId,
-      senderType: apiMessage.senderType,
+      senderType: senderType,
       content: apiMessage.content,
       type: apiMessage.type,
-      sentAt: new Date(apiMessage.sentAt),
-      status: apiMessage.status,
+      sentAt: new Date(dateString),
+      status: apiMessage.status || 'SENT',
       replyTo: apiMessage.replyTo,
       edited: apiMessage.edited,
-      editedAt: apiMessage.editedAt ? new Date(apiMessage.editedAt) : undefined,
+      editedAt: apiMessage.editedAt || apiMessage.updatedAt ? 
+        new Date(apiMessage.editedAt || apiMessage.updatedAt || '') : 
+        undefined,
       metadata: apiMessage.metadata
     };
   }
