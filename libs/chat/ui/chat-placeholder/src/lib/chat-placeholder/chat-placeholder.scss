@@ -154,13 +154,17 @@
 
   &__message-row--own {
     align-self: flex-end;
-    text-align: right;
   }
 
   &__message-row--system {
     align-self: center;
     max-width: 60%;
-    text-align: center;
+  }
+
+  &__message-container {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-2xs;
   }
 
   &__message-author {
@@ -171,6 +175,7 @@
 
   &__message-author--own {
     color: tokens.$color-primary-600;
+    align-self: flex-end;
   }
 
   &__message-body {
@@ -197,10 +202,15 @@
   &__message-meta {
     font-size: tokens.$font-size-xs;
     color: tokens.$color-text-tertiary;
+    padding: 0 tokens.$spacing-xs;
   }
 
   &__message-row--own &__message-meta {
     align-self: flex-end;
+  }
+
+  &__message-row--system &__message-meta {
+    align-self: center;
   }
 
   &__message-row--system &__message-author {

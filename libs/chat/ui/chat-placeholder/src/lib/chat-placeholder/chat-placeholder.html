@@ -59,16 +59,18 @@
                   {{ getSenderLabel(message) }}
                 </span>
               }
-              <div
-                class="guiders-chat-placeholder__message-body"
-                [class.guiders-chat-placeholder__message-body--own]="own"
-                [class.guiders-chat-placeholder__message-body--system]="system"
-              >
-                {{ message.content }}
+              <div class="guiders-chat-placeholder__message-container">
+                <div
+                  class="guiders-chat-placeholder__message-body"
+                  [class.guiders-chat-placeholder__message-body--own]="own"
+                  [class.guiders-chat-placeholder__message-body--system]="system"
+                >
+                  {{ message.content }}
+                </div>
+                <span class="guiders-chat-placeholder__message-meta">
+                  {{ formatMessageTime(message.sentAt) }}
+                </span>
               </div>
-              <span class="guiders-chat-placeholder__message-meta">
-                {{ formatMessageTime(message.sentAt) }}
-              </span>
             </div>
           }
         </div>

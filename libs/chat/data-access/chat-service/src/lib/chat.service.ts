@@ -77,6 +77,22 @@ interface ApiMessageResponse {
   metadata?: Record<string, unknown>;
 }
 
+// Tipo para mensajes del WebSocket (pueden venir con sentAt como string o Date)
+interface WebSocketMessage {
+  messageId: string;
+  chatId: string;
+  senderId: string;
+  senderType: 'VISITOR' | 'COMMERCIAL' | 'SYSTEM';
+  content: string;
+  type: 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
+  sentAt: string | Date;
+  status: 'SENT' | 'DELIVERED' | 'READ';
+  replyTo?: string;
+  edited?: boolean;
+  editedAt?: string | Date;
+  metadata?: Record<string, unknown>;
+}
+
 interface CreateChatWithMessageResponse {
   chat: ApiChatResponse;
   message: ApiMessageResponse;
@@ -155,7 +171,9 @@ export class ChatService {
       .pipe(filter((message): message is Message => message !== null))
       .subscribe(message => {
         console.log('[ChatService] Mensaje recibido via WebSocket:', message);
-        this.addMessageToState(message.chatId, message);
+        // Normalizar el mensaje para asegurar que sentAt sea Date
+        const normalizedMessage = this.normalizeMessage(message);
+        this.addMessageToState(normalizedMessage.chatId, normalizedMessage);
       });
 
     // Suscribirse a cambios de estado del chat
@@ -660,6 +678,29 @@ export class ChatService {
       edited: apiMessage.edited,
       editedAt: apiMessage.editedAt ? new Date(apiMessage.editedAt) : undefined,
       metadata: apiMessage.metadata
+    };
+  }
+
+  /**
+   * Normalizar mensaje para asegurar tipos correctos
+   * Los mensajes del WebSocket pueden venir con sentAt como string
+   */
+  private normalizeMessage(message: Message | WebSocketMessage): Message {
+    return {
+      messageId: message.messageId,
+      chatId: message.chatId,
+      senderId: message.senderId,
+      senderType: message.senderType,
+      content: message.content,
+      type: message.type,
+      sentAt: message.sentAt instanceof Date ? message.sentAt : new Date(message.sentAt),
+      status: message.status,
+      replyTo: message.replyTo,
+      edited: message.edited,
+      editedAt: message.editedAt ? 
+        (message.editedAt instanceof Date ? message.editedAt : new Date(message.editedAt)) : 
+        undefined,
+      metadata: message.metadata
     };
   }
 
