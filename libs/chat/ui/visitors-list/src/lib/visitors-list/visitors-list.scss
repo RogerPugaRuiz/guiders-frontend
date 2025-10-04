@@ -89,12 +89,10 @@
 // === LISTA DE VISITANTES ===
 
 .visitors-list {
-  padding: var(--spacing-4) var(--spacing-6);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
-  overflow-y: auto;
-  flex: 1;
+  height: 100%; // Ocupa todo el espacio del contenedor padre
   background-color: var(--color-surface-subtle);
 }
 
@@ -106,13 +104,14 @@
   margin: var(--spacing-4) 0;
   max-width: 100%;
   
-  // Height fijo con scroll interno
-  max-height: calc(100vh - 300px); // Ajusta según el espacio disponible
+  // Flex para ocupar el espacio disponible
+  flex: 1;
+  min-height: 0; // Crítico para que funcione el overflow con flexbox
   overflow-x: auto;
   overflow-y: auto;
   display: block;
   
-  // Estilo personalizado para el scroll horizontal
+  // Estilo personalizado para el scroll
   &::-webkit-scrollbar {
     height: 8px;
     width: 8px;
