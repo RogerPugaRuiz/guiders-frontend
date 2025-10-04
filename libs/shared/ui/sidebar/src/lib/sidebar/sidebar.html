@@ -124,135 +124,51 @@
 
           <!-- Popover flotante (modo colapsado) -->
           @if (item.children && item.children.length > 0 && isCollapsed() && isPopoverOpen(item)) {
-            <div class="sidebar__popover" 
-                 role="menu" 
+            <div class="sidebar__popover-overlay" 
+                 role="button"
                  tabindex="-1"
-                 [attr.aria-labelledby]="'nav-item-' + item.id"
+                 [attr.aria-label]="'Cerrar menú ' + item.label"
                  (click)="closePopover()"
-                 (keydown.escape)="closePopover()"
-                 style="
-                   position: fixed !important;
-                   top: 0 !important;
-                   left: 0 !important;
-                   right: 0 !important;
-                   bottom: 0 !important;
-                   background: transparent !important;
-                   z-index: 1300 !important;
-                   display: block !important;
-                   pointer-events: auto !important;
-                 ">
+                 (keydown.escape)="closePopover()">
               <div class="sidebar__popover-content" 
                    tabindex="0"
+                   role="menu"
+                   [attr.aria-labelledby]="'nav-item-' + item.id"
                    (click)="$event.stopPropagation()"
                    (keydown)="handlePopoverKeydown($event)"
-                   [style.top.px]="getPopoverPosition(item).top"
-                   style="
-                     position: absolute !important;
-                     left: 80px !important;
-                     background: white !important;
-                     border-radius: 8px !important;
-                     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-                     min-width: 240px !important;
-                     max-width: 320px !important;
-                     border: 1px solid #e5e7eb !important;
-                     overflow: hidden !important;
-                     pointer-events: auto !important;
-                     z-index: 1301 !important;
-                   ">
-                <div class="sidebar__popover-header"
-                     style="
-                       padding: 16px 24px !important;
-                       border-bottom: 1px solid #f3f4f6 !important;
-                       background: #f9fafb !important;
-                     ">
-                  <span class="sidebar__popover-title"
-                        style="
-                          font-size: 16px !important;
-                          font-weight: 600 !important;
-                          color: #111827 !important;
-                          line-height: 1.4 !important;
-                        ">{{ item.label }}</span>
+                   [style.top.px]="getPopoverPosition(item).top">
+                <div class="sidebar__popover-header">
+                  <span class="sidebar__popover-title">{{ item.label }}</span>
                 </div>
-                <ul class="sidebar__popover-menu" 
-                    role="none"
-                    style="
-                      list-style: none !important;
-                      margin: 0 !important;
-                      padding: 8px 0 !important;
-                    ">
+                <ul class="sidebar__popover-menu" role="none">
                   @for (child of item.children; track child.id) {
-                    <li class="sidebar__popover-item" 
-                        role="none"
-                        style="margin: 0 !important;">
-                      <guiders-button
-                        variant="ghost"
-                        size="small"
-                        [class.sidebar__popover-link--active]="isItemActive(child)"
+                    <li class="sidebar__popover-item" role="none">
+                      <button
+                        [class.sidebar__popover-button--active]="isItemActive(child)"
                         (click)="onPopoverItemClick(child, $event)"
-                        [ariaLabel]="getItemAriaLabel(child)"
-                        [ariaCurrent]="isItemActive(child) ? 'page' : undefined"
+                        [attr.aria-label]="getItemAriaLabel(child)"
+                        [attr.aria-current]="isItemActive(child) ? 'page' : undefined"
                         role="menuitem"
-                        class="sidebar__popover-link"
-                        style="
-                          width: 100% !important;
-                          justify-content: flex-start !important;
-                          text-align: left !important;
-                          position: relative !important;
-                          margin: 0 !important;
-                          border-radius: 0 !important;
-                          min-height: 40px !important;
-                          padding: 8px 24px !important;
-                          background: transparent !important;
-                          border: none !important;
-                          color: #6b7280 !important;
-                          pointer-events: auto !important;
-                          cursor: pointer !important;
-                          z-index: 1302 !important;
-                        "
-                        [style.background]="isItemActive(child) ? '#f3f4f6 !important' : 'transparent !important'"
-                        [style.color]="isItemActive(child) ? '#111827 !important' : '#6b7280 !important'"
-                        [style.font-weight]="isItemActive(child) ? '600 !important' : 'normal !important'">
+                        class="sidebar__popover-button">
                         
                         @if (child.icon) {
                           <guiders-icon
                             [name]="child.icon"
                             size="sm"
                             class="sidebar__popover-icon"
-                            [config]="{ decorative: true }"
-                            style="
-                              margin-right: 16px !important;
-                              font-size: 18px !important;
-                              width: 20px !important;
-                              text-align: center !important;
-                              flex-shrink: 0 !important;
-                              display: flex !important;
-                              align-items: center !important;
-                              justify-content: center !important;
-                              pointer-events: none !important;
-                            " />
+                            [config]="{ decorative: true }" />
                         }
                         
-                        <span class="sidebar__popover-text"
-                              style="
-                                flex: 1 !important;
-                                white-space: nowrap !important;
-                                overflow: hidden !important;
-                                text-overflow: ellipsis !important;
-                                font-size: 16px !important;
-                                font-weight: 500 !important;
-                                line-height: 1.4 !important;
-                                pointer-events: none !important;
-                              ">{{ child.label }}</span>
+                        <span class="sidebar__popover-text">{{ child.label }}</span>
                         
                         @if (child.badge) {
                           <guiders-badge
                             [text]="child.badge.text"
                             [variant]="child.badge.variant || 'secondary'"
                             size="small"
-                            class="sidebar__popover-badge"
-                            style="margin-left: 8px !important; pointer-events: none !important;" />
+                            class="sidebar__popover-badge" />
                         }
-                      </guiders-button>
+                      </button>
                     </li>
                   }
                 </ul>
@@ -263,4 +179,16 @@
       }
     </ul>
   </nav>
+
+  <!-- Footer with user menu -->
+  <footer class="sidebar__footer">
+    @if (userEmail()) {
+      <guiders-user-menu
+        [userEmail]="userEmail()!"
+        [userName]="userName()"
+        [compact]="isCollapsed()"
+        (logout)="onUserLogout()"
+        (configureAccount)="onUserConfigureAccount()" />
+    }
+  </footer>
 </aside>

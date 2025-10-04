@@ -5,10 +5,11 @@ import { SidebarItem, SidebarConfig } from './sidebar.types';
 import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Badge } from '@guiders-frontend/badge';
+import { UserMenu } from '@guiders-frontend/user-menu';
 
 @Component({
   selector: 'guiders-sidebar',
-  imports: [CommonModule, Button, IconComponent, Badge],
+  imports: [CommonModule, Button, IconComponent, Badge, UserMenu],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
@@ -24,10 +25,16 @@ export class Sidebar {
     width: '280px',
     collapsedWidth: '64px'
   });
+  
+  // Nuevos inputs para el user menu
+  readonly userEmail = input<string | null>(null);
+  readonly userName = input<string | null>(null);
 
   // Outputs usando signals API
   readonly itemClick = output<SidebarItem>();
   readonly toggleSidebar = output<boolean>();
+  readonly userLogout = output<void>();
+  readonly userConfigureAccount = output<void>();
 
     // Estado interno con signals
   readonly isCollapsed = signal(false);
@@ -322,5 +329,13 @@ export class Sidebar {
       console.error('Error calculating popover position:', error);
       return { top: 120 };
     }
+  }
+
+  onUserLogout(): void {
+    this.userLogout.emit();
+  }
+
+  onUserConfigureAccount(): void {
+    this.userConfigureAccount.emit();
   }
 }

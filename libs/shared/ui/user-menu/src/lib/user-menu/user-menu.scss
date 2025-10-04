@@ -1,0 +1,174 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md;
+  border-radius: tokens.$border-radius-md;
+  transition: background-color tokens.$duration-fast tokens.$easing-standard;
+  overflow: visible;
+  cursor: pointer;
+
+  &:hover {
+    background-color: tokens.$color-surface-tertiary;
+  }
+
+  // Modo compacto (sidebar colapsado)
+  &--compact {
+    justify-content: center;
+    padding: tokens.$spacing-sm;
+    gap: 0;
+
+    .user-menu__info {
+      display: none;
+    }
+  }
+
+  &__avatar {
+    color: tokens.$color-text-inverse;
+    // El color de fondo se asigna dinámicamente via [style.background-color]
+    width: tokens.$spacing-8;
+    height: tokens.$spacing-8;
+    border-radius: tokens.$border-radius-circle;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__initial {
+    font-size: tokens.$font-size-base;
+    font-weight: tokens.$font-weight-semibold;
+    line-height: 1;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-2xs;
+    min-width: 0; // Permite que el texto se trunque
+    flex: 1;
+  }
+
+  &__name {
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+    line-height: tokens.$line-height-tight;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__email {
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-regular;
+    color: tokens.$color-text-tertiary;
+    line-height: tokens.$line-height-tight;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // === DROPDOWN FLOTANTE ===
+  // Overlay que cubre toda la pantalla para cerrar al hacer clic fuera
+  &__dropdown-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    z-index: 1200;
+    cursor: default;
+  }
+
+  // Contenedor del dropdown con posición fija
+  &__dropdown {
+    position: fixed;
+    background: tokens.$color-surface-primary;
+    padding: tokens.$spacing-sm 0;
+    border-radius: tokens.$border-radius-md;
+    box-shadow: tokens.$shadow-lg;
+    min-width: 200px;
+    border: 1px solid tokens.$color-border-default;
+    z-index: 1201;
+    animation: dropdown-enter 0.2s ease-out;
+  }
+
+  &__dropdown-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__dropdown-item {
+    margin: 0;
+
+    &--divider {
+      border-top: 1px solid tokens.$color-border-subtle;
+      margin-top: tokens.$spacing-xs;
+      padding-top: tokens.$spacing-xs;
+    }
+  }
+
+  &__dropdown-button {
+    width: 100%;
+    padding: tokens.$spacing-md tokens.$spacing-lg;
+    text-align: left;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    color: tokens.$color-text-secondary;
+    transition: background-color tokens.$duration-fast tokens.$easing-standard;
+    line-height: tokens.$line-height-tight;
+
+    &:hover {
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: -2px;
+    }
+
+    // Variante para acciones peligrosas (logout)
+    &--danger {
+      color: tokens.$color-error-600;
+
+      &:hover {
+        background: tokens.$color-error-50;
+        color: tokens.$color-error-600;
+      }
+    }
+  }
+}
+
+// Animación de entrada del dropdown
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Accesibilidad: reducir animaciones
+@media (prefers-reduced-motion: reduce) {
+  .user-menu__dropdown {
+    animation: none;
+  }
+}

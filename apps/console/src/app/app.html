@@ -2,11 +2,17 @@
   <guiders-sidebar
     [items]="sidebarItems()"
     [config]="sidebarConfig()"
+    [userEmail]="currentUser()?.email ?? null"
+    [userName]="null"
     (itemClick)="onSidebarItemClick($event)"
-    (toggleSidebar)="onSidebarToggle($event)">
+    (toggleSidebar)="onSidebarToggle($event)"
+    (userLogout)="onLogout()"
+    (userConfigureAccount)="onConfigureAccount()">
   </guiders-sidebar>
   
-  <main class="console-content">
-    <router-outlet></router-outlet>
-  </main>
+  <div class="console-main">
+    <main class="console-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>

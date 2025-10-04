@@ -30,11 +30,13 @@
 .sidebar {
   height: 100%;
   display: flex;
+  z-index: 1;
   flex-direction: column;
   transition: width tokens.$duration-normal tokens.$easing-standard;
   background: tokens.$color-surface-secondary;
   position: relative;
   overflow: hidden;
+  box-shadow: tokens.$shadow-lg;
 
   // Iconos de navegación - definición base
   .sidebar__nav-icon {
@@ -469,100 +471,103 @@
 // === POPOVER FLOTANTE (MODO COLAPSADO) ===
 // Submenu flotante que aparece al hacer clic en elementos con hijos en modo colapsado
 
-.sidebar__popover {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  background: rgba(0, 0, 0, 0.5) !important;
-  z-index: 120 !important;
-  display: flex !important;
-  align-items: flex-start !important;
-  padding: tokens.$spacing-xl 0 0 tokens.$spacing-xl !important;
-  animation: popover-backdrop-enter 0.2s ease-out;
+// Overlay de pantalla completa para cerrar al hacer clic fuera
+.sidebar__popover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 1300;
+  cursor: default;
 }
 
+// Contenedor del popover con posición fija
 .sidebar__popover-content {
-  position: relative !important;
-  left: 64px !important; /* Ancho del sidebar colapsado */
-  margin-left: tokens.$spacing-md !important;
-  background: tokens.$color-surface-primary !important;
-  border-radius: tokens.$border-radius-md !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
-  min-width: 240px !important;
-  max-width: 320px !important;
-  border: 1px solid tokens.$color-border-default !important;
-  overflow: hidden !important;
-  animation: popover-content-enter 0.2s ease-out;
+  position: fixed;
+  left: 80px; // Ancho del sidebar colapsado + margen
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  box-shadow: tokens.$shadow-lg;
+  min-width: 240px;
+  max-width: 320px;
+  border: 1px solid tokens.$color-border-default;
+  overflow: hidden;
+  z-index: 1301;
+  animation: popover-enter 0.2s ease-out;
 }
 
+// Header del popover
 .sidebar__popover-header {
-  padding: tokens.$spacing-md tokens.$spacing-lg !important;
-  border-bottom: 1px solid tokens.$color-border-subtle !important;
-  background: tokens.$color-surface-secondary !important;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
 }
 
 .sidebar__popover-title {
-  font-size: 16px !important;
-  font-weight: 600 !important;
-  color: tokens.$color-text-primary !important;
-  line-height: 1.4 !important;
+  font-size: tokens.$font-size-base;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-text-primary;
+  line-height: tokens.$line-height-tight;
 }
 
+// Lista de items del popover
 .sidebar__popover-menu {
-  list-style: none !important;
-  margin: 0 !important;
-  padding: tokens.$spacing-sm 0 !important;
+  list-style: none;
+  margin: 0;
+  padding: tokens.$spacing-sm 0;
 }
 
 .sidebar__popover-item {
   margin: 0;
 }
 
-.sidebar__popover-link {
+// Botones del popover (reemplaza guiders-button)
+.sidebar__popover-button {
   width: 100%;
+  display: flex;
+  align-items: center;
   justify-content: flex-start;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
   text-align: left;
-  position: relative;
-  margin: 0;
-  border-radius: 0;
-  
-  // Sobrescribir estilos del Button para popover
-  &.sidebar__popover-link {
-    min-height: 40px;
-    padding: tokens.$spacing-sm tokens.$spacing-lg;
-    
-    background: transparent;
-    border: none;
-    color: tokens.$color-text-secondary;
-    
-    &:hover {
-      background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-primary;
-    }
-    
-    &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
-      outline-offset: 2px;
-    }
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
+  color: tokens.$color-text-secondary;
+  transition: background-color tokens.$duration-fast tokens.$easing-standard,
+              color tokens.$duration-fast tokens.$easing-standard;
+  line-height: tokens.$line-height-tight;
+  min-height: 40px;
+
+  &:hover {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
   }
-  
-  // Estado activo para popover
+
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: -2px;
+  }
+
+  // Estado activo
   &--active {
-    color: #000000 !important;
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+    font-weight: tokens.$font-weight-semibold;
   }
 }
 
 .sidebar__popover-icon {
-  margin-right: tokens.$spacing-md;
-  font-size: tokens.$font-size-lg;
-  width: 20px;
-  text-align: center;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: tokens.$font-size-lg;
+  width: 20px;
 }
 
 .sidebar__popover-text {
@@ -570,26 +575,17 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: tokens.$font-size-base;
-  font-weight: tokens.$font-weight-medium;
+  font-size: tokens.$font-size-sm;
   line-height: tokens.$line-height-tight;
 }
 
 .sidebar__popover-badge {
+  flex-shrink: 0;
   margin-left: tokens.$spacing-sm;
 }
 
-// Animaciones
-@keyframes popover-backdrop-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes popover-content-enter {
+// Animación de entrada
+@keyframes popover-enter {
   from {
     opacity: 0;
     transform: translateX(-20px) scale(0.95);
@@ -602,7 +598,6 @@
 
 // Estados de accesibilidad para popover
 @media (prefers-reduced-motion: reduce) {
-  .sidebar__popover,
   .sidebar__popover-content {
     animation: none;
   }
@@ -614,9 +609,23 @@
     border: 2px solid tokens.$color-border-strong;
   }
   
-  .sidebar__popover-link--active::before {
-    width: 4px;
+  .sidebar__popover-button--active {
+    border-left: 4px solid tokens.$color-text-primary;
   }
 }
 
 // Tema oscuro manejado automáticamente por design tokens
+
+// Footer con user menu
+.sidebar__footer {
+  margin-top: auto; // Empujar al final
+  border-top: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+}
+
+// Ajustes para modo colapsado
+.sidebar--collapsed {
+  .sidebar__footer {
+    padding: tokens.$spacing-sm;
+  }
+}

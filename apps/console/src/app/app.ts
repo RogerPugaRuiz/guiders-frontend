@@ -1,6 +1,7 @@
-import { Component, signal } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { Component, signal, inject } from '@angular/core';
+import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
+import { UserService } from '@guiders-frontend/auth/data-access/session';
 
 @Component({
   imports: [RouterModule, Sidebar],
@@ -9,7 +10,13 @@ import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
   styleUrl: './app.scss',
 })
 export class App {
+  private readonly userService = inject(UserService);
+  private readonly router = inject(Router);
+  
   protected title = 'console';
+
+  // Usuario actual desde el servicio
+  readonly currentUser = this.userService.currentUser;
 
   // Configuración del sidebar para console
   readonly sidebarConfig = signal<SidebarConfig>({
@@ -101,5 +108,19 @@ export class App {
       ...config,
       collapsed
     }));
+  }
+
+  onLogout(): void {
+    console.log('Cerrando sesión...');
+    // Limpiar el usuario actual
+    this.userService.clearUser();
+    // Redirigir al login
+    this.router.navigate(['/login']);
+  }
+
+  onConfigureAccount(): void {
+    console.log('Configurar cuenta...');
+    // TODO: Navegar a la página de configuración cuando esté implementada
+    this.router.navigate(['/settings']);
   }
 }
