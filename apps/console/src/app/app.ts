@@ -41,10 +41,10 @@ export class App {
       icon: 'users',
       children: [
         {
-          id: 'visitors-unassigned',
-          label: 'No asignados',
-          icon: 'user-minus',
-          route: '/visitors?filter=unassigned'
+          id: 'visitors-all',
+          label: 'Todos',
+          icon: 'users',
+          route: '/visitors?filter=all'
         },
         {
           id: 'visitors-mine',
@@ -53,23 +53,12 @@ export class App {
           route: '/visitors?filter=mine'
         },
         {
-          id: 'visitors-all',
-          label: 'Todos',
-          icon: 'users',
-          route: '/visitors?filter=all'
+          id: 'visitors-unassigned',
+          label: 'No asignados',
+          icon: 'circle',
+          route: '/visitors?filter=unassigned'
         },
-        {
-          id: 'visitors-queue',
-          label: 'En cola',
-          icon: 'clock',
-          route: '/visitors?filter=queue'
-        },
-        {
-          id: 'visitors',
-          label: 'Lista',
-          icon: 'file-text',
-          route: '/visitors'
-        }
+
       ]
     },
     {

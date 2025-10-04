@@ -104,7 +104,10 @@ export type IconName =
   | 'target'
   | 'layers'
   | 'monitor'
-  | 'server';
+  | 'server'
+
+  // Shapes
+  | 'circle';
 
 // Configuración de iconos
 export interface IconConfig {
