@@ -98,4 +98,21 @@ export class UserService {
   getUserApp(): string | null {
     return this._currentUser()?.app ?? null;
   }
+
+  /**
+   * Cierra la sesión del usuario redirigiendo al endpoint de logout del BFF.
+   * El navegador seguirá automáticamente el redirect 302 al login.
+   * @param app - Nombre de la aplicación ('console' o 'admin')
+   */
+  logout(app: 'console' | 'admin' = 'console'): void {
+    const logoutUrl = `${this.environment.api.baseUrl}/bff/auth/logout/${app}`;
+    
+    console.log('[UserService] Redirigiendo a logout:', logoutUrl);
+    
+    // Limpiar estado local antes de redirigir
+    this.clearUser();
+    
+    // Redirigir al endpoint de logout (el navegador seguirá el 302 automáticamente)
+    window.location.href = logoutUrl;
+  }
 }

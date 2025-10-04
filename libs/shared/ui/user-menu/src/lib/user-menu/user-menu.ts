@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild, effect, inject } from '@angular/core';
 import { getAvatarColor } from '@guiders-frontend/avatar-colors';
+import { UserService } from '@guiders-frontend/auth/data-access/session';
 
 @Component({
   selector: 'guiders-user-menu',
@@ -9,6 +10,8 @@ import { getAvatarColor } from '@guiders-frontend/avatar-colors';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserMenu {
+  private readonly userService = inject(UserService);
+
   // Inputs
   userEmail = input.required<string>();
   userName = input<string | null>(null);
@@ -68,7 +71,13 @@ export class UserMenu {
 
   onLogout(): void {
     this.closeDropdown();
+    
+    // Emitir evento antes de redirigir
     this.logout.emit();
+    
+    // Redirigir al endpoint de logout del BFF
+    // El navegador seguirá automáticamente el redirect 302 al login
+    this.userService.logout('console');
   }
 
   onConfigureAccount(): void {
