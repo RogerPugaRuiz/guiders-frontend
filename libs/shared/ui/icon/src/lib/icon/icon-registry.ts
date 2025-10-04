@@ -190,8 +190,10 @@ export const ICON_REGISTRY: Record<IconName, string> = {
     <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>
   </svg>`,
   
-  'message-square': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  'message-square': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10 12L14 12"/>
+    <path d="M3 3L21 3"/>
+    <path d="M21 7V20.4C21 20.7314 20.7314 21 20.4 21H3.6C3.26863 21 3 20.7314 3 20.4V7"/>
   </svg>`,
   
   'mail': `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
