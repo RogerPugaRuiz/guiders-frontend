@@ -103,14 +103,19 @@
 .visitors-list__table-container {
   background-color: var(--color-surface);
   border-radius: var(--radius-xl);
-  overflow-x: auto;
-  overflow-y: visible;
   margin: var(--spacing-4) 0;
   max-width: 100%;
+  
+  // Height fijo con scroll interno
+  max-height: calc(100vh - 300px); // Ajusta según el espacio disponible
+  overflow-x: auto;
+  overflow-y: auto;
+  display: block;
   
   // Estilo personalizado para el scroll horizontal
   &::-webkit-scrollbar {
     height: 8px;
+    width: 8px;
   }
   
   &::-webkit-scrollbar-track {
@@ -149,6 +154,12 @@
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
   font-size: 12px;
+  
+  // Sticky header para mantenerlo visible durante scroll
+  position: sticky;
+  top: 0;
+  background-color: var(--color-surface);
+  z-index: 10;
   
   &--pending-chats {
     text-align: center;
