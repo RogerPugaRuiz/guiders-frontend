@@ -275,6 +275,29 @@
     overflow-y: auto; // Solo este contenedor tiene scroll
     padding: 0 tokens.$spacing-md; // Padding lateral para la lista
     min-height: 0; // Importante para que funcione el flex con overflow
+    
+    // Estilos personalizados de scrollbar
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f3f4;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 4px;
+      
+      &:hover {
+        background: #a0aec0;
+      }
+    }
+    
+    // Para Firefox
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f1f3f4;
   }
 
   &__pagination {

@@ -93,6 +93,7 @@
   flex-direction: column;
   gap: var(--spacing-3);
   height: 100%; // Ocupa todo el espacio del contenedor padre
+  overflow: visible; // No manejamos overflow aquí, lo hace el contenedor padre
   background-color: var(--color-surface-subtle);
 }
 
@@ -104,14 +105,10 @@
   margin: var(--spacing-4) 0;
   max-width: 100%;
   
-  // Flex para ocupar el espacio disponible
-  flex: 1;
-  min-height: 0; // Crítico para que funcione el overflow con flexbox
-  overflow-x: auto;
-  overflow-y: auto;
-  display: block;
+  // No usamos flex ni overflow aquí, la tabla crece naturalmente
+  overflow: visible;
   
-  // Estilo personalizado para el scroll
+  // Estilo personalizado para el scroll (aplicado al contenedor padre)
   &::-webkit-scrollbar {
     height: 8px;
     width: 8px;
@@ -150,6 +147,7 @@
   padding: var(--spacing-3) var(--spacing-4);
   text-align: left;
   font-weight: var(--font-weight-medium);
+  background: tokens.$color-surface-primary;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
   font-size: 12px;
@@ -157,7 +155,6 @@
   // Sticky header para mantenerlo visible durante scroll
   position: sticky;
   top: 0;
-  background-color: var(--color-surface);
   z-index: 10;
   
   &--pending-chats {
