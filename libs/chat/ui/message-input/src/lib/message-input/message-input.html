@@ -2,8 +2,7 @@
   <textarea
     #textarea
     class="message-input__textarea"
-    [value]="messageText()"
-    (input)="onMessageChange($any($event.target).value)"
+    [(ngModel)]="messageText"
     (keydown)="onKeyDown($event)"
     placeholder="Escribe un mensaje..."
     rows="1"
@@ -13,7 +12,7 @@
     type="button"
     class="message-input__send-button"
     (click)="sendMessage()"
-    [disabled]="!messageText().trim() || isSending()"
+    [disabled]="!messageText.trim() || isSending()"
     aria-label="Enviar mensaje"
   >
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">

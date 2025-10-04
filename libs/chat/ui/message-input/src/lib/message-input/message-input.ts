@@ -22,18 +22,18 @@ export class MessageInput implements AfterViewInit {
 
   @ViewChild('textarea') textareaRef?: ElementRef<HTMLTextAreaElement>;
 
-  readonly messageText = signal('');
+  messageText = ''; // Usar propiedad normal para mejor compatibilidad con ngModel
   readonly isSending = signal(false);
   private sendingTimestamp = 0;
   private readonly SEND_DEBOUNCE_MS = 500; // Prevenir envíos duplicados dentro de 500ms
 
   ngAfterViewInit(): void {
     this.adjustTextareaHeight();
-  }
-
-  onMessageChange(value: string): void {
-    this.messageText.set(value);
-    this.adjustTextareaHeight();
+    
+    // Hacer foco en el textarea después de la inicialización
+    setTimeout(() => {
+      this.textareaRef?.nativeElement.focus();
+    }, 100);
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -45,7 +45,7 @@ export class MessageInput implements AfterViewInit {
   }
 
   sendMessage(): void {
-    const text = this.messageText().trim();
+    const text = this.messageText.trim();
     if (!text || this.isSending()) {
       return;
     }
@@ -64,16 +64,28 @@ export class MessageInput implements AfterViewInit {
     this.messageSent.emit(text);
 
     // Limpiar después de enviar
-    this.messageText.set('');
+    this.messageText = '';
     this.adjustTextareaHeight();
     
-    // Pequeño delay antes de permitir otro envío
+    // Estrategia de refocus múltiple para asegurar que el foco se mantiene
+    // Primer intento inmediato
     setTimeout(() => {
+      this.textareaRef?.nativeElement.focus();
+      console.log('[MessageInput] Foco restaurado (intento 1)');
+    }, 0);
+    
+    // Segundo intento después del ciclo de Angular
+    setTimeout(() => {
+      this.textareaRef?.nativeElement.focus();
+      console.log('[MessageInput] Foco restaurado (intento 2)');
       this.isSending.set(false);
-    }, 300);
-
-    // Refocus en el textarea
-    this.textareaRef?.nativeElement.focus();
+    }, 50);
+    
+    // Tercer intento como fallback
+    setTimeout(() => {
+      this.textareaRef?.nativeElement.focus();
+      console.log('[MessageInput] Foco restaurado (intento 3 - fallback)');
+    }, 150);
   }
 
   private adjustTextareaHeight(): void {
