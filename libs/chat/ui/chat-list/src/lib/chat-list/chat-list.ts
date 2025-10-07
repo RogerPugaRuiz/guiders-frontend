@@ -1,8 +1,9 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chat, User } from '@guiders-frontend/shared/types';
 import { TextField } from '@guiders-frontend/text-field';
+import { UserService } from '@guiders-frontend/auth/data-access/session';
 
 @Component({
   selector: 'guiders-chat-list',
@@ -11,6 +12,9 @@ import { TextField } from '@guiders-frontend/text-field';
   styleUrl: './chat-list.scss',
 })
 export class ChatList {
+  // Servicios
+  private readonly userService = inject(UserService);
+
   // Inputs usando signals API
   readonly chats = input.required<Chat[]>();
   readonly selectedChatId = input<string | null>(null);
@@ -64,7 +68,8 @@ export class ChatList {
     }
 
     // Para chats directos, obtener el nombre del otro participante
-    const otherParticipant = chat.participants?.find(p => p.id !== 'current-user-id');
+    const currentUserId = this.userService.getUserId();
+    const otherParticipant = chat.participants?.find(p => p.id !== currentUserId);
 
     if (otherParticipant?.name && otherParticipant.name.trim()) {
       return otherParticipant.name;
@@ -87,7 +92,8 @@ export class ChatList {
       return '👥'; // Avatar por defecto para grupos
     }
     
-    const otherParticipant = chat.participants?.find(p => p.id !== 'current-user-id');
+    const currentUserId = this.userService.getUserId();
+    const otherParticipant = chat.participants?.find(p => p.id !== currentUserId);
     return otherParticipant?.avatar || '👤';
   }
 
