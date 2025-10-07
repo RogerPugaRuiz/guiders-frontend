@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
@@ -43,6 +43,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly elementRef = inject(ElementRef);
+  private readonly document = inject(DOCUMENT);
   private readonly useMockData = inject(USE_MOCK_DATA);
 
   // Variable para guardar la posición del scroll
@@ -250,31 +251,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         catchError((error: Error) => {
           console.error('Error obteniendo sitios de la empresa:', error);
           
-          // Fallback: intentar con el método original si falla
-          console.log('[Visitors] Intentando método fallback...');
-          const hostname = window.location.hostname;
-          return this.visitorsService.resolveSite(hostname).pipe(
-            switchMap(resolveResponse => {
-              // Convertir respuesta de resolveSite al formato esperado
-              return of({
-                sites: [{
-                  siteId: resolveResponse.siteId,
-                  tenantId: resolveResponse.tenantId,
-                  siteName: resolveResponse.siteName,
-                  domain: hostname,
-                  isActive: true
-                }],
-                companyId: '',
-                companyName: resolveResponse.companyName,
-                totalSites: 1
-              });
-            }),
-            catchError((fallbackError: Error) => {
-              console.error('Error en fallback:', fallbackError);
-              this.updateState({ error: 'No se pudieron obtener los sitios de la empresa.' });
-              return of(null);
-            })
-          );
+          // No usar fallback con método deprecated - manejar error directamente
+          this.updateState({ error: 'No se pudieron obtener los sitios de la empresa.' });
+          return of(null);
         })
       )
       .subscribe((response: {
@@ -300,7 +279,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         }
 
         // Buscar el sitio que coincida con el hostname actual o usar el primero activo
-        const hostname = window.location.hostname;
+        const hostname = this.document.location.hostname;
         let selectedSite = response.sites.find(site => 
           site.domain.toLowerCase() === hostname.toLowerCase() || 
           site.domain.toLowerCase().includes(hostname.toLowerCase())

@@ -100,7 +100,7 @@ export class WebSocketService {
       url = this.environment.api.wsUrl;
     } else {
       // Fallback: remover /api del baseUrl
-      const apiBaseUrl = this.environment.api.baseUrl || 'http://localhost:3000/api';
+      const apiBaseUrl = this.environment.api.baseUrl;
       url = apiBaseUrl.replace(/\/api$/, '');
     }
     
