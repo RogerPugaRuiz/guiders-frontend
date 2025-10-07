@@ -88,6 +88,7 @@ export class VisitorsDataService {
             lifecycle: 'ANON' as const, // Valor por defecto
             isNewVisitor: false, // Se puede calcular basado en createdAt
             status: apiVisitor.connectionStatus === 'ONLINE' ? 'online' as const : 'offline' as const,
+            currentUrl: apiVisitor.currentUrl, // URL actual donde está navegando
             domain: apiVisitor.siteName,
             siteId: apiVisitor.siteId,
             tenantId: response.tenantId,

@@ -1,16 +1,6 @@
 <div class="guiders-inbox-sidebar">
   <div class="guiders-inbox-sidebar__header">
     <h2 class="guiders-inbox-sidebar__title">{{ title }}</h2>
-    @if (showNewChatButton) {
-      <guiders-button
-        variant="secondary"
-        size="small"
-        ariaLabel="Nueva conversación"
-        class="guiders-inbox-sidebar__new-chat-btn"
-        (click)="onNewChatClick()">
-        <guiders-icon name="plus" size="sm" />
-      </guiders-button>
-    }
   </div>
   
   <div class="guiders-inbox-sidebar__conversations">

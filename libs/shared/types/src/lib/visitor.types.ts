@@ -172,6 +172,7 @@ export interface TenantVisitor {
   connectionStatus: "ONLINE" | "OFFLINE";
   siteId: string;
   siteName: string;
+  currentUrl?: string; // URL actual donde está navegando el visitante
   createdAt: string;
   lastActivity: string;
   pendingChatIds: string[];
