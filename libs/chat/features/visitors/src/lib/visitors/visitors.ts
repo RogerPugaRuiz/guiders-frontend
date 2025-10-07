@@ -54,7 +54,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     },
     sort: { field: 'lastVisit', direction: 'desc' },
     pagination: { 
-      limit: 20, 
+      limit: 10, 
       offset: 0,
       totalCount: 0,
       currentPage: 1
