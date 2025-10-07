@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
+import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
@@ -20,6 +21,7 @@ import {
   GetVisitorsResponse,
   VisitorStats
 } from '@guiders-frontend/shared/types';
+import { getMockVisitorsResponse, getMockVisitorStats } from './visitors-mock-data';
 
 @Component({
   selector: 'lib-visitors',
@@ -40,12 +42,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly elementRef = inject(ElementRef);
+  private readonly useMockData = inject(USE_MOCK_DATA);
 
-  // Referencia al contenedor con scroll
-  @ViewChild('listContainer') listContainer?: ElementRef<HTMLDivElement>;
-  
   // Variable para guardar la posición del scroll
-  private scrollPosition = 0;
+  private savedScrollPosition = 0;
 
   // ID del tenant (empresa) resuelto dinámicamente
   readonly tenantId = signal<string | null>(null);
@@ -364,61 +365,96 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     if (!tenantId) {
       return;
     }
+
+    // Guardar la posición del scroll antes de cargar
+    this.saveScrollPosition();
+
     this.updateState({ loading: true, error: null });
 
     const currentState = this.state();
-    
-    // Preparar parámetros de query según el formato del servicio
-    const queryParams = {
-      limit: currentState.pagination.limit,
-      offset: currentState.pagination.offset || 0,
-      includeOffline: this.currentFilter().filters.includeOffline,
-      search: currentState.searchQuery || undefined
-    };
 
-    this.visitorsService.getVisitors(tenantId, queryParams)
-      .pipe(
-        catchError((error: Error) => {
-          console.error('Error loading visitors:', error);
-          return of({ visitors: [], total: 0, hasMore: false });
-        }),
-        finalize(() => this.updateState({ loading: false }))
-      )
-      .subscribe((response: GetVisitorsResponse) => {
+    // Decidir si usar mock o servicio real basado en el token
+    if (this.useMockData) {
+      // USAR MOCK
+      setTimeout(() => {
+        const mockResponse = getMockVisitorsResponse(
+          currentState.pagination.limit,
+          currentState.pagination.offset || 0
+        );
+
         this.updateState({
-          visitors: response.visitors,
+          visitors: mockResponse.visitors,
           error: null,
           pagination: {
             ...currentState.pagination,
-            totalCount: response.total
-          }
+            totalCount: mockResponse.total
+          },
+          loading: false
         });
-        
-        // Restaurar la posición del scroll después de actualizar los datos
-        setTimeout(() => {
-          if (this.listContainer?.nativeElement && this.scrollPosition > 0) {
-            this.listContainer.nativeElement.scrollTop = this.scrollPosition;
-          }
-        }, 0);
-      });
+
+        // Restaurar la posición del scroll después de cargar
+        this.restoreScrollPosition();
+      }, 500); // Simular latencia de red
+    } else {
+      // USAR SERVICIO REAL
+      const queryParams = {
+        limit: currentState.pagination.limit,
+        offset: currentState.pagination.offset || 0,
+        includeOffline: this.currentFilter().filters.includeOffline,
+        search: currentState.searchQuery || undefined
+      };
+
+      this.visitorsService.getVisitors(tenantId, queryParams)
+        .pipe(
+          catchError((error: Error) => {
+            console.error('Error loading visitors:', error);
+            return of({ visitors: [], total: 0, hasMore: false });
+          }),
+          finalize(() => {
+            this.updateState({ loading: false });
+            // Restaurar la posición del scroll después de cargar
+            this.restoreScrollPosition();
+          })
+        )
+        .subscribe((response: GetVisitorsResponse) => {
+          this.updateState({
+            visitors: response.visitors,
+            error: null,
+            pagination: {
+              ...currentState.pagination,
+              totalCount: response.total
+            }
+          });
+        });
+    }
   }
 
   private loadStats(): void {
     const tenantId = this.tenantId();
     if (!tenantId) return;
     
-    this.visitorsService.getVisitorStats(tenantId)
-      .pipe(
-        catchError((error: Error) => {
-          console.error('Error loading visitor stats:', error);
-          return of(null);
-        })
-      )
-      .subscribe((stats: VisitorStats | null) => {
-        if (stats) {
-          this.updateState({ stats });
-        }
-      });
+    // Decidir si usar mock o servicio real basado en el token
+    if (this.useMockData) {
+      // USAR MOCK
+      setTimeout(() => {
+        const mockStats = getMockVisitorStats();
+        this.updateState({ stats: mockStats });
+      }, 300); // Simular latencia de red
+    } else {
+      // USAR SERVICIO REAL
+      this.visitorsService.getVisitorStats(tenantId)
+        .pipe(
+          catchError((error: Error) => {
+            console.error('Error loading visitor stats:', error);
+            return of(null);
+          })
+        )
+        .subscribe((stats: VisitorStats | null) => {
+          if (stats) {
+            this.updateState({ stats });
+          }
+        });
+    }
   }
 
   private refreshVisitors(): void {
@@ -426,28 +462,68 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const tenantId = this.tenantId();
     if (!tenantId) return;
     
-    const currentState = this.state();
+    // Guardar la posición del scroll antes de refrescar
+    this.saveScrollPosition();
     
-    const queryParams = {
-      limit: currentState.pagination.limit,
-      offset: currentState.pagination.offset || 0,
-      includeOffline: this.currentFilter().filters.includeOffline,
-      search: currentState.searchQuery || undefined
-    };
+    const currentState = this.state();
 
-    this.visitorsService.getVisitors(tenantId, queryParams)
-      .pipe(
-        catchError(() => of({ visitors: [], total: 0, hasMore: false }))
-      )
-      .subscribe((response: GetVisitorsResponse) => {
-        this.updateState({ 
-          visitors: response.visitors,
-          pagination: {
-            ...currentState.pagination,
-            totalCount: response.total
-          }
-        });
+    // Decidir si usar mock o servicio real basado en el token
+    if (this.useMockData) {
+      // USAR MOCK
+      const mockResponse = getMockVisitorsResponse(
+        currentState.pagination.limit,
+        currentState.pagination.offset || 0
+      );
+
+      this.updateState({ 
+        visitors: mockResponse.visitors,
+        pagination: {
+          ...currentState.pagination,
+          totalCount: mockResponse.total
+        }
       });
+      
+      // Restaurar la posición del scroll después de actualizar
+      this.restoreScrollPosition();
+    } else {
+      // USAR SERVICIO REAL
+      const queryParams = {
+        limit: currentState.pagination.limit,
+        offset: currentState.pagination.offset || 0,
+        includeOffline: this.currentFilter().filters.includeOffline,
+        search: currentState.searchQuery || undefined
+      };
+
+      this.visitorsService.getVisitors(tenantId, queryParams)
+        .pipe(
+          catchError(() => of({ visitors: [], total: 0, hasMore: false }))
+        )
+        .subscribe((response: GetVisitorsResponse) => {
+          this.updateState({ 
+            visitors: response.visitors,
+            pagination: {
+              ...currentState.pagination,
+              totalCount: response.total
+            }
+          });
+          // Restaurar la posición del scroll después de actualizar
+          this.restoreScrollPosition();
+        });
+    }
+  }
+
+  // Métodos auxiliares para mantener la posición del scroll
+  private saveScrollPosition(): void {
+    const hostElement = this.elementRef.nativeElement as HTMLElement;
+    this.savedScrollPosition = hostElement.scrollTop;
+  }
+
+  private restoreScrollPosition(): void {
+    const hostElement = this.elementRef.nativeElement as HTMLElement;
+    // Usar setTimeout para asegurar que el DOM se haya actualizado
+    setTimeout(() => {
+      hostElement.scrollTop = this.savedScrollPosition;
+    }, 0);
   }
 
   private updateState(updates: Partial<VisitorState>): void {
@@ -539,11 +615,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   onPageChange(page: number): void {
     const currentState = this.state();
     const offset = (page - 1) * currentState.pagination.limit;
-    
-    // Guardar la posición actual del scroll
-    if (this.listContainer?.nativeElement) {
-      this.scrollPosition = this.listContainer.nativeElement.scrollTop;
-    }
     
     this.updateState({
       pagination: {

@@ -98,6 +98,7 @@
       ],
       "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
+      "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
       "@guiders-frontend/text-field": [

@@ -4,9 +4,13 @@
   "license": "MIT",
   "scripts": {
     "serve": "nx serve console --port=4200",
+    "serve:mock": "VITE_USE_MOCK_DATA=true nx serve console --port=4200",
     "serve:admin": "nx serve admin --port=4201",
+    "serve:admin:mock": "VITE_USE_MOCK_DATA=true nx serve admin --port=4201",
     "dev": "nx serve console --configuration=development --port=4200",
+    "dev:mock": "VITE_USE_MOCK_DATA=true nx serve console --configuration=development --port=4200",
     "dev:admin": "nx serve admin --configuration=development --port=4201",
+    "dev:admin:mock": "VITE_USE_MOCK_DATA=true nx serve admin --configuration=development --port=4201",
     "build": "nx build console",
     "build:admin": "nx build admin",
     "build:all": "nx run-many -t build --projects=admin,console --parallel",

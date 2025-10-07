@@ -60,7 +60,7 @@
           </div>
         } @else {
           <!-- Área con scroll para la lista y paginador -->
-          <div class="visitors-panel__list-container" #listContainer>
+          <div class="visitors-panel__list-container">
             <lib-visitors-list
               [visitors]="filteredVisitors()"
               [loading]="state().loading"
