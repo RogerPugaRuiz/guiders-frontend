@@ -61,6 +61,7 @@
   margin-top: 0;
   flex: 1; // Ocupar todo el espacio disponible
   min-height: 0; // Permitir que se encoja
+  max-height: 100%; // Limitar altura máxima al contenedor padre
 }
 
 /* Error content */
@@ -208,7 +209,7 @@
   display: grid;
   gap: tokens.$spacing-md;
   width: 100%;
-  grid-auto-rows: auto;
+  grid-auto-rows: minmax(0, 1fr); // Filas flexibles pero contenidas
 
   &--4-cols {
     grid-template-columns: repeat(4, 1fr);
@@ -227,6 +228,7 @@
   display: flex;
   flex-direction: column;
   border: 1px solid #e5e7eb;
+  min-height: 0; // Permitir que el contenido se contraiga
 
   &--outlined {
     background: transparent;
@@ -269,27 +271,36 @@
   flex: 1;
   overflow: auto;
   
-  // Cuando está dentro del panel de visitantes, altura fija
+  // Cuando está dentro del panel de visitantes, sin padding para control total
   .visitors-panel & {
     overflow: visible;
     height: 100%;
+    padding: 0; // Remover padding para evitar que el paginador sobresalga
   }
 }
 
 /* Panel de visitantes con scroll controlado */
 .visitors-panel {
   height: 100%; // Altura fija para ocupar todo el espacio disponible
+  min-height: 0; // CRÍTICO: Permitir que el panel se contraiga dentro del grid
+  display: flex; // Asegurar flexbox
+  flex-direction: column; // Columna para controlar el layout interno
   
   // Sobrescribir el overflow del bento-card-content genérico
   .bento-card-content {
     overflow: visible; // Permitir que el contenido sea visible
     height: 100%; // Altura fija
+    display: flex; // Asegurar flexbox
+    flex-direction: column; // Columna para el contenido
+    min-height: 0; // CRÍTICO: Permitir contracción
   }
   
   &__content {
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0; // CRÍTICO: Permitir contracción
+    flex: 1; // Ocupar espacio disponible
     padding: 0; // Removemos el padding del contenedor
     overflow: visible; // Cambiar de hidden a visible para permitir dropdowns
   }
@@ -297,8 +308,10 @@
   &__list-container {
     flex: 1;
     overflow-y: auto; // Solo este contenedor tiene scroll
+    overflow-x: hidden; // Evitar scroll horizontal
     padding: 0 tokens.$spacing-md; // Padding lateral para la lista
-    min-height: 0; // Importante para que funcione el flex con overflow
+    min-height: 0; // CRÍTICO: Importante para que funcione el flex con overflow
+    max-height: 100%; // Limitar altura al contenedor padre
     
     // Estilos personalizados de scrollbar
     &::-webkit-scrollbar {
@@ -327,12 +340,17 @@
   &__pagination {
     // Paginador sticky siempre visible en la parte inferior
     flex-shrink: 0; // No se encoge
-    padding: tokens.$spacing-md;
+    padding: tokens.$spacing-md; // Padding consistente
     border-top: 1px solid tokens.$color-border-subtle;
     background: tokens.$color-surface-primary;
+    min-height: 60px; // Altura mínima suficiente
+    display: flex;
+    align-items: center; // Centrar verticalmente
     
     // El componente de paginación ya tiene su propio padding
     ::ng-deep guiders-pagination {
+      width: 100%; // Ocupar todo el ancho
+      
       .pagination {
         border-top: none; // Removemos el borde del componente ya que lo ponemos aquí
       }
