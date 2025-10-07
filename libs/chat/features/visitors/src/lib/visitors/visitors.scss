@@ -227,12 +227,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid #e5e7eb;
+  box-shadow: tokens.$shadow-sm;
   min-height: 0; // Permitir que el contenido se contraiga
 
   &--outlined {
     background: transparent;
-    border: 1px solid #f3f4f6;
   }
   
   // Cuando está dentro del panel de visitantes, ocupar toda la altura

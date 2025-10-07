@@ -8,16 +8,14 @@
   display: flex;
   flex-direction: column;
   background: tokens.$color-surface-primary;
-  border: 1px solid tokens.$color-border-subtle;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: tokens.$shadow-sm;
   transition: all tokens.$duration-normal tokens.$easing-standard;
   overflow: hidden;
   position: relative;
   min-height: 200px;
   
   &:hover:not(&--disabled):not(&--loading) {
-    border-color: tokens.$color-border-default;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-1px);
   }
@@ -123,7 +121,7 @@
 
 // === HEADER ===
 .guiders-bento-card__header {
-  border-bottom: 1px solid tokens.$color-border-subtle;
+  border-bottom: 1px solid tokens.$color-border-light;
   padding: tokens.$spacing-md tokens.$spacing-lg;
   background: tokens.$color-surface-primary;
 }

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   background: tokens.$color-surface-primary;
-  border: 1px solid tokens.$color-border-default;
+  box-shadow: tokens.$shadow-sm;
   border-radius: tokens.$border-radius-md;
   padding: tokens.$spacing-md;
   height: 100%;
@@ -51,8 +51,8 @@
   }
 
   &.bento-kpi--neutral {
-    border-color: tokens.$color-border-subtle;
-    background: linear-gradient(135deg, tokens.$color-surface-secondary 0%, tokens.$color-surface-primary 100%);
+    // border-color: tokens.$color-border-subtle;
+    // background: linear-gradient(135deg, tokens.$color-surface-secondary 0%, tokens.$color-surface-primary 100%);
     
     .kpi-title { color: tokens.$color-text-secondary; }
     .value-number { color: tokens.$color-text-primary; }
