@@ -15,11 +15,109 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@guiders-frontend/auth/features/login": ["libs/auth/features/login/src/index.ts"],
+      "@guiders-frontend/analytics/features/admin-dashboard": [
+        "libs/analytics/features/admin-dashboard/src/index.ts"
+      ],
+      "@guiders-frontend/auth/data-access/session": [
+        "libs/auth/data-access/session/src/index.ts"
+      ],
+      "@guiders-frontend/avatar-colors": [
+        "libs/shared/utils/avatar-colors/src/index.ts"
+      ],
+      "@guiders-frontend/auth/features/login": [
+        "libs/auth/features/login/src/index.ts"
+      ],
       "@guiders-frontend/auth/ui/login-form": [
         "libs/auth/ui/login-form/src/index.ts"
       ],
-      "@guiders-frontend/chat/features/inbox": ["libs/chat/features/inbox/src/index.ts"]
+      "@guiders-frontend/badge": ["libs/shared/ui/badge/src/index.ts"],
+      "@guiders-frontend/bento-card": [
+        "libs/shared/ui/bento-card/src/index.ts"
+      ],
+      "@guiders-frontend/bento-grid": [
+        "libs/shared/ui/bento-grid/src/index.ts"
+      ],
+      "@guiders-frontend/bento-kpi": ["libs/shared/ui/bento-kpi/src/index.ts"],
+      "@guiders-frontend/button": ["libs/shared/ui/button/src/index.ts"],
+      "@guiders-frontend/button-primary": [
+        "libs/shared/ui/button-primary/src/index.ts"
+      ],
+      "@guiders-frontend/button-secondary": [
+        "libs/shared/ui/button-secondary/src/index.ts"
+      ],
+      "@guiders-frontend/button-tertiary": [
+        "libs/shared/ui/button-tertiary/src/index.ts"
+      ],
+      "@guiders-frontend/chat-list": ["libs/chat/ui/chat-list/src/index.ts"],
+      "@guiders-frontend/chat-messages": [
+        "libs/chat/ui/chat-messages/src/index.ts"
+      ],
+      "@guiders-frontend/chat-service": [
+        "libs/chat/data-access/chat-service/src/index.ts"
+      ],
+      "@guiders-frontend/chat/data-access/websocket-service": [
+        "libs/chat/data-access/websocket-service/src/index.ts"
+      ],
+      "@guiders-frontend/chat/features/inbox": [
+        "libs/chat/features/inbox/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/chat-placeholder": [
+        "libs/chat/ui/chat-placeholder/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/chat-welcome-state": [
+        "libs/chat/ui/chat-welcome-state/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/conversation-item": [
+        "libs/chat/ui/conversation-item/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/conversation-list": [
+        "libs/chat/ui/conversation-list/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/inbox-sidebar": [
+        "libs/chat/ui/inbox-sidebar/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/message-input": [
+        "libs/chat/ui/message-input/src/index.ts"
+      ],
+      "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
+      "@guiders-frontend/contacts": [
+        "libs/chat/features/contacts/src/index.ts"
+      ],
+      "@guiders-frontend/create-chat-modal": [
+        "libs/chat/ui/create-chat-modal/src/index.ts"
+      ],
+      "@guiders-frontend/design-tokens": [
+        "libs/shared/design-tokens/src/index.ts"
+      ],
+      "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/pagination": [
+        "libs/shared/ui/pagination/src/index.ts"
+      ],
+      "@guiders-frontend/pending-chats-modal": [
+        "libs/chat/ui/pending-chats-modal/src/index.ts"
+      ],
+      "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
+      "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
+      "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],
+      "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
+      "@guiders-frontend/text-field": [
+        "libs/shared/ui/text-field/src/index.ts"
+      ],
+      "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/user-menu": ["libs/shared/ui/user-menu/src/index.ts"],
+      "@guiders-frontend/visitor-card": [
+        "libs/chat/ui/visitor-card/src/index.ts"
+      ],
+      "@guiders-frontend/visitors": [
+        "libs/chat/features/visitors/src/index.ts"
+      ],
+      "@guiders-frontend/visitors-data-service": [
+        "libs/chat/data-access/visitors-data-service/src/index.ts"
+      ],
+      "@guiders-frontend/visitors-list": [
+        "libs/chat/ui/visitors-list/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

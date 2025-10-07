@@ -1,0 +1,114 @@
+<!-- Modal Overlay -->
+<div 
+  class="modal-overlay" 
+  *ngIf="isOpen()"
+  (click)="onBackdropClick($event)"
+  (keydown)="onKeyDown($event)"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="'Crear chat con ' + visitorDisplayName()"
+>
+  <!-- Modal Container -->
+  <div class="modal-container" role="document">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <div class="header-content">
+        <div class="visitor-info">
+          <div class="visitor-avatar">
+            <span class="avatar-text">
+              {{ (visitor().name || visitor().email || 'V').substring(0, 2).toUpperCase() }}
+            </span>
+          </div>
+          <div class="visitor-details">
+            <h2 class="modal-title">Iniciar Chat</h2>
+            <p class="visitor-name">{{ visitorDisplayName() }}</p>
+            <span class="visitor-status" [class]="'status-' + visitor().status">
+              {{ visitorStatusText() }}
+            </span>
+          </div>
+        </div>
+        
+        <guiders-button 
+          type="button" 
+          variant="ghost"
+          size="medium"
+          (click)="onCancel()"
+          [ariaLabel]="'Cerrar modal'"
+          class="close-button">
+          ✕
+        </guiders-button>
+      </div>
+    </div>
+
+    <!-- Modal Body -->
+    <form [formGroup]="chatForm()" (ngSubmit)="onSubmit()" class="modal-body">
+      <!-- Mensaje inicial -->
+      <div class="form-group">
+        <div class="textarea-container">
+          <label for="message" class="form-label">
+            Mensaje inicial
+            @if (!config().requireMessage) {
+              <span class="optional-label">(opcional)</span>
+            }
+          </label>
+          <textarea
+            id="message"
+            formControlName="message"
+            class="form-textarea"
+            [class.error]="isFieldInvalid('message')"
+            placeholder="Escribe un mensaje de bienvenida para el visitante..."
+            rows="3"
+            [maxlength]="config().maxMessageLength"
+          ></textarea>
+          <div class="character-count">
+            <span class="count-text" [class.warning]="remainingCharacters() < 50" [class.error]="remainingCharacters() < 0">
+              {{ messageCharacterCount() }}/{{ config().maxMessageLength }}
+            </span>
+          </div>
+          @if (isFieldInvalid('message')) {
+            <span class="error-message">{{ getFieldError('message') }}</span>
+          }
+        </div>
+      </div>
+
+
+    </form>
+
+    <!-- Modal Footer -->
+    <div class="modal-footer">
+      <div class="footer-actions">
+        <guiders-button
+          type="button"
+          variant="cancel"
+          (click)="onCancel()"
+          [disabled]="loading()"
+          [ariaLabel]="'Cancelar creación de chat'">
+          Cancelar
+        </guiders-button>
+
+        <guiders-button
+          type="submit"
+          variant="primary"
+          (click)="onSubmit()"
+          [disabled]="!isFormValid()"
+          [loading]="loading()"
+          [ariaLabel]="'Crear nuevo chat con visitante'">
+          @if (loading()) {
+            Creando...
+          } @else {
+            Iniciar Chat
+          }
+        </guiders-button>
+      </div>
+
+      <!-- Atajos de teclado -->
+      <div class="keyboard-hints">
+        <small class="hint-text">
+          <span class="hint-item"><kbd>Esc</kbd> para cerrar</span>
+          <span class="hint-separator">•</span>
+          <span class="hint-item"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> para enviar</span>
+        </small>
+      </div>
+    </div>
+  </div>
+</div>

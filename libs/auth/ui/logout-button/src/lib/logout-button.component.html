@@ -1,0 +1,72 @@
+<!-- Logout Button Component -->
+<div class="guiders-logout-wrapper">
+  <!-- Botón principal -->
+  <guiders-button
+    [variant]="buttonVariant()"
+    [size]="size()"
+    [disabled]="disabled()"
+    [loading]="loading()"
+    (click)="onButtonClick()"
+    class="guiders-logout-button">
+    
+    @if (showIcon() && !loading()) {
+      <span class="guiders-logout-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16,17 21,12 16,7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </span>
+    }
+    
+    @if (showText()) {
+      {{ buttonText() }}
+    }
+  </guiders-button>
+
+  <!-- Modal de confirmación -->
+  @if (showConfirmDialog()) {
+    <div 
+      class="guiders-logout-overlay" 
+      role="dialog" 
+      aria-modal="true"
+      aria-labelledby="logout-dialog-title"
+      aria-describedby="logout-dialog-description"
+      (click)="onCancelLogout()">
+      
+      <div class="guiders-logout-dialog" (click)="$event.stopPropagation()">
+        <div class="guiders-logout-dialog-header">
+          <h3 id="logout-dialog-title" class="guiders-logout-dialog-title">
+            Confirmar cierre de sesión
+          </h3>
+        </div>
+        
+        <div class="guiders-logout-dialog-content">
+          <p id="logout-dialog-description" class="guiders-logout-dialog-description">
+            ¿Estás seguro de que deseas cerrar la sesión? Tendrás que iniciar sesión nuevamente para acceder al sistema.
+          </p>
+        </div>
+        
+        <div class="guiders-logout-dialog-actions">
+          <guiders-button
+            variant="ghost"
+            size="medium"
+            type="button"
+            (click)="onCancelLogout()"
+            class="guiders-logout-cancel">
+            Cancelar
+          </guiders-button>
+          
+          <guiders-button
+            variant="danger"
+            size="medium"
+            type="button"
+            (click)="onConfirmLogout()"
+            class="guiders-logout-confirm">
+            Cerrar sesión
+          </guiders-button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

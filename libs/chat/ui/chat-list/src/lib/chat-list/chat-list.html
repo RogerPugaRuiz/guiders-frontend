@@ -1,0 +1,122 @@
+<div class="chat-list">
+  <!-- Barra de búsqueda -->
+  @if (showSearch()) {
+    <div class="chat-list__search">
+      <guiders-text-field
+        type="search"
+        placeholder="Buscar chats..."
+        [value]="searchQuery()"
+        [disabled]="loading()"
+        (valueChange)="onSearchValueChange($event)"
+        size="medium"
+        [ariaLabel]="'Buscar en la lista de chats'"
+        class="chat-list__search-field">
+      </guiders-text-field>
+    </div>
+  }
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="chat-list__loading">
+      <div class="loading-spinner"></div>
+      <span>Cargando chats...</span>
+    </div>
+  }
+
+  <!-- Lista de chats -->
+  @if (!loading()) {
+    <div class="chat-list__items">
+      @if (filteredChats().length === 0) {
+        <div class="chat-list__empty">
+          @if (searchQuery()) {
+            <span>No se encontraron chats con "{{ searchQuery() }}"</span>
+          } @else {
+            <span>No tienes chats aún</span>
+          }
+        </div>
+      } @else {
+        @for (chat of filteredChats(); track chat.chatId) {
+          <button 
+            class="chat-item"
+            [class.chat-item--selected]="isSelected(chat)"
+            [class.chat-item--unread]="chat.unreadCount > 0"
+            [class.chat-item--pinned]="chat.pinned"
+            (click)="onChatClick(chat)"
+            [attr.aria-label]="'Chat con ' + getChatName(chat)">
+            
+            <!-- Avatar y estado -->
+            <div class="chat-item__avatar">
+              <div class="avatar">
+                <span class="avatar__image">{{ getChatAvatar(chat) }}</span>
+                @if (chat.participants && chat.participants.length > 2) {
+                  <span 
+                    class="avatar__status"
+                    [style.background-color]="getStatusColor(chat.participants[0])">
+                  </span>
+                }
+                @if (chat.pinned) {
+                  <span class="avatar__pin">📌</span>
+                }
+              </div>
+            </div>
+
+            <!-- Información del chat -->
+            <div class="chat-item__content">
+              <div class="chat-item__header">
+                <h3 class="chat-item__name">{{ getChatName(chat) }}</h3>
+                <div class="chat-item__meta">
+                  @if (chat.lastMessage) {
+                    <span class="chat-item__time">
+                      {{ formatLastMessageTime(chat.lastMessage.sentAt) }}
+                    </span>
+                  }
+                  @if (chat.muted) {
+                    <span class="chat-item__muted">🔇</span>
+                  }
+                </div>
+              </div>
+
+              <div class="chat-item__footer">
+                <div class="chat-item__message">
+                  @if (chat.isTyping) {
+                    <span class="typing-indicator">
+                      <span class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                      </span>
+                      Escribiendo...
+                    </span>
+                  } @else {
+                    <span [class.message--unread]="chat.unreadCount > 0">
+                      {{ formatLastMessage(chat) }}
+                    </span>
+                  }
+                </div>
+
+                <div class="chat-item__indicators">
+                  @if (chat.unreadCount > 0) {
+                    <span class="unread-badge">
+                      {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
+                    </span>
+                  }
+                  @if (chat.lastMessage && chat.lastMessage.status) {
+                    <span class="message-status">
+                      @switch (chat.lastMessage.status) {
+                        @case ('SENT') { ✓ }
+                        @case ('DELIVERED') { ✓✓ }
+                        @case ('READ') { 
+                          <span class="status--read">✓✓</span>
+                        }
+                      }
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+          </button>
+        }
+      }
+    </div>
+  }
+</div>

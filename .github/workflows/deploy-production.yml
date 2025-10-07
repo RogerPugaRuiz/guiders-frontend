@@ -14,6 +14,7 @@ env:
   PROD_SSH_USER: ${{ secrets.PROD_SSH_USER }}
   PROD_SSH_PORT: ${{ secrets.PROD_SSH_PORT }}
   PROD_DEPLOY_PATH: ${{ secrets.PROD_DEPLOY_PATH }} # Ej: /var/www/guiders-frontend
+  # Opcional: si no hay clave privada se puede usar PROD_SSH_PASSWORD
 
 
 concurrency:
@@ -83,6 +84,12 @@ jobs:
           set -euo pipefail
           if [ -z "$WG_PK" ]; then echo "🔕 WG_PRIVATE_KEY no definido. Omitiendo WireGuard."; exit 0; fi
           if [ -z "$WG_ENDPOINT" ]; then echo "❌ Falta WG_SERVER_ENDPOINT"; exit 1; fi
+          # Saneado y validación de la clave privada WireGuard
+          WG_PK_CLEAN=$(printf '%s' "$WG_PK" | tr -d '"\r\n' | xargs)
+          if ! echo "$WG_PK_CLEAN" | grep -Eq '^[A-Za-z0-9+/]{43}=$|^[A-Za-z0-9+/]{44}$'; then
+            echo "❌ Formato inválido de WG_PRIVATE_KEY (longitud ${#WG_PK_CLEAN}). Debe ser salida de 'wg genkey' (44 chars base64)."; exit 1;
+          fi
+          echo "🔑 Clave WireGuard validada (longitud ${#WG_PK_CLEAN})."
           sudo mkdir -p /etc/wireguard && sudo chmod 700 /etc/wireguard
           cat > github.conf <<'CFG'
           [Interface]
@@ -95,7 +102,7 @@ jobs:
           AllowedIPs = 10.0.0.0/24
           PersistentKeepalive = 25
           CFG
-          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK#" github.conf
+          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK_CLEAN#" github.conf
           sed -i "s#WG_ENDPOINT_PLACEHOLDER#$WG_ENDPOINT#" github.conf
           sudo mv github.conf /etc/wireguard/github.conf
           sudo chmod 600 /etc/wireguard/github.conf
@@ -144,8 +151,32 @@ jobs:
         id: release_time
         run: echo "RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Configurar SSH
+      - name: Detectar clave SSH
         if: env.PROD_SSH_HOST != ''
+        id: detect_ssh_key
+        env:
+          RAW_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          if [ -n "$RAW_KEY" ]; then echo "has_key=true" >> "$GITHUB_OUTPUT"; else echo "has_key=false" >> "$GITHUB_OUTPUT"; fi
+      
+      - name: Validar formato clave SSH
+        if: env.PROD_SSH_HOST != ''
+        env:
+          RAW_KEY: ${{ secrets.PROD_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RAW_KEY" ]; then echo "ℹ️ Sin PROD_SSH_KEY; se usará contraseña si está definida"; exit 0; fi
+          LINE_COUNT=$(printf '%s\n' "$RAW_KEY" | wc -l | awk '{print $1}')
+          if ! printf '%s' "$RAW_KEY" | grep -Eq 'BEGIN (OPENSSH|RSA|ED25519) PRIVATE KEY'; then
+            echo "❌ Encabezado inválido de clave privada SSH"; exit 1;
+          fi
+            if printf '%s' "$RAW_KEY" | grep -q $'\r'; then
+            echo "⚠️ Se detectaron CR (\r). Considera normalizar a LF.";
+          fi
+          echo "✅ Clave SSH validada (líneas: $LINE_COUNT)."
+
+      - name: Configurar SSH
+        if: env.PROD_SSH_HOST != '' && steps.detect_ssh_key.outputs.has_key == 'true'
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.PROD_SSH_KEY }}
@@ -158,10 +189,18 @@ jobs:
           SSH_PORT: ${{ env.PROD_SSH_PORT }}
           DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+          SSH_PASS: ${{ secrets.PROD_SSH_PASSWORD }}
+          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+          if [ "$HAS_KEY" = "true" ]; then
+            SSH_BASE="ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+          else
+            if [ -z "$SSH_PASS" ]; then echo "❌ Falta PROD_SSH_PASSWORD (no hay clave)"; exit 1; fi
+            SSH_BASE="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+          fi
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
             BASE=\"$DEPLOY_PATH\"; \
             RELEASES=\"$DEPLOY_PATH/releases\"; \
@@ -177,11 +216,19 @@ jobs:
           SSH_PORT: ${{ env.PROD_SSH_PORT }}
           DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+          SSH_PASS: ${{ secrets.PROD_SSH_PASSWORD }}
+          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          rsync -az --delete -e "ssh -p $PORT" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
-          rsync -az --delete -e "ssh -p $PORT" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
+          if [ "$HAS_KEY" = "true" ]; then
+            RSYNC_SSH="ssh -p $PORT"
+          else
+            if [ -z "$SSH_PASS" ]; then echo "❌ Falta PROD_SSH_PASSWORD (no hay clave)"; exit 1; fi
+            RSYNC_SSH="sshpass -p '$SSH_PASS' ssh -p $PORT -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
+          fi
+          rsync -az --delete -e "$RSYNC_SSH" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
+          rsync -az --delete -e "$RSYNC_SSH" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
 
       - name: Activar release (symlink swap)
         if: env.PROD_SSH_HOST != ''
@@ -191,10 +238,18 @@ jobs:
           SSH_PORT: ${{ env.PROD_SSH_PORT }}
           DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+          SSH_PASS: ${{ secrets.PROD_SSH_PASSWORD }}
+          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+          if [ "$HAS_KEY" = "true" ]; then
+            SSH_BASE="ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+          else
+            if [ -z "$SSH_PASS" ]; then echo "❌ Falta PROD_SSH_PASSWORD (no hay clave)"; exit 1; fi
+            SSH_BASE="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+          fi
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
             ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; \
             echo 'Symlink actualizado -> current'; \
@@ -207,10 +262,18 @@ jobs:
           SSH_USER: ${{ env.PROD_SSH_USER }}
           SSH_PORT: ${{ env.PROD_SSH_PORT }}
           DEPLOY_PATH: ${{ env.PROD_DEPLOY_PATH }}
+          SSH_PASS: ${{ secrets.PROD_SSH_PASSWORD }}
+          HAS_KEY: ${{ steps.detect_ssh_key.outputs.has_key }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+          if [ "$HAS_KEY" = "true" ]; then
+            SSH_BASE="ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+          else
+            if [ -z "$SSH_PASS" ]; then echo "❌ Falta PROD_SSH_PASSWORD (no hay clave)"; exit 1; fi
+            SSH_BASE="sshpass -p '$SSH_PASS' ssh -o StrictHostKeyChecking=accept-new -p $PORT"
+          fi
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; cd $DEPLOY_PATH/releases || exit 0; \
             ls -1dt */ 2>/dev/null | tail -n +6 | tr -d '/' | while read OLD; do [ -n \"$OLD\" ] && rm -rf \"$OLD\"; done; \
             echo 'Releases antiguos limpiados';"

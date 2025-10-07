@@ -1,0 +1,97 @@
+<!-- Checkbox Component Template -->
+<div [ngClass]="cssClasses()">
+  <!-- Input elemento -->
+  <div class="guiders-checkbox__wrapper">
+    <input
+      #input
+      type="checkbox"
+      class="guiders-checkbox__input"
+      [id]="effectiveId()"
+      [name]="name()"
+      [checked]="checked()"
+      [disabled]="disabled()"
+      [required]="required()"
+      [indeterminate]="indeterminate()"
+      [attr.aria-label]="ariaLabel() || null"
+      [attr.aria-labelledby]="ariaLabelledBy() || null"
+      [attr.aria-describedby]="effectiveAriaDescribedBy() || null"
+      [attr.aria-invalid]="hasError() ? 'true' : null"
+      (change)="onInputChange($event)"
+      (focus)="onInputFocus()"
+      (blur)="onInputBlur()"
+      (keydown)="onKeydown($event)"
+    />
+    
+    <!-- Caja visual del checkbox -->
+    <div class="guiders-checkbox__box">
+      <!-- Icono de check -->
+      <svg 
+        class="guiders-checkbox__check" 
+        viewBox="0 0 16 16" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path 
+          d="M13.5 4.5L6 12L2.5 8.5" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+      </svg>
+      
+      <!-- Icono de indeterminado -->
+      <svg 
+        class="guiders-checkbox__indeterminate" 
+        viewBox="0 0 16 16" 
+        fill="none" 
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <path 
+          d="M4 8H12" 
+          stroke="currentColor" 
+          stroke-width="2" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <!-- Label -->
+  @if (label()) {
+    <label 
+      class="guiders-checkbox__label"
+      [for]="effectiveId()"
+    >
+      {{ label() }}
+      @if (required()) {
+        <span class="guiders-checkbox__required" aria-label="requerido">*</span>
+      }
+    </label>
+  }
+
+  <!-- Helper text -->
+  @if (helperText() && !hasError()) {
+    <div 
+      class="guiders-checkbox__helper"
+      [id]="helperId()"
+    >
+      {{ helperText() }}
+    </div>
+  }
+
+  <!-- Error message -->
+  @if (hasError()) {
+    <div 
+      class="guiders-checkbox__error"
+      [id]="errorId()"
+      role="alert"
+      aria-live="polite"
+    >
+      {{ errorMessage() }}
+    </div>
+  }
+</div>

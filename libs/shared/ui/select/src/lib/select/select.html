@@ -1,0 +1,92 @@
+<div [ngClass]="fieldClasses()">
+  <!-- Label -->
+  @if (label()) {
+    <label 
+      class="guiders-select__label"
+      [for]="selectId">
+      {{ label() }}
+      @if (required()) {
+        <span class="guiders-select__required" aria-label="requerido">*</span>
+      }
+    </label>
+  }
+  
+  <!-- Select wrapper -->
+  <div class="guiders-select__wrapper">
+    <select
+      #select
+      [ngClass]="selectClasses()"
+      [id]="selectId"
+      [value]="value()"
+      [disabled]="disabled()"
+      [required]="required()"
+      [multiple]="multiple()"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-describedby]="describedByIds()"
+      [attr.aria-invalid]="hasError()"
+      [attr.aria-required]="required()"
+      (change)="onSelectionChange($event)"
+      (focus)="onSelectFocus($event)"
+      (blur)="onSelectBlur($event)">
+      
+      <!-- Placeholder option -->
+      @if (hasPlaceholder() && !multiple()) {
+        <option value="" disabled [selected]="!value()">
+          {{ placeholder() }}
+        </option>
+      }
+      
+      <!-- Opciones sin agrupar -->
+      @for (option of groupedOptions().ungrouped; track option.value) {
+        <option 
+          [value]="option.value"
+          [disabled]="option.disabled"
+          [selected]="value() === option.value">
+          {{ option.label }}
+        </option>
+      }
+      
+      <!-- Opciones agrupadas -->
+      @for (group of groupedOptions().groups | keyvalue; track group.key) {
+        <optgroup [label]="group.key">
+          @for (option of group.value; track option.value) {
+            <option 
+              [value]="option.value"
+              [disabled]="option.disabled"
+              [selected]="value() === option.value">
+              {{ option.label }}
+            </option>
+          }
+        </optgroup>
+      }
+    </select>
+    
+    <!-- Icono de dropdown -->
+    <div class="guiders-select__icon" aria-hidden="true">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+  
+  <!-- Helper text -->
+  @if (hasHelperText() && !hasError()) {
+    <div 
+      class="guiders-select__helper"
+      [id]="helperId"
+      role="note">
+      {{ helperText() }}
+    </div>
+  }
+  
+  <!-- Error message -->
+  @if (hasError()) {
+    <div 
+      class="guiders-select__error"
+      [id]="errorId"
+      role="alert"
+      aria-live="polite">
+      {{ errorMessage() }}
+    </div>
+  }
+</div>

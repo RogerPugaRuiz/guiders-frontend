@@ -1,0 +1,155 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+// === BENTO GRID COMPONENT ===
+// Contenedor de layout principal para el sistema Bento UI
+// Organiza BentoCards en una grilla responsive
+
+.guiders-bento-grid {
+  box-sizing: border-box;
+  
+  // Scroll suave cuando el contenido excede el contenedor
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: tokens.$color-border-default transparent;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: tokens.$color-border-default;
+    border-radius: tokens.$border-radius-full;
+  }
+}
+
+// === DENSIDADES ===
+.guiders-bento-grid--compact {
+  gap: 12px !important;
+  padding: 16px !important;
+}
+
+.guiders-bento-grid--comfortable {
+  gap: 16px !important;
+  padding: 24px !important;
+}
+
+.guiders-bento-grid--spacious {
+  gap: 24px !important;
+  padding: 32px !important;
+}
+
+// === RESPONSIVE POR COLUMNAS ===
+.guiders-bento-grid--cols-6 {
+  @media (max-width: tokens.$breakpoint-2xl) {
+    grid-template-columns: repeat(4, minmax(280px, 1fr)) !important;
+  }
+  
+  @media (max-width: tokens.$breakpoint-xl) {
+    grid-template-columns: repeat(3, minmax(280px, 1fr)) !important;
+  }
+  
+  @media (max-width: tokens.$breakpoint-lg) {
+    grid-template-columns: repeat(2, minmax(280px, 1fr)) !important;
+  }
+  
+  @media (max-width: tokens.$breakpoint-md) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.guiders-bento-grid--cols-4 {
+  @media (max-width: tokens.$breakpoint-xl) {
+    grid-template-columns: repeat(3, minmax(280px, 1fr)) !important;
+  }
+  
+  @media (max-width: tokens.$breakpoint-lg) {
+    grid-template-columns: repeat(2, minmax(280px, 1fr)) !important;
+  }
+  
+  @media (max-width: tokens.$breakpoint-md) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.guiders-bento-grid--cols-3 {
+  @media (max-width: tokens.$breakpoint-lg) {
+    grid-template-columns: repeat(2, minmax(280px, 1fr)) !important;
+  }
+  
+  @media (max-width: tokens.$breakpoint-md) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.guiders-bento-grid--cols-2 {
+  @media (max-width: tokens.$breakpoint-md) {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+// === RESPONSIVE GENERAL ===
+@media (max-width: tokens.$breakpoint-md) {
+  .guiders-bento-grid {
+    padding: 16px !important;
+    gap: 12px !important;
+    
+    // En móvil, todos los elementos ocupan una sola columna
+    & > * {
+      grid-column: span 1 !important;
+      grid-row: span 1 !important;
+    }
+  }
+}
+
+@media (max-width: tokens.$breakpoint-lg) {
+  .guiders-bento-grid {
+    // Reducir elementos grandes en tablets
+    & > .guiders-bento-card--3x1,
+    & > .guiders-bento-card--3x2 {
+      grid-column: span 2 !important;
+    }
+    
+    & > .guiders-bento-card--2x3 {
+      grid-column: span 1 !important;
+      grid-row: span 2 !important;
+    }
+  }
+}
+
+// === UTILIDADES ===
+.guiders-bento-grid--full-height {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.guiders-bento-grid--auto-height {
+  height: auto;
+  min-height: 100%;
+}
+
+// === ANIMACIONES ===
+.guiders-bento-grid > * {
+  animation: bentoFadeIn 300ms ease-out;
+}
+
+@keyframes bentoFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Desactivar animaciones si el usuario prefiere menos movimiento
+@media (prefers-reduced-motion: reduce) {
+  .guiders-bento-grid > * {
+    animation: none;
+  }
+}

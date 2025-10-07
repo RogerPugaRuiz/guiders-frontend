@@ -11,6 +11,7 @@ env:
   STAGING_SSH_USER: ${{ secrets.STAGING_SSH_USER }}
   STAGING_SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
   STAGING_DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }} # Ej: /var/www/guiders-frontend-staging
+  # Usar STAGING_SSH_PASSWORD para autenticación por contraseña
 
 concurrency:
   group: staging-deploy
@@ -44,8 +45,8 @@ jobs:
       - name: Test (staging)
         run: npx nx run-many -t test --projects=admin,console --parallel --configuration=ci || npx nx run-many -t test --projects=admin,console --parallel
 
-      - name: Build (development configuration para staging)
-        run: npx nx run-many -t build --configuration=development --projects=admin,console --parallel
+      - name: Build (staging configuration)
+        run: npx nx run-many -t build --configuration=staging --projects=admin,console --parallel
 
       - name: Publicar artefacto admin (staging)
         uses: actions/upload-artifact@v4
@@ -76,6 +77,12 @@ jobs:
           set -euo pipefail
           if [ -z "$WG_PK" ]; then echo "🔕 WG_PRIVATE_KEY no definido. Omitiendo WireGuard."; exit 0; fi
           if [ -z "$WG_ENDPOINT" ]; then echo "❌ Falta WG_SERVER_ENDPOINT"; exit 1; fi
+          # Saneado y validación de la clave privada WireGuard
+          WG_PK_CLEAN=$(printf '%s' "$WG_PK" | tr -d '"\r\n' | xargs)
+          if ! echo "$WG_PK_CLEAN" | grep -Eq '^[A-Za-z0-9+/]{43}=$|^[A-Za-z0-9+/]{44}$'; then
+            echo "❌ Formato inválido de WG_PRIVATE_KEY (longitud ${#WG_PK_CLEAN}). Debe ser salida de 'wg genkey' (44 chars base64)."; exit 1;
+          fi
+          echo "🔑 Clave WireGuard validada (longitud ${#WG_PK_CLEAN})."
           sudo mkdir -p /etc/wireguard && sudo chmod 700 /etc/wireguard
           cat > github.conf <<'CFG'
           [Interface]
@@ -88,7 +95,7 @@ jobs:
           AllowedIPs = 10.0.0.0/24
           PersistentKeepalive = 25
           CFG
-          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK#" github.conf
+          sed -i "s#REPLACE_PRIVATE_KEY#$WG_PK_CLEAN#" github.conf
           sed -i "s#WG_ENDPOINT_PLACEHOLDER#$WG_ENDPOINT#" github.conf
           sudo mv github.conf /etc/wireguard/github.conf
           sudo chmod 600 /etc/wireguard/github.conf
@@ -131,17 +138,52 @@ jobs:
         run: |
           if [ -z "$VPN_TARGET_HOST" ]; then echo "🔕 Sin STAGING_SSH_HOST; omitido"; exit 0; fi
           mkdir -p ~/.ssh
-          ssh-keyscan "$VPN_TARGET_HOST" >> ~/.ssh/known_hosts || true
-      # =================== FIN VPN =====================
+          ssh-keyscan -H "$VPN_TARGET_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
       - name: Preparar timestamp de release
         id: release_time
         run: echo "RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Configurar SSH
+      - name: Validar credenciales SSH
         if: env.STAGING_SSH_HOST != ''
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+        env:
+          PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          if [ -z "$PASS" ]; then
+            echo "❌ Falta STAGING_SSH_PASSWORD. Añádela como secret." >&2
+            exit 1
+          fi
+          echo "ℹ️ Usando autenticación por contraseña (sshpass)."
+
+      - name: Probar conexión SSH
+        if: env.STAGING_SSH_HOST != ''
+        env:
+          SSH_HOST: ${{ env.STAGING_SSH_HOST }}
+          SSH_USER: ${{ env.STAGING_SSH_USER }}
+          SSH_PORT: ${{ env.STAGING_SSH_PORT }}
+          PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
+        run: |
+          set -e
+          PORT=${SSH_PORT:-22}
+          echo "🔍 Probando autenticación SSH por contraseña..."
+          if [ -z "$PASS" ]; then echo "❌ Sin contraseña definida"; exit 1; fi
+          # Usar variable de entorno para evitar problemas de comillas en la contraseña
+          export SSHPASS="$PASS"
+          attempts=0; ok=0
+          while [ $attempts -lt 3 ]; do
+            if sshpass -e ssh -o StrictHostKeyChecking=no \
+                 -o UserKnownHostsFile=/dev/null \
+                 -o PreferredAuthentications=password,keyboard-interactive \
+                 -o PubkeyAuthentication=no -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
+              ok=1; break
+            fi
+            attempts=$((attempts+1))
+            echo "⚠️ Intento $attempts fallido..."; sleep 2
+          done
+          if [ $ok -ne 1 ]; then
+            echo "❌ Falló autenticación por contraseña tras 3 intentos. Revisa: usuario, password, PasswordAuthentication en sshd_config y bloqueos de fail2ban." >&2
+            exit 1
+          fi
+          echo "✅ Autenticación por contraseña exitosa"
 
       - name: Crear estructura de release en servidor
         if: env.STAGING_SSH_HOST != ''
@@ -151,10 +193,14 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
             BASE=\"$DEPLOY_PATH\"; \
             RELEASES=\"$DEPLOY_PATH/releases\"; \
@@ -170,11 +216,20 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          rsync -az --delete -e "ssh -p $PORT" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
-          rsync -az --delete -e "ssh -p $PORT" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
+          echo "📦 Preparando transferencia a $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP"
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
+          SSH_BASE="$RSYNC_SSH"
+          echo "📁 Verificando/creando directorios remotos..."
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "mkdir -p $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console" || { echo '❌ Error creando directorios remotos'; exit 1; }
+          echo "✅ Directorios asegurados. Ejecutando rsync..."
+          rsync -az --delete -e "$RSYNC_SSH" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
+          rsync -az --delete -e "$RSYNC_SSH" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
 
       - name: Activar release (symlink swap)
         if: env.STAGING_SSH_HOST != ''
@@ -184,34 +239,23 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
+          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
+          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
+          export SSHPASS="$SSH_PASS"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
+          $SSH_BASE "$SSH_USER@$SSH_HOST" "\
             set -e; \
             ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; \
             echo 'Symlink actualizado -> current'; \
             if command -v systemctl >/dev/null 2>&1; then echo 'Opcional: systemctl reload nginx'; fi;"
 
-      - name: Limpiar releases antiguos (mantener últimos 5)
-        if: env.STAGING_SSH_HOST != ''
-        env:
-          SSH_HOST: ${{ env.STAGING_SSH_HOST }}
-          SSH_USER: ${{ env.STAGING_SSH_USER }}
-          SSH_PORT: ${{ env.STAGING_SSH_PORT }}
-          DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
-        run: |
-          set -e
-          PORT=${SSH_PORT:-22}
-          ssh -o StrictHostKeyChecking=accept-new -p "$PORT" "$SSH_USER@$SSH_HOST" "\
-            set -e; cd $DEPLOY_PATH/releases || exit 0; \
-            ls -1dt */ 2>/dev/null | tail -n +6 | tr -d '/' | while read OLD; do [ -n \"$OLD\" ] && rm -rf \"$OLD\"; done; \
-            echo 'Releases antiguos limpiados';"
-
       - name: Mostrar skip deploy si faltan secrets
         if: env.STAGING_SSH_HOST == ''
         run: |
-          echo '[INFO] Saltando despliegue: define secrets STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_KEY, STAGING_DEPLOY_PATH.'
+          echo '[INFO] Saltando despliegue: define STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_PASSWORD y STAGING_DEPLOY_PATH.'
 
       - name: Summary
         run: |

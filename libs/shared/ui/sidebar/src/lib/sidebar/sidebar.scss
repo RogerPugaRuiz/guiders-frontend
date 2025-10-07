@@ -1,0 +1,631 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+// === SIDEBAR COMPONENT ===
+// Navegación lateral para interfaces B2B siguiendo guía de diseño
+// - Estructura fija: Header (64px) + Nav + Footer opcional
+// - Colapsible con animaciones suaves
+// - Accesibilidad completa WCAG 2.2 AA
+// - Soporte para temas claro/oscuro
+// - Responsive con overlay en móvil
+
+:host {
+  display: block;
+  height: 100%;
+  font-family: tokens.$font-family-ui;
+  
+  // Soporte para densidades según guía B2B
+  &.compact {
+    --sidebar-header-height: 48px;
+    --sidebar-nav-item-height: #{tokens.$size-2xl}; // 32px
+    --sidebar-nav-padding: #{tokens.$spacing-sm};
+  }
+  
+  &:not(.compact) {
+    --sidebar-header-height: 64px;
+    --sidebar-nav-item-height: #{tokens.$size-3xl}; // 48px  
+    --sidebar-nav-padding: #{tokens.$spacing-md};
+  }
+}
+
+.sidebar {
+  height: 100%;
+  display: flex;
+  z-index: 1;
+  flex-direction: column;
+  transition: width tokens.$duration-normal tokens.$easing-standard;
+  background: tokens.$color-surface-secondary;
+  position: relative;
+  overflow: hidden;
+  box-shadow: tokens.$shadow-lg;
+
+  // Iconos de navegación - definición base
+  .sidebar__nav-icon {
+    margin-right: tokens.$spacing-md;
+    font-size: tokens.$font-size-lg;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  // Estados colapsado
+  &--collapsed {
+    .sidebar__header {
+      padding: tokens.$spacing-md tokens.$spacing-sm;
+      justify-content: center;
+    }
+
+    .sidebar__nav-link {
+      justify-content: center;
+      padding: tokens.$spacing-md;
+      
+      .sidebar__nav-icon {
+        margin-right: 0;
+      }
+    }
+
+    .sidebar__logo {
+      display: none;
+    }
+  }
+
+  // Variantes de tema manejadas automáticamente por design tokens
+}
+
+// Header del sidebar
+.sidebar__header {
+  padding: tokens.$spacing-lg;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--sidebar-header-height);
+  background: transparent;
+  flex-shrink: 0;
+}
+
+.sidebar__toggle {
+  flex-shrink: 0;
+  
+  // Sobrescribir estilos del Button para layout específico del sidebar
+  &.sidebar__toggle {
+    min-width: auto;
+    width: tokens.$size-xl;
+    height: tokens.$size-xl;
+    padding: 0;
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-bold;
+  }
+}
+
+.sidebar__logo {
+  flex: 1;
+  margin-left: tokens.$spacing-md;
+  animation: sidebar-logo-enter tokens.$duration-fast ease-out;
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+}
+
+.sidebar__logo-icon {
+  flex-shrink: 0;
+  color: tokens.$color-text-secondary;
+  font-size: tokens.$font-size-xl;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes sidebar-logo-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar__logo-text {
+  font-size: tokens.$font-size-xl;
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-text-secondary;
+  line-height: tokens.$line-height-tight;
+}
+
+// Navegación
+.sidebar__nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: tokens.$spacing-lg 0;
+  
+  // Scroll personalizado
+  scrollbar-width: thin;
+  scrollbar-color: tokens.$color-border-default transparent;
+  
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
+  }
+  
+  &::-webkit-scrollbar-thumb:hover {
+    background: tokens.$color-border-strong;
+  }
+}
+
+.sidebar__nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar__nav-item {
+  margin: 0 0 tokens.$spacing-xs 0;
+}
+
+// Enlaces de navegación
+.sidebar__nav-link {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  position: relative;
+  margin: 0 tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-md;
+  
+  // Sobrescribir estilos del Button para layout específico
+  &.sidebar__nav-link {
+    min-height: var(--sidebar-nav-item-height);
+    padding: var(--sidebar-nav-padding) tokens.$spacing-lg;
+    
+    // Remover estilos de Button y aplicar los del sidebar
+    background: transparent;
+    border: none;
+    color: tokens.$color-text-tertiary;
+    
+    &:hover {
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-secondary;
+    }
+    
+    &:focus-visible {
+      @include tokens.focus-ring;
+    }
+  }
+  
+  // Estado activo
+  &--active {
+    background: tokens.$color-surface-tertiary !important;
+    color: tokens.$color-text-primary !important;
+    font-weight: tokens.$font-weight-semibold;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 2px;
+      background: tokens.$color-text-primary;
+      border-radius: 0 tokens.$border-radius-sm tokens.$border-radius-sm 0;
+    }
+  }
+  
+  // Enlaces con children
+  &--has-children {
+    .sidebar__nav-arrow {
+      margin-left: auto;
+    }
+  }
+}
+
+.sidebar__nav-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: tokens.$font-size-base;
+  font-weight: tokens.$font-weight-medium;
+  line-height: tokens.$line-height-tight;
+}
+
+.sidebar__nav-arrow {
+  font-size: tokens.$font-size-sm;
+  transition: transform tokens.$duration-fast tokens.$easing-standard;
+  margin-left: tokens.$spacing-sm;
+  color: tokens.$color-text-tertiary;
+
+  &--expanded {
+    transform: rotate(180deg);
+    color: tokens.$color-text-secondary;
+  }
+}
+
+// Submenu
+.sidebar__submenu {
+  list-style: none;
+  margin: tokens.$spacing-sm 0 0 0;
+  padding: tokens.$spacing-xs 0;
+  background: transparent;
+  margin-left: tokens.$spacing-lg;
+  margin-right: tokens.$spacing-sm;
+  overflow: hidden;
+  animation: submenu-enter tokens.$duration-normal ease-out;
+}
+
+@keyframes submenu-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 300px;
+  }
+}
+
+.sidebar__submenu-item {
+  margin: 0;
+}
+
+.sidebar__submenu-link {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  position: relative;
+  border-radius: 0;
+  
+  // Sobrescribir estilos del Button para submenu
+  &.sidebar__submenu-link {
+    min-height: tokens.$size-2xl;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    
+    background: transparent;
+    border: none;
+    color: tokens.$color-text-tertiary;
+    
+    &:hover {
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-secondary;
+    }
+    
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 1px;
+    }
+  }
+  
+  // Estado activo para submenu
+  &--active {
+    color: #000000 !important;
+  }
+}
+
+.sidebar__submenu-icon {
+  margin-right: tokens.$spacing-sm;
+  font-size: tokens.$font-size-base;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__submenu-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-regular;
+  line-height: tokens.$line-height-relaxed;
+}
+
+// Estados de accesibilidad
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .sidebar__logo,
+  .sidebar__nav-arrow,
+  .sidebar__submenu {
+    animation: none;
+    transition: none;
+  }
+}
+
+// Estados de alto contraste
+@media (prefers-contrast: high) {
+  .sidebar {
+    background: tokens.$color-surface-primary;
+  }
+  
+  .sidebar__nav-link--active::before,
+  .sidebar__submenu-link--active::before {
+    width: 4px;
+  }
+}
+
+// Responsive design
+@media (max-width: 1024px) {
+  .sidebar {
+    // En tablets, reducir el ancho por defecto
+    --sidebar-default-width: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 150;
+    transform: translateX(-100%);
+    transition: transform tokens.$duration-normal tokens.$easing-standard;
+    box-shadow: tokens.$shadow-xl;
+    width: 280px !important; // Forzar ancho fijo en móvil
+
+    &:not(.sidebar--collapsed) {
+      transform: translateX(0);
+    }
+  }
+  
+  // Overlay para cerrar sidebar en móvil
+  .sidebar::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 100%;
+    right: -100vw;
+    bottom: 0;
+    background: tokens.$color-overlay-backdrop;
+    z-index: -1;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity tokens.$duration-normal;
+  }
+  
+  .sidebar:not(.sidebar--collapsed)::after {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 260px !important;
+  }
+  
+  .sidebar__header {
+    padding: tokens.$spacing-md;
+    min-height: 56px;
+  }
+  
+  .sidebar__nav {
+    padding: tokens.$spacing-md 0;
+  }
+  
+  .sidebar__nav-link.sidebar__nav-link {
+    margin: 0 tokens.$spacing-xs;
+    padding: tokens.$spacing-md;
+    min-height: tokens.$size-2xl;
+  }
+  
+  .sidebar__nav-text {
+    font-size: tokens.$font-size-sm;
+  }
+  
+  .sidebar__submenu-link.sidebar__submenu-link {
+    padding: tokens.$spacing-xs tokens.$spacing-md tokens.$spacing-xs tokens.$spacing-2xl;
+  }
+}
+
+// Variante compacta
+:host(.compact) {
+  .sidebar__header {
+    min-height: 48px;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+  }
+  
+  .sidebar__logo-icon {
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .sidebar__logo-text {
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .sidebar__nav {
+    padding: tokens.$spacing-md 0;
+  }
+  
+  .sidebar__nav-item {
+    margin-bottom: tokens.$spacing-xs;
+  }
+  
+  .sidebar__nav-link.sidebar__nav-link {
+    min-height: tokens.$size-2xl;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+  }
+  
+  .sidebar__nav-text {
+    font-size: tokens.$font-size-sm;
+  }
+  
+  .sidebar__submenu-link.sidebar__submenu-link {
+    min-height: tokens.$size-lg;
+    padding: tokens.$spacing-xs tokens.$spacing-md tokens.$spacing-xs tokens.$spacing-2xl;
+  }
+}
+
+// === POPOVER FLOTANTE (MODO COLAPSADO) ===
+// Submenu flotante que aparece al hacer clic en elementos con hijos en modo colapsado
+
+// Overlay de pantalla completa para cerrar al hacer clic fuera
+.sidebar__popover-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  z-index: 1300;
+  cursor: default;
+}
+
+// Contenedor del popover con posición fija
+.sidebar__popover-content {
+  position: fixed;
+  left: 80px; // Ancho del sidebar colapsado + margen
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  box-shadow: tokens.$shadow-lg;
+  min-width: 240px;
+  max-width: 320px;
+  border: 1px solid tokens.$color-border-default;
+  overflow: hidden;
+  z-index: 1301;
+  animation: popover-enter 0.2s ease-out;
+}
+
+// Header del popover
+.sidebar__popover-header {
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+}
+
+.sidebar__popover-title {
+  font-size: tokens.$font-size-base;
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-text-primary;
+  line-height: tokens.$line-height-tight;
+}
+
+// Lista de items del popover
+.sidebar__popover-menu {
+  list-style: none;
+  margin: 0;
+  padding: tokens.$spacing-sm 0;
+}
+
+.sidebar__popover-item {
+  margin: 0;
+}
+
+// Botones del popover (reemplaza guiders-button)
+.sidebar__popover-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  text-align: left;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
+  color: tokens.$color-text-secondary;
+  transition: background-color tokens.$duration-fast tokens.$easing-standard,
+              color tokens.$duration-fast tokens.$easing-standard;
+  line-height: tokens.$line-height-tight;
+  min-height: 40px;
+
+  &:hover {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+  }
+
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: -2px;
+  }
+
+  // Estado activo
+  &--active {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+    font-weight: tokens.$font-weight-semibold;
+  }
+}
+
+.sidebar__popover-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: tokens.$font-size-lg;
+  width: 20px;
+}
+
+.sidebar__popover-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: tokens.$font-size-sm;
+  line-height: tokens.$line-height-tight;
+}
+
+.sidebar__popover-badge {
+  flex-shrink: 0;
+  margin-left: tokens.$spacing-sm;
+}
+
+// Animación de entrada
+@keyframes popover-enter {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+// Estados de accesibilidad para popover
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__popover-content {
+    animation: none;
+  }
+}
+
+// Estados de alto contraste para popover
+@media (prefers-contrast: high) {
+  .sidebar__popover-content {
+    border: 2px solid tokens.$color-border-strong;
+  }
+  
+  .sidebar__popover-button--active {
+    border-left: 4px solid tokens.$color-text-primary;
+  }
+}
+
+// Tema oscuro manejado automáticamente por design tokens
+
+// Footer con user menu
+.sidebar__footer {
+  margin-top: auto; // Empujar al final
+  border-top: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+}
+
+// Ajustes para modo colapsado
+.sidebar--collapsed {
+  .sidebar__footer {
+    padding: tokens.$spacing-sm;
+  }
+}

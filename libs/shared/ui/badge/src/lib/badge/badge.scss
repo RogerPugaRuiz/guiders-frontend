@@ -1,0 +1,369 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: inline-flex;
+  font-family: tokens.$font-family-ui;
+}
+
+.guiders-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  font-weight: tokens.$font-weight-semibold;
+  line-height: 1;
+  transition: tokens.$transition-all;
+  user-select: none;
+  position: relative;
+
+  // === TAMAÑOS ===
+  &--small {
+    min-height: 16px;
+    padding: 1px tokens.$spacing-xs;
+    font-size: tokens.$font-size-xs;
+    font-family: tokens.$font-family-mono;
+    
+    &.guiders-badge--dot {
+      width: 8px;
+      height: 8px;
+      min-height: 8px;
+      padding: 0;
+    }
+  }
+
+  &--medium {
+    min-height: 20px;
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+    font-size: tokens.$font-size-xs;
+    font-family: tokens.$font-family-mono;
+    
+    &.guiders-badge--dot {
+      width: 10px;
+      height: 10px;
+      min-height: 10px;
+      padding: 0;
+    }
+  }
+
+  &--large {
+    min-height: 24px;
+    padding: tokens.$spacing-xs tokens.$spacing-md;
+    font-size: tokens.$font-size-sm;
+    
+    &.guiders-badge--dot {
+      width: 12px;
+      height: 12px;
+      min-height: 12px;
+      padding: 0;
+    }
+  }
+
+  // === FORMAS ===
+  &--rounded {
+    border-radius: tokens.$border-radius-md;
+  }
+
+  &--pill {
+    border-radius: tokens.$border-radius-full;
+  }
+
+  &--square {
+    border-radius: tokens.$border-radius-sm;
+  }
+
+  // Forma especial para dots
+  &--dot {
+    border-radius: tokens.$border-radius-full;
+  }
+
+  // === VARIANTES DE COLOR ===
+  &--default {
+    background: tokens.$color-neutral-600;
+    color: #ffffff;
+    border: 1px solid tokens.$color-border-default;
+  }
+
+  &--primary {
+    background: tokens.$color-primary-600;
+    color: #ffffff;
+    border: 1px solid tokens.$color-primary-600;
+  }
+
+  &--secondary {
+    background: tokens.$color-secondary-600;
+    color: #ffffff;
+    border: 1px solid tokens.$color-secondary-600;
+  }
+
+  &--success {
+    background: tokens.$color-success-600;
+    color: #ffffff;
+    border: 1px solid tokens.$color-success-600;
+  }
+
+  &--warning {
+    background: tokens.$color-warning-600;
+    color: #000000;
+    border: 1px solid tokens.$color-warning-600;
+  }
+
+  &--danger {
+    background: tokens.$color-danger-600;
+    color: #ffffff;
+    border: 1px solid tokens.$color-danger-600;
+  }
+
+  &--info {
+    background: tokens.$color-info-600;
+    color: #ffffff;
+    border: 1px solid tokens.$color-info-600;
+  }
+
+  &--neutral {
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+    border: 1px solid tokens.$color-border-default;
+  }
+
+  // === VARIANTE OUTLINE ===
+  &--outline {
+    background: transparent;
+    
+    &.guiders-badge--default {
+      color: tokens.$color-text-secondary;
+      border-color: tokens.$color-border-default;
+    }
+
+    &.guiders-badge--primary {
+      color: tokens.$color-primary-600;
+      border-color: tokens.$color-primary-600;
+    }
+
+    &.guiders-badge--secondary {
+      color: tokens.$color-secondary-600;
+      border-color: tokens.$color-secondary-600;
+    }
+
+    &.guiders-badge--success {
+      color: tokens.$color-success-600;
+      border-color: tokens.$color-success-600;
+    }
+
+    &.guiders-badge--warning {
+      color: tokens.$color-warning-600;
+      border-color: tokens.$color-warning-600;
+    }
+
+    &.guiders-badge--danger {
+      color: tokens.$color-danger-600;
+      border-color: tokens.$color-danger-600;
+    }
+
+    &.guiders-badge--info {
+      color: tokens.$color-info-600;
+      border-color: tokens.$color-info-600;
+    }
+
+    &.guiders-badge--neutral {
+      color: tokens.$color-text-secondary;
+      border-color: tokens.$color-border-default;
+    }
+  }
+
+  // === ESTADO DESHABILITADO ===
+  &--disabled {
+    background: tokens.$color-surface-disabled !important;
+    color: tokens.$color-text-disabled !important;
+    border-color: tokens.$color-border-subtle !important;
+    cursor: not-allowed;
+  }
+
+  // === ESTADO VACÍO ===
+  &--empty {
+    display: none;
+  }
+
+  // === CONTENIDO ===
+  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: tokens.$spacing-xs;
+    min-width: 0;
+  }
+}
+
+// === MODIFICADORES ESPECIALES ===
+
+// Badge como dot (sin contenido, solo indicador)
+.guiders-badge--dot {
+  .guiders-badge__content {
+    display: none;
+  }
+}
+
+// Animación para badges dinámicos
+.guiders-badge {
+  // Animación por defecto
+  animation: badge-appear tokens.$duration-normal ease-out;
+
+  @keyframes badge-appear {
+    from {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes badge-pulse {
+    0%, 100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+  }
+
+  // Pulso para badges de notificación
+  &--primary.guiders-badge--dot,
+  &--danger.guiders-badge--dot {
+    animation: badge-pulse tokens.$duration-slow ease-in-out infinite;
+  }
+}
+
+// === ESTADOS DE ACCESIBILIDAD ===
+@media (prefers-reduced-motion: reduce) {
+  .guiders-badge {
+    animation: none;
+  }
+}
+
+// === ESTADOS DE ALTO CONTRASTE ===
+@media (prefers-contrast: high) {
+  .guiders-badge {
+    border-width: 2px;
+    font-weight: tokens.$font-weight-bold;
+    
+    &--outline {
+      border-width: 2px;
+    }
+  }
+}
+
+// === TEMA OSCURO ===
+@media (prefers-color-scheme: dark) {
+  .guiders-badge {
+    // Los design tokens manejan automáticamente el tema oscuro
+    box-shadow: tokens.$shadow-sm;
+    
+    // Ajuste específico para mejor contraste en tema oscuro
+    &--default,
+    &--neutral {
+      border-color: tokens.$color-border-strong;
+    }
+  }
+}
+
+// === VARIANTES CONTEXTUALES ESPECÍFICAS ===
+
+// Badge de contador (optimizado para números)
+:host(.counter) .guiders-badge {
+  min-width: tokens.$size-lg;
+  font-family: tokens.$font-family-mono;
+  font-weight: tokens.$font-weight-bold;
+  
+  &--small {
+    min-width: 16px;
+  }
+  
+  &--medium {
+    min-width: 20px;
+  }
+  
+  &--large {
+    min-width: 24px;
+  }
+}
+
+// Badge de estado (optimizado para indicadores)
+:host(.status) .guiders-badge {
+  font-size: tokens.$font-size-xs;
+  font-weight: tokens.$font-weight-medium;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+// Badge inline (para uso dentro de texto)
+:host(.inline) {
+  .guiders-badge {
+    vertical-align: middle;
+    margin: 0 tokens.$spacing-xs;
+    
+    &--small {
+      margin: 0 2px;
+    }
+  }
+}
+
+// Badge flotante (posicionado absolutamente)
+:host(.floating) {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: tokens.$z-index-tooltip;
+  
+  .guiders-badge {
+    box-shadow: tokens.$shadow-md;
+    
+    &--small {
+      top: -6px;
+      right: -6px;
+    }
+    
+    &--large {
+      top: -10px;
+      right: -10px;
+    }
+  }
+}
+
+// === RESPONSIVE ===
+@media (max-width: 768px) {
+  .guiders-badge {
+    // En móviles, hacer badges ligeramente más grandes para mejor accesibilidad
+    &--small {
+      min-height: 18px;
+      padding: 2px tokens.$spacing-xs;
+      font-size: tokens.$font-size-xs;
+    }
+    
+    &--medium {
+      min-height: 22px;
+      padding: tokens.$spacing-xs tokens.$spacing-sm;
+    }
+  }
+}
+
+// === UTILIDADES PARA INTEGRACIÓN ===
+
+// Espaciado cuando se usa junto a otros elementos
+:host + * {
+  margin-left: tokens.$spacing-xs;
+}
+
+* + :host {
+  margin-left: tokens.$spacing-xs;
+}
+
+// Reset para uso específico
+:host(.no-margin) {
+  * + &,
+  & + * {
+    margin-left: 0;
+  }
+}

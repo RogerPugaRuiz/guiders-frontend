@@ -1,0 +1,20 @@
+{
+  "name": "chat-ui-inbox-sidebar",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/ui/inbox-sidebar/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["scope:chat", "type:ui"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/ui/inbox-sidebar"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

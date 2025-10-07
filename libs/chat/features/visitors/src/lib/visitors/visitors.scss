@@ -1,0 +1,388 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+@use 'sass:color';
+
+/* Estilos Bento UI para vista de visitantes */
+
+:host {
+  display: block;
+  height: 100%;
+  overflow: hidden; // Cambiar de auto a hidden para evitar scroll global
+}
+
+.visitors-page {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-xl;
+  max-width: 100%;
+  height: 100%; // Añadir altura fija para ocupar todo el espacio
+  overflow: hidden; // Evitar scroll en el contenedor principal
+}
+
+/* Header card simplificado */
+.visitors-header-card .page-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-xl;
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+  flex: 1;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  @include tokens.typography('h2');
+  color: tokens.$color-text-primary;
+  margin: 0;
+}
+
+.title-icon {
+  font-size: tokens.$font-size-2xl;
+  opacity: 0.8;
+}
+
+.page-description {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+  margin: 0;
+  margin-top: tokens.$spacing-xs;
+}
+
+/* Grid */
+.visitors-grid {
+  margin-top: 0;
+  flex: 1; // Ocupar todo el espacio disponible
+  min-height: 0; // Permitir que se encoja
+  max-height: 100%; // Limitar altura máxima al contenedor padre
+}
+
+/* Error content */
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-xl;
+  text-align: center;
+  color: tokens.$color-text-secondary;
+}
+
+.error-content .error-icon {
+  font-size: tokens.$font-size-2xl;
+}
+
+.error-content .error-text {
+  @include tokens.typography('body-small');
+}
+
+.error-content .retry-button {
+  background: tokens.$color-primary-500;
+  color: tokens.$color-surface-primary;
+  border: none;
+  border-radius: tokens.$border-radius-md;
+  padding: tokens.$spacing-2xs tokens.$spacing-md;
+  @include tokens.typography('button');
+  cursor: pointer;
+  transition: background tokens.$duration-normal tokens.$easing-standard;
+
+  &:hover {
+    background: tokens.$color-primary-600;
+  }
+
+  &:active {
+    background: tokens.$color-primary-700;
+  }
+}
+
+/* Quick actions */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-sm;
+  height: 100%;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-md;
+  background: tokens.$color-surface-primary;
+  color: tokens.$color-text-primary;
+  text-align: left;
+  cursor: pointer;
+  flex: 1;
+  border: 1px solid #e5e7eb;
+
+  &:hover {
+    background: tokens.$color-surface-hover;
+  }
+
+  &:active {
+    background: tokens.$color-surface-hover;
+  }
+
+  &--primary {
+    background: tokens.$color-surface-selected;
+    color: tokens.$color-primary-700;
+    border: 1px solid #c7d2fe;
+
+    &:hover {
+      background: color.adjust(tokens.$color-surface-selected, $lightness: 3%);
+    }
+  }
+}
+
+.action-icon {
+  font-size: tokens.$font-size-lg;
+  flex-shrink: 0;
+}
+
+.action-content {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+}
+
+.action-title {
+  @include tokens.typography('body-medium');
+  font-weight: tokens.$font-weight-semibold;
+  color: inherit;
+}
+
+.action-desc {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-secondary;
+}
+
+/* Activity feed */
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-2xs;
+  height: 100%;
+}
+
+.activity-item {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+  padding: tokens.$spacing-2xs;
+  border-left: 2px solid tokens.$color-primary-500;
+  padding-left: tokens.$spacing-sm;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: tokens.$spacing-2xs;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: tokens.$color-primary-500;
+  }
+}
+
+.activity-time {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-tertiary;
+  font-weight: tokens.$font-weight-medium;
+}
+
+.activity-text {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+}
+
+/* Bento Grid System */
+.bento-grid {
+  display: grid;
+  gap: tokens.$spacing-md;
+  width: 100%;
+  grid-auto-rows: minmax(0, 1fr); // Filas flexibles pero contenidas
+
+  &--4-cols {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  &--comfortable {
+    gap: tokens.$spacing-xl;
+  }
+}
+
+/* Bento Card Base */
+.bento-card {
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e5e7eb;
+  min-height: 0; // Permitir que el contenido se contraiga
+
+  &--outlined {
+    background: transparent;
+    border: 1px solid #f3f4f6;
+  }
+  
+  // Cuando está dentro del panel de visitantes, ocupar toda la altura
+  .visitors-panel & {
+    height: 100%;
+  }
+}
+
+/* Bento Card Sizes */
+.bento-card--1x1 { grid-column: span 1; grid-row: span 1; }
+.bento-card--2x1 { grid-column: span 2; grid-row: span 1; }
+.bento-card--1x2 { grid-column: span 1; grid-row: span 2; }
+.bento-card--2x2 { grid-column: span 2; grid-row: span 2; }
+.bento-card--3x1 { grid-column: span 3; grid-row: span 1; }
+.bento-card--1x3 { grid-column: span 1; grid-row: span 3; }
+.bento-card--3x2 { grid-column: span 3; grid-row: span 2; }
+.bento-card--2x3 { grid-column: span 2; grid-row: span 3; }
+.bento-card--4x1 { grid-column: span 4; grid-row: span 1; }
+.bento-card--4x2 { grid-column: span 4; grid-row: span 2; }
+.bento-card--4x3 { grid-column: span 4; grid-row: span 3; }
+
+.bento-card-header {
+  padding: tokens.$spacing-md tokens.$spacing-md 0;
+}
+
+.bento-card-title {
+  @include tokens.typography('body-medium');
+  font-weight: tokens.$font-weight-semibold;
+  color: tokens.$color-text-primary;
+  margin: 0;
+  padding-bottom: tokens.$spacing-2xs;
+}
+
+.bento-card-content {
+  padding: 0 tokens.$spacing-md tokens.$spacing-md;
+  flex: 1;
+  overflow: auto;
+  
+  // Cuando está dentro del panel de visitantes, sin padding para control total
+  .visitors-panel & {
+    overflow: visible;
+    height: 100%;
+    padding: 0; // Remover padding para evitar que el paginador sobresalga
+  }
+}
+
+/* Panel de visitantes con scroll controlado */
+.visitors-panel {
+  height: 100%; // Altura fija para ocupar todo el espacio disponible
+  min-height: 0; // CRÍTICO: Permitir que el panel se contraiga dentro del grid
+  display: flex; // Asegurar flexbox
+  flex-direction: column; // Columna para controlar el layout interno
+  
+  // Sobrescribir el overflow del bento-card-content genérico
+  .bento-card-content {
+    overflow: visible; // Permitir que el contenido sea visible
+    height: 100%; // Altura fija
+    display: flex; // Asegurar flexbox
+    flex-direction: column; // Columna para el contenido
+    min-height: 0; // CRÍTICO: Permitir contracción
+  }
+  
+  &__content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0; // CRÍTICO: Permitir contracción
+    flex: 1; // Ocupar espacio disponible
+    padding: 0; // Removemos el padding del contenedor
+    overflow: visible; // Cambiar de hidden a visible para permitir dropdowns
+  }
+
+  &__list-container {
+    flex: 1;
+    overflow-y: auto; // Solo este contenedor tiene scroll
+    overflow-x: hidden; // Evitar scroll horizontal
+    padding: 0 tokens.$spacing-md; // Padding lateral para la lista
+    min-height: 0; // CRÍTICO: Importante para que funcione el flex con overflow
+    max-height: 100%; // Limitar altura al contenedor padre
+    
+    // Estilos personalizados de scrollbar
+    &::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f3f4;
+      border-radius: 4px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 4px;
+      
+      &:hover {
+        background: #a0aec0;
+      }
+    }
+    
+    // Para Firefox
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f1f3f4;
+  }
+
+  &__pagination {
+    // Paginador sticky siempre visible en la parte inferior
+    flex-shrink: 0; // No se encoge
+    padding: tokens.$spacing-md; // Padding consistente
+    border-top: 1px solid tokens.$color-border-subtle;
+    background: tokens.$color-surface-primary;
+    min-height: 60px; // Altura mínima suficiente
+    display: flex;
+    align-items: center; // Centrar verticalmente
+    
+    // El componente de paginación ya tiene su propio padding
+    ::ng-deep guiders-pagination {
+      width: 100%; // Ocupar todo el ancho
+      
+      .pagination {
+        border-top: none; // Removemos el borde del componente ya que lo ponemos aquí
+      }
+    }
+  }
+}
+
+/* Los estilos de KPI ahora se gestionan desde el componente shared BentoKpiComponent */
+
+/* Responsive adjustments */
+@media (max-width: tokens.$breakpoint-lg) {
+  .bento-grid--4-cols {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: tokens.$breakpoint-md) {
+  .bento-grid--4-cols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .bento-grid {
+    gap: tokens.$spacing-sm;
+  }
+}
+
+@media (max-width: 480px) {
+  .bento-grid--4-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .visitors-page {
+    padding: tokens.$spacing-md;
+  }
+}

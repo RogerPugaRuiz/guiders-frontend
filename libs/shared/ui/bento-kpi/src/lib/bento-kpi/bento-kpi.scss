@@ -1,0 +1,214 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  background: tokens.$color-surface-primary;
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-md;
+  padding: tokens.$spacing-md;
+  height: 100%;
+  position: relative;
+  // transition: all tokens.$duration-normal tokens.$easing-standard; // Deshabilitado - sin efectos hover
+
+  // Efectos hover deshabilitados por solicitud del usuario
+  // &:hover {
+  //   transform: translateY(-1px);
+  //   box-shadow: tokens.$shadow-xl;
+  // }
+
+  // Variant styles
+  &.bento-kpi--primary {
+    border-color: tokens.$color-primary-500;
+    background: linear-gradient(135deg, tokens.$color-surface-selected 0%, tokens.$color-surface-primary 100%);
+    
+    .kpi-title { color: tokens.$color-primary-700; }
+    .value-number { color: tokens.$color-primary-700; }
+  }
+
+  &.bento-kpi--success {
+    border-color: #16a34a;
+    background: linear-gradient(135deg, #dcfce7 0%, tokens.$color-surface-primary 100%);
+    
+    .kpi-title { color: #15803d; }
+    .value-number { color: #166534; }
+  }
+
+  &.bento-kpi--warning {
+    border-color: #f59e0b;
+    background: linear-gradient(135deg, #fef3c7 0%, tokens.$color-surface-primary 100%);
+    
+    .kpi-title { color: #d97706; }
+    .value-number { color: #92400e; }
+  }
+
+  &.bento-kpi--error {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, #fef2f2 0%, tokens.$color-surface-primary 100%);
+    
+    .kpi-title { color: #dc2626; }
+    .value-number { color: #991b1b; }
+  }
+
+  &.bento-kpi--neutral {
+    border-color: tokens.$color-border-subtle;
+    background: linear-gradient(135deg, tokens.$color-surface-secondary 0%, tokens.$color-surface-primary 100%);
+    
+    .kpi-title { color: tokens.$color-text-secondary; }
+    .value-number { color: tokens.$color-text-primary; }
+  }
+
+  &.bento-kpi--outlined {
+    background: transparent;
+    border-width: 2px;
+    border-style: solid;
+  }
+}
+
+.kpi-container {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-2xs;
+  height: 100%;
+}
+
+.kpi-header {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+}
+
+.kpi-icon {
+  font-size: tokens.$font-size-sm;
+}
+
+.kpi-title {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  font-weight: tokens.$font-weight-medium;
+}
+
+.kpi-value {
+  display: flex;
+  align-items: baseline;
+  gap: tokens.$spacing-xs;
+  margin: tokens.$spacing-xs 0;
+}
+
+.value-number {
+  font-size: tokens.$font-size-2xl;
+  font-weight: tokens.$font-weight-bold;
+  color: tokens.$color-text-primary;
+  line-height: 1;
+  font-feature-settings: 'tnum'; // Tabular numbers
+}
+
+.value-unit {
+  font-size: tokens.$font-size-sm;
+  color: tokens.$color-text-secondary;
+  font-weight: tokens.$font-weight-medium;
+}
+
+.kpi-trend {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+  @include tokens.typography('caption');
+  font-weight: tokens.$font-weight-medium;
+
+  &[data-direction="up"] {
+    color: #16a34a;
+  }
+
+  &[data-direction="down"] {
+    color: #ef4444;
+  }
+
+  &[data-direction="stable"] {
+    color: tokens.$color-text-secondary;
+  }
+}
+
+.trend-icon {
+  font-size: tokens.$font-size-xs;
+}
+
+.kpi-chart {
+  flex: 1;
+  display: flex;
+  align-items: end;
+  margin-top: auto;
+  min-height: 24px;
+}
+
+.chart-placeholder {
+  display: flex;
+  align-items: end;
+  gap: 1px;
+  height: 24px;
+  width: 100%;
+}
+
+.chart-bar {
+  flex: 1;
+  background: tokens.$color-primary-500;
+  opacity: 0.3;
+  min-height: 2px;
+  border-radius: 1px;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
+
+  &:hover {
+    opacity: 0.5;
+  }
+}
+
+// Size-specific adjustments
+:host.bento-kpi--1x1 {
+  .kpi-container {
+    gap: tokens.$spacing-xs;
+  }
+
+  .value-number {
+    font-size: tokens.$font-size-xl;
+  }
+
+  .kpi-chart {
+    display: none;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: tokens.$breakpoint-md) {
+  :host {
+    padding: tokens.$spacing-sm;
+  }
+
+  .value-number {
+    font-size: tokens.$font-size-xl;
+  }
+  
+  .kpi-chart {
+    display: none;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  :host {
+    border-width: 2px;
+    border-style: solid;
+  }
+}
+
+// Reduced motion
+@media (prefers-reduced-motion: reduce) {
+  :host {
+    transition: none;
+  }
+
+  .chart-bar {
+    transition: none;
+  }
+}

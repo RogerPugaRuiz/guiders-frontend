@@ -1,0 +1,126 @@
+<div class="guiders-chat-placeholder">
+  <div class="guiders-chat-placeholder__header">
+    <div class="guiders-chat-placeholder__chat-info">
+      <h2 class="guiders-chat-placeholder__title">{{ getChatDisplayName() }}</h2>
+      <div class="guiders-chat-placeholder__status" 
+           [attr.data-status]="selectedChat.status">
+        <guiders-icon 
+          [name]="getStatusIconName()" 
+          size="sm" 
+          class="guiders-chat-placeholder__status-icon" />
+        <span class="guiders-chat-placeholder__status-text">
+          {{ getChatStatusInfo().label }}
+        </span>
+      </div>
+    </div>
+    
+    @if (showActions) {
+      <div class="guiders-chat-placeholder__actions">
+        <guiders-button 
+          variant="ghost" 
+          size="small"
+          [ariaLabel]="'Configuración del chat'"
+          (click)="onSettingsClick()">
+          <guiders-icon name="settings" size="sm" />
+        </guiders-button>
+        
+        <guiders-button 
+          variant="ghost" 
+          size="small"
+          [ariaLabel]="'Cerrar chat'"
+          (click)="onCloseChat()">
+          <guiders-icon name="close" size="sm" />
+        </guiders-button>
+      </div>
+    }
+  </div>
+  
+  <div class="guiders-chat-placeholder__content">
+    @if (isLoading && messages.length === 0) {
+      <div class="guiders-chat-placeholder__state">
+        <span class="guiders-chat-placeholder__state-text">Cargando mensajes…</span>
+      </div>
+    } @else if (messages.length > 0) {
+      <div class="guiders-chat-placeholder__conversation">
+        <div class="guiders-chat-placeholder__messages" #messagesContainer>
+          <!-- Anchor para scroll infinito -->
+          @if (hasMoreMessages) {
+            <div #scrollAnchor class="guiders-chat-placeholder__scroll-anchor">
+              @if (isLoadingMore) {
+                <div class="guiders-chat-placeholder__loading-more">
+                  <span class="guiders-chat-placeholder__loading-spinner"></span>
+                  <span class="guiders-chat-placeholder__loading-text">Cargando mensajes anteriores…</span>
+                </div>
+              } @else {
+                <!-- Indicador visible para debug -->
+                <div class="guiders-chat-placeholder__scroll-indicator">
+                  <span>↑ Hacer scroll hacia arriba para cargar más ↑</span>
+                </div>
+              }
+            </div>
+          }
+          
+          @for (message of messages; track trackMessageById($index, message)) {
+            @let own = isOwnMessage(message);
+            @let system = isSystemMessage(message);
+            <div
+              class="guiders-chat-placeholder__message-row"
+              [class.guiders-chat-placeholder__message-row--own]="own"
+              [class.guiders-chat-placeholder__message-row--system]="system"
+            >
+              @if (!system) {
+                <span
+                  class="guiders-chat-placeholder__message-author"
+                  [class.guiders-chat-placeholder__message-author--own]="own"
+                >
+                  {{ getSenderLabel(message) }}
+                </span>
+              }
+              <div class="guiders-chat-placeholder__message-container">
+                <div
+                  class="guiders-chat-placeholder__message-body"
+                  [class.guiders-chat-placeholder__message-body--own]="own"
+                  [class.guiders-chat-placeholder__message-body--system]="system"
+                >
+                  {{ message.content }}
+                </div>
+                <span class="guiders-chat-placeholder__message-meta">
+                  {{ formatMessageTime(message.sentAt) }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="guiders-chat-placeholder__empty">
+        <guiders-icon 
+          name="message-square" 
+          size="xl" 
+          class="guiders-chat-placeholder__empty-icon" />
+        
+        <h3 class="guiders-chat-placeholder__empty-title">
+          Chat con {{ getChatDisplayName() }}
+        </h3>
+        
+        <p class="guiders-chat-placeholder__empty-text">
+          {{ placeholderMessage }}
+        </p>
+        
+        @if (selectedChat.chatId) {
+          <div class="guiders-chat-placeholder__debug">
+            <small class="guiders-chat-placeholder__debug-text">
+              ID: {{ selectedChat.chatId }}
+            </small>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  @if (messages.length > 0) {
+    <guiders-message-input
+      (messageSent)="onMessageSent($event)"
+    />
+  }
+</div>

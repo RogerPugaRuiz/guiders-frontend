@@ -1,0 +1,66 @@
+<div class="contacts-container">
+  <div class="contacts-header">
+    <h2>📇 Contactos</h2>
+    <p>Gestiona tu base de datos de contactos</p>
+  </div>
+
+  <div class="contacts-views">
+    <button 
+      *ngFor="let view of views" 
+      [class.active]="selectedView === view.id"
+      (click)="selectView(view.id)"
+      class="view-button">
+      <span class="icon">{{ view.icon }}</span>
+      {{ view.label }}
+    </button>
+  </div>
+
+  <div class="contacts-content">
+    @switch (selectedView) {
+      @case ('mine') {
+        <div class="contacts-section">
+          <div class="section-header">
+            <h3>Mis Contactos</h3>
+            <button class="add-contact-btn">+ Añadir Contacto</button>
+          </div>
+          <div class="empty-state">
+            <h4>Sin contactos aún</h4>
+            <p>Los contactos que agregues aparecerán aquí.</p>
+          </div>
+        </div>
+      }
+      @case ('recent') {
+        <div class="contacts-section">
+          <div class="section-header">
+            <h3>Contactos Recientes</h3>
+          </div>
+          <div class="empty-state">
+            <h4>Sin actividad reciente</h4>
+            <p>Los contactos con los que has interactuado recientemente aparecerán aquí.</p>
+          </div>
+        </div>
+      }
+      @case ('search') {
+        <div class="contacts-section">
+          <div class="section-header">
+            <h3>Búsqueda Avanzada</h3>
+          </div>
+          <div class="search-form">
+            <div class="search-field">
+              <label for="search-name">Nombre o Email:</label>
+              <input id="search-name" type="text" placeholder="Buscar contacto...">
+            </div>
+            <div class="search-field">
+              <label for="search-tags">Etiquetas:</label>
+              <input id="search-tags" type="text" placeholder="Ej: cliente, lead, vip...">
+            </div>
+            <div class="search-actions">
+              <button class="search-btn">🔍 Buscar</button>
+              <button class="clear-btn">Limpiar</button>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

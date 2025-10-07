@@ -1,12 +1,147 @@
-/* You can add global styles to this file, and also import other style files */
-html, body {
-  margin: 0;
-  padding: 0;
+/* === GUIDERS ADMIN - ESTILOS GLOBALES === */
+
+// Importar tokens de diseño
+@use '../../../libs/shared/design-tokens/src/lib/tokens-vars.scss' as tokens;
+
+/* Reset y normalización */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px; // Base para rem calculations
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   height: 100%;
   width: 100%;
 }
 
 body {
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  font-family: tokens.$font-family-ui;
+  font-size: tokens.$font-size-base;
+  line-height: tokens.$line-height-relaxed;
+  color: tokens.$color-text-primary;
+  background-color: tokens.$color-surface-primary;
+  
+  // Configuración de accesibilidad
+  scroll-behavior: smooth;
+}
+
+// Configuración de motion para accesibilidad
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+// Base typography
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 tokens.$spacing-md 0;
+  font-weight: tokens.$font-weight-semibold;
+  line-height: tokens.$line-height-tight;
+  color: tokens.$color-text-primary;
+}
+
+h1 { @include tokens.typography('h1'); }
+h2 { @include tokens.typography('heading-2xl'); }
+h3 { @include tokens.typography('heading-small'); }
+
+p {
+  margin: 0 0 tokens.$spacing-md 0;
+  @include tokens.typography('body-medium');
+}
+
+// Enlaces
+a {
+  color: tokens.$color-primary-600;
+  text-decoration: none;
+  transition: color tokens.$duration-fast tokens.$easing-standard;
+  
+  &:hover {
+    color: tokens.$color-primary-700;
+    text-decoration: underline;
+  }
+  
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-600;
+    outline-offset: 2px;
+    border-radius: tokens.$border-radius-sm;
+  }
+}
+
+// Código y datos
+code, pre {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: tokens.$font-size-sm;
+  background-color: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-sm;
+}
+
+code {
+  padding: tokens.$spacing-2xs tokens.$spacing-xs;
+}
+
+pre {
+  padding: tokens.$spacing-md;
+  overflow-x: auto;
+  
+  code {
+    padding: 0;
+    background: transparent;
+  }
+}
+
+// Formularios
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+// Focus management
+*:focus-visible {
+  outline: 2px solid tokens.$color-primary-600;
+  outline-offset: 2px;
+}
+
+// Utilidades globales
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Admin layout específico
+.admin-layout {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: 
+    "sidebar header"
+    "sidebar main";
+  min-height: 100vh;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    grid-template-areas: 
+      "header"
+      "main";
+  }
 }

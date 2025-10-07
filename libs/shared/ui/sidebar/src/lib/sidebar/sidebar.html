@@ -1,0 +1,194 @@
+<aside 
+  [ngClass]="sidebarClasses()"
+  [style.width]="sidebarWidth()"
+  role="navigation"
+  [attr.aria-label]="config().ariaLabel || 'Navegación principal'"
+  [attr.aria-expanded]="!isCollapsed()">
+  
+  <!-- Header with logo and toggle -->
+  <header class="sidebar__header">
+    @if (!isCollapsed()) {
+      <div class="sidebar__logo">
+        <guiders-icon 
+          name="building" 
+          size="lg"
+          class="sidebar__logo-icon"
+          [config]="{ decorative: true }" />
+        <span class="sidebar__logo-text">Guiders</span>
+      </div>
+    }
+    
+    @if (config().showToggle) {
+      <guiders-button
+        variant="ghost"
+        size="medium"
+        (click)="onToggleSidebar()"
+        [ariaLabel]="isCollapsed() ? 'Expandir navegación' : 'Contraer navegación'"
+        [ariaExpanded]="!isCollapsed()"
+        class="sidebar__toggle">
+        <guiders-icon 
+          [name]="isCollapsed() ? 'sidebar-expand' : 'sidebar-collapse'" 
+          size="sm"
+          [config]="{ ariaLabel: isCollapsed() ? 'Expandir' : 'Contraer' }" />
+      </guiders-button>
+    }
+  </header>
+
+  <!-- Navigation items -->
+  <nav class="sidebar__nav" role="navigation" aria-label="Menú principal">
+    <ul class="sidebar__nav-list" role="list">
+      @for (item of items(); track item.id) {
+        <li class="sidebar__nav-item" role="listitem">
+          <guiders-button
+            variant="ghost"
+            size="medium"
+            [class.sidebar__nav-link--active]="isItemActive(item)"
+            [class.sidebar__nav-link--has-children]="item.children && item.children.length > 0"
+            (click)="onItemClick(item)"
+            [ariaLabel]="getItemAriaLabel(item)"
+            [ariaCurrent]="isItemActive(item) ? 'page' : undefined"
+            [ariaExpanded]="item.children && item.children.length > 0 ? isItemExpanded(item.id) : undefined"
+            class="sidebar__nav-link">
+            
+            @if (item.icon) {
+              <guiders-icon
+                [name]="item.icon"
+                size="md"
+                class="sidebar__nav-icon"
+                [config]="{ decorative: true }" />
+            }
+            
+            @if (!isCollapsed()) {
+              <span class="sidebar__nav-text">{{ item.label }}</span>
+              
+              @if (item.badge) {
+                <guiders-badge
+                  [text]="item.badge.text"
+                  [variant]="item.badge.variant || 'primary'"
+                  size="small"
+                  class="sidebar__nav-badge" />
+              }
+              
+              @if (item.children && item.children.length > 0) {
+                <guiders-icon
+                  name="chevron-down"
+                  size="sm"
+                  class="sidebar__nav-arrow"
+                  [class.sidebar__nav-arrow--expanded]="isItemExpanded(item.id)"
+                  [config]="{ 
+                    ariaLabel: isItemExpanded(item.id) ? 'Contraer submenu' : 'Expandir submenu',
+                    decorative: false
+                  }" />
+              }
+            }
+          </guiders-button>
+
+          <!-- Submenu normal (modo expandido) -->
+          @if (item.children && item.children.length > 0 && !isCollapsed() && isItemExpanded(item.id)) {
+            <ul class="sidebar__submenu" 
+                role="group" 
+                [attr.aria-labelledby]="'nav-item-' + item.id">
+              @for (child of item.children; track child.id) {
+                <li class="sidebar__submenu-item" role="listitem">
+                  <guiders-button
+                    variant="ghost"
+                    size="small"
+                    [class.sidebar__submenu-link--active]="isItemActive(child)"
+                    (click)="onItemClick(child)"
+                    [ariaLabel]="getItemAriaLabel(child)"
+                    [ariaCurrent]="isItemActive(child) ? 'page' : undefined"
+                    class="sidebar__submenu-link">
+                    
+                    @if (child.icon) {
+                      <guiders-icon
+                        [name]="child.icon"
+                        size="sm"
+                        class="sidebar__submenu-icon"
+                        [config]="{ decorative: true }" />
+                    }
+                    
+                    <span class="sidebar__submenu-text">{{ child.label }}</span>
+                    
+                    @if (child.badge) {
+                      <guiders-badge
+                        [text]="child.badge.text"
+                        [variant]="child.badge.variant || 'secondary'"
+                        size="small"
+                        class="sidebar__submenu-badge" />
+                    }
+                  </guiders-button>
+                </li>
+              }
+            </ul>
+          }
+
+          <!-- Popover flotante (modo colapsado) -->
+          @if (item.children && item.children.length > 0 && isCollapsed() && isPopoverOpen(item)) {
+            <div class="sidebar__popover-overlay" 
+                 role="button"
+                 tabindex="-1"
+                 [attr.aria-label]="'Cerrar menú ' + item.label"
+                 (click)="closePopover()"
+                 (keydown.escape)="closePopover()">
+              <div class="sidebar__popover-content" 
+                   tabindex="0"
+                   role="menu"
+                   [attr.aria-labelledby]="'nav-item-' + item.id"
+                   (click)="$event.stopPropagation()"
+                   (keydown)="handlePopoverKeydown($event)"
+                   [style.top.px]="getPopoverPosition(item).top">
+                <div class="sidebar__popover-header">
+                  <span class="sidebar__popover-title">{{ item.label }}</span>
+                </div>
+                <ul class="sidebar__popover-menu" role="none">
+                  @for (child of item.children; track child.id) {
+                    <li class="sidebar__popover-item" role="none">
+                      <button
+                        [class.sidebar__popover-button--active]="isItemActive(child)"
+                        (click)="onPopoverItemClick(child, $event)"
+                        [attr.aria-label]="getItemAriaLabel(child)"
+                        [attr.aria-current]="isItemActive(child) ? 'page' : undefined"
+                        role="menuitem"
+                        class="sidebar__popover-button">
+                        
+                        @if (child.icon) {
+                          <guiders-icon
+                            [name]="child.icon"
+                            size="sm"
+                            class="sidebar__popover-icon"
+                            [config]="{ decorative: true }" />
+                        }
+                        
+                        <span class="sidebar__popover-text">{{ child.label }}</span>
+                        
+                        @if (child.badge) {
+                          <guiders-badge
+                            [text]="child.badge.text"
+                            [variant]="child.badge.variant || 'secondary'"
+                            size="small"
+                            class="sidebar__popover-badge" />
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <!-- Footer with user menu -->
+  <footer class="sidebar__footer">
+    @if (userEmail()) {
+      <guiders-user-menu
+        [userEmail]="userEmail()!"
+        [userName]="userName()"
+        [compact]="isCollapsed()"
+        (logout)="onUserLogout()"
+        (configureAccount)="onUserConfigureAccount()" />
+    }
+  </footer>
+</aside>

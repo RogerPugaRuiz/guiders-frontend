@@ -1,4 +1,12 @@
-<div>
-	<h1>Admin Application</h1>
+<div class="admin-app">
+  <guiders-sidebar
+    [items]="sidebarItems()"
+    [config]="sidebarConfig()"
+    (itemClick)="onSidebarItemClick($event)"
+    (toggleSidebar)="onSidebarToggle($event)">
+  </guiders-sidebar>
+  
+  <main class="admin-content">
+    <router-outlet></router-outlet>
+  </main>
 </div>
-<router-outlet></router-outlet>

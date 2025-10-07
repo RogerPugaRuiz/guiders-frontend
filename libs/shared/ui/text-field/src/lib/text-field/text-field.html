@@ -1,0 +1,60 @@
+<div [ngClass]="fieldClasses()">
+  <!-- Label -->
+  @if (label()) {
+    <label 
+      class="guiders-text-field__label"
+      [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="guiders-text-field__required" aria-label="requerido">*</span>
+      }
+    </label>
+  }
+  
+  <!-- Input wrapper -->
+  <div class="guiders-text-field__wrapper">
+    <input
+      #input
+      [ngClass]="inputClasses()"
+      [id]="inputId"
+      [type]="type()"
+      [value]="internalValue()"
+      [placeholder]="placeholder()"
+      [disabled]="disabled()"
+      [readonly]="readonly()"
+      [required]="required()"
+      [attr.maxlength]="maxLength()"
+      [attr.minlength]="minLength()"
+      [pattern]="pattern()"
+      [autocomplete]="autocomplete()"
+      [attr.aria-label]="ariaLabel()"
+      [attr.aria-describedby]="describedByIds()"
+      [attr.aria-invalid]="hasError()"
+      [attr.aria-required]="required()"
+      (input)="onInputChange($event)"
+      (focus)="onInputFocus($event)"
+      (blur)="onInputBlur($event)"
+      (keydown)="onInputKeydown($event)">
+  </div>
+  
+  <!-- Helper text -->
+  @if (hasHelperText() && !hasError()) {
+    <div 
+      class="guiders-text-field__helper"
+      [id]="helperId"
+      role="note">
+      {{ helperText() }}
+    </div>
+  }
+  
+  <!-- Error message -->
+  @if (hasError()) {
+    <div 
+      class="guiders-text-field__error"
+      [id]="errorId"
+      role="alert"
+      aria-live="polite">
+      {{ errorMessage() }}
+    </div>
+  }
+</div>

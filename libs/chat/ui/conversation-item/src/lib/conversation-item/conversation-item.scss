@@ -1,0 +1,166 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+// === CONVERSATION ITEM COMPONENT ===
+// Componente individual pa@media (max-width: tokens.$breakpoint-md) {
+  .conversation-item {
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+  }mostrar cada conversación en la lista del inbox
+// - Completamente autónomo y reutilizable
+// - Sigue patrones de diseño B2B de Guiders
+// - Accesibilidad WCAG 2.2 AA
+// - Estados interactivos con transiciones suaves
+
+:host {
+  display: block;
+  font-family: tokens.$font-family-ui;
+}
+
+.conversation-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-md;
+  padding: tokens.$spacing-md tokens.$spacing-lg;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color tokens.$duration-fast tokens.$easing-standard;
+
+  &:hover {
+    background: tokens.$color-surface-tertiary;
+  }
+
+  &:focus-visible {
+    @include tokens.focus-ring;
+    outline-offset: -2px;
+  }
+
+  &--selected {
+    background: tokens.$color-surface-tertiary;
+    
+    .conversation-item__name {
+      font-weight: tokens.$font-weight-semibold;
+      color: #000000; // Color negro más intenso para estado activo
+    }
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.conversation-item__avatar {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-full;
+  flex-shrink: 0;
+  font-size: tokens.$font-size-xl;
+}
+
+.conversation-item__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+}
+
+.conversation-item__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
+}
+
+.conversation-item__name {
+  @include tokens.typography('label-large');
+  color: tokens.$color-text-primary;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-item__time {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-tertiary;
+  flex-shrink: 0;
+}
+
+.conversation-item__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
+}
+
+.conversation-item__preview {
+  @include tokens.typography('body-small');
+  color: tokens.$color-text-secondary;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: tokens.$line-height-tight;
+}
+
+.conversation-item__badge {
+  @include tokens.typography('caption');
+  background: tokens.$color-primary-500;
+  color: tokens.$color-text-inverse;
+  padding: 2px tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-full;
+  min-width: 20px;
+  text-align: center;
+  line-height: 1.2;
+  flex-shrink: 0;
+  font-weight: tokens.$font-weight-semibold;
+}
+
+// === Estados de accesibilidad ===
+@media (prefers-reduced-motion: reduce) {
+  .conversation-item {
+    transition: none;
+  }
+}
+
+// === Estados de alto contraste ===
+@media (prefers-contrast: high) {
+  .conversation-item {
+    border-bottom-width: 2px;
+  }
+  
+  .conversation-item--selected {
+    background: tokens.$color-surface-primary;
+    border: 2px solid tokens.$color-primary-500;
+  }
+}
+
+// === Responsive ===
+@media (max-width: tokens.$breakpoint-md) {
+  .conversation-item {
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+  }
+  
+  .conversation-item__avatar {
+    width: 40px;
+    height: 40px;
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .conversation-item__name {
+    @include tokens.typography('label-medium');
+  }
+  
+  .conversation-item__preview {
+    @include tokens.typography('caption');
+  }
+}

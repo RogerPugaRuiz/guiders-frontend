@@ -1,0 +1,332 @@
+/**
+ * Guiders Radio Component
+ * Basado en la guía de diseño B2B Web Desktop
+ * Cumple WCAG 2.2 AA
+ */
+
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+}
+
+.guiders-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-3);
+  cursor: pointer;
+  
+  &--disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  &--error {
+    .guiders-radio__label {
+      color: var(--color-danger);
+    }
+  }
+}
+
+// === WRAPPER ===
+
+.guiders-radio__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+// === INPUT (OCULTO) ===
+
+.guiders-radio__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  pointer-events: none;
+}
+
+// === CÍRCULO VISUAL ===
+
+.guiders-radio__circle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-border);
+  border-radius: 50%;
+  background-color: var(--color-surface);
+  transition: all var(--duration-fast) var(--easing-standard);
+  
+  // Estados de interacción
+  .guiders-radio__input:hover + & {
+    border-color: var(--color-border-hover);
+    background-color: var(--color-surface-hover);
+  }
+  
+  .guiders-radio__input:focus + & {
+    border-color: var(--color-brand);
+    box-shadow: var(--shadow-focus-brand);
+  }
+  
+  .guiders-radio__input:active + & {
+    background-color: var(--color-surface-pressed);
+    transform: scale(0.95);
+  }
+  
+  // Estado checked
+  .guiders-radio__input:checked + & {
+    border-color: var(--color-brand);
+    background-color: var(--color-surface);
+    
+    .guiders-radio__dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  // Estado error
+  .guiders-radio--error & {
+    border-color: var(--color-danger);
+    
+    .guiders-radio__input:checked + & {
+      border-color: var(--color-danger);
+      
+      .guiders-radio__dot {
+        background-color: var(--color-danger);
+      }
+    }
+    
+    .guiders-radio__input:focus + & {
+      border-color: var(--color-danger);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+    }
+  }
+  
+  // Estado disabled
+  .guiders-radio--disabled & {
+    border-color: var(--color-border-disabled);
+    background-color: var(--color-surface-disabled);
+    cursor: not-allowed;
+    
+    .guiders-radio__input:checked + & {
+      border-color: var(--color-border-disabled);
+      
+      .guiders-radio__dot {
+        background-color: var(--color-on-surface-disabled);
+      }
+    }
+  }
+}
+
+// === DOT INTERIOR ===
+
+.guiders-radio__dot {
+  border-radius: 50%;
+  background-color: var(--color-brand);
+  opacity: 0;
+  transform: scale(0);
+  transition: all var(--duration-fast) var(--easing-standard);
+}
+
+// === TAMAÑOS ===
+
+.guiders-radio--small {
+  .guiders-radio__circle {
+    width: var(--spacing-5); // 20px
+    height: var(--spacing-5);
+  }
+  
+  .guiders-radio__dot {
+    width: var(--spacing-2); // 8px
+    height: var(--spacing-2);
+  }
+  
+  .guiders-radio__label {
+    @include tokens.typography('body-small');
+  }
+}
+
+.guiders-radio--medium {
+  .guiders-radio__circle {
+    width: var(--spacing-6); // 24px
+    height: var(--spacing-6);
+  }
+  
+  .guiders-radio__dot {
+    width: var(--spacing-3); // 12px
+    height: var(--spacing-3);
+  }
+  
+  .guiders-radio__label {
+    @include tokens.typography('body-base');
+  }
+}
+
+.guiders-radio--large {
+  .guiders-radio__circle {
+    width: var(--spacing-8); // 32px
+    height: var(--spacing-8);
+  }
+  
+  .guiders-radio__dot {
+    width: var(--spacing-4); // 16px
+    height: var(--spacing-4);
+  }
+  
+  .guiders-radio__label {
+    @include tokens.typography('body-large');
+  }
+}
+
+// === LABEL ===
+
+.guiders-radio__label {
+  color: var(--color-on-surface);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-normal);
+  cursor: pointer;
+  flex: 1;
+  
+  .guiders-radio--disabled & {
+    color: var(--color-on-surface-disabled);
+    cursor: not-allowed;
+  }
+}
+
+.guiders-radio__required {
+  color: var(--color-danger);
+  margin-left: var(--spacing-1);
+  font-weight: var(--font-weight-semibold);
+}
+
+// === HELPER TEXT ===
+
+.guiders-radio__helper {
+  @include tokens.typography('caption');
+  color: var(--color-on-surface-secondary);
+  line-height: var(--line-height-normal);
+  margin-top: var(--spacing-1);
+  flex: 1;
+}
+
+// === ERROR MESSAGE ===
+
+.guiders-radio__error {
+  @include tokens.typography('caption');
+  color: var(--color-danger);
+  line-height: var(--line-height-normal);
+  margin-top: var(--spacing-1);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-1);
+  flex: 1;
+  
+  &::before {
+    content: '⚠️';
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+// === CONFIGURACIÓN PARA MOTION REDUCIDO ===
+
+@media (prefers-reduced-motion: reduce) {
+  .guiders-radio__circle,
+  .guiders-radio__dot {
+    transition-duration: var(--duration-instant);
+  }
+  
+  .guiders-radio__input:active + .guiders-radio__circle {
+    transform: none;
+  }
+  
+  .guiders-radio__dot {
+    transform: scale(0);
+    
+    .guiders-radio__input:checked + .guiders-radio__circle & {
+      transform: scale(1);
+    }
+  }
+}
+
+// === MODO OSCURO ===
+
+[data-theme="dark"] {
+  .guiders-radio__circle {
+    .guiders-radio__input:checked + & {
+      .guiders-radio__dot {
+        background-color: var(--color-brand);
+      }
+    }
+  }
+  
+  .guiders-radio--error {
+    .guiders-radio__circle {
+      .guiders-radio__input:checked + & {
+        .guiders-radio__dot {
+          background-color: var(--color-danger);
+        }
+      }
+    }
+  }
+}
+
+// === RESPONSIVE ===
+
+@media (max-width: 768px) {
+  .guiders-radio--large {
+    .guiders-radio__circle {
+      width: var(--spacing-6); // Reducir en móvil
+      height: var(--spacing-6);
+    }
+    
+    .guiders-radio__dot {
+      width: var(--spacing-3);
+      height: var(--spacing-3);
+    }
+  }
+}
+
+// === LAYOUT VERTICAL (OPCIONAL) ===
+
+.guiders-radio--vertical {
+  flex-direction: column;
+  align-items: flex-start;
+  
+  .guiders-radio__wrapper {
+    order: -1;
+  }
+  
+  .guiders-radio__label {
+    margin-top: var(--spacing-2);
+  }
+}
+
+// === GRUPO DE RADIOS ===
+
+.guiders-radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  
+  &--horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--spacing-6);
+  }
+  
+  &--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--spacing-4);
+  }
+}

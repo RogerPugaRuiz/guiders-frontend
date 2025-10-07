@@ -1,0 +1,64 @@
+<div
+  #menuElement
+  class="user-menu"
+  [class.user-menu--compact]="compact()"
+  (click)="toggleDropdown()"
+  tabindex="0"
+  role="button"
+  aria-haspopup="true"
+  [attr.aria-expanded]="isDropdownOpen()"
+>
+  <!-- Avatar del usuario -->
+  <div class="user-menu__avatar" [style.background-color]="getAvatarBackgroundColor()">
+    <span class="user-menu__initial">{{ getUserInitials() }}</span>
+  </div>
+  
+  <!-- Información del usuario (solo visible cuando no está compacto) -->
+  @if (!compact()) {
+    <div class="user-menu__info">
+      @if (userName()) {
+        <span class="user-menu__name">{{ userName() }}</span>
+      }
+      <span class="user-menu__email">{{ userEmail() }}</span>
+    </div>
+  }
+</div>
+
+<!-- Dropdown flotante renderizado fuera del contenedor -->
+@if (isDropdownOpen() && dropdownPosition()) {
+  <div 
+    class="user-menu__dropdown-overlay"
+    (click)="closeDropdown()"
+    (keydown.escape)="closeDropdown()"
+    role="button"
+    tabindex="-1"
+    aria-label="Cerrar menú">
+    <div 
+      class="user-menu__dropdown"
+      (click)="$event.stopPropagation()"
+      (keydown)="$event.stopPropagation()"
+      [style.bottom.px]="dropdownPosition()!.bottom"
+      [style.left.px]="dropdownPosition()!.left"
+      role="menu"
+      tabindex="0">
+      <ul class="user-menu__dropdown-list">
+        <li class="user-menu__dropdown-item">
+          <button
+            class="user-menu__dropdown-button"
+            (click)="onConfigureAccount()"
+            role="menuitem">
+            Perfil
+          </button>
+        </li>
+        <li class="user-menu__dropdown-item user-menu__dropdown-item--divider">
+          <button
+            class="user-menu__dropdown-button user-menu__dropdown-button--danger"
+            (click)="onLogout()"
+            role="menuitem">
+            Cerrar sesión
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+}

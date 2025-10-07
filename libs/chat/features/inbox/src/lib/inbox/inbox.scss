@@ -1,0 +1,106 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  min-height: 0;
+}
+
+// === INBOX COORDINADOR ===
+// Estilos simplificados para el coordinador principal
+// Los estilos específicos de cada área están en sus respectivos componentes:
+// - InboxSidebar: Panel lateral completo
+// - ChatWelcomeState: Estado de bienvenida
+// - ChatPlaceholder: Placeholder del chat
+
+.inbox {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  background-color: tokens.$color-surface-secondary;
+  font-family: tokens.$font-family-ui;
+  overflow: hidden;
+  position: relative;
+
+  &__sidebar {
+    flex: 0 0 320px;
+    min-width: 280px;
+    max-width: 400px;
+    height: 100%;
+    overflow: hidden;
+    border-right: 1px solid tokens.$color-border-subtle;
+    background-color: tokens.$color-surface-primary;
+  }
+
+  &__main {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    min-width: 0; // Permite que el contenido se contraiga
+    background-color: tokens.$color-surface-primary;
+  }
+}
+
+// Responsive design
+@media (max-width: tokens.$breakpoint-lg) {
+  .inbox {
+    &__sidebar {
+      flex: 0 0 280px;
+      min-width: 260px;
+    }
+  }
+}
+
+@media (max-width: tokens.$breakpoint-md) {
+  .inbox {
+    flex-direction: column;
+    
+    &__sidebar {
+      flex: 0 0 200px;
+      width: 100%;
+      max-width: none;
+      border-right: none;
+      border-bottom: 1px solid tokens.$color-border-subtle;
+    }
+    
+    &__main {
+      flex: 1;
+      height: auto;
+      min-height: 0;
+    }
+  }
+}
+
+// Estados de carga y error a nivel global
+.inbox {
+  &--loading {
+    .inbox__main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &::before {
+        content: 'Cargando...';
+        color: tokens.$color-text-secondary;
+        font-size: tokens.$font-size-lg;
+      }
+    }
+  }
+
+  &--error {
+    .inbox__main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: tokens.$spacing-md;
+      
+      &::before {
+        content: 'Error al cargar';
+        color: #ef4444; // Rojo para estado de error
+        font-size: tokens.$font-size-lg;
+      }
+    }
+  }
+}

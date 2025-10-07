@@ -1,0 +1,224 @@
+<div class="chat-messages">
+  <!-- Header del chat -->
+  <div class="chat-header">
+    <div class="chat-header__info">
+      <div class="chat-avatar">
+        @if (chat().participants && chat().participants.length > 2) {
+          <span>👥</span>
+        } @else {
+          <span>{{ otherParticipant()?.avatar || '👤' }}</span>
+        }
+      </div>
+      <div class="chat-details">
+        <h2 class="chat-name">
+          @if (chat().participants && chat().participants.length > 2) {
+            {{ chat().name || 'Grupo sin nombre' }}
+          } @else {
+            {{ otherParticipant()?.name || 'Usuario desconocido' }}
+          }
+        </h2>
+        <div class="chat-status">
+          @if (chat().participants && chat().participants.length <= 2 && otherParticipant()) {
+            <span [class]="'status status--' + otherParticipant()!.status">
+              {{ otherParticipant()!.status === 'online' ? 'En línea' : 
+                 otherParticipant()!.status === 'away' ? 'Ausente' :
+                 otherParticipant()!.status === 'busy' ? 'Ocupado' : 'Desconectado' }}
+            </span>
+          } @else {
+            <span>{{ chat().participants.length }} participantes</span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de mensajes -->
+  <div class="messages-container" #messagesContainer>
+    @if (loading()) {
+      <div class="messages-loading">
+        <div class="loading-spinner"></div>
+        <span>Cargando mensajes...</span>
+      </div>
+    } @else {
+      @if (groupedMessages().length === 0) {
+        <div class="messages-empty">
+          <span>No hay mensajes aún</span>
+          <small>¡Envía el primer mensaje!</small>
+        </div>
+      } @else {
+        @for (group of groupedMessages(); track group.date) {
+          <div class="message-group">
+            <!-- Separador de fecha -->
+            <div class="date-separator">
+              <span>{{ formatDateHeader(group.date) }}</span>
+            </div>
+
+            <!-- Mensajes del día -->
+            @for (message of group.messages; track message.messageId) {
+              <div 
+                class="message"
+                [class.message--own]="isOwnMessage(message)"
+                [class.message--editing]="editingMessageId() === message.messageId"
+                tabindex="0"
+                role="button"
+                [attr.aria-label]="'Mensaje de ' + getSenderName(message.senderId)"
+                (click)="markAsRead(message)"
+                (keydown.enter)="markAsRead(message)"
+                (keydown.space)="markAsRead(message)">
+                
+                @if (!isOwnMessage(message) && chat().participants && chat().participants.length > 2) {
+                  <div class="message__avatar">
+                    <span>{{ getSenderAvatar(message.senderId) }}</span>
+                  </div>
+                }
+
+                <div class="message__content">
+                  @if (!isOwnMessage(message) && chat().participants && chat().participants.length > 2) {
+                    <div class="message__sender">
+                      {{ getSenderName(message.senderId) }}
+                    </div>
+                  }
+
+                  <div class="message__bubble">
+                    @if (editingMessageId() === message.messageId) {
+                      <!-- Modo edición -->
+                      <div class="message__edit">
+                        <input
+                          type="text"
+                          class="edit-input"
+                          [value]="editingContent()"
+                          (input)="onEditInputChange($event)"
+                          (keydown.enter)="saveEdit()"
+                          (keydown.escape)="cancelEdit()">
+                        <div class="edit-actions">
+                          <guiders-button 
+                            (click)="saveEdit()"
+                            variant="primary"
+                            size="small"
+                            [ariaLabel]="'Guardar cambios'"
+                            class="btn-save">✓</guiders-button>
+                          <guiders-button 
+                            (click)="cancelEdit()"
+                            variant="secondary"
+                            size="small"
+                            [ariaLabel]="'Cancelar edición'"
+                            class="btn-cancel">✕</guiders-button>
+                        </div>
+                      </div>
+                    } @else {
+                      <!-- Contenido del mensaje -->
+                      <div class="message__text">
+                        @switch (message.type) {
+                          @case ('TEXT') {
+                            {{ message.content }}
+                          }
+                          @case ('IMAGE') {
+                            <div class="message__media">
+                              📷 {{ message.metadata?.fileName || 'Imagen' }}
+                            </div>
+                          }
+                          @case ('FILE') {
+                            <div class="message__media">
+                              📎 {{ message.metadata?.fileName || 'Archivo' }}
+                            </div>
+                          }
+                          @case ('AUDIO') {
+                            <div class="message__media">
+                              🎵 {{ message.metadata?.fileName || 'Audio' }}
+                            </div>
+                          }
+                          @case ('VIDEO') {
+                            <div class="message__media">
+                              🎥 {{ message.metadata?.fileName || 'Video' }}
+                            </div>
+                          }
+                        }
+                        
+                        @if (message.edited) {
+                          <span class="message__edited">(editado)</span>
+                        }
+                      </div>
+
+                      <!-- Información del mensaje -->
+                      <div class="message__info">
+                        <span class="message__time">{{ formatMessageTime(message.sentAt) }}</span>
+                        @if (isOwnMessage(message)) {
+                          <span 
+                            class="message__status"
+                            [class.status--read]="message.status === 'READ'">
+                            {{ getMessageStatusIcon(message) }}
+                          </span>
+                        }
+                      </div>
+
+                      <!-- Menú de acciones (solo para mensajes propios) -->
+                      @if (isOwnMessage(message) && message.type === 'TEXT') {
+                        <div class="message__actions">
+                          <guiders-button 
+                            (click)="startEdit(message)"
+                            [ariaLabel]="'Editar mensaje'"
+                            variant="ghost"
+                            size="small"
+                            class="action-btn">
+                            ✏️
+                          </guiders-button>
+                          <guiders-button 
+                            (click)="deleteMessage(message.messageId)"
+                            [ariaLabel]="'Eliminar mensaje'"
+                            variant="ghost"
+                            size="small"
+                            class="action-btn">
+                            🗑️
+                          </guiders-button>
+                        </div>
+                      }
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+  </div>
+
+  <!-- Input para nuevo mensaje -->
+  @if (canSendMessages()) {
+    <div class="message-input">
+      <div class="input-wrapper">
+        <guiders-text-field
+          type="text"
+          placeholder="Escribe un mensaje..."
+          [value]="newMessage()"
+          [disabled]="loading()"
+          (valueChange)="onMessageValueChange($event)"
+          (inputKeydown)="onKeyPress($event)"
+          [ariaLabel]="'Escribir nuevo mensaje'"
+          size="medium"
+          class="message-field">
+        </guiders-text-field>
+        
+        <guiders-button 
+          [disabled]="!newMessage().trim() || loading()"
+          (click)="onSendMessage()"
+          [ariaLabel]="'Enviar mensaje'"
+          variant="primary"
+          size="medium"
+          class="send-button">
+          📤
+        </guiders-button>
+      </div>
+      
+      @if (isTyping()) {
+        <div class="typing-status">
+          Escribiendo...
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="message-input-disabled">
+      <span>No puedes enviar mensajes en este chat</span>
+    </div>
+  }
+</div>

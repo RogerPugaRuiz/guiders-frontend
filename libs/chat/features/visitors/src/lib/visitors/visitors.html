@@ -1,0 +1,192 @@
+<div class="visitors-page">
+  <!-- Grid Bento principal -->
+  <div class="visitors-grid bento-grid bento-grid--4-cols bento-grid--comfortable">
+    <!-- Título simplificado -->
+    <div class="visitors-header-card bento-card bento-card--4x1">
+      <div class="page-header">
+        <div class="page-info">
+          <h1 class="page-title">
+            Visitantes - {{ getFilterDescription(selectedFilterId()) }}
+          </h1>
+          <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- KPI Cards - Estadísticas -->
+    <guiders-bento-kpi
+      size="1x1"
+      variant="neutral"
+      title="Total"
+      [value]="visitorStats().total"
+    />
+    
+    <guiders-bento-kpi
+      size="1x1"
+      variant="success"
+      title="En Línea"
+      [value]="visitorStats().online"
+      [trend]="{ value: 12, direction: 'up' }"
+    />
+    
+    <guiders-bento-kpi
+      size="1x1"
+      variant="primary"
+      title="Con Chat"
+      [value]="visitorStats().withActiveChat"
+    />
+    
+    <guiders-bento-kpi
+      size="1x1"
+      variant="warning"
+      title="Leads"
+      [value]="visitorStats().leads"
+      [trend]="{ value: 8, direction: 'up' }"
+    />
+
+    <!-- Panel principal - Lista de visitantes -->
+    <div class="bento-card bento-card--4x3 visitors-panel">
+      <div class="bento-card-header">
+        <h3 class="bento-card-title">Lista de Visitantes</h3>
+      </div>
+      
+      <div class="bento-card-content visitors-panel__content">
+        @if (state().error) {
+          <div class="error-content">
+            <span class="error-text">{{ state().error }}</span>
+            <button class="retry-button" (click)="loadVisitors()">
+              Reintentar
+            </button>
+          </div>
+        } @else {
+          <!-- Área con scroll solo para la lista -->
+          <div class="visitors-panel__list-container">
+            <lib-visitors-list
+              [visitors]="filteredVisitors()"
+              [loading]="state().loading"
+              [error]="state().error"
+              [config]="listConfig()"
+              [selectedVisitorIds]="[]"
+              (visitorClick)="onVisitorClick($event)"
+              (visitorSelect)="onVisitorSelect($event)"
+              (createChat)="onCreateChat($event)"
+              (viewPendingChats)="onViewPendingChats($event)"
+              (searchChange)="onSearchChange($event)"
+              (filterChange)="onFilterChange($event)"
+              (sortChange)="onSortChange($event)"
+            />
+          </div>
+          
+          <!-- Paginador sticky fuera del scroll, siempre visible -->
+          @if ((state().pagination.totalCount ?? 0) > 0) {
+            <div class="visitors-panel__pagination">
+              <guiders-pagination
+                [config]="{
+                  currentPage: state().pagination.currentPage || 1,
+                  pageSize: state().pagination.limit,
+                  totalCount: state().pagination.totalCount || 0,
+                  pageSizeOptions: [10, 20, 50, 100]
+                }"
+                [disabled]="state().loading"
+                (pageChange)="onPageChange($event)"
+                (pageSizeChange)="onPageSizeChange($event)"
+              />
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Panel de acciones rápidas -->
+    <!-- <div class="bento-card bento-card--1x2">
+      <div class="bento-card-header">
+        <h3 class="bento-card-title">Acciones Rápidas</h3>
+      </div>
+      
+      <div class="bento-card-content">
+        <div class="quick-actions">
+          <button class="action-button action-button--primary">
+            <span class="action-icon">➕</span>
+            <div class="action-content">
+              <span class="action-title">Crear Chat</span>
+              <span class="action-desc">Iniciar conversación</span>
+            </div>
+          </button>
+          
+          <button class="action-button">
+            <span class="action-icon">🔍</span>
+            <div class="action-content">
+              <span class="action-title">Búsqueda Avanzada</span>
+              <span class="action-desc">Filtros detallados</span>
+            </div>
+          </button>
+          
+          <button class="action-button">
+            <span class="action-icon">📊</span>
+            <div class="action-content">
+              <span class="action-title">Exportar Datos</span>
+              <span class="action-desc">CSV, Excel</span>
+            </div>
+          </button>
+          
+          <button class="action-button">
+            <span class="action-icon">⚙️</span>
+            <div class="action-content">
+              <span class="action-title">Configuración</span>
+              <span class="action-desc">Preferencias</span>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div> -->
+
+    <!-- Panel de actividad reciente -->
+    <!-- <div class="bento-card bento-card--1x1">
+      <div class="bento-card-header">
+        <h3 class="bento-card-title">Actividad Reciente</h3>
+      </div>
+      
+      <div class="bento-card-content">
+        <div class="activity-feed">
+          <div class="activity-item">
+            <span class="activity-time">Hace 5min</span>
+            <span class="activity-text">Nuevo visitante en línea</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Hace 12min</span>
+            <span class="activity-text">Chat iniciado</span>
+          </div>
+          <div class="activity-item">
+            <span class="activity-time">Hace 25min</span>
+            <span class="activity-text">Lead convertido</span>
+          </div>
+        </div>
+      </div>
+    </div> -->
+
+  </div>
+
+  <!-- Modal para crear chat -->
+  @if (selectedVisitorForChat()) {
+    <lib-create-chat-modal
+      [visitor]="selectedVisitorForChat()!"
+      [isOpen]="showCreateChatModal()"
+      [loading]="state().loading"
+      [config]="modalConfig()"
+      (modalClose)="closeCreateChatModal()"
+      (createChat)="onModalCreateChat($event)"
+    />
+  }
+
+  <!-- Modal para chats pendientes -->
+  @if (pendingChatsModalData()) {
+    <guiders-pending-chats-modal
+      [isOpen]="showPendingChatsModal()"
+      [data]="pendingChatsModalData()!"
+      [loading]="state().loading"
+      (closeModal)="closePendingChatsModal()"
+      (takeChat)="onTakePendingChat($event)"
+      (transferChat)="onTransferPendingChat($event)"
+    />
+  }
+</div>

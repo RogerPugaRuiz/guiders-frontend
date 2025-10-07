@@ -1,17 +1,25 @@
+// auth.guard.ts
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
+import { catchError, map, of } from 'rxjs';
+import { SessionService, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = () => {
+  const sessionService = inject(SessionService);
   const router = inject(Router);
-  
-  // Verificar si existe el access-token en localStorage
-  const token = localStorage.getItem('access-token');
-  
-  if (token) {
-    return true; // Permitir acceso
-  } else {
-    // Redirigir a login si no hay token
-    router.navigate(['/login']);
-    return false;
-  }
+  const environment = inject(ENVIRONMENT_TOKEN);
+
+  console.log('AuthGuard: Checking user session...');
+
+  return sessionService.ensureSession$().pipe(
+    map(user => {
+      // Si hay usuario, permitir acceso
+      return !!user;
+    }),
+    catchError(error => {
+      const ret = encodeURIComponent(router.url);
+      location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
+      return of(false);
+    })
+  );
 };

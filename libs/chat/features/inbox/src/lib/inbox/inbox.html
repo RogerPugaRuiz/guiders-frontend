@@ -1,1 +1,41 @@
-<p>Inbox de chat</p>
+<div class="inbox" [attr.data-testid]="'chat-inbox'">
+	<!-- Panel izquierdo: Sidebar completo -->
+	<div class="inbox__sidebar">
+		<guiders-inbox-sidebar
+			[conversations]="conversations()"
+			[selectedConversationId]="selectedConversationId()"
+			[title]="'Conversaciones'"
+			[showNewChatButton]="true"
+			(conversationSelected)="onUserSelected($event)"
+			(newChatClicked)="onNewChatClick()"
+		/>
+	</div>
+
+	<!-- Panel derecho: Chat activo -->
+	<div class="inbox__main">
+		@if (selectedConversationId() && selectedChat()) {
+			<guiders-chat-placeholder
+				[selectedChat]="selectedChat()!"
+				[showActions]="true"
+				[placeholderMessage]="'Envía un mensaje para iniciar la conversación'"
+				[messages]="currentMessages()"
+				[currentUserId]="currentUserId()"
+				[isLoading]="isLoading()"
+				[isLoadingMore]="currentPagination().isLoadingMore"
+				[hasMoreMessages]="currentPagination().hasMore"
+				(settingsClicked)="onChatSettings()"
+				(closeChat)="onCloseChat()"
+				(messageSent)="onSendMessage($event)"
+				(loadMoreMessages)="onLoadMoreMessages()"
+			/>
+		} @else {
+			<guiders-chat-welcome-state
+				[title]="'Selecciona una conversación'"
+				[description]="'Elige una conversación de la lista para comenzar a chatear'"
+				[iconName]="'message-circle'"
+				[showNewChatButton]="false"
+				(newChatClicked)="onNewChatClick()"
+			/>
+		}
+	</div>
+</div>

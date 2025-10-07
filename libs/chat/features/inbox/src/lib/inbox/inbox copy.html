@@ -1,0 +1,245 @@
+<!-- Inbox Container - Rediseño completo con design tokens -->
+<div class="inbox" [attr.data-testid]="'chat-inbox'">
+
+  <!-- Header principal -->
+  <header class="inbox__header">
+    <div class="inbox__header-content">
+      <div class="inbox__title-section">
+        <h1 class="inbox__title">Conversaciones</h1>
+        <span class="inbox__subtitle">Gestiona tus chats activos</span>
+      </div>
+
+      <div class="inbox__header-actions">
+        <guiders-button
+          variant="ghost"
+          size="medium"
+          [ariaLabel]="'Actualizar conversaciones'"
+          (buttonClick)="refresh()">
+          <span class="inbox__action-icon">🔄</span>
+        </guiders-button>
+
+        <guiders-button
+          variant="primary"
+          size="medium"
+          [ariaLabel]="'Nueva conversación'"
+          (buttonClick)="createNewChat()">
+          <span class="inbox__action-icon">💬</span>
+          <span class="inbox__action-text">Nueva</span>
+        </guiders-button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Estados de carga y error -->
+  @if (error()) {
+    <div class="inbox__alert inbox__alert--error" role="alert">
+      <span class="inbox__alert-icon">⚠️</span>
+      <div class="inbox__alert-content">
+        <span class="inbox__alert-title">Error</span>
+        <span class="inbox__alert-message">{{ error() }}</span>
+      </div>
+      <guiders-button
+        variant="ghost"
+        size="small"
+        [ariaLabel]="'Cerrar mensaje de error'"
+        (buttonClick)="clearError()"
+        class="inbox__alert-dismiss">
+        ✕
+      </guiders-button>
+    </div>
+  }
+
+  <!-- Layout principal -->
+  <div class="inbox__layout">
+
+    <!-- Panel izquierdo: Lista de chats -->
+    <aside
+      class="inbox__sidebar"
+      [class.inbox__sidebar--hidden]="!showChatList() && hasSelectedChat()"
+      [attr.aria-label]="'Lista de conversaciones'">
+
+      <!-- Barra de búsqueda -->
+      <div class="inbox__search">
+        <guiders-text-field
+          type="search"
+          placeholder="Buscar conversaciones..."
+          [value]="searchQuery()"
+          [disabled]="isLoading()"
+          [ariaLabel]="'Buscar en conversaciones'"
+          size="medium"
+          (valueChange)="updateSearchQuery($event)"
+          class="inbox__search-field">
+        </guiders-text-field>
+      </div>
+
+      <!-- Filtros rápidos -->
+      <nav class="inbox__filters" [attr.aria-label]="'Filtros de conversaciones'">
+        @for (filter of getAvailableFilters(); track filter.id) {
+          <guiders-button
+            [variant]="selectedFilter() === filter.id ? 'primary' : 'ghost'"
+            size="small"
+            [ariaLabel]="'Filtrar por ' + filter.label"
+            [ariaCurrent]="selectedFilter() === filter.id ? 'page' : undefined"
+            (buttonClick)="updateFilter(filter.id)"
+            class="inbox__filter">
+            <span class="inbox__filter-icon">{{ filter.icon }}</span>
+            <span class="inbox__filter-label">{{ filter.label }}</span>
+            @if (filter.count > 0) {
+              <span class="inbox__filter-badge">{{ filter.count }}</span>
+            }
+          </guiders-button>
+        }
+      </nav>
+
+      <!-- Lista de chats -->
+      <div class="inbox__chat-list" [attr.aria-label]="'Conversaciones'">
+        @if (isLoading() && chats().length === 0) {
+          <div class="inbox__loading" [attr.aria-live]="'polite'">
+            <div class="inbox__loading-spinner" [attr.aria-hidden]="'true'"></div>
+            <span class="inbox__loading-text">Cargando conversaciones...</span>
+          </div>
+        } @else if (chats().length === 0) {
+          <div class="inbox__empty-state">
+            <div class="inbox__empty-icon" [attr.aria-hidden]="'true'">💬</div>
+            <h3 class="inbox__empty-title">No hay conversaciones</h3>
+            <p class="inbox__empty-description">
+              @if (searchQuery()) {
+                No se encontraron conversaciones con "{{ searchQuery() }}"
+              } @else {
+                Aún no tienes conversaciones activas
+              }
+            </p>
+          </div>
+        } @else {
+          <ul class="inbox__chat-items" role="list">
+            @for (chat of chats(); track chat.chatId) {
+              <li class="inbox__chat-item" role="listitem">
+                <button
+                  type="button"
+                  class="inbox__chat-button"
+                  [class.inbox__chat-button--selected]="selectedChatId() === chat.chatId"
+                  [class.inbox__chat-button--unread]="chat.unreadCount > 0"
+                  [attr.aria-label]="'Conversación con ' + getChatDisplayName(chat)"
+                  [attr.aria-current]="selectedChatId() === chat.chatId ? 'page' : undefined"
+                  (click)="onChatSelected(chat)">
+
+                  <!-- Avatar -->
+                  <div class="inbox__chat-avatar">
+                    <span class="inbox__chat-avatar-icon" [attr.aria-hidden]="'true'">
+                      {{ getChatAvatar(chat) }}
+                    </span>
+                    @if (chat.unreadCount > 0) {
+                      <span class="inbox__chat-status inbox__chat-status--unread" [attr.aria-hidden]="'true'"></span>
+                    }
+                  </div>
+
+                  <!-- Contenido del chat -->
+                  <div class="inbox__chat-content">
+                    <div class="inbox__chat-header">
+                      <h3 class="inbox__chat-name">{{ getChatDisplayName(chat) }}</h3>
+                      @if (chat.lastMessage?.sentAt) {
+                        <time class="inbox__chat-time" [attr.datetime]="getChatDatetime(chat)">
+                          {{ formatChatTimeFromChat(chat) }}
+                        </time>
+                      }
+                    </div>
+
+                    <div class="inbox__chat-footer">
+                      <span class="inbox__chat-preview">
+                        @if (chat.isTyping) {
+                          <span class="inbox__typing">
+                            <span class="inbox__typing-dots" [attr.aria-hidden]="'true'">
+                              <span></span><span></span><span></span>
+                            </span>
+                            Escribiendo...
+                          </span>
+                        } @else {
+                          {{ getChatPreview(chat) }}
+                        }
+                      </span>
+
+                      @if (chat.unreadCount > 0) {
+                        <span class="inbox__unread-badge" [attr.aria-label]="chat.unreadCount + ' mensajes sin leer'">
+                          {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </aside>
+
+    <!-- Panel principal: Área de mensajes -->
+    <main
+      class="inbox__main"
+      [class.inbox__main--hidden]="showChatList() && !hasSelectedChat()"
+      [attr.aria-label]="hasSelectedChat() ? 'Conversación activa' : 'Área de conversación'">
+
+      @if (hasSelectedChat() && selectedChat()) {
+        <!-- Header de la conversación -->
+        <header class="inbox__conversation-header">
+          <guiders-button
+            variant="ghost"
+            size="medium"
+            [ariaLabel]="'Volver a lista de conversaciones'"
+            (buttonClick)="goBackToChatList()"
+            class="inbox__back-button">
+            ←
+          </guiders-button>
+
+          <div class="inbox__conversation-info">
+            <h2 class="inbox__conversation-title">{{ getChatDisplayName(selectedChat()!) }}</h2>
+            <span class="inbox__conversation-id">{{ selectedChat()!.chatId }}</span>
+          </div>
+
+          <div class="inbox__conversation-actions">
+            <guiders-button
+              variant="ghost"
+              size="medium"
+              [ariaLabel]="'Opciones de conversación'"
+              class="inbox__conversation-menu">
+              ⋮
+            </guiders-button>
+          </div>
+        </header>
+
+        <!-- Componente de mensajes -->
+        <div class="inbox__messages-container">
+          <guiders-chat-messages
+            [chat]="selectedChat()!"
+            [messages]="currentChatMessages()"
+            [currentUserId]="validCurrentUserId()"
+            [loading]="isLoading()"
+            (messageSend)="onMessageSent($event.content)"
+            (messageRead)="onMessageRead($event)"
+            class="inbox__messages">
+          </guiders-chat-messages>
+        </div>
+      } @else {
+        <!-- Estado vacío -->
+        <div class="inbox__welcome">
+          <div class="inbox__welcome-content">
+            <div class="inbox__welcome-icon" [attr.aria-hidden]="'true'">💬</div>
+            <h2 class="inbox__welcome-title">Selecciona una conversación</h2>
+            <p class="inbox__welcome-description">
+              Elige una conversación de la lista para ver y enviar mensajes
+            </p>
+            <guiders-button
+              variant="primary"
+              size="large"
+              [ariaLabel]="'Crear nueva conversación'"
+              (buttonClick)="createNewChat()"
+              class="inbox__welcome-action">
+              <span class="inbox__action-icon">💬</span>
+              <span>Nueva conversación</span>
+            </guiders-button>
+          </div>
+        </div>
+      }
+    </main>
+  </div>
+</div>

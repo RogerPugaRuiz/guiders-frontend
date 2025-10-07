@@ -1,0 +1,41 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+// === CONVERSATION LIST COMPONENT ===
+// Lista de conversaciones que contiene múltiples ConversationItem
+// - Scroll vertical automático para muchas conversaciones
+// - Estado vacío con mensaje informativo
+// - Espaciado consistente usando design tokens
+
+:host {
+  display: block;
+  font-family: tokens.$font-family-ui;
+ height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.guiders-conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+ height: 100%;
+  overflow-y: auto;
+  padding: tokens.$spacing-sm 0;
+  min-width: 0;
+  min-height: 0;
+
+  &__empty {
+    color: tokens.$color-text-secondary;
+    text-align: center;
+    padding: tokens.$spacing-xl 0;
+    font-size: tokens.$font-size-base;
+    font-family: tokens.$font-family-ui;
+  }
+
+  .conversation-item {
+    margin-bottom: tokens.$spacing-xs;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}

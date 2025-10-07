@@ -1,0 +1,294 @@
+/**
+ * Guiders Select Component
+ * Basado en la guía de diseño B2B Web Desktop
+ * Cumple WCAG 2.2 AA
+ */
+
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+}
+
+.guiders-select {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-xs;
+  
+  &--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// === LABEL ===
+
+.guiders-select__label {
+  @include tokens.typography('label-large');
+  color: tokens.$color-text-primary;
+  font-weight: tokens.$font-weight-medium;
+  display: block;
+  margin-bottom: tokens.$spacing-xs;
+  
+  .guiders-select--disabled & {
+    color: tokens.$color-text-disabled;
+  }
+}
+
+.guiders-select__required {
+  color: #ef4444;
+  margin-left: tokens.$spacing-xs;
+  font-weight: tokens.$font-weight-semibold;
+}
+
+// === SELECT WRAPPER ===
+
+.guiders-select__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// === SELECT CONTROL ===
+
+.guiders-select__control {
+  width: 100%;
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-md;
+  background-color: tokens.$color-surface-primary;
+  color: tokens.$color-text-primary;
+  font-family: tokens.$font-family-ui;
+  font-weight: tokens.$font-weight-regular;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
+  cursor: pointer;
+  
+  // Quitar estilos por defecto del navegador
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  
+  // Espacio para el icono de dropdown
+  padding-right: tokens.$spacing-xl;
+  
+  // Estados
+  &:hover:not(:disabled) {
+    border-color: tokens.$color-border-primary;
+  }
+  
+  &:focus {
+    border-color: tokens.$color-brand-primary;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    background-color: tokens.$color-surface-primary;
+  }
+  
+  &:disabled {
+    background-color: tokens.$color-surface-disabled;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-disabled;
+    cursor: not-allowed;
+  }
+  
+  &--has-error {
+    border-color: #ef4444;
+    
+    &:focus {
+      border-color: #ef4444;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25);
+    }
+  }
+  
+  &--placeholder {
+    color: tokens.$color-text-tertiary;
+  }
+  
+  // Opciones múltiples
+  .guiders-select--multiple & {
+    min-height: 80px; // Más altura para múltiples opciones
+  }
+}
+
+// === ICONO DE DROPDOWN ===
+
+.guiders-select__icon {
+  position: absolute;
+  right: tokens.$spacing-sm;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: tokens.$color-text-secondary;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform tokens.$duration-fast tokens.$easing-standard;
+  
+  .guiders-select--disabled & {
+    color: tokens.$color-text-disabled;
+  }
+  
+  .guiders-select--focused & {
+    transform: translateY(-50%) rotate(180deg);
+    color: tokens.$color-brand-primary;
+  }
+  
+  // Ocultar en selects múltiples
+  .guiders-select--multiple & {
+    display: none;
+  }
+}
+
+// === TAMAÑOS ===
+
+.guiders-select--small {
+  .guiders-select__control {
+    @include tokens.typography('body-small');
+    min-height: 32px;
+    padding: tokens.$spacing-xs tokens.$spacing-xl tokens.$spacing-xs tokens.$spacing-sm;
+  }
+  
+  .guiders-select__label {
+    @include tokens.typography('label-large');
+    font-size: tokens.$font-size-sm;
+  }
+  
+  .guiders-select__icon {
+    right: tokens.$spacing-2xs;
+  }
+}
+
+.guiders-select--medium {
+  .guiders-select__control {
+    @include tokens.typography('body-base');
+    min-height: 40px;
+    padding: tokens.$spacing-2xs tokens.$spacing-xl tokens.$spacing-2xs tokens.$spacing-md;
+  }
+}
+
+.guiders-select--large {
+  .guiders-select__control {
+    @include tokens.typography('body-base');
+    min-height: 48px;
+    padding: tokens.$spacing-sm tokens.$spacing-2xl tokens.$spacing-sm tokens.$spacing-lg;
+  }
+  
+  .guiders-select__label {
+    font-size: tokens.$font-size-lg;
+  }
+  
+  .guiders-select__icon {
+    right: tokens.$spacing-md;
+  }
+}
+
+// === ESTADOS ESPECÍFICOS ===
+
+.guiders-select--focused {
+  .guiders-select__label {
+    color: tokens.$color-brand-primary;
+  }
+}
+
+.guiders-select--error {
+  .guiders-select__label {
+    color: #ef4444;
+  }
+}
+
+.guiders-select--required {
+  .guiders-select__label::after {
+    content: ' *';
+    color: #ef4444;
+  }
+}
+
+// === HELPER TEXT ===
+
+.guiders-select__helper {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-secondary;
+  margin-top: tokens.$spacing-xs;
+  line-height: tokens.$line-height-relaxed;
+}
+
+// === ERROR MESSAGE ===
+
+.guiders-select__error {
+  @include tokens.typography('caption');
+  color: #ef4444;
+  margin-top: tokens.$spacing-xs;
+  line-height: tokens.$line-height-relaxed;
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-xs;
+  
+  // Icono de error
+  &::before {
+    content: '⚠';
+    font-size: tokens.$font-size-sm;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-weight: tokens.$font-weight-bold;
+  }
+}
+
+// === ESTILOS PARA OPCIONES ===
+
+.guiders-select__control {
+  option {
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    color: tokens.$color-text-primary;
+    background-color: tokens.$color-surface-primary;
+    
+    &:disabled {
+      color: tokens.$color-text-disabled;
+      background-color: tokens.$color-surface-disabled;
+    }
+    
+    &:hover,
+    &:focus {
+      background-color: tokens.$color-surface-hover;
+    }
+    
+    &:checked,
+    &:selected {
+      background-color: tokens.$color-brand-primary;
+      color: tokens.$color-text-inverse;
+    }
+  }
+  
+  optgroup {
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-secondary;
+    background-color: tokens.$color-surface-secondary;
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    
+    option {
+      padding-left: tokens.$spacing-lg;
+      font-weight: tokens.$font-weight-regular;
+    }
+  }
+}
+
+// === CONFIGURACIÓN PARA MOTION REDUCIDO ===
+
+@media (prefers-reduced-motion: reduce) {
+  .guiders-select__control,
+  .guiders-select__icon {
+    transition-duration: 0ms;
+  }
+  
+  .guiders-select--focused .guiders-select__icon {
+    transform: translateY(-50%);
+  }
+}
+
+// === RESPONSIVE ===
+
+@media (max-width: tokens.$breakpoint-md) {
+  .guiders-select--large {
+    .guiders-select__control {
+      min-height: 40px; // Reducir en móvil
+      padding: tokens.$spacing-2xs tokens.$spacing-xl tokens.$spacing-2xs tokens.$spacing-md;
+    }
+  }
+}

@@ -1,0 +1,101 @@
+<div class="pagination">
+  <!-- Info de registros -->
+  <div class="pagination__info">
+    <span class="pagination__text">{{ displayInfo() }}</span>
+  </div>
+
+  <!-- Controles de navegación -->
+  <div class="pagination__controls">
+    <!-- Selector de tamaño de página -->
+    <div class="pagination__page-size">
+      <label for="pageSize" class="pagination__label">Por página:</label>
+      <select 
+        id="pageSize"
+        class="pagination__select"
+        [value]="config().pageSize"
+        [disabled]="disabled()"
+        (change)="onPageSizeChange($event)"
+      >
+        @for (size of pageSizeOptions(); track size) {
+          <option [value]="size">{{ size }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Botones de navegación -->
+    <div class="pagination__buttons">
+      <!-- Primera página -->
+      <button
+        type="button"
+        class="pagination__button pagination__button--first"
+        [disabled]="!hasPreviousPage() || disabled()"
+        (click)="firstPage()"
+        title="Primera página"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="11 17 6 12 11 7"/>
+          <polyline points="18 17 13 12 18 7"/>
+        </svg>
+      </button>
+
+      <!-- Página anterior -->
+      <button
+        type="button"
+        class="pagination__button pagination__button--prev"
+        [disabled]="!hasPreviousPage() || disabled()"
+        (click)="previousPage()"
+        title="Página anterior"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+
+      <!-- Páginas numeradas -->
+      <div class="pagination__pages">
+        @for (page of getVisiblePages(); track page) {
+          @if (page === -1) {
+            <span class="pagination__ellipsis">...</span>
+          } @else {
+            <button
+              type="button"
+              class="pagination__page"
+              [class.pagination__page--active]="page === config().currentPage"
+              [disabled]="disabled()"
+              (click)="goToPage(page)"
+            >
+              {{ page }}
+            </button>
+          }
+        }
+      </div>
+
+      <!-- Página siguiente -->
+      <button
+        type="button"
+        class="pagination__button pagination__button--next"
+        [disabled]="!hasNextPage() || disabled()"
+        (click)="nextPage()"
+        title="Página siguiente"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
+
+      <!-- Última página -->
+      <button
+        type="button"
+        class="pagination__button pagination__button--last"
+        [disabled]="!hasNextPage() || disabled()"
+        (click)="lastPage()"
+        title="Última página"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="13 17 18 12 13 7"/>
+          <polyline points="6 17 11 12 6 7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>

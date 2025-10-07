@@ -1,1 +1,18 @@
-<router-outlet></router-outlet>
+<div class="console-app">
+  <guiders-sidebar
+    [items]="sidebarItems()"
+    [config]="sidebarConfig()"
+    [userEmail]="currentUser()?.email ?? null"
+    [userName]="null"
+    (itemClick)="onSidebarItemClick($event)"
+    (toggleSidebar)="onSidebarToggle($event)"
+    (userLogout)="onLogout()"
+    (userConfigureAccount)="onConfigureAccount()">
+  </guiders-sidebar>
+  
+  <div class="console-main">
+    <main class="console-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

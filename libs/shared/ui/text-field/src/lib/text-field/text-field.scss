@@ -1,0 +1,245 @@
+/**
+ * Guiders TextField Component
+ * Basado en la guía de diseño B2B Web Desktop
+ * Cumple WCAG 2.2 AA
+ */
+
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+}
+
+.guiders-text-field {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-2xs;
+  
+  &--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// === LABEL ===
+
+.guiders-text-field__label {
+  @include tokens.typography('label-large');
+  color: tokens.$color-text-primary;
+  font-weight: tokens.$font-weight-medium;
+  display: block;
+  margin-bottom: tokens.$spacing-2xs;
+  
+  .guiders-text-field--disabled & {
+    color: tokens.$color-text-tertiary;
+  }
+}
+
+.guiders-text-field__required {
+  color: tokens.$color-danger-600;
+  margin-left: tokens.$spacing-2xs;
+  font-weight: tokens.$font-weight-semibold;
+}
+
+// === INPUT WRAPPER ===
+
+.guiders-text-field__wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+// === INPUT ===
+
+.guiders-text-field__input {
+  width: 100%;
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-sm;
+  background-color: tokens.$color-surface-primary;
+  color: tokens.$color-text-primary;
+  font-family: tokens.$font-family-ui;
+  font-weight: tokens.$font-weight-regular;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
+  
+  // Quitar estilos por defecto del navegador
+  outline: none;
+  appearance: none;
+  
+  &::placeholder {
+    color: tokens.$color-text-tertiary;
+  }
+  
+  // Estados
+  &:hover:not(:disabled):not(:readonly) {
+    border-color: tokens.$color-border-subtle;
+  }
+  
+  &:focus {
+    border-color: tokens.$color-primary-600;
+    box-shadow: 0 0 0 3px color-mix(in srgb, tokens.$color-primary-600 25%, transparent);
+    background-color: tokens.$color-surface-primary;
+  }
+  
+  &:disabled {
+    background-color: tokens.$color-surface-secondary;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-tertiary;
+    cursor: not-allowed;
+  }
+  
+  &:readonly {
+    background-color: tokens.$color-surface-secondary;
+    border-color: tokens.$color-border-default;
+    cursor: default;
+  }
+  
+  &--has-error {
+    border-color: tokens.$color-danger-600;
+    
+    &:focus {
+      border-color: tokens.$color-danger-600;
+      box-shadow: 0 0 0 3px color-mix(in srgb, tokens.$color-danger-600 25%, transparent);
+    }
+  }
+}
+
+// === TAMAÑOS ===
+
+.guiders-text-field--small {
+  .guiders-text-field__input {
+    @include tokens.typography('body-small');
+    min-height: tokens.$spacing-8; // 32px
+    padding: tokens.$spacing-xs tokens.$spacing-sm; // 4px 8px
+  }
+  
+  .guiders-text-field__label {
+    @include tokens.typography('label-medium');
+  }
+}
+
+.guiders-text-field--medium {
+  .guiders-text-field__input {
+    @include tokens.typography('body-base');
+    min-height: 40px;
+    padding: tokens.$spacing-sm tokens.$spacing-md; // 8px 16px
+  }
+}
+
+.guiders-text-field--large {
+  .guiders-text-field__input {
+    @include tokens.typography('body-large');
+    min-height: 48px;
+    padding: tokens.$spacing-md tokens.$spacing-lg; // 16px 24px
+  }
+  
+  .guiders-text-field__label {
+    font-size: tokens.$font-size-lg;
+  }
+}
+
+// === ESTADOS ESPECÍFICOS ===
+
+.guiders-text-field--focused {
+  .guiders-text-field__label {
+    color: tokens.$color-primary-600;
+  }
+}
+
+.guiders-text-field--error {
+  .guiders-text-field__label {
+    color: tokens.$color-danger-600;
+  }
+}
+
+.guiders-text-field--required {
+  .guiders-text-field__label::after {
+    content: ' *';
+    color: tokens.$color-danger-600;
+  }
+}
+
+// === HELPER TEXT ===
+
+.guiders-text-field__helper {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-secondary;
+  margin-top: tokens.$spacing-2xs;
+  line-height: tokens.$line-height-relaxed;
+}
+
+// === ERROR MESSAGE ===
+
+.guiders-text-field__error {
+  @include tokens.typography('caption');
+  color: tokens.$color-danger-600;
+  margin-top: tokens.$spacing-2xs;
+  line-height: tokens.$line-height-relaxed;
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-2xs;
+  
+  // Icono de error opcional
+  &::before {
+    content: '⚠️';
+    font-size: tokens.$font-size-sm;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+// === VARIANTES ESPECIALES ===
+
+// Campo de búsqueda
+.guiders-text-field--search {
+  .guiders-text-field__input {
+    padding-left: 40px; // Espacio para icono de búsqueda
+  }
+  
+  .guiders-text-field__wrapper::before {
+    content: '🔍';
+    position: absolute;
+    left: tokens.$spacing-sm;
+    top: 50%;
+    transform: translateY(-50%);
+    color: tokens.$color-text-tertiary;
+    pointer-events: none;
+  }
+}
+
+// Campo numérico/monospace para datos
+.guiders-text-field--numeric,
+.guiders-text-field--code {
+  .guiders-text-field__input {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    letter-spacing: 0.5px;
+  }
+}
+
+// === CONFIGURACIÓN PARA MOTION REDUCIDO ===
+
+@media (prefers-reduced-motion: reduce) {
+  .guiders-text-field__input {
+    transition-duration: 10ms;
+  }
+}
+
+// === MODO OSCURO ===
+
+[data-theme="dark"] {
+  .guiders-text-field__input {
+    &::placeholder {
+      color: tokens.$color-text-tertiary;
+    }
+  }
+}
+
+// === RESPONSIVE ===
+
+@media (max-width: 768px) {
+  .guiders-text-field--large {
+    .guiders-text-field__input {
+      min-height: 40px; // Reducir en móvil
+      padding: tokens.$spacing-sm tokens.$spacing-md;
+    }
+  }
+}
