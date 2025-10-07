@@ -87,7 +87,7 @@
                           type="text"
                           class="edit-input"
                           [value]="editingContent()"
-                          (input)="editingContent.set($any($event.target).value)"
+                          (input)="onEditInputChange($event)"
                           (keydown.enter)="saveEdit()"
                           (keydown.escape)="cancelEdit()">
                         <div class="edit-actions">

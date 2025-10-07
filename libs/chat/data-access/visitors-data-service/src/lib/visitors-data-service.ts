@@ -42,6 +42,11 @@ export class VisitorsDataService {
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly baseUrl = `${this.environment.api.baseUrl}`;
 
+  // Función para obtener el token de acceso
+  private getAccessToken(): string | null {
+    return localStorage.getItem('access-token');
+  }
+
   // Obtener visitantes con filtros y paginación usando tenant-visitors endpoint
   getVisitors(tenantId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
     const { limit = 10, offset = 0, status, search, includeOffline } = params;
@@ -150,7 +155,7 @@ export class VisitorsDataService {
     }
 
     // Configurar headers de autenticación
-    const token = localStorage.getItem('access-token');
+    const token = this.getAccessToken();
     const options = token ? 
       { params, headers: { 'Authorization': `Bearer ${token}` }, withCredentials: true } : 
       { params, withCredentials: true };

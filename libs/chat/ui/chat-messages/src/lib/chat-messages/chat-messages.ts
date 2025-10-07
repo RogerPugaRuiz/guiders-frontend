@@ -136,6 +136,11 @@ export class ChatMessages implements AfterViewInit {
     this.editingContent.set('');
   }
 
+  onEditInputChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.editingContent.set(target.value);
+  }
+
   deleteMessage(messageId: string): void {
     if (confirm('¿Estás seguro de que quieres eliminar este mensaje?')) {
       this.messageDelete.emit(messageId);
