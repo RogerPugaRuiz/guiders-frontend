@@ -8,14 +8,13 @@
 
 :host {
   display: block;
-  height: 100%;
+  width: 100%;
 }
 
 .visitors-list {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  background-color: var(--color-surface);
+  display: block;
+  background-color: var(--color-surface-subtle);
+  width: 100%;
 }
 
 // === ESTADÍSTICAS ===
@@ -79,20 +78,14 @@
 
 // === CONTENIDO PRINCIPAL ===
 
-.visitors-content {
-  flex: 1;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+// Ya no necesitamos gestionar el scroll aquí, lo hace el padre
 
 // === LISTA DE VISITANTES ===
 
 .visitors-list {
-  display: block; // Simple bloque, sin flex
+  display: block;
   background-color: var(--color-surface-subtle);
-  // La lista crece naturalmente según su contenido
-  // El scroll lo maneja el contenedor padre
+  width: 100%;
 }
 
 // === TABLA DE VISITANTES ===
@@ -102,16 +95,15 @@
   border-radius: var(--radius-xl);
   margin: var(--spacing-4) 0;
   max-width: 100%;
-  overflow: visible; // Sin scroll aquí, lo maneja el padre
+  // Sin scroll, crece naturalmente
 }
 
 .visitors-table {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   @include tokens.typography('body-sm');
-  table-layout: auto;
+  table-layout: fixed; // Fixed layout para respetar el ancho del contenedor
 }
 
 .visitors-table__header {
@@ -123,9 +115,9 @@
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
   font-size: 12px;
-  
-  // Nota: sticky header funciona solo si el scroll está en un ancestro directo
-  // Como el scroll está en .visitors-panel__list-container, esto funcionará
+  position: sticky;
+  top: 0;
+  z-index: 10;
   
   &--pending-chats {
     text-align: center;
@@ -157,29 +149,7 @@
     }
   }
   
-  &--visitor {
-    min-width: 200px;
-    width: 220px;
-  }
-  
-  &--status {
-    min-width: 80px;
-    width: 90px;
-  }
-  
-  &--lifecycle {
-    min-width: 80px;
-    width: 90px;
-  }
-  
-  &--activity {
-    min-width: 120px;
-    width: 140px;
-  }
-  
   &--actions {
-    min-width: 80px;
-    width: 100px;
     text-align: center;
   }
 }
@@ -206,8 +176,6 @@
 .visitors-table__cell {
   padding: var(--spacing-3) var(--spacing-4);
   vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
   
   &--visitor {
     padding-left: var(--spacing-4);
@@ -215,8 +183,6 @@
   
   &--pending-chats {
     text-align: center;
-    width: 140px;
-    min-width: 140px;
   }
   
   &--actions {
@@ -332,9 +298,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
-  min-width: 0;
   flex: 1;
-  overflow: hidden;
 }
 
 .visitor-name {
@@ -348,17 +312,12 @@
   font-weight: var(--font-weight-semibold);
   color: #0f172a;
   font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 140px;
 }
 
 .visitor-metadata {
   display: flex;
   flex-direction: column;
   gap: 1px;
-  max-width: 140px;
 }
 
 .visitor-identifier {
@@ -367,9 +326,6 @@
   gap: 3px;
   font-size: 11px;
   color: #64748b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   
   svg {
     width: 10px;
@@ -385,9 +341,6 @@
   gap: 4px;
   font-size: 12px;
   color: #64748b;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   
   svg {
     flex-shrink: 0;
@@ -605,9 +558,6 @@
   font-size: 12px;
   color: #64748b;
   font-weight: var(--font-weight-medium);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .activity-stats {

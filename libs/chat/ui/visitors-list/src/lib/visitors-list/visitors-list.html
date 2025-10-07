@@ -60,30 +60,6 @@
               <!-- Visitante con avatar -->
               <td class="visitors-table__cell visitors-table__cell--visitor">
                 <div class="visitor-profile">
-                  <div class="visitor-avatar">
-                    <div class="avatar-circle {{ getVisitorStatusIcon(visitor) }}" 
-                         [class.has-chat]="visitor.hasActiveChat">
-                      @if (visitor.name) {
-                        {{ getInitials(visitor.name) }}
-                      } @else {
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                          <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                      }
-                    </div>
-                    <div class="status-indicators">
-                      <div class="connection-dot connection-dot--{{ visitor.status }}" 
-                           [title]="getStatusLabel(visitor.status)"></div>
-                      <!-- @if (visitor.hasActiveChat) {
-                        <div class="chat-indicator" title="Chat activo">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
-                          </svg>
-                        </div>
-                      } -->
-                    </div>
-                  </div>
                   <div class="visitor-details">
                     <div class="visitor-name">
                       <span class="name-text">{{ visitor.name || 'Visitante anónimo' }}</span>

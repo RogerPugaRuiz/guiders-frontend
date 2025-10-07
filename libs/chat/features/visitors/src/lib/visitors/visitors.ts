@@ -393,6 +393,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private loadStats(): void {
     const tenantId = this.tenantId();
     if (!tenantId) return;
+    
     this.visitorsService.getVisitorStats(tenantId)
       .pipe(
         catchError((error: Error) => {
@@ -411,6 +412,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     if (this.state().loading) return;
     const tenantId = this.tenantId();
     if (!tenantId) return;
+    
     const currentState = this.state();
     
     const queryParams = {
