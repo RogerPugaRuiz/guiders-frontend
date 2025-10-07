@@ -6,7 +6,7 @@
 :host {
   display: block;
   height: 100%;
-  overflow: auto;
+  overflow: hidden; // Cambiar de auto a hidden para evitar scroll global
 }
 
 .visitors-page {
@@ -15,7 +15,8 @@
   gap: tokens.$spacing-md;
   padding: tokens.$spacing-xl;
   max-width: 100%;
-  min-height: 100%;
+  height: 100%; // Añadir altura fija para ocupar todo el espacio
+  overflow: hidden; // Evitar scroll en el contenedor principal
 }
 
 /* Header card simplificado */
@@ -58,6 +59,8 @@
 /* Grid */
 .visitors-grid {
   margin-top: 0;
+  flex: 1; // Ocupar todo el espacio disponible
+  min-height: 0; // Permitir que se encoja
 }
 
 /* Error content */
@@ -229,6 +232,11 @@
     background: transparent;
     border: 1px solid #f3f4f6;
   }
+  
+  // Cuando está dentro del panel de visitantes, ocupar toda la altura
+  .visitors-panel & {
+    height: 100%;
+  }
 }
 
 /* Bento Card Sizes */
@@ -260,14 +268,22 @@
   padding: 0 tokens.$spacing-md tokens.$spacing-md;
   flex: 1;
   overflow: auto;
+  
+  // Cuando está dentro del panel de visitantes, altura fija
+  .visitors-panel & {
+    overflow: visible;
+    height: 100%;
+  }
 }
 
 /* Panel de visitantes con scroll controlado */
 .visitors-panel {
+  height: 100%; // Altura fija para ocupar todo el espacio disponible
   
   // Sobrescribir el overflow del bento-card-content genérico
   .bento-card-content {
     overflow: visible; // Permitir que el contenido sea visible
+    height: 100%; // Altura fija
   }
   
   &__content {
@@ -275,7 +291,7 @@
     flex-direction: column;
     height: 100%;
     padding: 0; // Removemos el padding del contenedor
-    overflow: hidden; // Evitamos scroll en el contenedor principal
+    overflow: visible; // Cambiar de hidden a visible para permitir dropdowns
   }
 
   &__list-container {
@@ -309,9 +325,9 @@
   }
 
   &__pagination {
-    // Paginador ahora dentro del scroll
-    margin-top: tokens.$spacing-md;
-    padding-top: tokens.$spacing-md;
+    // Paginador sticky siempre visible en la parte inferior
+    flex-shrink: 0; // No se encoge
+    padding: tokens.$spacing-md;
     border-top: 1px solid tokens.$color-border-subtle;
     background: tokens.$color-surface-primary;
     

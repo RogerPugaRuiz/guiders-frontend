@@ -514,16 +514,22 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   // Métodos auxiliares para mantener la posición del scroll
   private saveScrollPosition(): void {
-    const hostElement = this.elementRef.nativeElement as HTMLElement;
-    this.savedScrollPosition = hostElement.scrollTop;
+    // Buscar el contenedor con scroll (ya no es :host, es .visitors-panel__list-container)
+    const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
+    if (scrollContainer) {
+      this.savedScrollPosition = scrollContainer.scrollTop;
+    }
   }
 
   private restoreScrollPosition(): void {
-    const hostElement = this.elementRef.nativeElement as HTMLElement;
-    // Usar setTimeout para asegurar que el DOM se haya actualizado
-    setTimeout(() => {
-      hostElement.scrollTop = this.savedScrollPosition;
-    }, 0);
+    // Buscar el contenedor con scroll (ya no es :host, es .visitors-panel__list-container)
+    const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
+    if (scrollContainer) {
+      // Usar setTimeout para asegurar que el DOM se haya actualizado
+      setTimeout(() => {
+        scrollContainer.scrollTop = this.savedScrollPosition;
+      }, 0);
+    }
   }
 
   private updateState(updates: Partial<VisitorState>): void {

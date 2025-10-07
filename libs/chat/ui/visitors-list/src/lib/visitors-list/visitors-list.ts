@@ -1,4 +1,4 @@
-import { Component, input, output, computed, signal } from '@angular/core';
+import { Component, input, output, computed, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { 
   Visitor, 
@@ -158,7 +158,10 @@ export class VisitorsListComponent {
     this.createChat.emit(request);
   }
 
-  onViewDetails(visitor: Visitor): void {
+  onViewDetails(visitor: Visitor, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     // Emit an event for viewing visitor details
     // This could navigate to a detail page or open a modal
     console.log('View details for visitor:', visitor.id);
@@ -170,12 +173,18 @@ export class VisitorsListComponent {
     // Navigate to active chat or emit event
   }
 
-  onViewHistory(visitor: Visitor): void {
+  onViewHistory(visitor: Visitor, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     console.log('View history for visitor:', visitor.id);
     // Open history modal or navigate to history page
   }
 
-  onAddTag(visitor: Visitor): void {
+  onAddTag(visitor: Visitor, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     console.log('Add tag to visitor:', visitor.id);
     // Open tag modal or inline editor
   }
@@ -192,7 +201,10 @@ export class VisitorsListComponent {
     this.onViewChat(visitor, mockEvent);
   }
 
-  onViewPendingChats(visitor: Visitor): void {
+  onViewPendingChats(visitor: Visitor, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
     const pendingChatIds = visitor.pendingChatIds || [];
     console.log('View pending chats for visitor:', visitor.id, pendingChatIds);
     this.closeDropdown();
@@ -232,44 +244,31 @@ export class VisitorsListComponent {
 
   toggleDropdown(visitorId: string, event: Event): void {
     event.stopPropagation();
-    const target = event.target as HTMLElement;
+    event.preventDefault();
+    
     const isCurrentlyOpen = this.showDropdown() === visitorId;
     
     if (isCurrentlyOpen) {
       this.showDropdown.set(null);
     } else {
       this.showDropdown.set(visitorId);
-      
-      // Posicionar dropdown dinámicamente para evitar corte
-      setTimeout(() => {
-        const dropdown = document.querySelector('.dropdown-menu') as HTMLElement;
-        if (dropdown && target) {
-          const buttonRect = target.getBoundingClientRect();
-          const dropdownRect = dropdown.getBoundingClientRect();
-          const viewportHeight = window.innerHeight;
-          const viewportWidth = window.innerWidth;
-          
-          // Calcular posición vertical (preferir abajo, pero subir si se corta)
-          let top = buttonRect.bottom + 4;
-          if (top + dropdownRect.height > viewportHeight - 10) {
-            top = buttonRect.top - dropdownRect.height - 4;
-          }
-          
-          // Calcular posición horizontal (alineado a la derecha del botón)
-          let left = buttonRect.right - dropdownRect.width;
-          if (left < 10) {
-            left = buttonRect.left;
-          }
-          
-          dropdown.style.top = `${Math.max(10, top)}px`;
-          dropdown.style.left = `${Math.min(viewportWidth - dropdownRect.width - 10, left)}px`;
-        }
-      }, 0);
     }
   }
 
   closeDropdown(): void {
     this.showDropdown.set(null);
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    // Cerrar dropdown cuando se hace click fuera de él
+    const target = event.target as HTMLElement;
+    const dropdown = target.closest('.dropdown-actions');
+    
+    // Si el click no fue en el dropdown o su trigger, cerrar
+    if (!dropdown && this.showDropdown()) {
+      this.closeDropdown();
+    }
   }
 
   onCreateChatFromCard(request: CreateChatWithVisitorRequest): void {
