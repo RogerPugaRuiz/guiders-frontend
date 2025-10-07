@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
@@ -40,6 +40,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+
+  // Referencia al contenedor con scroll
+  @ViewChild('listContainer') listContainer?: ElementRef<HTMLDivElement>;
+  
+  // Variable para guardar la posición del scroll
+  private scrollPosition = 0;
 
   // ID del tenant (empresa) resuelto dinámicamente
   readonly tenantId = signal<string | null>(null);
@@ -387,6 +393,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
             totalCount: response.total
           }
         });
+        
+        // Restaurar la posición del scroll después de actualizar los datos
+        setTimeout(() => {
+          if (this.listContainer?.nativeElement && this.scrollPosition > 0) {
+            this.listContainer.nativeElement.scrollTop = this.scrollPosition;
+          }
+        }, 0);
       });
   }
 
@@ -526,6 +539,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   onPageChange(page: number): void {
     const currentState = this.state();
     const offset = (page - 1) * currentState.pagination.limit;
+    
+    // Guardar la posición actual del scroll
+    if (this.listContainer?.nativeElement) {
+      this.scrollPosition = this.listContainer.nativeElement.scrollTop;
+    }
     
     this.updateState({
       pagination: {
