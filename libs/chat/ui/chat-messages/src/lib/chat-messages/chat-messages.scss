@@ -16,8 +16,8 @@
 
 // Header del chat
 .chat-header {
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-border-subtle);
+  padding: tokens.$spacing-lg;
+  border-bottom: 1px solid tokens.$color-border-subtle;
   background: var(--color-background-secondary);
   flex-shrink: 0;
 }
@@ -25,19 +25,19 @@
 .chat-header__info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: tokens.$spacing-md;
 }
 
 .chat-avatar {
-  width: var(--size-2xl);
-  height: var(--size-2xl);
+  width: tokens.$size-2xl;
+  height: tokens.$size-2xl;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-full);
+  border-radius: tokens.$border-radius-full;
   background: var(--color-background-neutral);
-  border: 2px solid var(--color-border-subtle);
-  font-size: var(--font-size-lg);
+  border: 2px solid tokens.$color-border-subtle;
+  font-size: tokens.$font-size-lg;
 }
 
 .chat-details {
@@ -45,19 +45,19 @@
 }
 
 .chat-name {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
+  font-size: tokens.$font-size-lg;
+  font-weight: tokens.$font-weight-semibold;
   color: var(--color-text-primary);
-  margin: 0 0 var(--spacing-xs) 0;
-  line-height: var(--line-height-tight);
+  margin: 0 0 tokens.$spacing-xs 0;
+  line-height: tokens.$line-height-tight;
 }
 
 .chat-status {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
+  font-size: tokens.$font-size-sm;
+  color: tokens.$color-text-secondary;
   
   .status {
-    font-weight: var(--font-weight-medium);
+    font-weight: tokens.$font-weight-medium;
     
     &--online {
       color: var(--color-success-default);
@@ -72,7 +72,7 @@
     }
     
     &--offline {
-      color: var(--color-text-tertiary);
+      color: tokens.$color-text-tertiary;
     }
   }
 }
@@ -81,11 +81,11 @@
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-md);
+  padding: tokens.$spacing-md;
   
   // Scroll personalizado
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border-default) transparent;
+  scrollbar-color: tokens.$color-border-default transparent;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -96,12 +96,12 @@
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--color-border-default);
-    border-radius: var(--radius-md);
+    background: tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: var(--color-border-strong);
+    background: tokens.$color-border-strong;
   }
 }
 
@@ -522,13 +522,6 @@
     width: var(--size-2xl);
     height: var(--size-2xl);
     font-size: var(--font-size-base);
-  }
-}
-
-// Variantes de tema
-@media (prefers-color-scheme: dark) {
-  :host {
-    // Los design tokens ya manejan el tema oscuro automáticamente
   }
 }
 

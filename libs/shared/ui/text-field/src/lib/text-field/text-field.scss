@@ -13,7 +13,7 @@
 .guiders-text-field {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: tokens.$spacing-2xs;
   
   &--disabled {
     opacity: 0.6;
@@ -25,20 +25,20 @@
 
 .guiders-text-field__label {
   @include tokens.typography('label-large');
-  color: var(--color-on-surface);
-  font-weight: var(--font-weight-medium);
+  color: tokens.$color-text-primary;
+  font-weight: tokens.$font-weight-medium;
   display: block;
-  margin-bottom: var(--spacing-1);
+  margin-bottom: tokens.$spacing-2xs;
   
   .guiders-text-field--disabled & {
-    color: var(--color-on-surface-disabled);
+    color: tokens.$color-text-tertiary;
   }
 }
 
 .guiders-text-field__required {
-  color: var(--color-danger);
-  margin-left: var(--spacing-1);
-  font-weight: var(--font-weight-semibold);
+  color: tokens.$color-danger-600;
+  margin-left: tokens.$spacing-2xs;
+  font-weight: tokens.$font-weight-semibold;
 }
 
 // === INPUT WRAPPER ===
@@ -53,52 +53,52 @@
 
 .guiders-text-field__input {
   width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-base);
-  background-color: var(--color-surface);
-  color: var(--color-on-surface);
-  font-family: var(--font-family-ui);
-  font-weight: var(--font-weight-regular);
-  transition: all var(--duration-fast) var(--easing-standard);
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-sm;
+  background-color: tokens.$color-surface-primary;
+  color: tokens.$color-text-primary;
+  font-family: tokens.$font-family-ui;
+  font-weight: tokens.$font-weight-regular;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
   
   // Quitar estilos por defecto del navegador
   outline: none;
   appearance: none;
   
   &::placeholder {
-    color: var(--color-on-surface-tertiary);
+    color: tokens.$color-text-tertiary;
   }
   
   // Estados
   &:hover:not(:disabled):not(:readonly) {
-    border-color: var(--color-border-hover);
+    border-color: tokens.$color-border-subtle;
   }
   
   &:focus {
-    border-color: var(--color-border-focus);
-    box-shadow: var(--shadow-focus-brand);
-    background-color: var(--color-surface);
+    border-color: tokens.$color-primary-600;
+    box-shadow: 0 0 0 3px color-mix(in srgb, tokens.$color-primary-600 25%, transparent);
+    background-color: tokens.$color-surface-primary;
   }
   
   &:disabled {
-    background-color: var(--color-surface-disabled);
-    border-color: var(--color-border-disabled);
-    color: var(--color-on-surface-disabled);
+    background-color: tokens.$color-surface-secondary;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-tertiary;
     cursor: not-allowed;
   }
   
   &:readonly {
-    background-color: var(--color-surface-secondary);
-    border-color: var(--color-border);
+    background-color: tokens.$color-surface-secondary;
+    border-color: tokens.$color-border-default;
     cursor: default;
   }
   
   &--has-error {
-    border-color: var(--color-danger);
+    border-color: tokens.$color-danger-600;
     
     &:focus {
-      border-color: var(--color-danger);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 25%, transparent);
+      border-color: tokens.$color-danger-600;
+      box-shadow: 0 0 0 3px color-mix(in srgb, tokens.$color-danger-600 25%, transparent);
     }
   }
 }
@@ -108,8 +108,8 @@
 .guiders-text-field--small {
   .guiders-text-field__input {
     @include tokens.typography('body-small');
-    min-height: var(--spacing-8); // 32px
-    padding: var(--spacing-1) var(--spacing-3); // 4px 12px
+    min-height: tokens.$spacing-8; // 32px
+    padding: tokens.$spacing-xs tokens.$spacing-sm; // 4px 8px
   }
   
   .guiders-text-field__label {
@@ -120,20 +120,20 @@
 .guiders-text-field--medium {
   .guiders-text-field__input {
     @include tokens.typography('body-base');
-    min-height: var(--spacing-10); // 40px
-    padding: var(--spacing-2) var(--spacing-4); // 8px 16px
+    min-height: 40px;
+    padding: tokens.$spacing-sm tokens.$spacing-md; // 8px 16px
   }
 }
 
 .guiders-text-field--large {
   .guiders-text-field__input {
     @include tokens.typography('body-large');
-    min-height: var(--spacing-12); // 48px
-    padding: var(--spacing-3) var(--spacing-6); // 12px 24px
+    min-height: 48px;
+    padding: tokens.$spacing-md tokens.$spacing-lg; // 16px 24px
   }
   
   .guiders-text-field__label {
-    font-size: var(--font-size-lg);
+    font-size: tokens.$font-size-lg;
   }
 }
 
@@ -141,20 +141,20 @@
 
 .guiders-text-field--focused {
   .guiders-text-field__label {
-    color: var(--color-brand);
+    color: tokens.$color-primary-600;
   }
 }
 
 .guiders-text-field--error {
   .guiders-text-field__label {
-    color: var(--color-danger);
+    color: tokens.$color-danger-600;
   }
 }
 
 .guiders-text-field--required {
   .guiders-text-field__label::after {
     content: ' *';
-    color: var(--color-danger);
+    color: tokens.$color-danger-600;
   }
 }
 
@@ -162,26 +162,26 @@
 
 .guiders-text-field__helper {
   @include tokens.typography('caption');
-  color: var(--color-on-surface-secondary);
-  margin-top: var(--spacing-1);
-  line-height: var(--line-height-normal);
+  color: tokens.$color-text-secondary;
+  margin-top: tokens.$spacing-2xs;
+  line-height: tokens.$line-height-relaxed;
 }
 
 // === ERROR MESSAGE ===
 
 .guiders-text-field__error {
   @include tokens.typography('caption');
-  color: var(--color-danger);
-  margin-top: var(--spacing-1);
-  line-height: var(--line-height-normal);
+  color: tokens.$color-danger-600;
+  margin-top: tokens.$spacing-2xs;
+  line-height: tokens.$line-height-relaxed;
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-1);
+  gap: tokens.$spacing-2xs;
   
   // Icono de error opcional
   &::before {
     content: '⚠️';
-    font-size: var(--font-size-sm);
+    font-size: tokens.$font-size-sm;
     flex-shrink: 0;
     margin-top: 2px;
   }
@@ -192,16 +192,16 @@
 // Campo de búsqueda
 .guiders-text-field--search {
   .guiders-text-field__input {
-    padding-left: var(--spacing-10); // Espacio para icono de búsqueda
+    padding-left: 40px; // Espacio para icono de búsqueda
   }
   
   .guiders-text-field__wrapper::before {
     content: '🔍';
     position: absolute;
-    left: var(--spacing-3);
+    left: tokens.$spacing-sm;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--color-on-surface-tertiary);
+    color: tokens.$color-text-tertiary;
     pointer-events: none;
   }
 }
@@ -210,7 +210,7 @@
 .guiders-text-field--numeric,
 .guiders-text-field--code {
   .guiders-text-field__input {
-    font-family: var(--font-family-mono);
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
     letter-spacing: 0.5px;
   }
 }
@@ -219,7 +219,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   .guiders-text-field__input {
-    transition-duration: var(--duration-instant);
+    transition-duration: 10ms;
   }
 }
 
@@ -228,7 +228,7 @@
 [data-theme="dark"] {
   .guiders-text-field__input {
     &::placeholder {
-      color: var(--color-on-surface-disabled);
+      color: tokens.$color-text-tertiary;
     }
   }
 }
@@ -238,8 +238,8 @@
 @media (max-width: 768px) {
   .guiders-text-field--large {
     .guiders-text-field__input {
-      min-height: var(--spacing-10); // Reducir en móvil
-      padding: var(--spacing-2) var(--spacing-4);
+      min-height: 40px; // Reducir en móvil
+      padding: tokens.$spacing-sm tokens.$spacing-md;
     }
   }
 }
