@@ -745,8 +745,9 @@
     &:hover {
       background-color: #2563eb;
       border-color: #2563eb;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      /* Removed motion and box-shadow: only darken background on hover */
+      transform: none;
+      box-shadow: none;
     }
   }
   
@@ -758,8 +759,8 @@
     &:hover {
       background-color: #059669;
       border-color: #059669;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+      transform: none;
+      box-shadow: none;
     }
   }
   
@@ -773,6 +774,8 @@
       background-color: #f1f5f9;
       border-color: #cbd5e1;
       color: #374151;
+      transform: none; /* ensure no move */
+      box-shadow: none;
     }
   }
 
@@ -785,7 +788,9 @@
       background-color: #e2e8f0;
       border-color: #cbd5e1;
       color: #475569;
-      transform: translateY(-1px);
+      transform: none;
+      box-shadow: none;
+
     }
 
     .pending-text {
@@ -802,8 +807,8 @@
     &:hover {
       background-color: #d97706;
       border-color: #d97706;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+      transform: none;
+      box-shadow: none;
     }
 
     .pending-count {

@@ -218,25 +218,21 @@
                     </button>
                   }
 
-                  <button
-                    type="button"
-                    class="action-button"
-                    [class.action-button--warning]="visitor.pendingChatIds && visitor.pendingChatIds.length > 0"
-                    [class.action-button--secondary]="!visitor.pendingChatIds || visitor.pendingChatIds.length === 0"
-                    (click)="onViewPendingChats(visitor)"
-                    [title]="visitor.pendingChatIds && visitor.pendingChatIds.length > 0 ? 'Chats pendientes (' + visitor.pendingChatIds.length + ')' : 'Ver chats pendientes'"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                      <circle cx="9" cy="10" r="1"/>
-                      <circle cx="15" cy="10" r="1"/>
-                    </svg>
-                    @if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
+                  @if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
+                    <button
+                      type="button"
+                      class="action-button action-button--warning"
+                      (click)="onViewPendingChats(visitor)"
+                      [title]="'Chats pendientes (' + visitor.pendingChatIds.length + ')'"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        <circle cx="9" cy="10" r="1"/>
+                        <circle cx="15" cy="10" r="1"/>
+                      </svg>
                       <span class="pending-count">{{ visitor.pendingChatIds.length }}</span>
-                    } @else {
-                      <span class="pending-text">Pendientes</span>
-                    }
-                  </button>
+                    </button>
+                  }
                   <div class="dropdown-actions">
                     <button
                       type="button"

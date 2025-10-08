@@ -65,6 +65,15 @@
       outline: 2px solid tokens.$color-primary-500;
       outline-offset: 2px;
     }
+    // Ensure no hover motion or shadow; only background color change
+    transition: background-color tokens.$duration-fast tokens.$easing-standard;
+    transform: none;
+    box-shadow: none;
+    &:hover {
+      background-color: color-mix(in srgb, tokens.$color-primary-500 10%, transparent);
+      transform: none;
+      box-shadow: none;
+    }
   }
 }
 

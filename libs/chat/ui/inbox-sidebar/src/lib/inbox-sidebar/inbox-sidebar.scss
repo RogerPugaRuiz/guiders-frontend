@@ -49,6 +49,15 @@
       outline: 2px solid tokens.$color-primary-500;
       outline-offset: 2px;
     }
+    // Prevent movement and shadow on hover — only darken background
+    transition: background-color tokens.$duration-fast tokens.$easing-standard;
+    transform: none;
+    box-shadow: none;
+    &:hover {
+      background-color: color-mix(in srgb, tokens.$color-primary-500 8%, transparent);
+      transform: none;
+      box-shadow: none;
+    }
   }
 
   &__conversations {
