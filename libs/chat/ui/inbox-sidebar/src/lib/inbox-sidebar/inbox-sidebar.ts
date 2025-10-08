@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat } from '@guiders-frontend/shared/types';
-import { Button } from '@guiders-frontend/button';
 import { GuidersConversationListComponent } from '@guiders-frontend/chat/ui/conversation-list';
 
 @Component({
   selector: 'guiders-inbox-sidebar',
   standalone: true,
-  imports: [CommonModule, Button, GuidersConversationListComponent],
+  imports: [CommonModule, GuidersConversationListComponent],
   templateUrl: './inbox-sidebar.html',
   styleUrl: './inbox-sidebar.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
