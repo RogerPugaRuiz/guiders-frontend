@@ -1,0 +1,63 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+.toast-container {
+  position: fixed;
+  z-index: 9999; // Por encima de todos los elementos UI (sidebar: 1300, user-menu: 1200)
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-md;
+  pointer-events: none;
+  max-width: 100%;
+  box-sizing: border-box;
+  
+  // Los toasts individuales sí deben poder recibir clicks
+  > * {
+    pointer-events: auto;
+  }
+  
+  // Posiciones horizontales
+  &--top-left,
+  &--bottom-left {
+    left: 0;
+    align-items: flex-start;
+  }
+  
+  &--top-center,
+  &--bottom-center {
+    left: 50%;
+    transform: translateX(-50%);
+    align-items: center;
+  }
+  
+  &--top-right,
+  &--bottom-right {
+    right: 0;
+    align-items: flex-end;
+  }
+  
+  // Posiciones verticales
+  &--top-left,
+  &--top-center,
+  &--top-right {
+    top: 0;
+  }
+  
+  &--bottom-left,
+  &--bottom-center,
+  &--bottom-right {
+    bottom: 0;
+  }
+  
+  // Ajustes para mobile
+  @media (max-width: tokens.$breakpoint-md) {
+    padding: tokens.$spacing-sm;
+    
+    &--top-center,
+    &--bottom-center {
+      left: 0;
+      right: 0;
+      transform: none;
+    }
+  }
+}

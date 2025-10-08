@@ -1,0 +1,8 @@
+<div class="toast-container toast-container--{{ position }}">
+  @for (toast of toasts; track trackByToastId($index, toast)) {
+    <guiders-toast 
+      [toast]="toast"
+      (closed)="onToastClosed($event)">
+    </guiders-toast>
+  }
+</div>

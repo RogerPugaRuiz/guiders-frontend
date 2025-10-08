@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 
 // Importar componentes UI y servicios
@@ -22,6 +23,17 @@ import {
   VisitorStats
 } from '@guiders-frontend/shared/types';
 import { getMockVisitorsResponse, getMockVisitorStats } from './visitors-mock-data';
+
+// Tipo parcial para respuestas de asignación de chat
+// El backend puede devolver distintas formas; declaramos los campos que nos interesan
+type AssignChatResponse = {
+  success?: boolean;
+  assignedAt?: string;
+  id?: string;
+  status?: string;
+  assignedCommercialId?: string;
+  [key: string]: unknown;
+};
 
 @Component({
   selector: 'lib-visitors',
@@ -45,6 +57,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly elementRef = inject(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly useMockData = inject(USE_MOCK_DATA);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly snackBar = inject(MatSnackBar);
+
+  // Referencia al componente hijo de la lista de visitantes
+  @ViewChild(VisitorsListComponent) visitorsListComponent?: VisitorsListComponent;
 
   // Variable para guardar la posición del scroll
   private savedScrollPosition = 0;
@@ -236,6 +253,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   private refreshIntervalId?: number;
+  private optimisticUpdateInProgress = false; // Flag para pausar auto-refresh
 
   ngOnInit(): void {
     // Leer query parameters de la URL
@@ -437,7 +455,68 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   private refreshVisitors(): void {
+    // NO refrescar si hay una actualización optimista en progreso
+    if (this.optimisticUpdateInProgress) {
+      console.log('⏸️ Auto-refresh pausado - actualización optimista en progreso');
+      return;
+    }
+    
     if (this.state().loading) return;
+    const tenantId = this.tenantId();
+    if (!tenantId) return;
+    
+    // Guardar la posición del scroll antes de refrescar
+    this.saveScrollPosition();
+    
+    const currentState = this.state();
+
+    // Decidir si usar mock o servicio real basado en el token
+    if (this.useMockData) {
+      // USAR MOCK
+      const mockResponse = getMockVisitorsResponse(
+        currentState.pagination.limit,
+        currentState.pagination.offset || 0
+      );
+
+      this.updateState({ 
+        visitors: mockResponse.visitors,
+        pagination: {
+          ...currentState.pagination,
+          totalCount: mockResponse.total
+        }
+      });
+      
+      // Restaurar la posición del scroll después de actualizar
+      this.restoreScrollPosition();
+    } else {
+      // USAR SERVICIO REAL
+      const queryParams = {
+        limit: currentState.pagination.limit,
+        offset: currentState.pagination.offset || 0,
+        includeOffline: this.currentFilter().filters.includeOffline,
+        search: currentState.searchQuery || undefined
+      };
+
+      this.visitorsService.getVisitors(tenantId, queryParams)
+        .pipe(
+          catchError(() => of({ visitors: [], total: 0, hasMore: false }))
+        )
+        .subscribe((response: GetVisitorsResponse) => {
+          this.updateState({ 
+            visitors: response.visitors,
+            pagination: {
+              ...currentState.pagination,
+              totalCount: response.total
+            }
+          });
+          // Restaurar la posición del scroll después de actualizar
+          this.restoreScrollPosition();
+        });
+    }
+  }
+
+  // Método para refrescar visitantes SIN activar loading (para operaciones silenciosas)
+  private refreshVisitorsSilently(): void {
     const tenantId = this.tenantId();
     if (!tenantId) return;
     
@@ -513,6 +592,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   private updateState(updates: Partial<VisitorState>): void {
     this.state.update(current => ({ ...current, ...updates }));
+    // CRÍTICO: Forzar detección de cambios con OnPush
+    // Esto garantiza que la UI se actualice cuando cambia el estado
+    this.cdr.markForCheck();
   }
 
   // Event handlers del UI
@@ -547,19 +629,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   onModalCreateChat(request: CreateChatWithVisitorRequest): void {
-    this.updateState({ loading: true });
+    // NO activar loading aquí - operación silenciosa en segundo plano
 
     this.visitorsService.createChatWithVisitor(request)
       .pipe(
         catchError((error: Error) => {
           console.error('Error creating chat:', error);
           this.updateState({ 
-            error: 'Error al crear el chat. Inténtalo de nuevo.',
-            loading: false
+            error: 'Error al crear el chat. Inténtalo de nuevo.'
           });
           return of(null);
-        }),
-        finalize(() => this.updateState({ loading: false }))
+        })
       )
       .subscribe((response: { chatId: string } | null) => {
         if (response) {
@@ -571,8 +651,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           // Navegar al chat creado
           // this.router.navigate(['/chat', response.chatId]);
           
-          // Refrescar la lista de visitantes
-          this.refreshVisitors();
+          // Refrescar la lista de visitantes SIN loading
+          this.refreshVisitorsSilently();
         }
       });
   }
@@ -670,16 +750,168 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     this.showPendingChatsModal.set(true);
   }
 
+  onTakePendingChatAutomatically(data: {visitor: Visitor, chatId: string}): void {
+    console.log('📥 Tomando chat automáticamente:', data.chatId, 'para visitante:', data.visitor.id);
+
+    // 🔑 Pausar auto-refresh durante actualización optimista
+    this.optimisticUpdateInProgress = true;
+    console.log('⏸️ Auto-refresh pausado durante actualización optimista');
+
+    // 🔑 PASO 1: ACTUALIZACIÓN OPTIMISTA INMEDIATA (antes de HTTP)
+    // Guardar estado original para poder revertir si falla
+    const originalVisitors = this.state().visitors;
+    
+    // Crear nuevo array con el chat eliminado INMEDIATAMENTE
+    const optimisticVisitors = originalVisitors.map(visitor => {
+      if (visitor.id === data.visitor.id) {
+        const updatedPendingChats = (visitor.pendingChatIds || []).filter(
+          chatId => chatId !== data.chatId
+        );
+        
+        console.log('✂️ Eliminando chat de pendientes:', data.chatId);
+        console.log('📋 pendingChatIds antes:', visitor.pendingChatIds);
+        console.log('📋 pendingChatIds después:', updatedPendingChats);
+        
+        return {
+          ...visitor,
+          pendingChatIds: updatedPendingChats,
+          totalChats: visitor.totalChats + 1
+        };
+      }
+      return visitor;
+    });
+
+    // Actualizar el estado INMEDIATAMENTE (UI se actualiza aquí)
+    this.updateState({ visitors: optimisticVisitors });
+    
+    // Forzar detección de cambios para que el botón desaparezca YA
+    this.cdr.detectChanges();
+    
+    console.log('✅ UI actualizada optimistamente - botón debería desaparecer');
+
+    // 🔑 PASO 2: Hacer petición HTTP (en segundo plano)
+    this.sessionService.ensureSession$().pipe(
+      switchMap(user => {
+        if (!user?.sub) {
+          throw new Error('No se pudo obtener el ID del usuario actual');
+        }
+        console.log('🌐 Enviando petición HTTP para asignar chat');
+        return this.visitorsService.assignChatToCommercial(data.chatId, user.sub);
+      }),
+      catchError((error: Error) => {
+        console.error('❌ Error al tomar el chat:', error);
+        
+        // Mostrar SnackBar de error
+        this.snackBar.open(
+          '❌ Error al tomar el chat. Inténtalo de nuevo.',
+          'Cerrar',
+          {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'bottom',
+            panelClass: 'snackbar-error'
+          }
+        );
+        
+        // 🔑 REVERTIR actualización optimista
+        console.log('⏮️ Revirtiendo actualización optimista');
+        this.updateState({ visitors: originalVisitors });
+        this.cdr.detectChanges();
+        
+        // Reactivar auto-refresh después de 5 segundos
+        setTimeout(() => {
+          this.optimisticUpdateInProgress = false;
+          console.log('▶️ Auto-refresh reactivado después de error');
+        }, 5000);
+        
+        // Limpiar estado de procesamiento
+        this.visitorsListComponent?.markAsCompleted(data.visitor.id);
+        
+        this.updateState({
+          error: 'Error al tomar el chat. Inténtalo de nuevo.'
+        });
+        return of(null);
+      })
+  ).subscribe((response: AssignChatResponse | null) => {
+      // El backend puede devolver distintos esquemas: { success: true } o el propio objeto de chat
+      const isAssigned = !!response && (
+        response.success === true ||
+        response.status === 'ASSIGNED' ||
+        !!response.assignedCommercialId ||
+        (!!response.id && response.status && response.status === 'ASSIGNED')
+      );
+
+      if (isAssigned) {
+        console.log('✅ Chat asignado exitosamente en servidor:', response);
+
+        // Mostrar SnackBar de éxito
+        const visitorName = data.visitor.name || 'Visitante anónimo';
+        this.snackBar.open(
+          `✅ Chat con ${visitorName} tomado exitosamente`,
+          'Cerrar',
+          {
+            duration: 4000,
+            horizontalPosition: 'end',
+            verticalPosition: 'bottom',
+            panelClass: 'snackbar-success'
+          }
+        );
+
+        // Reactivar auto-refresh después de 5 segundos (dar tiempo al backend para actualizar)
+        setTimeout(() => {
+          this.optimisticUpdateInProgress = false;
+          console.log('▶️ Auto-refresh reactivado - backend debería estar actualizado');
+        }, 5000);
+
+        // La UI ya está actualizada, solo limpiamos el estado de procesamiento
+        this.visitorsListComponent?.markAsCompleted(data.visitor.id);
+      } else if (response === null) {
+        // Error ya manejado en catchError
+        console.log('⚠️ No se pudo confirmar la asignación (response null)');
+      } else {
+        // Respuesta diferente, interpretada como rechazo
+        console.log('⚠️ Servidor rechazó la asignación - response:', response);
+
+        // Mostrar SnackBar de advertencia
+        this.snackBar.open(
+          '⚠️ El servidor rechazó la asignación del chat',
+          'Cerrar',
+          {
+            duration: 5000,
+            horizontalPosition: 'end',
+            verticalPosition: 'bottom',
+            panelClass: 'snackbar-warning'
+          }
+        );
+
+        // Revertir
+        this.updateState({ visitors: originalVisitors });
+        this.cdr.detectChanges();
+        this.visitorsListComponent?.markAsCompleted(data.visitor.id);
+
+        // Reactivar auto-refresh inmediatamente (no hubo cambio real)
+        this.optimisticUpdateInProgress = false;
+        console.log('▶️ Auto-refresh reactivado (operación rechazada)');
+      }
+    });
+  }
+
   closePendingChatsModal(): void {
     this.showPendingChatsModal.set(false);
     this.pendingChatsModalData.set(null);
   }
 
+  // Método para limpiar el estado de procesamiento cuando una operación termina
+  onOperationCompleted(visitorId: string): void {
+    console.log('Operation completed for visitor:', visitorId);
+    this.visitorsListComponent?.markAsCompleted(visitorId);
+  }
+
   onTakePendingChat(chatId: string): void {
     console.log('Taking pending chat:', chatId);
 
-    // Activar loading
-    this.updateState({ loading: true });
+    // NO activar loading - operación silenciosa
+    // this.updateState({ loading: true });
 
     // Primero obtener el usuario actual de la sesión
     this.sessionService.ensureSession$().pipe(
@@ -696,12 +928,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       catchError((error: Error) => {
         console.error('Error al tomar el chat:', error);
         this.updateState({
-          error: 'Error al tomar el chat. Inténtalo de nuevo.',
-          loading: false
+          error: 'Error al tomar el chat. Inténtalo de nuevo.'
         });
         return of(null);
-      }),
-      finalize(() => this.updateState({ loading: false }))
+      })
     ).subscribe((response: { success: boolean; assignedAt: string } | null) => {
       if (response?.success) {
         console.log('Chat asignado exitosamente:', response);
@@ -712,8 +942,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         // Mostrar mensaje de éxito (opcional)
         // this.updateState({ successMessage: 'Chat asignado exitosamente' });
 
-        // Refrescar la lista de visitantes para actualizar los chats pendientes
-        this.refreshVisitors();
+        // Refrescar la lista de visitantes SIN loading
+        this.refreshVisitorsSilently();
 
         // Opcionalmente, navegar al chat asignado
         // this.router.navigate(['/chat', chatId]);
@@ -724,19 +954,18 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   onTransferPendingChat(data: {chatId: string, targetUserId: string}): void {
     console.log('Transferring pending chat:', data.chatId, 'to user:', data.targetUserId);
 
-    this.updateState({ loading: true });
+    // NO activar loading - operación silenciosa
+    // this.updateState({ loading: true });
 
     this.visitorsService.assignChatToCommercial(data.chatId, data.targetUserId)
       .pipe(
         catchError((error: Error) => {
           console.error('Error al transferir el chat:', error);
           this.updateState({
-            error: 'Error al transferir el chat. Inténtalo de nuevo.',
-            loading: false
+            error: 'Error al transferir el chat. Inténtalo de nuevo.'
           });
           return of(null);
-        }),
-        finalize(() => this.updateState({ loading: false }))
+        })
       )
       .subscribe((response: { success: boolean; assignedAt: string } | null) => {
         if (response?.success) {
@@ -745,8 +974,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           // Cerrar el modal
           this.closePendingChatsModal();
 
-          // Refrescar la lista de visitantes
-          this.refreshVisitors();
+          // Refrescar la lista de visitantes SIN loading
+          this.refreshVisitorsSilently();
         }
       });
   }

@@ -1,0 +1,104 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-md;
+  min-width: 280px;
+  max-width: 400px;
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  box-shadow: tokens.$shadow-lg;
+  animation: slideIn 0.3s tokens.$easing-entrance;
+  border-left: 4px solid transparent;
+  
+  &__content {
+    display: flex;
+    align-items: flex-start;
+    gap: tokens.$spacing-sm;
+    flex: 1;
+  }
+  
+  &__icon {
+    font-size: tokens.$font-size-lg;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  &__message {
+    @include tokens.typography('body-small');
+    color: tokens.$color-text-primary;
+    word-wrap: break-word;
+    flex: 1;
+  }
+  
+  &__close {
+    @include tokens.button-reset;
+    color: tokens.$color-text-tertiary;
+    font-size: tokens.$font-size-lg;
+    line-height: 1;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: tokens.$border-radius-sm;
+    transition: tokens.$transition-fast;
+    flex-shrink: 0;
+    
+    &:hover {
+      background: tokens.$color-surface-hover;
+      color: tokens.$color-text-primary;
+    }
+    
+    &:focus-visible {
+      @include tokens.focus-ring;
+    }
+  }
+  
+  // Toast variants
+  &--success {
+    border-left-color: tokens.$color-success-600;
+    
+    .toast__icon {
+      color: tokens.$color-success-600;
+    }
+  }
+  
+  &--error {
+    border-left-color: tokens.$color-error-600;
+    
+    .toast__icon {
+      color: tokens.$color-error-600;
+    }
+  }
+  
+  &--warning {
+    border-left-color: tokens.$color-warning-600;
+    
+    .toast__icon {
+      color: tokens.$color-warning-600;
+    }
+  }
+  
+  &--info {
+    border-left-color: tokens.$color-info-600;
+    
+    .toast__icon {
+      color: tokens.$color-info-600;
+    }
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

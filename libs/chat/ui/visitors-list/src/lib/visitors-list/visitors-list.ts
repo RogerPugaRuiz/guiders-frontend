@@ -1,5 +1,6 @@
-import { Component, input, output, computed, signal, HostListener } from '@angular/core';
+import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { 
   Visitor, 
   VisitorFilters, 
@@ -46,6 +47,12 @@ export class VisitorsListComponent {
   readonly sortChange = output<VisitorSort>();
   readonly searchChange = output<string>();
   readonly viewPendingChats = output<{visitor: Visitor, pendingChatIds: string[]}>();
+  readonly takePendingChat = output<{visitor: Visitor, chatId: string}>();
+  readonly operationCompleted = output<string>(); // Emite el visitorId cuando la operación termina
+
+  // Services
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -53,6 +60,8 @@ export class VisitorsListComponent {
   readonly currentSort = signal<VisitorSort>({ field: 'lastVisit', direction: 'desc' });
   readonly internalSelectedIds = signal<Set<string>>(new Set());
   readonly showDropdown = signal<string | null>(null);
+  // Track visitors with pending operations (for optimistic UI)
+  readonly processingVisitorIds = signal<Set<string>>(new Set());
 
   // Computed values
   readonly filteredVisitors = computed(() => {
@@ -205,17 +214,58 @@ export class VisitorsListComponent {
     if (event) {
       event.stopPropagation();
     }
+    
+    // Verificar si ya está en proceso
+    if (this.isProcessing(visitor.id)) {
+      console.log('Operation already in progress for visitor:', visitor.id);
+      return;
+    }
+    
     const pendingChatIds = visitor.pendingChatIds || [];
-    console.log('View pending chats for visitor:', visitor.id, pendingChatIds);
+    
+    if (pendingChatIds.length === 0) {
+      this.snackBar.open('No hay chats pendientes para este visitante', 'Cerrar', { duration: 3000 });
+      // this.closeDropdown();
+      return;
+    }
+
+    // Tomar automáticamente el primer chat pendiente
+    const firstChatId = pendingChatIds[0];
+    
+    console.log('Taking first pending chat automatically:', firstChatId, 'for visitor:', visitor.id);
+    
+    // Marcar como en proceso INMEDIATAMENTE (programación optimista)
+    this.markAsProcessing(visitor.id);
+    
     this.closeDropdown();
 
-    // Emit event to navigate to pending chats or show modal
-    // Siempre emitir el evento, incluso si no hay chats pendientes
-    // El modal puede mostrar un mensaje apropiado
-    this.viewPendingChats.emit({
+    // Emitir evento para que el componente padre maneje la asignación del chat
+    // El padre (visitors.ts) mostrará el SnackBar de éxito/error cuando complete la operación
+    this.takePendingChat.emit({
       visitor,
-      pendingChatIds
+      chatId: firstChatId
     });
+  }
+
+  // Helper methods for optimistic UI
+  markAsProcessing(visitorId: string): void {
+    const processing = new Set(this.processingVisitorIds());
+    processing.add(visitorId);
+    this.processingVisitorIds.set(processing);
+    // Forzar detección de cambios INMEDIATA (síncrona) para deshabilitar el botón
+    this.cdr.detectChanges();
+  }
+
+  markAsCompleted(visitorId: string): void {
+    const processing = new Set(this.processingVisitorIds());
+    processing.delete(visitorId);
+    this.processingVisitorIds.set(processing);
+    // Usar detectChanges() para actualización inmediata de la UI
+    this.cdr.detectChanges();
+  }
+
+  isProcessing(visitorId: string): boolean {
+    return this.processingVisitorIds().has(visitorId);
   }
 
 
