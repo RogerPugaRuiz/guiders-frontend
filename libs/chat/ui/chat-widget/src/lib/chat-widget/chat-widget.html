@@ -104,7 +104,7 @@
               }
 
               <!-- Message row -->
-              @let isOwn = message.senderId === currentUserId();
+              @let isOwn = isOwnMessage(message);
               @let isSystem = isSystemMessage(message);
               
               <div 

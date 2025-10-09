@@ -16,6 +16,7 @@ import { ChatWidgetService, WidgetState } from '@guiders-frontend/chat/data-acce
 import { ChatService } from '@guiders-frontend/chat-service';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
 import { Message, SendMessageRequest, Visitor } from '@guiders-frontend/shared/types';
+import { UserService } from '@guiders-frontend/auth/data-access/session';
 
 @Component({
   selector: 'guiders-chat-widget',
@@ -27,6 +28,7 @@ import { Message, SendMessageRequest, Visitor } from '@guiders-frontend/shared/t
 export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked {
   private readonly widgetService = inject(ChatWidgetService);
   private readonly chatService = inject(ChatService);
+  private readonly userService = inject(UserService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -37,7 +39,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   readonly widgetState = signal<WidgetState>('closed');
   readonly currentVisitor = signal<Visitor | null>(null);
   readonly currentChatId = signal<string | null>(null);
-  readonly currentUserId = signal<string | null>(this.chatService.getCurrentUserId());
+  readonly currentUserId = signal<string | null>(null); // Se obtiene dinámicamente cuando se necesita
   readonly messages = signal<Message[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
@@ -54,6 +56,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   private shouldScrollToBottom = false;
   private isNearBottom = true;
   private previousScrollHeight = 0;
+  
+  // Control para evitar carga duplicada al crear chat
+  private isCreatingChat = false;
 
   // Computed
   readonly isOpen = computed(() => this.widgetState() === 'open');
@@ -93,6 +98,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         this.currentVisitor.set(data.visitor);
         this.currentChatId.set(data.chatId);
 
+        // ⚠️ Si estamos creando un chat, NO cargar mensajes aquí
+        // La carga ya se está manejando en createChatWithFirstMessage()
+        if (this.isCreatingChat) {
+          console.log('[ChatWidget] ⏭️ Saltando carga de mensajes - chat en creación');
+          return;
+        }
+
         // Si se abre el widget con un chatId, cargar mensajes
         if (data.state === 'open' && data.chatId) {
           this.loadMessages(data.chatId);
@@ -124,6 +136,15 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       .subscribe(message => {
         if (message && message.chatId === this.currentChatId()) {
           console.log('[ChatWidget] Nuevo mensaje recibido via WebSocket:', message);
+          
+          // ✨ FILTRAR MENSAJES PROPIOS - Ya fueron agregados por la respuesta HTTP
+          const currentUserId = this.userService.getUserId();
+          if (currentUserId && message.senderId === currentUserId) {
+            console.log('[ChatWidget] ⏭️ Mensaje propio ignorado (ya agregado por HTTP):', message.messageId);
+            return;
+          }
+          
+          console.log('[ChatWidget] ✅ Mensaje de otro usuario, agregando:', message.messageId);
           this.addMessageToList(message);
           this.shouldScrollToBottom = true;
           this.cdr.detectChanges();
@@ -154,6 +175,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     this.messages.set([]);
     this.error.set(null);
     this.loading.set(true);
+    
+    // 🚩 Activar bandera para evitar carga duplicada
+    this.isCreatingChat = true;
 
     // Construir location si hay city y/o country
     const location = [visitor.city, visitor.country].filter(Boolean).join(', ') || undefined;
@@ -178,16 +202,62 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       }
     }).subscribe({
       next: (result) => {
-        if (result && result.chatId) {
-          console.log('[ChatWidget] Chat creado exitosamente:', result.chatId);
-          this.currentChatId.set(result.chatId);
-          this.widgetService.updateChatId(result.chatId);
+        if (result && result.chatId && result.messageId) {
+          console.log('[ChatWidget] ✅ Chat creado exitosamente:', result.chatId);
+          console.log('[ChatWidget] 📩 MessageId recibido:', result.messageId);
+          console.log('[ChatWidget] 📊 Posición en cola:', result.position);
           
-          // Cargar mensajes del chat recién creado
-          this.loadMessages(result.chatId);
+          this.currentChatId.set(result.chatId);
+          
+          // 🔬 DIAGNÓSTICO COMPLETO DEL USERSERVICE
+          console.log('[ChatWidget] 🔬 === DIAGNÓSTICO UserService ===');
+          console.log('[ChatWidget] 🔬 UserService.currentUser():', this.userService.currentUser());
+          console.log('[ChatWidget] 🔬 UserService.getUserId():', this.userService.getUserId());
+          console.log('[ChatWidget] 🔬 UserService existe:', !!this.userService);
+          
+          // ✨ SOLUCIÓN: Obtener userId DIRECTAMENTE del UserService (sin pasar por ChatService)
+          const userId = this.userService.getUserId();
+          console.log('[ChatWidget] � UserId obtenido DIRECTAMENTE del UserService:', userId);
+          
+          if (!userId) {
+            console.error('[ChatWidget] ❌ No se puede crear mensaje sin userId - verificar token');
+            this.error.set('Error de autenticación. Por favor, recarga la página.');
+            this.loading.set(false);
+            this.isCreatingChat = false;
+            return;
+          }
+          
+          // ✨ Crear mensaje optimista con el contenido enviado
+          // El mensaje real llegará por WebSocket o se actualizará cuando se carguen mensajes
+          const optimisticMessage: Message = {
+            messageId: result.messageId,
+            chatId: result.chatId,
+            senderId: userId,
+            senderType: 'COMMERCIAL',
+            content: firstMessageContent,
+            type: 'TEXT',
+            sentAt: new Date(),
+            status: 'SENT'
+          };
+          
+          console.log('[ChatWidget] 📤 Mensaje optimista creado:', {
+            messageId: optimisticMessage.messageId,
+            senderId: optimisticMessage.senderId,
+            senderType: optimisticMessage.senderType
+          });
+          
+          this.messages.set([optimisticMessage]);
+          this.shouldScrollToBottom = true;
           
           // Unirse a la sala de WebSocket
           this.chatService.webSocketService.joinRoom(result.chatId);
+          
+          // ✅ Actualizar chatId en el servicio y desactivar la bandera
+          setTimeout(() => {
+            this.widgetService.updateChatId(result.chatId);
+            this.isCreatingChat = false;
+            console.log('[ChatWidget] ✅ Bandera de creación desactivada');
+          }, 100);
         }
         this.loading.set(false);
         this.cdr.detectChanges();
@@ -196,6 +266,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         console.error('[ChatWidget] Error al crear chat:', err);
         this.error.set('No se pudo crear el chat. Por favor, intenta nuevamente.');
         this.loading.set(false);
+        this.isCreatingChat = false; // Desactivar bandera en caso de error
         this.cdr.detectChanges();
       }
     });
@@ -225,6 +296,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
           // Los revertimos para mostrarlos ascendente (más antiguos arriba)
           const messages = [...response.messages].reverse();
           this.messages.set(messages);
+
           
           // Configurar paginación
           this.nextCursor = response.nextCursor;
@@ -263,7 +335,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     // Evitar duplicados
     const exists = currentMessages.some(m => m.messageId === message.messageId);
     if (!exists) {
+      console.log('[ChatWidget] ➕ Agregando mensaje a la lista:', {
+        messageId: message.messageId,
+        senderId: message.senderId,
+        senderType: message.senderType,
+        currentUserId: this.currentUserId(),
+        willBeOwnMessage: this.isOwnMessage(message)
+      });
       this.messages.set([...currentMessages, message]);
+    } else {
+      console.log('[ChatWidget] ⏭️ Mensaje duplicado, no se agrega:', message.messageId);
     }
   }
 
@@ -282,7 +363,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     }
 
     // Si ya hay chatId, enviar mensaje normal
-    const currentUserId = this.chatService.getCurrentUserId();
+    // ✨ Obtener userId DIRECTAMENTE del UserService (no usar ChatService)
+    const currentUserId = this.userService.getUserId();
 
     if (!chatId || !currentUserId) {
       console.error('[ChatWidget] No se puede enviar mensaje: falta chatId o userId');
@@ -296,6 +378,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     };
 
     console.log('[ChatWidget] Enviando mensaje:', request);
+    console.log('[ChatWidget] 🔑 CurrentUserId para mensaje optimista:', currentUserId);
 
     // Agregar mensaje optimista
     const optimisticMessage: Message = {
@@ -309,6 +392,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       status: 'SENT'
     };
 
+    console.log('[ChatWidget] 📤 Mensaje optimista creado:', {
+      messageId: optimisticMessage.messageId,
+      senderId: optimisticMessage.senderId,
+      senderType: optimisticMessage.senderType,
+      currentUserIdSignal: this.currentUserId()
+    });
+
     this.addMessageToList(optimisticMessage);
     this.shouldScrollToBottom = true;
     this.cdr.detectChanges();
@@ -317,6 +407,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     this.chatService.sendMessage(request).subscribe({
       next: (message) => {
         if (message) {
+          console.log('[ChatWidget] 📥 Mensaje recibido del servidor:', {
+            messageId: message.messageId,
+            senderId: message.senderId,
+            senderType: message.senderType,
+            currentUserIdSignal: this.currentUserId()
+          });
+          
           // Reemplazar mensaje optimista con el real
           const messages = this.messages().filter(m => m.messageId !== optimisticMessage.messageId);
           this.messages.set([...messages, message]);
@@ -413,7 +510,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
    * Verificar si el mensaje es del usuario actual
    */
   isOwnMessage(message: Message): boolean {
-    const currentUserId = this.chatService.getCurrentUserId();
+    // ✨ Obtener userId DIRECTAMENTE del UserService (no usar ChatService)
+    const currentUserId = this.userService.getUserId();
+    
+    if (!currentUserId || !message.senderId) {
+      return false;
+    }
+    
+    // ✅ Comparar senderId del mensaje con el userId actual
     return message.senderId === currentUserId;
   }
 

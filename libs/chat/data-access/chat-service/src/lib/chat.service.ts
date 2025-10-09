@@ -12,7 +12,7 @@ import {
   User,
   MessageListResponse
 } from '@guiders-frontend/shared/types';
-import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
+import { ENVIRONMENT_TOKEN, UserService } from '@guiders-frontend/auth/data-access/session';
 import { WebSocketService, ChatStatusUpdate } from '@guiders-frontend/chat/data-access/websocket-service';
 
 // Tipos internos para las respuestas de la API
@@ -141,6 +141,7 @@ export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly webSocket = inject(WebSocketService);
+  private readonly userService = inject(UserService);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
   
   // Estado global del chat
@@ -161,12 +162,9 @@ export class ChatService {
   private authToken: string | null = null;
 
   constructor() {
-    // Inicializar con token del localStorage si existe
-    this.authToken = localStorage.getItem('access-token');
-    
-    // Obtener el userId (sub) del token JWT
-    this.currentUserId = this.getCurrentUserId();
-    console.log('[ChatService] Usuario actual inicializado (sub del token):', this.currentUserId);
+    // ✨ Usar UserService para obtener el userId (BFF authentication)
+    this.currentUserId = this.userService.getUserId();
+    console.log('[ChatService] Usuario actual inicializado desde UserService:', this.currentUserId);
 
     // Inicializar WebSocket
     this.initializeWebSocket();
@@ -291,28 +289,16 @@ export class ChatService {
   }
 
   getCurrentUserId(): string | null {
-    if (this.currentUserId) {
-      return this.currentUserId;
+    // ✨ Obtener userId DIRECTAMENTE del UserService (BFF authentication)
+    const userId = this.userService.getUserId();
+    
+    if (userId) {
+      this.currentUserId = userId;
+      return userId;
     }
     
-    // Si no tenemos el ID en memoria, intentar extraerlo del token
-    try {
-      const token = localStorage.getItem('access-token');
-      if (!token) return null;
-      
-      // Decodificar JWT para obtener el ID del usuario
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const userId = payload.sub || payload.userId || payload.commercialId || null;
-      
-      if (userId) {
-        this.currentUserId = userId;
-      }
-      
-      return userId;
-    } catch (error) {
-      console.warn('Error al obtener ID del usuario del token:', error);
-      return null;
-    }
+    // Fallback: devolver el valor en caché si existe
+    return this.currentUserId;
   }
 
   // ===== MÉTODOS DE CHAT =====

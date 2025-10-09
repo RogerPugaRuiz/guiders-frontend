@@ -12,6 +12,7 @@ import {
   User
 } from '@guiders-frontend/shared/types';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
+import { UserService } from '@guiders-frontend/auth/data-access/session';
 
 // Tipos internos para las respuestas de la API
 interface ApiChatResponse {
@@ -47,8 +48,9 @@ interface ApiMessageResponse {
 }
 
 interface CreateChatWithMessageResponse {
-  chat: ApiChatResponse;
-  message: ApiMessageResponse;
+  chatId: string;
+  messageId: string;
+  position: number;
 }
 
 interface ApiGetChatsResponse {
@@ -75,6 +77,7 @@ interface ApiGetMessagesResponse {
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly userService = inject(UserService);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
   
   // Estado global del chat
@@ -181,28 +184,42 @@ export class ChatService {
   }
 
   getCurrentUserId(): string | null {
+    // Intento 1: Usar el método getUserId() del UserService (preferido)
+    const userId = this.userService.getUserId();
+    const currentUser = this.userService.currentUser();
+    console.log('[ChatService] 🔍 Debug UserService:', {
+      userId,
+      currentUser,
+      hasUser: !!currentUser,
+      userSub: currentUser?.sub
+    });
+    
+    if (userId) {
+      console.log('[ChatService] ✅ UserId desde UserService.getUserId():', userId);
+      this.currentUserId = userId; // Cachear para uso futuro
+      return userId;
+    }
+    
+    // Intento 2: Caché en memoria (evita llamadas repetidas)
     if (this.currentUserId) {
+      console.log('[ChatService] ✅ UserId desde caché:', this.currentUserId);
       return this.currentUserId;
     }
     
-    // Si no tenemos el ID en memoria, intentar extraerlo del token
-    try {
-      const token = localStorage.getItem('access-token');
-      if (!token) return null;
-      
-      // Decodificar JWT para obtener el ID del usuario
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const userId = payload.sub || payload.userId || payload.commercialId || null;
-      
-      if (userId) {
-        this.currentUserId = userId;
-      }
-      
-      return userId;
-    } catch (error) {
-      console.warn('Error al obtener ID del usuario del token:', error);
-      return null;
+    // Intento 3: Buscar user-id guardado explícitamente (fallback para otros sistemas)
+    const savedUserId = localStorage.getItem('user-id');
+    if (savedUserId) {
+      console.log('[ChatService] ✅ UserId desde localStorage (user-id):', savedUserId);
+      this.currentUserId = savedUserId;
+      return savedUserId;
     }
+    
+    console.warn('[ChatService] ⚠️ No se pudo obtener userId');
+    console.warn('[ChatService] 💡 Verifica que:');
+    console.warn('[ChatService]    1. El usuario esté autenticado');
+    console.warn('[ChatService]    2. UserService.fetchUser() se haya llamado');
+    console.warn('[ChatService]    3. La cookie de sesión sea válida');
+    return null;
   }
 
   // ===== MÉTODOS DE CHAT =====
@@ -292,7 +309,8 @@ export class ChatService {
     cursor?: string;
   }): Observable<Chat[]> {
     // Si tenemos un usuario comercial, usar el endpoint específico
-    const currentUserId = this.getCurrentUserId();
+    // ✨ Obtener userId DIRECTAMENTE del UserService
+    const currentUserId = this.userService.getUserId();
     if (currentUserId) {
       return this.getCommercialChats(currentUserId, {
         cursor: filters?.cursor,
@@ -379,7 +397,7 @@ export class ChatService {
   /**
    * Crear chat con primer mensaje
    */
-  createChatWithMessage(request: CreateChatWithMessageRequest): Observable<{ chat: Chat | null, message: Message | null }> {
+  createChatWithMessage(request: CreateChatWithMessageRequest): Observable<{ chatId: string; messageId: string; position: number }> {
     this.setLoading(true);
     
     return this.http.post<CreateChatWithMessageResponse>(`${this.baseUrl}/chats/with-message`, request, 
@@ -387,21 +405,18 @@ export class ChatService {
     ).pipe(
       map(response => {
         this.setLoading(false);
-        const chat = response.chat ? this.transformChatFromApi(response.chat) : null;
-        const message = response.message ? this.transformMessageFromApi(response.message) : null;
+        console.log('[ChatService] ✅ Chat creado con mensaje:', response);
         
-        if (chat) {
-          this.addChatToState(chat);
-        }
-        if (message && chat) {
-          this.addMessageToState(chat.chatId, message);
-        }
-        
-        return { chat, message };
+        // Retornar directamente la respuesta del backend
+        return {
+          chatId: response.chatId,
+          messageId: response.messageId,
+          position: response.position
+        };
       }),
       catchError(error => {
         this.handleError('Error al crear chat con mensaje', error);
-        return of({ chat: null, message: null });
+        throw error; // Re-lanzar el error para que el componente lo maneje
       })
     );
   }
