@@ -204,31 +204,21 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       next: (result) => {
         if (result && result.chatId && result.messageId) {
           console.log('[ChatWidget] ✅ Chat creado exitosamente:', result.chatId);
-          console.log('[ChatWidget] 📩 MessageId recibido:', result.messageId);
-          console.log('[ChatWidget] 📊 Posición en cola:', result.position);
           
           this.currentChatId.set(result.chatId);
           
-          // 🔬 DIAGNÓSTICO COMPLETO DEL USERSERVICE
-          console.log('[ChatWidget] 🔬 === DIAGNÓSTICO UserService ===');
-          console.log('[ChatWidget] 🔬 UserService.currentUser():', this.userService.currentUser());
-          console.log('[ChatWidget] 🔬 UserService.getUserId():', this.userService.getUserId());
-          console.log('[ChatWidget] 🔬 UserService existe:', !!this.userService);
-          
-          // ✨ SOLUCIÓN: Obtener userId DIRECTAMENTE del UserService (sin pasar por ChatService)
+          // Obtener userId del UserService
           const userId = this.userService.getUserId();
-          console.log('[ChatWidget] � UserId obtenido DIRECTAMENTE del UserService:', userId);
           
           if (!userId) {
-            console.error('[ChatWidget] ❌ No se puede crear mensaje sin userId - verificar token');
+            console.error('[ChatWidget] ❌ No se puede crear mensaje sin userId');
             this.error.set('Error de autenticación. Por favor, recarga la página.');
             this.loading.set(false);
             this.isCreatingChat = false;
             return;
           }
           
-          // ✨ Crear mensaje optimista con el contenido enviado
-          // El mensaje real llegará por WebSocket o se actualizará cuando se carguen mensajes
+          // Crear mensaje optimista
           const optimisticMessage: Message = {
             messageId: result.messageId,
             chatId: result.chatId,
@@ -239,12 +229,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
             sentAt: new Date(),
             status: 'SENT'
           };
-          
-          console.log('[ChatWidget] 📤 Mensaje optimista creado:', {
-            messageId: optimisticMessage.messageId,
-            senderId: optimisticMessage.senderId,
-            senderType: optimisticMessage.senderType
-          });
           
           this.messages.set([optimisticMessage]);
           this.shouldScrollToBottom = true;
