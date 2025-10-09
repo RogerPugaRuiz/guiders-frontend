@@ -59,6 +59,17 @@ export class ConversationItem {
   }
 
   /**
+   * Devuelve true si el avatar parece una URL (imagen remota/local).
+   * Usado por la plantilla para decidir entre <img> o SVG fallback.
+   */
+  isAvatarUrl(): boolean {
+    const avatar = this.getChatAvatar();
+    if (!avatar) return false;
+    // Considerar que una URL contiene 'http' o empieza con '/' (ruta relativa)
+    return typeof avatar === 'string' && (avatar.startsWith('http') || avatar.startsWith('/'));
+  }
+
+  /**
    * Obtener preview del último mensaje
    */
   getChatPreview(): string {

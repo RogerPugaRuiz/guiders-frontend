@@ -61,31 +61,31 @@ export class App {
 
       ]
     },
-    {
-      id: 'contacts',
-      label: 'Contactos',
-      icon: 'bookmark',
-      children: [
-        {
-          id: 'contacts-mine',
-          label: 'Mis contactos',
-          icon: 'user',
-          route: '/contacts?view=mine'
-        },
-        {
-          id: 'contacts-recent',
-          label: 'Recientes',
-          icon: 'clock',
-          route: '/contacts?view=recent'
-        },
-        {
-          id: 'contacts-search',
-          label: 'Buscar',
-          icon: 'search',
-          route: '/contacts?view=search'
-        }
-      ]
-    }
+    // {
+    //   id: 'contacts',
+    //   label: 'Contactos',
+    //   icon: 'bookmark',
+    //   children: [
+    //     {
+    //       id: 'contacts-mine',
+    //       label: 'Mis contactos',
+    //       icon: 'user',
+    //       route: '/contacts?view=mine'
+    //     },
+    //     {
+    //       id: 'contacts-recent',
+    //       label: 'Recientes',
+    //       icon: 'clock',
+    //       route: '/contacts?view=recent'
+    //     },
+    //     {
+    //       id: 'contacts-search',
+    //       label: 'Buscar',
+    //       icon: 'search',
+    //       route: '/contacts?view=search'
+    //     }
+    //   ]
+    // }
   ]);
 
   onSidebarItemClick(item: SidebarItem): void {
