@@ -1,0 +1,489 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+.chat-widget {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  z-index: 9999;
+  transition: all 0.3s ease-in-out;
+	margin-right: tokens.$spacing-md;
+
+  &--hidden {
+    display: none;
+  }
+
+  // Estado minimizado
+  &__minimized {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-md;
+    width: 380px;
+    background: #FFFFFF;
+    color: #000000;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    /* Same border-radius as chat container - only top corners */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+
+    &:hover {
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+      transform: translateY(-2px);
+    }
+  }
+
+  &__minimized-content {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-sm;
+    font-size: tokens.$font-size-sm;
+    font-weight: 500;
+    color: #000000;
+  }
+
+  &__close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: tokens.$spacing-xs;
+    background: transparent;
+    border: none;
+    color: #000000;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  // Contenedor principal
+  &__container {
+    width: 380px;
+    height: 600px;
+    background: tokens.$color-surface-primary;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease-out;
+    /* Rounded only on the top corners as requested */
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  // Header
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: tokens.$spacing-md;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-primary;
+    border-bottom: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__header-info {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-sm;
+  }
+
+  &__header-text {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-2xs;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: tokens.$font-size-base;
+    font-weight: 600;
+    line-height: 1.2;
+    color: tokens.$color-text-primary;
+  }
+
+  &__status {
+    font-size: tokens.$font-size-xs;
+    color: tokens.$color-text-secondary;
+
+    &[data-status='green'] {
+      color: tokens.$color-success-600;
+    }
+
+    &[data-status='yellow'] {
+      color: tokens.$color-warning-600;
+    }
+
+    &[data-status='red'] {
+      color: tokens.$color-danger-600;
+    }
+
+    &[data-status='gray'] {
+      color: tokens.$color-text-tertiary;
+    }
+  }
+
+  &__header-actions {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: tokens.$spacing-xs;
+    background: transparent;
+    border: none;
+    color: tokens.$color-text-secondary;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: tokens.$color-surface-hover;
+      color: tokens.$color-text-primary;
+    }
+  }
+
+  // Body (área de mensajes)
+  &__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: tokens.$color-surface-primary;
+  }
+
+  &__messages {
+    flex: 1;
+    padding: tokens.$spacing-md;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-sm;
+
+    // Estilos del scrollbar
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: tokens.$color-neutral-500;
+      border-radius: 3px;
+
+      &:hover {
+        background: tokens.$color-neutral-600;
+      }
+    }
+  }
+
+  &__message {
+    display: flex;
+    max-width: 80%;
+    animation: messageSlideIn 0.2s ease-out;
+
+    &--own {
+      align-self: flex-end;
+
+      .chat-widget__message-content {
+        background: tokens.$color-brand-primary;
+        color: tokens.$color-text-inverse;
+        border-bottom-right-radius: 4px;
+      }
+    }
+
+    &--visitor {
+      align-self: flex-start;
+
+      .chat-widget__message-content {
+        background: tokens.$color-surface-primary;
+        color: tokens.$color-text-primary;
+        border-bottom-left-radius: 4px;
+      }
+    }
+  }
+
+  &__message-content {
+		padding-right: 0;
+    border-radius: 12px;
+    word-wrap: break-word;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    p {
+      margin: 0;
+      font-size: tokens.$font-size-sm;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+  }
+
+  &__message-time {
+    display: block;
+    margin-top: tokens.$spacing-xs;
+    font-size: tokens.$font-size-xs;
+    opacity: 0.7;
+  }
+
+  // Estados vacío, carga y error
+  &__empty,
+  &__loading,
+  &__error {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: tokens.$spacing-md;
+    padding: tokens.$spacing-2xl;
+    text-align: center;
+    color: tokens.$color-text-secondary;
+
+    svg {
+      opacity: 0.5;
+    }
+
+    p {
+      margin: 0;
+      font-size: tokens.$font-size-sm;
+    }
+  }
+
+  &__loading {
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid tokens.$color-border-subtle;
+      border-top-color: tokens.$color-brand-primary;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  &__error {
+    color: tokens.$color-danger-600;
+
+    svg {
+      opacity: 0.7;
+    }
+  }
+
+  // Footer (input de mensajes)
+  &__footer {
+    padding: tokens.$spacing-md;
+    background: tokens.$color-surface-primary;
+  }
+
+  // Scroll infinito
+  &__scroll-anchor {
+    min-height: 20px;
+    padding: tokens.$spacing-sm 0;
+    display: block;
+    width: 100%;
+  }
+
+  &__loading-more {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-md;
+    color: tokens.$color-text-secondary;
+  }
+
+  &__loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid tokens.$color-border-default;
+    border-top-color: tokens.$color-primary-500;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  &__loading-text {
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-secondary;
+  }
+
+  // Separadores de fecha
+  &__date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: tokens.$spacing-md 0;
+    width: 100%;
+  }
+
+  &__date-separator-text {
+    display: inline-block;
+    padding: tokens.$spacing-xs tokens.$spacing-md;
+    background-color: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-secondary;
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-medium;
+    border-radius: tokens.$border-radius-full;
+    box-shadow: tokens.$shadow-sm;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+
+  // Estructura de mensajes mejorada
+  &__message-row {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-2xs;
+    max-width: min(75%, 520px);
+    align-self: flex-start;
+
+    &--own {
+      align-self: flex-end;
+    }
+
+    &--visitor {
+      align-self: flex-start;
+    }
+
+    &--system {
+      align-self: center;
+      max-width: 60%;
+    }
+  }
+
+  &__message-author {
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-medium;
+    color: tokens.$color-text-tertiary;
+
+    &--own {
+      color: tokens.$color-primary-600;
+      align-self: flex-end;
+    }
+  }
+
+  &__message-body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: tokens.$spacing-xs;
+    padding: tokens.$spacing-xs;
+    border-radius: tokens.$border-radius-base;
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
+    line-height: 1.5;
+    word-break: break-word;
+    box-shadow: tokens.$shadow-sm;
+
+    &--own {
+      background: tokens.$color-primary-50;
+      color: tokens.$color-primary-700;
+      
+      .chat-widget__message-meta {
+        color: tokens.$color-primary-700;
+        opacity: 0.7;
+      }
+    }
+
+    &--visitor {
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-primary;
+    }
+
+    &--system {
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-secondary;
+      text-align: center;
+      align-items: center;
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__message-content {
+    white-space: pre-wrap;
+    font-size: tokens.$font-size-sm;
+		box-shadow: none;
+  }
+
+  &__message-meta {
+    font-size: tokens.$font-size-xs;
+    color: tokens.$color-text-secondary;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  // Ocultar autor en mensajes del sistema
+  &__message-row--system &__message-author {
+    display: none;
+  }
+}
+
+// Animaciones
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Responsive
+@media (max-width: 480px) {
+  .chat-widget {
+    bottom: 0;
+    right: 0;
+    left: 0;
+
+    &__container {
+      width: 100%;
+      height: 100vh;
+      /* On mobile keep the top radii but ensure the widget covers full width */
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    &__minimized {
+      width: 100%;
+      /* On mobile minimized button matches full width, keeps top radii */
+      border-top-left-radius: 12px;
+      border-top-right-radius: 12px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+}

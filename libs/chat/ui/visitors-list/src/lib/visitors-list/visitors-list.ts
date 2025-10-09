@@ -1,6 +1,7 @@
 import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { 
   Visitor, 
   VisitorFilters, 
@@ -53,6 +54,7 @@ export class VisitorsListComponent {
   // Services
   private readonly snackBar = inject(MatSnackBar);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly chatWidgetService = inject(ChatWidgetService);
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -151,20 +153,10 @@ export class VisitorsListComponent {
   onCreateChat(visitor: Visitor, event: Event): void {
     event.stopPropagation();
     
-    const request: CreateChatWithVisitorRequest = {
-      visitorId: visitor.id,
-      visitorInfo: {
-        name: visitor.name,
-        email: visitor.email,
-        phone: visitor.phone
-      },
-      metadata: {
-        source: 'proactive_chat',
-        priority: 'MEDIUM'
-      }
-    };
+    console.log('[VisitorsList] Abriendo widget para crear chat con visitante:', visitor.id);
     
-    this.createChat.emit(request);
+    // Solo abrir el widget de chat, NO emitir evento (para evitar que se abra el modal)
+    this.chatWidgetService.openWidget(visitor);
   }
 
   onViewDetails(visitor: Visitor, event?: Event): void {
@@ -178,8 +170,12 @@ export class VisitorsListComponent {
 
   onViewChat(visitor: Visitor, event: Event): void {
     event.stopPropagation();
-    console.log('View chat for visitor:', visitor.id);
-    // Navigate to active chat or emit event
+    console.log('[VisitorsList] Abriendo widget para ver chat activo del visitante:', visitor.id);
+    
+    // Si el visitante tiene un chat activo, abrir el widget con ese chat
+    // Nota: Necesitarías obtener el chatId del visitante si está disponible
+    // Por ahora, simplemente abrimos el widget con el visitante
+    this.chatWidgetService.openWidget(visitor);
   }
 
   onViewHistory(visitor: Visitor, event?: Event): void {

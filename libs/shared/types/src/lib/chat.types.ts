@@ -91,10 +91,22 @@ export interface CreateChatRequest {
 }
 
 export interface CreateChatWithMessageRequest {
-  chat: CreateChatRequest;
-  message: {
+  firstMessage: {
     content: string;
-    type: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' | 'VIDEO';
+    type: 'text' | 'image' | 'file' | 'audio' | 'video';
+  };
+  visitorInfo?: {
+    visitorId?: string; // Required for commercial/admin users
+    name?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+  };
+  metadata?: {
+    department?: string;
+    priority?: 'LOW' | 'NORMAL' | 'MEDIUM' | 'HIGH' | 'URGENT';
+    source?: string;
+    initialUrl?: string;
   };
 }
 

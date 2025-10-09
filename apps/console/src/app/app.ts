@@ -2,9 +2,10 @@ import { Component, signal, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
+import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
 
 @Component({
-  imports: [RouterModule, Sidebar],
+  imports: [RouterModule, Sidebar, ChatWidgetComponent],
   selector: 'console-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',

@@ -265,12 +265,12 @@
   }
 
   &__message-body {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
     gap: tokens.$spacing-xs;
-    padding: tokens.$spacing-sm tokens.$spacing-md;
-    border-radius: tokens.$border-radius-md;
+    padding: tokens.$spacing-xs;
+    border-radius: tokens.$border-radius-base;
     background: tokens.$color-surface-tertiary;
     color: tokens.$color-text-primary;
     line-height: 1.5;
@@ -279,7 +279,6 @@
   }
 
   &__message-content {
-    flex: 0 1 auto;
     white-space: pre-wrap;
     font-size: tokens.$font-size-base;
   }
@@ -299,16 +298,14 @@
     color: tokens.$color-text-secondary;
     text-align: center;
     align-items: center;
+    grid-template-columns: 1fr;
   }
 
   &__message-meta {
     font-size: tokens.$font-size-xs;
     color: tokens.$color-text-secondary;
     line-height: 1.2;
-    flex-shrink: 0;
     white-space: nowrap;
-    margin-left: auto;
-    padding-left: tokens.$spacing-sm;
   }
 
   &__message-row--system &__message-author {

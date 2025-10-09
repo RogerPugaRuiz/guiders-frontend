@@ -55,6 +55,9 @@
       "@guiders-frontend/chat-service": [
         "libs/chat/data-access/chat-service/src/index.ts"
       ],
+      "@guiders-frontend/chat/data-access/chat-widget-service": [
+        "libs/chat/data-access/chat-widget-service/src/index.ts"
+      ],
       "@guiders-frontend/chat/data-access/websocket-service": [
         "libs/chat/data-access/websocket-service/src/index.ts"
       ],
@@ -66,6 +69,9 @@
       ],
       "@guiders-frontend/chat/ui/chat-welcome-state": [
         "libs/chat/ui/chat-welcome-state/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/chat-widget": [
+        "libs/chat/ui/chat-widget/src/index.ts"
       ],
       "@guiders-frontend/chat/ui/conversation-item": [
         "libs/chat/ui/conversation-item/src/index.ts"

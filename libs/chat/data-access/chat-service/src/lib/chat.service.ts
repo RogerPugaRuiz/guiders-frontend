@@ -106,8 +106,9 @@ interface WebSocketMessage {
 }
 
 interface CreateChatWithMessageResponse {
-  chat: ApiChatResponse;
-  message: ApiMessageResponse;
+  chatId: string;
+  messageId: string;
+  position: number;
 }
 
 interface ApiGetChatsResponse {
@@ -488,7 +489,7 @@ export class ChatService {
   /**
    * Crear chat con primer mensaje
    */
-  createChatWithMessage(request: CreateChatWithMessageRequest): Observable<{ chat: Chat | null, message: Message | null }> {
+  createChatWithMessage(request: CreateChatWithMessageRequest): Observable<{ chatId: string; messageId: string; position: number } | null> {
     this.setLoading(true);
     
     return this.http.post<CreateChatWithMessageResponse>(`${this.baseUrl}/chats/with-message`, request, 
@@ -496,21 +497,16 @@ export class ChatService {
     ).pipe(
       map(response => {
         this.setLoading(false);
-        const chat = response.chat ? this.transformChatFromApi(response.chat) : null;
-        const message = response.message ? this.transformMessageFromApi(response.message) : null;
+        console.log('[ChatService] Chat creado con respuesta:', response);
         
-        if (chat) {
-          this.addChatToState(chat);
-        }
-        if (message && chat) {
-          this.addMessageToState(chat.chatId, message);
-        }
+        // La respuesta ahora solo contiene IDs: { chatId, messageId, position }
+        // El componente puede usar estos IDs para cargar los datos completos si es necesario
         
-        return { chat, message };
+        return response;
       }),
       catchError(error => {
         this.handleError('Error al crear chat con mensaje', error);
-        return of({ chat: null, message: null });
+        return of(null);
       })
     );
   }

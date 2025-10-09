@@ -4,6 +4,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
+import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
@@ -59,6 +60,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly useMockData = inject(USE_MOCK_DATA);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly chatWidgetService = inject(ChatWidgetService);
 
   // Referencia al componente hijo de la lista de visitantes
   @ViewChild(VisitorsListComponent) visitorsListComponent?: VisitorsListComponent;
@@ -614,13 +616,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // Manejar selección múltiple para acciones en lote
   }
 
-  onCreateChat(request: CreateChatWithVisitorRequest): void {
-    // Este método ahora maneja la solicitud desde la lista para abrir el modal
-    // Buscar el visitante por ID en la request
-    const visitor = this.state().visitors.find(v => v.id === request.visitorId);
-    if (visitor) {
-      this.openCreateChatModal(visitor);
-    }
+  onCreateChat(_request: CreateChatWithVisitorRequest): void {
+    // Ya no es necesario abrir el modal - el widget maneja la creación del chat
+    // El evento se emite desde visitors-list pero no hacemos nada aquí
+    console.log('[Visitors] Evento createChat recibido (ignorado - widget maneja la creación)');
   }
 
   openCreateChatModal(visitor: Visitor): void {
@@ -772,10 +771,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         console.log('📋 pendingChatIds antes:', visitor.pendingChatIds);
         console.log('📋 pendingChatIds después:', updatedPendingChats);
         
+        // ⚠️ NO incrementar totalChats porque el chat pendiente ya estaba incluido en el total
         return {
           ...visitor,
-          pendingChatIds: updatedPendingChats,
-          totalChats: visitor.totalChats + 1
+          pendingChatIds: updatedPendingChats
+          // totalChats se mantiene igual (el chat pendiente ya estaba contado)
         };
       }
       return visitor;
@@ -808,7 +808,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           {
             duration: 5000,
             horizontalPosition: 'end',
-            verticalPosition: 'bottom',
+            verticalPosition: 'top',
             panelClass: 'snackbar-error'
           }
         );
@@ -852,10 +852,14 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           {
             duration: 4000,
             horizontalPosition: 'end',
-            verticalPosition: 'bottom',
+            verticalPosition: 'top',
             panelClass: 'snackbar-success'
           }
         );
+
+        // 🎯 Abrir el widget de chat con el chat asignado
+        console.log('🚀 Abriendo widget de chat para el chat:', data.chatId);
+        this.chatWidgetService.openWithChat(data.chatId, data.visitor);
 
         // Reactivar auto-refresh después de 5 segundos (dar tiempo al backend para actualizar)
         setTimeout(() => {
@@ -879,7 +883,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           {
             duration: 5000,
             horizontalPosition: 'end',
-            verticalPosition: 'bottom',
+            verticalPosition: 'top',
             panelClass: 'snackbar-warning'
           }
         );

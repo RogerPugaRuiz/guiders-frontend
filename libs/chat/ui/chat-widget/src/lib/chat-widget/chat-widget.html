@@ -1,0 +1,150 @@
+<div class="chat-widget" [class.chat-widget--open]="isOpen()" [class.chat-widget--minimized]="isMinimized()" [class.chat-widget--hidden]="!isVisible()">
+  
+  <!-- Widget minimizado -->
+  @if (isMinimized()) {
+    <div class="chat-widget__minimized" (click)="onRestore()">
+      <div class="chat-widget__minimized-content">
+        <svg width="20" height="20" stroke-width="1.8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="#000000">
+          <path d="M6 15L12 9L18 15" stroke="#000000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+        </svg>
+        <span>{{ getChatDisplayName() }}</span>
+      </div>
+      <button class="chat-widget__close-btn" (click)="onClose(); $event.stopPropagation()" type="button" title="Cerrar chat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Widget abierto -->
+  @if (isOpen()) {
+    <div class="chat-widget__container">
+      <!-- Header -->
+      <div class="chat-widget__header">
+        <div class="chat-widget__header-info">
+          <div class="chat-widget__header-text">
+            <h3 class="chat-widget__title">{{ getChatDisplayName() }}</h3>
+            <span class="chat-widget__status" [attr.data-status]="getChatStatusInfo().color">
+              {{ getChatStatusInfo().label }}
+            </span>
+          </div>
+        </div>
+        <div class="chat-widget__header-actions">
+          <button 
+            class="chat-widget__action-btn" 
+            (click)="onMinimize()" 
+            type="button"
+            title="Minimizar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+          <button 
+            class="chat-widget__action-btn" 
+            (click)="onClose()" 
+            type="button"
+            title="Cerrar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Contenido del chat -->
+      <div class="chat-widget__body">
+        <!-- Estado de carga -->
+        @if (loading()) {
+          <div class="chat-widget__loading">
+            <div class="loading-spinner"></div>
+            <p>Cargando chat...</p>
+          </div>
+        }
+
+        <!-- Estado de error -->
+        @if (error()) {
+          <div class="chat-widget__error">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p>{{ error() }}</p>
+          </div>
+        }
+
+        <!-- Mensajes -->
+        @if (!loading() && !error()) {
+          <div 
+            class="chat-widget__messages" 
+            #messagesContainer
+            (scroll)="onScroll()">
+            
+            <!-- Scroll anchor for infinite scroll -->
+            @if (hasMoreMessages()) {
+              <div #scrollAnchor class="chat-widget__scroll-anchor">
+                @if (isLoadingMore()) {
+                  <div class="chat-widget__loading-more">
+                    <div class="chat-widget__loading-spinner"></div>
+                    <span class="chat-widget__loading-text">Cargando mensajes anteriores...</span>
+                  </div>
+                }
+              </div>
+            }
+
+            @for (message of messages(); track trackMessageById($index, message); let i = $index) {
+              <!-- Date separator -->
+              @if (shouldShowDateSeparator(i)) {
+                <div class="chat-widget__date-separator">
+                  <span class="chat-widget__date-separator-text">{{ formatDateSeparator(message.sentAt) }}</span>
+                </div>
+              }
+
+              <!-- Message row -->
+              @let isOwn = message.senderId === currentUserId();
+              @let isSystem = isSystemMessage(message);
+              
+              <div 
+                class="chat-widget__message-row"
+                [class.chat-widget__message-row--own]="isOwn"
+                [class.chat-widget__message-row--visitor]="!isOwn && !isSystem"
+                [class.chat-widget__message-row--system]="isSystem">
+                                
+                <!-- Message body -->
+                <div 
+                  class="chat-widget__message-body"
+                  [class.chat-widget__message-body--own]="isOwn"
+                  [class.chat-widget__message-body--visitor]="!isOwn && !isSystem"
+                  [class.chat-widget__message-body--system]="isSystem">
+                  <span class="chat-widget__message-content">{{ message.content }}</span>
+                  <span class="chat-widget__message-meta">{{ formatMessageTime(message.sentAt) }}</span>
+                </div>
+              </div>
+            }
+            
+            @if (messages().length === 0) {
+              <div class="chat-widget__empty">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+                <p>Inicia la conversación con {{ getChatDisplayName() }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Input de mensajes -->
+      @if (!loading() && !error()) {
+        <div class="chat-widget__footer">
+          <guiders-message-input 
+            (messageSent)="onSendMessage($event)">
+          </guiders-message-input>
+        </div>
+      }
+    </div>
+  }
+</div>
