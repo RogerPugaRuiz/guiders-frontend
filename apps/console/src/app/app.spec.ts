@@ -15,8 +15,12 @@ describe('App', () => {
           provide: ENVIRONMENT_TOKEN,
           useValue: {
             production: false,
-            baseUrl: 'http://localhost:3000',
-            wsUrl: 'http://localhost:3000'
+            api: {
+              baseUrl: 'http://localhost:3000'
+            },
+            ws: {
+              url: 'http://localhost:3000'
+            }
           }
         }
       ]
