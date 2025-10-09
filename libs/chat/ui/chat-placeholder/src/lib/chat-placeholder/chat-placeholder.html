@@ -69,21 +69,19 @@
               [class.guiders-chat-placeholder__message-row--system]="system"
             >
               @if (!system) {
-                <span
+                <!-- <span
                   class="guiders-chat-placeholder__message-author"
                   [class.guiders-chat-placeholder__message-author--own]="own"
                 >
                   {{ getSenderLabel(message) }}
-                </span>
+                </span> -->
               }
-              <div class="guiders-chat-placeholder__message-container">
-                <div
-                  class="guiders-chat-placeholder__message-body"
-                  [class.guiders-chat-placeholder__message-body--own]="own"
-                  [class.guiders-chat-placeholder__message-body--system]="system"
-                >
-                  {{ message.content }}
-                </div>
+              <div
+                class="guiders-chat-placeholder__message-body"
+                [class.guiders-chat-placeholder__message-body--own]="own"
+                [class.guiders-chat-placeholder__message-body--system]="system"
+              >
+                <span class="guiders-chat-placeholder__message-content">{{ message.content }}</span>
                 <span class="guiders-chat-placeholder__message-meta">
                   {{ formatMessageTime(message.sentAt) }}
                 </span>

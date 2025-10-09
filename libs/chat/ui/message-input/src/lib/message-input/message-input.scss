@@ -7,11 +7,9 @@
 
 .message-input {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: tokens.$spacing-sm;
   padding: tokens.$spacing-md;
-  background-color: tokens.$color-surface-primary;
-  border-top: 1px solid tokens.$color-border-subtle;
 
   &__textarea {
     flex: 1;
@@ -20,7 +18,7 @@
     padding: tokens.$spacing-sm tokens.$spacing-md;
     font-family: tokens.$font-family-ui;
     font-size: tokens.$font-size-base;
-    line-height: tokens.$line-height-relaxed;
+    line-height: 1.5;
     color: tokens.$color-text-primary;
     background-color: tokens.$color-surface-secondary;
     border: 1px solid tokens.$color-border-default;
@@ -80,6 +78,10 @@
 
     svg {
       display: block;
+      width: 20px;
+      height: 20px;
+      fill: currentColor; /* Hace que el SVG herede el color del botón */
+      stroke: none;
     }
   }
 }
