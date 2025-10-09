@@ -88,7 +88,7 @@ export class MessageInput implements AfterViewInit {
     }, 150);
   }
 
-  private adjustTextareaHeight(): void {
+  adjustTextareaHeight(): void {
     const textarea = this.textareaRef?.nativeElement;
     if (!textarea) {
       return;
