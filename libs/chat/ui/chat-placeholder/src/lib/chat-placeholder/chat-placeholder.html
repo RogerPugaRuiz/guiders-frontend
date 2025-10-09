@@ -61,6 +61,15 @@
           }
           
           @for (message of messages; track trackMessageById($index, message)) {
+            <!-- Separador de fecha -->
+            @if (shouldShowDateSeparator($index)) {
+              <div class="guiders-chat-placeholder__date-separator">
+                <span class="guiders-chat-placeholder__date-separator-text">
+                  {{ formatDateSeparator(message.sentAt) }}
+                </span>
+              </div>
+            }
+            
             @let own = isOwnMessage(message);
             @let system = isSystemMessage(message);
             <div

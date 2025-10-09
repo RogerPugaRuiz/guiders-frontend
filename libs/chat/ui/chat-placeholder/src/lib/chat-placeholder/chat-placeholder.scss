@@ -216,6 +216,27 @@
     align-self: flex-start;
   }
 
+  &__date-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: tokens.$spacing-md 0;
+    width: 100%;
+  }
+
+  &__date-separator-text {
+    display: inline-block;
+    padding: tokens.$spacing-xs tokens.$spacing-md;
+    background-color: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-secondary;
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-medium;
+    border-radius: tokens.$border-radius-full;
+    box-shadow: tokens.$shadow-sm;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+  }
+
   &__message-row--own {
     align-self: flex-end;
   }

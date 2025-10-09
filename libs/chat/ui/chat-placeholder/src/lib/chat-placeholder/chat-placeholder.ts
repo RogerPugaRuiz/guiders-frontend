@@ -366,6 +366,65 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
     }).format(date);
   }
 
+  /**
+   * Determina si debe mostrarse un separador de fecha antes de este mensaje
+   */
+  shouldShowDateSeparator(index: number): boolean {
+    if (index === 0) return true; // Siempre mostrar separador para el primer mensaje
+    
+    const currentMessage = this.messages[index];
+    const previousMessage = this.messages[index - 1];
+    
+    if (!currentMessage?.sentAt || !previousMessage?.sentAt) return false;
+    
+    const currentDate = new Date(currentMessage.sentAt);
+    const previousDate = new Date(previousMessage.sentAt);
+    
+    // Comparar solo año, mes y día (ignorar hora)
+    return currentDate.toDateString() !== previousDate.toDateString();
+  }
+
+  /**
+   * Formatea la fecha del separador al estilo WhatsApp
+   * Retorna: "Hoy", "Ayer", o fecha formateada
+   */
+  formatDateSeparator(value: Date | string | number | null | undefined): string {
+    if (!value) return '';
+    
+    const messageDate = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(messageDate.getTime())) return '';
+    
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    // Resetear horas para comparación exacta de fechas
+    const resetTime = (date: Date) => {
+      const d = new Date(date);
+      d.setHours(0, 0, 0, 0);
+      return d;
+    };
+    
+    const messageDateOnly = resetTime(messageDate);
+    const todayOnly = resetTime(today);
+    const yesterdayOnly = resetTime(yesterday);
+    
+    if (messageDateOnly.getTime() === todayOnly.getTime()) {
+      return 'Hoy';
+    }
+    
+    if (messageDateOnly.getTime() === yesterdayOnly.getTime()) {
+      return 'Ayer';
+    }
+    
+    // Para fechas más antiguas, mostrar fecha completa
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    }).format(messageDate);
+  }
+
   onMessageSent(content: string): void {
     this.messageSent.emit(content);
   }
