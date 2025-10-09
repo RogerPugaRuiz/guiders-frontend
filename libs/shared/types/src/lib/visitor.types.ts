@@ -176,6 +176,7 @@ export interface TenantVisitor {
   createdAt: string;
   lastActivity: string;
   pendingChatIds: string[];
+  totalChatsCount: number; // Total de chats del visitante
 }
 
 // Respuesta del endpoint tenant-visitors
