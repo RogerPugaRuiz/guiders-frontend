@@ -1,8 +1,9 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
 import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
+import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 
 @Component({
   imports: [RouterModule, Sidebar, ChatWidgetComponent],
@@ -13,6 +14,7 @@ import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
 export class App {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
   
   protected title = 'console';
 
@@ -29,65 +31,77 @@ export class App {
   });
 
   // Items de navegación específicos para console (usuario final)
-  readonly sidebarItems = signal<SidebarItem[]>([
-    {
-      id: 'inbox',
-      label: 'Bandeja de Entrada',
-      icon: 'message-square',
-      route: '/inbox'
-    },
-    {
-      id: 'visitors',
-      label: 'Visitantes',
-      icon: 'users',
-      children: [
-        {
-          id: 'visitors-all',
-          label: 'Todos',
-          icon: 'users',
-          route: '/visitors?filter=all'
-        },
-        {
-          id: 'visitors-mine',
-          label: 'Míos',
-          icon: 'user',
-          route: '/visitors?filter=mine'
-        },
-        {
-          id: 'visitors-unassigned',
-          label: 'No asignados',
-          icon: 'circle',
-          route: '/visitors?filter=unassigned'
-        },
+  // Computed para actualizar el badge dinámicamente
+  readonly sidebarItems = computed<SidebarItem[]>(() => {
+    const totalUnread = this.unreadMessagesService.totalUnreadCount();
 
-      ]
-    },
-    // {
-    //   id: 'contacts',
-    //   label: 'Contactos',
-    //   icon: 'bookmark',
-    //   children: [
-    //     {
-    //       id: 'contacts-mine',
-    //       label: 'Mis contactos',
-    //       icon: 'user',
-    //       route: '/contacts?view=mine'
-    //     },
-    //     {
-    //       id: 'contacts-recent',
-    //       label: 'Recientes',
-    //       icon: 'clock',
-    //       route: '/contacts?view=recent'
-    //     },
-    //     {
-    //       id: 'contacts-search',
-    //       label: 'Buscar',
-    //       icon: 'search',
-    //       route: '/contacts?view=search'
-    //     }
-    //   ]
-    // }
-  ]);
+    return [
+      {
+        id: 'inbox',
+        label: 'Bandeja de Entrada',
+        icon: 'message-square',
+        route: '/inbox',
+        // Agregar badge solo si hay mensajes no leídos
+        ...(totalUnread > 0 && {
+          badge: {
+            text: totalUnread > 99 ? '99+' : totalUnread.toString(),
+            variant: 'danger' as const
+          }
+        })
+      },
+      {
+        id: 'visitors',
+        label: 'Visitantes',
+        icon: 'users',
+        children: [
+          {
+            id: 'visitors-all',
+            label: 'Todos',
+            icon: 'users',
+            route: '/visitors?filter=all'
+          },
+          {
+            id: 'visitors-mine',
+            label: 'Míos',
+            icon: 'user',
+            route: '/visitors?filter=mine'
+          },
+          {
+            id: 'visitors-unassigned',
+            label: 'No asignados',
+            icon: 'circle',
+            route: '/visitors?filter=unassigned'
+          },
+
+        ]
+      },
+      // {
+      //   id: 'contacts',
+      //   label: 'Contactos',
+      //   icon: 'bookmark',
+      //   children: [
+      //     {
+      //       id: 'contacts-mine',
+      //       label: 'Mis contactos',
+      //       icon: 'user',
+      //       route: '/contacts?view=mine'
+      //     },
+      //     {
+      //       id: 'contacts-recent',
+      //       label: 'Recientes',
+      //       icon: 'clock',
+      //       route: '/contacts?view=recent'
+      //     },
+      //     {
+      //       id: 'contacts-search',
+      //       label: 'Buscar',
+      //       icon: 'search',
+      //       route: '/contacts?view=search'
+      //     }
+      //   ]
+      // }
+    ];
+  });
 
   onSidebarItemClick(item: SidebarItem): void {
     console.log('Console sidebar item clicked:', item);

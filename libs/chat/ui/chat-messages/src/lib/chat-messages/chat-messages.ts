@@ -1,9 +1,10 @@
-import { Component, computed, input, output, signal, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, computed, input, output, signal, ViewChild, ElementRef, AfterViewInit, AfterViewChecked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Message, Chat } from '@guiders-frontend/shared/types';
 import { TextField } from '@guiders-frontend/text-field';
 import { Button } from '@guiders-frontend/button';
+import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 
 @Component({
   selector: 'guiders-chat-messages',
@@ -11,8 +12,17 @@ import { Button } from '@guiders-frontend/button';
   templateUrl: './chat-messages.html',
   styleUrl: './chat-messages.scss',
 })
-export class ChatMessages implements AfterViewInit {
+export class ChatMessages implements AfterViewInit, AfterViewChecked {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
+
+  // Servicio de mensajes no leídos
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
+
+  // IntersectionObserver para detectar mensajes visibles
+  private intersectionObserver: IntersectionObserver | null = null;
+
+  // Mapa de mensajes observados (messageId => timeout)
+  private observedMessages = new Map<string, NodeJS.Timeout>();
 
   // Inputs usando signals API
   readonly chat = input.required<Chat>();
@@ -61,6 +71,23 @@ export class ChatMessages implements AfterViewInit {
 
   ngAfterViewInit() {
     this.scrollToBottom();
+    this.initializeIntersectionObserver();
+  }
+
+  ngAfterViewChecked() {
+    // Observar mensajes no leídos después de cada actualización
+    this.observeUnreadMessages();
+  }
+
+  ngOnDestroy() {
+    // Cleanup del IntersectionObserver
+    if (this.intersectionObserver) {
+      this.intersectionObserver.disconnect();
+    }
+
+    // Limpiar timeouts
+    this.observedMessages.forEach(timeout => clearTimeout(timeout));
+    this.observedMessages.clear();
   }
 
   // Métodos
@@ -251,5 +278,113 @@ export class ChatMessages implements AfterViewInit {
       const element = this.messagesContainer.nativeElement;
       element.scrollTop = element.scrollHeight;
     }
+  }
+
+  /**
+   * Inicializar Intersection Observer para detectar mensajes visibles
+   */
+  private initializeIntersectionObserver(): void {
+    if (!this.messagesContainer) return;
+
+    const options = {
+      root: this.messagesContainer.nativeElement,
+      threshold: 1.0, // 100% visible
+      rootMargin: '0px',
+    };
+
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const messageElement = entry.target as HTMLElement;
+          const messageId = messageElement.dataset['messageId'];
+
+          if (messageId) {
+            this.handleMessageVisible(messageId);
+          }
+        } else {
+          // Si el mensaje deja de estar visible, cancelar el timeout
+          const messageElement = entry.target as HTMLElement;
+          const messageId = messageElement.dataset['messageId'];
+
+          if (messageId && this.observedMessages.has(messageId)) {
+            const timeout = this.observedMessages.get(messageId);
+            if (timeout) {
+              clearTimeout(timeout);
+              this.observedMessages.delete(messageId);
+            }
+          }
+        }
+      });
+    }, options);
+  }
+
+  /**
+   * Observar mensajes no leídos del chat actual
+   */
+  private observeUnreadMessages(): void {
+    if (!this.intersectionObserver || !this.messagesContainer) return;
+
+    const container = this.messagesContainer.nativeElement;
+    const messageElements = container.querySelectorAll('[data-message-id]');
+
+    messageElements.forEach((element: Element) => {
+      const messageId = (element as HTMLElement).dataset['messageId'];
+      if (!messageId) return;
+
+      // Buscar el mensaje en la lista
+      const message = this.messages().find(m => m.messageId === messageId);
+      if (!message) return;
+
+      // Solo observar si:
+      // 1. El mensaje no ha sido leído (isRead === false o undefined)
+      // 2. No es mensaje propio
+      // 3. No está siendo observado ya
+      const isUnread = message.isRead === false || message.isRead === undefined;
+      const isNotOwnMessage = message.senderId !== this.currentUserId();
+
+      if (isUnread && isNotOwnMessage && !this.observedMessages.has(messageId)) {
+        this.intersectionObserver.observe(element);
+      }
+    });
+  }
+
+  /**
+   * Manejar mensaje visible (marcar como leído después de 2 segundos)
+   */
+  private handleMessageVisible(messageId: string): void {
+    // Si ya tiene un timeout activo, no hacer nada
+    if (this.observedMessages.has(messageId)) {
+      return;
+    }
+
+    // Crear timeout para marcar como leído después de 2 segundos
+    const timeout = setTimeout(() => {
+      console.log('[ChatMessages] Marcando mensaje como leído:', messageId);
+
+      this.unreadMessagesService.markAsRead([messageId]).subscribe({
+        next: (response) => {
+          if (response.success) {
+            console.log('[ChatMessages] Mensaje marcado como leído:', messageId);
+          }
+        },
+        error: (error) => {
+          console.error('[ChatMessages] Error al marcar mensaje como leído:', error);
+        }
+      });
+
+      // Remover del mapa después de marcarlo
+      this.observedMessages.delete(messageId);
+
+      // Dejar de observar el elemento
+      if (this.intersectionObserver) {
+        const element = document.querySelector(`[data-message-id="${messageId}"]`);
+        if (element) {
+          this.intersectionObserver.unobserve(element);
+        }
+      }
+    }, 2000); // 2 segundos
+
+    // Guardar el timeout
+    this.observedMessages.set(messageId, timeout);
   }
 }

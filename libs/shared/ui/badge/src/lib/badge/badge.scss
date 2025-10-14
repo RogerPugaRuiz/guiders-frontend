@@ -110,9 +110,10 @@
   }
 
   &--danger {
-    background: tokens.$color-danger-600;
+    // Usar un tono más suave y moderno para mejor experiencia visual
+    background: #ef4444; // Rojo más suave y balanceado (Tailwind red-500)
     color: #ffffff;
-    border: 1px solid tokens.$color-danger-600;
+    border: 1px solid #ef4444;
   }
 
   &--info {
@@ -157,8 +158,8 @@
     }
 
     &.guiders-badge--danger {
-      color: tokens.$color-danger-600;
-      border-color: tokens.$color-danger-600;
+      color: #ef4444;
+      border-color: #ef4444;
     }
 
     &.guiders-badge--info {
@@ -260,11 +261,22 @@
   .guiders-badge {
     // Los design tokens manejan automáticamente el tema oscuro
     box-shadow: tokens.$shadow-sm;
-    
+
     // Ajuste específico para mejor contraste en tema oscuro
     &--default,
     &--neutral {
       border-color: tokens.$color-border-strong;
+    }
+
+    // Usar un tono más brillante de danger en modo oscuro para mejor visibilidad
+    &--danger {
+      background: #f87171; // Rojo más brillante para modo oscuro (Tailwind red-400)
+      border-color: #f87171;
+    }
+
+    &--outline.guiders-badge--danger {
+      color: #f87171;
+      border-color: #f87171;
     }
   }
 }

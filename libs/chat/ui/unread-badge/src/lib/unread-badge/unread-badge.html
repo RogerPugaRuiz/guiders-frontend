@@ -1,0 +1,10 @@
+@if (shouldShow()) {
+  <span
+    [ngClass]="badgeClasses()"
+    [attr.aria-label]="ariaLabel()"
+    aria-live="polite"
+    role="status"
+  >
+    {{ displayText() }}
+  </span>
+}

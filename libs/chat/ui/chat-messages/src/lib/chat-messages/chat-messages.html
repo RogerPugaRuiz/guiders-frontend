@@ -55,10 +55,11 @@
 
             <!-- Mensajes del día -->
             @for (message of group.messages; track message.messageId) {
-              <div 
+              <div
                 class="message"
                 [class.message--own]="isOwnMessage(message)"
                 [class.message--editing]="editingMessageId() === message.messageId"
+                [attr.data-message-id]="message.messageId"
                 tabindex="0"
                 role="button"
                 [attr.aria-label]="'Mensaje de ' + getSenderName(message.senderId)"

@@ -1,11 +1,12 @@
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat, User } from '@guiders-frontend/shared/types';
+import { UnreadBadge } from '@guiders-frontend/unread-badge';
 
 @Component({
   selector: 'guiders-conversation-item',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UnreadBadge],
   templateUrl: './conversation-item.html',
   styleUrl: './conversation-item.scss',
 })

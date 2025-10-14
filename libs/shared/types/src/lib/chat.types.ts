@@ -20,6 +20,12 @@ export interface Message {
   replyTo?: string; // ID del mensaje al que responde
   edited?: boolean;
   editedAt?: Date;
+  // Campos para sistema de mensajes no leídos
+  isRead?: boolean; // Indica si el mensaje ha sido leído
+  readAt?: Date | null; // Fecha y hora cuando fue leído
+  readBy?: string | null; // ID del usuario que leyó el mensaje
+  isInternal?: boolean; // Mensaje interno (solo entre comerciales)
+  isFirstResponse?: boolean; // Primer mensaje de respuesta del comercial
   metadata?: {
     fileName?: string;
     fileSize?: number;
@@ -120,6 +126,11 @@ export interface MarkAsReadRequest {
   messageIds: string[];
 }
 
+export interface MarkAsReadResponse {
+  success: boolean;
+  markedCount: number;
+}
+
 // Tipos para las respuestas de la API
 export interface CreateChatResponse {
   chatId: string;
@@ -168,4 +179,18 @@ export interface MessagePaginationInfo {
   total: number;
   hasMore: boolean;
   nextCursor?: string;
+}
+
+// Tipos para sistema de notificaciones de mensajes no leídos
+export interface UnreadMessage extends Message {
+  isRead: false; // Solo mensajes no leídos
+}
+
+export interface UnreadMessagesResponse {
+  messages: Message[];
+  total: number;
+}
+
+export interface UnreadCountMap {
+  [chatId: string]: number;
 }

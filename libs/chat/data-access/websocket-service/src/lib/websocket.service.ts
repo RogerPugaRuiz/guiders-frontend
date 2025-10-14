@@ -168,6 +168,46 @@ export class WebSocketService {
   }
 
   /**
+   * Unirse a múltiples salas de chat simultáneamente
+   * Útil para suscribirse a todos los chats del usuario al iniciar
+   */
+  joinMultipleRooms(chatIds: string[]): void {
+    if (!this.socket?.connected) {
+      console.error('[WebSocket] No conectado. Usa connect() primero.');
+      return;
+    }
+
+    if (chatIds.length === 0) {
+      console.warn('[WebSocket] No hay chats para unirse');
+      return;
+    }
+
+    console.log(`[WebSocket] Uniéndose a ${chatIds.length} salas:`, chatIds);
+
+    // Emitir evento para cada chat
+    chatIds.forEach(chatId => {
+      this.socket?.emit('chat:join', { chatId });
+    });
+
+    // Actualizar estado local
+    const rooms = new Set(this.currentRooms());
+    chatIds.forEach(chatId => {
+      rooms.add(`chat:${chatId}`);
+    });
+    this.currentRooms.set(rooms);
+
+    console.log(`✅ [WebSocket] Suscrito a ${chatIds.length} chats para notificaciones en tiempo real`);
+  }
+
+  /**
+   * Obtener lista de chats activos (IDs sin prefijo)
+   */
+  getActiveChats(): string[] {
+    return Array.from(this.currentRooms())
+      .map(roomId => roomId.replace('chat:', ''));
+  }
+
+  /**
    * Salir de una sala de chat
    */
   leaveRoom(chatId: string): void {

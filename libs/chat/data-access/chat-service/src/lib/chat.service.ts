@@ -657,12 +657,54 @@ export class ChatService {
   }
 
   /**
+   * Obtener mensajes no leídos para un chat específico
+   * GET /v2/messages/chat/:chatId/unread
+   */
+  getUnreadMessages(chatId: string): Observable<Message[]> {
+    return this.http.get<ApiMessageResponse[]>(
+      `${this.baseUrl}/messages/chat/${chatId}/unread`,
+      this.getHttpOptions()
+    ).pipe(
+      map(messages => {
+        return messages.map(msg => this.transformMessageFromApi(msg));
+      }),
+      catchError(error => {
+        this.handleError('Error al obtener mensajes no leídos', error);
+        return of([]);
+      })
+    );
+  }
+
+  /**
+   * Obtener contadores de mensajes no leídos para múltiples chats
+   */
+  getUnreadCountsForChats(chatIds: string[]): Observable<Record<string, number>> {
+    const requests = chatIds.map(chatId =>
+      this.getUnreadMessages(chatId).pipe(
+        map(messages => ({ chatId, count: messages.length }))
+      )
+    );
+
+    return of(requests).pipe(
+      map(observables => {
+        const counts: Record<string, number> = {};
+        observables.forEach(obs => {
+          obs.subscribe(result => {
+            counts[result.chatId] = result.count;
+          });
+        });
+        return counts;
+      })
+    );
+  }
+
+  /**
    * Marcar mensajes como leídos
    */
   markAsRead(messageIds: string[]): Observable<boolean> {
     const request: MarkAsReadRequest = { messageIds };
-    
-    return this.http.put(`${this.baseUrl}/messages/mark-as-read`, request, 
+
+    return this.http.put(`${this.baseUrl}/messages/mark-as-read`, request,
       this.getHttpOptions()
     ).pipe(
       map(() => {
@@ -680,18 +722,13 @@ export class ChatService {
   // ===== MÉTODOS DE ESTADO =====
 
   selectChat(chatId: string | null): void {
-    const previousChatId = this.selectedChatSubject.value;
-    
-    // Salir de la sala anterior si existe
-    if (previousChatId && this.webSocket.isConnected()) {
-      this.webSocket.leaveRoom(previousChatId);
-    }
+    // ✅ IMPORTANTE: NO salir de la sala anterior
+    // Necesitamos permanecer suscritos a TODOS los chats simultáneamente
+    // para recibir notificaciones en tiempo real de cualquier chat
 
-    // Unirse a la nueva sala si existe
-    if (chatId && this.webSocket.isConnected()) {
-      this.webSocket.joinRoom(chatId);
-    }
-
+    // Solo actualizar el chat seleccionado
+    // Las salas de WebSocket se manejan a nivel de aplicación (inbox)
+    // usando joinMultipleRooms() al iniciar
     this.selectedChatSubject.next(chatId);
   }
 

@@ -112,6 +112,12 @@
       ],
       "@guiders-frontend/toast": ["libs/shared/ui/toast/src/index.ts"],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/unread-badge": [
+        "libs/chat/ui/unread-badge/src/index.ts"
+      ],
+      "@guiders-frontend/unread-messages-service": [
+        "libs/chat/data-access/unread-messages-service/src/index.ts"
+      ],
       "@guiders-frontend/user-menu": ["libs/shared/ui/user-menu/src/index.ts"],
       "@guiders-frontend/visitor-card": [
         "libs/chat/ui/visitor-card/src/index.ts"

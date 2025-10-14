@@ -5,6 +5,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { Chat, Message } from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
+import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-sidebar';
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
 import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-placeholder';
@@ -41,6 +42,7 @@ export class Inbox implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly chatService = inject(ChatService);
   private readonly sessionService = inject(SessionService);
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
 
   // ===== ESTADO PRINCIPAL =====
   readonly selectedConversationId = signal<string | null>(null);
@@ -82,8 +84,15 @@ export class Inbox implements OnInit {
 
   // ===== LIFECYCLE =====
   ngOnInit() {
+    // Configurar UnreadMessagesService con el usuario actual
+    const userId = this.currentUserId();
+    if (userId) {
+      this.unreadMessagesService.setCurrentUser(userId);
+    }
+
     this.initializeDataSubscriptions();
     this.loadInitialData();
+    this.initializeUnreadMessagesSync();
   }
 
     // ===== INICIALIZACIÓN =====
@@ -160,6 +169,20 @@ export class Inbox implements OnInit {
       .subscribe({
       next: (chats) => {
         console.log('Chats cargados:', chats.length);
+
+        // Extraer IDs de todos los chats
+        const chatIds = chats.map(chat => chat.chatId);
+
+        // ✅ IMPORTANTE: Suscribirse a TODOS los chats vía WebSocket
+        // Esto permite recibir notificaciones en tiempo real de mensajes nuevos
+        // en cualquier chat, no solo el chat seleccionado
+        if (this.chatService.isWebSocketConnected && chatIds.length > 0) {
+          this.chatService.webSocketService.joinMultipleRooms(chatIds);
+          console.log(`✅ [Inbox] Suscrito a ${chatIds.length} chats para notificaciones en tiempo real`);
+        }
+
+        // Refrescar contadores de mensajes no leídos para todos los chats
+        this.unreadMessagesService.refreshUnreadCounts(chatIds);
       },
       error: (error) => {
         console.error('Error al cargar chats:', error);
@@ -174,12 +197,22 @@ export class Inbox implements OnInit {
    * Manejar selección de conversación desde el sidebar
    */
   onUserSelected(conversation: Chat): void {
-    console.log('Conversación seleccionada:', conversation.chatId);
-    
+    console.log('[Inbox] 🔄 === CONVERSACIÓN SELECCIONADA ===');
+    console.log('[Inbox] 📋 ChatId:', conversation.chatId);
+    console.log('[Inbox] 📋 Visitor Name:', conversation.participants?.[0]?.name);
+    console.log('[Inbox] 📊 Unread Count (antes):', conversation.unreadCount);
+
     this.selectedConversationId.set(conversation.chatId);
     this.chatService.selectChat(conversation.chatId);
-    
+
+    // ✅ NOTIFICAR AL SERVICIO QUE ESTE ES EL CHAT ACTIVO
+    // Esto previene que se incrementen contadores y se muestren notificaciones
+    // para mensajes de este chat, y marca automáticamente como leídos
+    console.log('[Inbox] 🚀 Llamando a unreadMessagesService.setActiveChat...');
+    this.unreadMessagesService.setActiveChat(conversation.chatId);
+
     // Cargar mensajes para la conversación seleccionada
+    console.log('[Inbox] 📥 Cargando mensajes del chat...');
     this.loadMessages(conversation.chatId);
   }
 
@@ -206,9 +239,16 @@ export class Inbox implements OnInit {
    * Manejar cierre del chat desde placeholder
    */
   onCloseChat(): void {
-    console.log('Cerrar chat');
+    console.log('[Inbox] 🔄 === CERRANDO CHAT ===');
+    console.log('[Inbox] 📋 Chat actual:', this.selectedConversationId());
+
     this.selectedConversationId.set(null);
     this.chatService.selectChat(null);
+
+    // ✅ NOTIFICAR AL SERVICIO QUE NO HAY CHAT ACTIVO
+    console.log('[Inbox] 🚀 Llamando a unreadMessagesService.setActiveChat(null)...');
+    this.unreadMessagesService.setActiveChat(null);
+    console.log('[Inbox] ✅ Chat cerrado correctamente');
   }
 
   /**
@@ -366,5 +406,57 @@ export class Inbox implements OnInit {
    */
   clearError(): void {
     this.error.set(null);
+  }
+
+  /**
+   * Inicializar sincronización de mensajes no leídos
+   */
+  private initializeUnreadMessagesSync(): void {
+    console.log('[Inbox] 🎧 Inicializando sincronización de mensajes no leídos');
+
+    // Sincronizar contadores de no leídos con los chats
+    this.unreadMessagesService.unreadCount$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((unreadCountMap) => {
+        console.log('[Inbox] 📊 === SINCRONIZANDO CONTADORES DE NO LEÍDOS ===');
+        console.log('[Inbox] 📋 Mapa de contadores recibido:', unreadCountMap);
+
+        // Actualizar unreadCount en los chats locales
+        this.conversations.update(chats => {
+          console.log('[Inbox] 📋 Total de chats a actualizar:', chats.length);
+
+          const updatedChats = chats.map(chat => {
+            const newCount = unreadCountMap[chat.chatId] || 0;
+            const oldCount = chat.unreadCount || 0;
+
+            if (newCount !== oldCount) {
+              console.log(`[Inbox] 🔄 Chat ${chat.chatId}: ${oldCount} -> ${newCount}`);
+            }
+
+            return {
+              ...chat,
+              unreadCount: newCount
+            };
+          });
+
+          console.log('[Inbox] ✅ Chats actualizados con nuevos contadores');
+          return updatedChats;
+        });
+      });
+
+    // Reconectar a todos los chats si el WebSocket se reconecta
+    this.chatService.webSocketService.connectionState$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(state => {
+        if (state === 'connected') {
+          const chatIds = this.conversations().map(chat => chat.chatId);
+          if (chatIds.length > 0) {
+            console.log('[Inbox] WebSocket reconectado, resubscribiendo a chats...');
+            this.chatService.webSocketService.joinMultipleRooms(chatIds);
+            // Refrescar contadores después de reconectar
+            this.unreadMessagesService.refreshUnreadCounts(chatIds);
+          }
+        }
+      });
   }
 }

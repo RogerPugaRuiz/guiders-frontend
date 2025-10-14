@@ -26,9 +26,11 @@
     </div>
     <div class="conversation-item__footer">
       <p class="conversation-item__preview">{{ getChatPreview() }}</p>
-      @if (conversation().unreadCount && conversation().unreadCount > 0) {
-        <span class="conversation-item__badge">{{ conversation().unreadCount }}</span>
-      }
+      <guiders-unread-badge
+        [count]="conversation().unreadCount"
+        size="small"
+        variant="danger"
+      />
     </div>
   </div>
 </button>
