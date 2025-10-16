@@ -9,15 +9,14 @@
     <!-- Selector de tamaño de página -->
     <div class="pagination__page-size">
       <label for="pageSize" class="pagination__label">Por página:</label>
-      <select 
+      <select
         id="pageSize"
         class="pagination__select"
-        [value]="config().pageSize"
         [disabled]="disabled()"
         (change)="onPageSizeChange($event)"
       >
         @for (size of pageSizeOptions(); track size) {
-          <option [value]="size">{{ size }}</option>
+          <option [value]="size" [selected]="config().pageSize === size">{{ size }}</option>
         }
       </select>
     </div>

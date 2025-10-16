@@ -57,11 +57,10 @@
             </svg>
             <select
               class="refresh-interval-select"
-              [value]="autoRefreshInterval()"
               (change)="onAutoRefreshIntervalChange(+$any($event.target).value)"
             >
               @for (option of autoRefreshOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
+                <option [value]="option.value" [selected]="autoRefreshInterval() === option.value">{{ option.label }}</option>
               }
             </select>
           </div>

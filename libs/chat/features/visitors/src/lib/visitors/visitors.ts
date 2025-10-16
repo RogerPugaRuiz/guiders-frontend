@@ -68,6 +68,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Variable para guardar la posición del scroll
   private savedScrollPosition = 0;
 
+  // Keys para localStorage
+  private readonly STORAGE_KEY_AUTO_REFRESH = 'visitors_auto_refresh_interval';
+  private readonly STORAGE_KEY_PAGE_SIZE = 'visitors_page_size';
+
   // ID del tenant (empresa) resuelto dinámicamente
   readonly tenantId = signal<string | null>(null);
 
@@ -83,8 +87,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     { label: '5 minutos', value: 300000 }
   ];
 
-  // Intervalo de auto-refresh seleccionado
-  readonly autoRefreshInterval = signal<number>(30000); // Default: 30 segundos
+  // Intervalo de auto-refresh seleccionado (cargar desde localStorage si existe)
+  readonly autoRefreshInterval = signal<number>(this.loadAutoRefreshInterval());
 
   // Estado reactivo del componente
   readonly state = signal<VisitorState>({
@@ -95,8 +99,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       hasActiveChat: false
     },
     sort: { field: 'lastVisit', direction: 'desc' },
-    pagination: { 
-      limit: 10, 
+    pagination: {
+      limit: this.loadPageSize(),
       offset: 0,
       totalCount: 0,
       currentPage: 1
@@ -348,6 +352,57 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Métodos para cargar configuraciones desde localStorage
+  private loadAutoRefreshInterval(): number {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY_AUTO_REFRESH);
+      if (stored !== null) {
+        const parsed = parseInt(stored, 10);
+        // Validar que sea un valor válido (0, 10000, 30000, 60000, 300000)
+        const validValues = [0, 10000, 30000, 60000, 300000];
+        if (!isNaN(parsed) && validValues.includes(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading auto-refresh interval from localStorage:', error);
+    }
+    return 30000; // Default: 30 segundos
+  }
+
+  private loadPageSize(): number {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY_PAGE_SIZE);
+      if (stored !== null) {
+        const parsed = parseInt(stored, 10);
+        // Validar que sea un valor razonable (10, 20, 50, 100)
+        if (!isNaN(parsed) && [10, 20, 50, 100].includes(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (error) {
+      console.error('Error loading page size from localStorage:', error);
+    }
+    return 10; // Default: 10
+  }
+
+  // Métodos para guardar configuraciones en localStorage
+  private saveAutoRefreshInterval(interval: number): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY_AUTO_REFRESH, interval.toString());
+    } catch (error) {
+      console.error('Error saving auto-refresh interval to localStorage:', error);
+    }
+  }
+
+  private savePageSize(pageSize: number): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY_PAGE_SIZE, pageSize.toString());
+    } catch (error) {
+      console.error('Error saving page size to localStorage:', error);
+    }
+  }
+
   // Método para configurar el auto-refresh
   private setupAutoRefresh(): void {
     const interval = this.autoRefreshInterval();
@@ -372,6 +427,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Método público para cambiar el intervalo de auto-refresh
   onAutoRefreshIntervalChange(interval: number): void {
     this.autoRefreshInterval.set(interval);
+    this.saveAutoRefreshInterval(interval);
     this.setupAutoRefresh();
   }
 
@@ -705,7 +761,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         totalCount: this.state().pagination.totalCount
       }
     });
-    
+
+    // Guardar en localStorage
+    this.savePageSize(pageSize);
+
     this.loadVisitors();
   }
 

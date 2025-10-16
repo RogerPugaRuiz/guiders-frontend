@@ -21,6 +21,10 @@ export default defineConfig({
     baseURL,
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
+
+    // Bypass autenticación Keycloak en las pruebas
+    // Interceptar todas las navegaciones a Keycloak y bloquearlas
+    bypassCSP: true,
   },
   /* Run your local dev server before starting the tests */
   webServer: {
