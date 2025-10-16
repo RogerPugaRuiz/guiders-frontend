@@ -71,6 +71,21 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // ID del tenant (empresa) resuelto dinámicamente
   readonly tenantId = signal<string | null>(null);
 
+  // Flag para indicar cuando se está refrescando (sin loader)
+  readonly isRefreshing = signal<boolean>(false);
+
+  // Opciones de intervalo de auto-refresh (en milisegundos)
+  readonly autoRefreshOptions = [
+    { label: 'Desactivado', value: 0 },
+    { label: '10 segundos', value: 10000 },
+    { label: '30 segundos', value: 30000 },
+    { label: '1 minuto', value: 60000 },
+    { label: '5 minutos', value: 300000 }
+  ];
+
+  // Intervalo de auto-refresh seleccionado
+  readonly autoRefreshInterval = signal<number>(30000); // Default: 30 segundos
+
   // Estado reactivo del componente
   readonly state = signal<VisitorState>({
     visitors: [],
@@ -321,10 +336,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         this.loadVisitors();
         this.loadStats();
 
-        // Actualizar datos cada 30 segundos (una vez resuelto el sitio)
-        this.refreshIntervalId = window.setInterval(() => {
-          this.refreshVisitors();
-        }, 30000);
+        // Configurar auto-refresh inicial
+        this.setupAutoRefresh();
       });
   }
 
@@ -333,6 +346,33 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       clearInterval(this.refreshIntervalId);
       this.refreshIntervalId = undefined;
     }
+  }
+
+  // Método para configurar el auto-refresh
+  private setupAutoRefresh(): void {
+    const interval = this.autoRefreshInterval();
+
+    // Limpiar intervalo existente si hay uno
+    if (this.refreshIntervalId) {
+      clearInterval(this.refreshIntervalId);
+      this.refreshIntervalId = undefined;
+    }
+
+    // Si el intervalo es 0, no configurar auto-refresh
+    if (interval === 0) {
+      return;
+    }
+
+    // Configurar nuevo intervalo
+    this.refreshIntervalId = window.setInterval(() => {
+      this.refreshVisitors();
+    }, interval);
+  }
+
+  // Método público para cambiar el intervalo de auto-refresh
+  onAutoRefreshIntervalChange(interval: number): void {
+    this.autoRefreshInterval.set(interval);
+    this.setupAutoRefresh();
   }
 
   private getFilterCount(visitors: Visitor[], filters: VisitorFilters): number {
@@ -462,89 +502,49 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       console.log('⏸️ Auto-refresh pausado - actualización optimista en progreso');
       return;
     }
-    
+
     if (this.state().loading) return;
-    const tenantId = this.tenantId();
-    if (!tenantId) return;
-    
-    // Guardar la posición del scroll antes de refrescar
-    this.saveScrollPosition();
-    
-    const currentState = this.state();
 
-    // Decidir si usar mock o servicio real basado en el token
-    if (this.useMockData) {
-      // USAR MOCK
-      const mockResponse = getMockVisitorsResponse(
-        currentState.pagination.limit,
-        currentState.pagination.offset || 0
-      );
-
-      this.updateState({ 
-        visitors: mockResponse.visitors,
-        pagination: {
-          ...currentState.pagination,
-          totalCount: mockResponse.total
-        }
-      });
-      
-      // Restaurar la posición del scroll después de actualizar
-      this.restoreScrollPosition();
-    } else {
-      // USAR SERVICIO REAL
-      const queryParams = {
-        limit: currentState.pagination.limit,
-        offset: currentState.pagination.offset || 0,
-        includeOffline: this.currentFilter().filters.includeOffline,
-        search: currentState.searchQuery || undefined
-      };
-
-      this.visitorsService.getVisitors(tenantId, queryParams)
-        .pipe(
-          catchError(() => of({ visitors: [], total: 0, hasMore: false }))
-        )
-        .subscribe((response: GetVisitorsResponse) => {
-          this.updateState({ 
-            visitors: response.visitors,
-            pagination: {
-              ...currentState.pagination,
-              totalCount: response.total
-            }
-          });
-          // Restaurar la posición del scroll después de actualizar
-          this.restoreScrollPosition();
-        });
-    }
+    // Usar el método silencioso que ya tiene la animación del botón
+    this.refreshVisitorsSilently();
   }
 
   // Método para refrescar visitantes SIN activar loading (para operaciones silenciosas)
-  private refreshVisitorsSilently(): void {
+  refreshVisitorsSilently(): void {
     const tenantId = this.tenantId();
     if (!tenantId) return;
-    
+
+    // Activar flag de refreshing para feedback visual
+    this.isRefreshing.set(true);
+
     // Guardar la posición del scroll antes de refrescar
     this.saveScrollPosition();
-    
+
     const currentState = this.state();
 
     // Decidir si usar mock o servicio real basado en el token
     if (this.useMockData) {
       // USAR MOCK
-      const mockResponse = getMockVisitorsResponse(
-        currentState.pagination.limit,
-        currentState.pagination.offset || 0
-      );
+      setTimeout(() => {
+        const mockResponse = getMockVisitorsResponse(
+          currentState.pagination.limit,
+          currentState.pagination.offset || 0
+        );
 
-      this.updateState({ 
-        visitors: mockResponse.visitors,
-        pagination: {
-          ...currentState.pagination,
-          totalCount: mockResponse.total
-        }
-      });
-      
-      // Restaurar la posición del scroll después de actualizar
-      this.restoreScrollPosition();
+        this.updateState({
+          visitors: mockResponse.visitors,
+          pagination: {
+            ...currentState.pagination,
+            totalCount: mockResponse.total
+          }
+        });
+
+        // Restaurar la posición del scroll después de actualizar
+        this.restoreScrollPosition();
+
+        // Desactivar flag de refreshing
+        this.isRefreshing.set(false);
+      }, 300); // Breve delay para mostrar la animación
     } else {
       // USAR SERVICIO REAL
       const queryParams = {
@@ -556,10 +556,14 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
       this.visitorsService.getVisitors(tenantId, queryParams)
         .pipe(
-          catchError(() => of({ visitors: [], total: 0, hasMore: false }))
+          catchError(() => of({ visitors: [], total: 0, hasMore: false })),
+          finalize(() => {
+            // Desactivar flag de refreshing
+            this.isRefreshing.set(false);
+          })
         )
         .subscribe((response: GetVisitorsResponse) => {
-          this.updateState({ 
+          this.updateState({
             visitors: response.visitors,
             pagination: {
               ...currentState.pagination,

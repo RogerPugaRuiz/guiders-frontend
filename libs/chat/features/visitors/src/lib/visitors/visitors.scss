@@ -254,7 +254,11 @@
 .bento-card--4x3 { grid-column: span 4; grid-row: span 3; }
 
 .bento-card-header {
-  padding: tokens.$spacing-md tokens.$spacing-md 0;
+  padding: tokens.$spacing-md tokens.$spacing-md tokens.$spacing-2xs;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: tokens.$spacing-sm;
 }
 
 .bento-card-title {
@@ -262,7 +266,107 @@
   font-weight: tokens.$font-weight-semibold;
   color: tokens.$color-text-primary;
   margin: 0;
-  padding-bottom: tokens.$spacing-2xs;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+}
+
+.auto-refresh-selector {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  background: tokens.$color-surface-secondary;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: tokens.$border-radius-sm;
+  color: tokens.$color-text-secondary;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+}
+
+.refresh-interval-select {
+  @include tokens.typography('body-small');
+  background: transparent;
+  border: none;
+  color: tokens.$color-text-secondary;
+  cursor: pointer;
+  padding: 0;
+  font-weight: tokens.$font-weight-medium;
+  outline: none;
+
+  &:focus {
+    color: tokens.$color-text-primary;
+  }
+
+  option {
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-primary;
+  }
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: tokens.$border-radius-sm;
+  color: tokens.$color-text-secondary;
+  cursor: pointer;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    transition: transform tokens.$duration-normal tokens.$easing-standard;
+  }
+
+  &:hover:not(:disabled) {
+    background: tokens.$color-surface-hover;
+    color: tokens.$color-primary-600;
+    border-color: tokens.$color-primary-500;
+
+    svg {
+      transform: rotate(-45deg);
+    }
+  }
+
+  &:active:not(:disabled) {
+    background: tokens.$color-surface-selected;
+    color: tokens.$color-primary-700;
+    transform: scale(0.95);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &--loading {
+    svg {
+      animation: rotate 1s linear infinite;
+    }
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .bento-card-content {
