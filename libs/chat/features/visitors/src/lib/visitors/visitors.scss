@@ -360,6 +360,14 @@
   }
 }
 
+.last-refresh-indicator {
+  @include tokens.typography('caption');
+  color: tokens.$color-text-tertiary;
+  font-weight: tokens.$font-weight-regular;
+  white-space: nowrap;
+  margin-left: tokens.$spacing-xs;
+}
+
 @keyframes rotate {
   from {
     transform: rotate(0deg);

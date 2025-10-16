@@ -28,10 +28,13 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx nx run console:serve',
+    command: 'VITE_USE_MOCK_DATA=true npx nx run console:serve',
     url: 'http://localhost:4200',
     reuseExistingServer: true,
     cwd: workspaceRoot,
+    env: {
+      VITE_USE_MOCK_DATA: 'true',
+    },
   },
   projects: [
     {

@@ -49,6 +49,11 @@
       <div class="bento-card-header">
         <h3 class="bento-card-title">Lista de Visitantes</h3>
         <div class="header-actions">
+          @if (lastRefreshTime()) {
+            <span class="last-refresh-indicator">
+              Actualizado {{ timeSinceLastRefresh() }}
+            </span>
+          }
           <div class="auto-refresh-selector">
             <svg width="14" height="14" stroke-width="1.8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M9 2L15 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>

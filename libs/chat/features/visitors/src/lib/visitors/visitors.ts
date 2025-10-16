@@ -68,6 +68,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Variable para guardar la posición del scroll
   private savedScrollPosition = 0;
 
+  // Intervalo para actualizar el tiempo transcurrido
+  private timeUpdateIntervalId?: number;
+
   // Keys para localStorage
   private readonly STORAGE_KEY_AUTO_REFRESH = 'visitors_auto_refresh_interval';
   private readonly STORAGE_KEY_PAGE_SIZE = 'visitors_page_size';
@@ -77,6 +80,38 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   // Flag para indicar cuando se está refrescando (sin loader)
   readonly isRefreshing = signal<boolean>(false);
+
+  // Timestamp de la última carga de datos
+  readonly lastRefreshTime = signal<Date | null>(null);
+
+  // Signal para forzar actualización del tiempo transcurrido
+  private readonly timeUpdateTrigger = signal<number>(0);
+
+  // Computed signal para el tiempo transcurrido desde la última actualización
+  readonly timeSinceLastRefresh = computed(() => {
+    // Leer el trigger para que Angular detecte cambios cuando se actualice
+    this.timeUpdateTrigger();
+
+    const lastRefresh = this.lastRefreshTime();
+    if (!lastRefresh) return '';
+
+    const now = new Date();
+    const diffMs = now.getTime() - lastRefresh.getTime();
+    const diffSeconds = Math.floor(diffMs / 1000);
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffSeconds < 60) {
+      return `hace ${diffSeconds} seg`;
+    } else if (diffMinutes < 60) {
+      return `hace ${diffMinutes} min`;
+    } else if (diffHours < 24) {
+      return `hace ${diffHours} h`;
+    } else {
+      return `hace ${diffDays} días`;
+    }
+  });
 
   // Opciones de intervalo de auto-refresh (en milisegundos)
   readonly autoRefreshOptions = [
@@ -343,12 +378,19 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         // Configurar auto-refresh inicial
         this.setupAutoRefresh();
       });
+
+    // Configurar intervalo para actualizar el tiempo transcurrido cada minuto
+    this.setupTimeUpdateInterval();
   }
 
   ngOnDestroy(): void {
     if (this.refreshIntervalId) {
       clearInterval(this.refreshIntervalId);
       this.refreshIntervalId = undefined;
+    }
+    if (this.timeUpdateIntervalId) {
+      clearInterval(this.timeUpdateIntervalId);
+      this.timeUpdateIntervalId = undefined;
     }
   }
 
@@ -424,6 +466,21 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     }, interval);
   }
 
+  // Método para configurar la actualización del tiempo transcurrido
+  private setupTimeUpdateInterval(): void {
+    // Limpiar intervalo existente si hay uno
+    if (this.timeUpdateIntervalId) {
+      clearInterval(this.timeUpdateIntervalId);
+      this.timeUpdateIntervalId = undefined;
+    }
+
+    // Actualizar cada segundo (1000ms)
+    this.timeUpdateIntervalId = window.setInterval(() => {
+      // Incrementar el trigger para forzar actualización del template
+      this.timeUpdateTrigger.update(v => v + 1);
+    }, 1000);
+  }
+
   // Método público para cambiar el intervalo de auto-refresh
   onAutoRefreshIntervalChange(interval: number): void {
     this.autoRefreshInterval.set(interval);
@@ -487,6 +544,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           loading: false
         });
 
+        // Actualizar timestamp de última carga
+        this.lastRefreshTime.set(new Date());
+
         // Restaurar la posición del scroll después de cargar
         this.restoreScrollPosition();
       }, 500); // Simular latencia de red
@@ -520,6 +580,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
               totalCount: response.total
             }
           });
+
+          // Actualizar timestamp de última carga
+          this.lastRefreshTime.set(new Date());
         });
     }
   }
@@ -595,6 +658,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           }
         });
 
+        // Actualizar timestamp de última carga
+        this.lastRefreshTime.set(new Date());
+
         // Restaurar la posición del scroll después de actualizar
         this.restoreScrollPosition();
 
@@ -626,6 +692,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
               totalCount: response.total
             }
           });
+
+          // Actualizar timestamp de última carga
+          this.lastRefreshTime.set(new Date());
+
           // Restaurar la posición del scroll después de actualizar
           this.restoreScrollPosition();
         });

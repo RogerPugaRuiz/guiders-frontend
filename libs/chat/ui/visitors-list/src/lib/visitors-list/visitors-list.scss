@@ -384,29 +384,29 @@
   border-radius: tokens.$border-radius-full;
   font-size: 11px;
   font-weight: tokens.$font-weight-medium;
-  
+
   &--online {
     background-color: #d1fae5;
     color: #065f46;
-    
+
     .status-dot {
       background-color: #10b981;
     }
   }
-  
+
   &--offline {
     background-color: #f3f4f6;
     color: #374151;
-    
+
     .status-dot {
       background-color: #6b7280;
     }
   }
-  
+
   &--idle {
     background-color: #fef3c7;
     color: #92400e;
-    
+
     .status-dot {
       background-color: #f59e0b;
     }

@@ -472,4 +472,5 @@ export class VisitorsListComponent {
   isSelected(visitorId: string): boolean {
     return this.internalSelectedIds().has(visitorId);
   }
+
 }

@@ -18,13 +18,49 @@ const MOCK_USER = {
 };
 
 /**
+ * Datos mock de visitantes para las pruebas
+ */
+const MOCK_VISITORS_RESPONSE = {
+  visitors: [
+    {
+      id: 'visitor-1',
+      name: 'Test Visitor 1',
+      email: 'visitor1@example.com',
+      status: 'online',
+      lifecycle: 'VISITOR',
+      hasActiveChat: false,
+      lastVisit: new Date().toISOString(),
+      currentPage: '/home',
+      device: 'desktop',
+      browser: 'chrome',
+      country: 'ES'
+    },
+    {
+      id: 'visitor-2',
+      name: 'Test Visitor 2',
+      email: 'visitor2@example.com',
+      status: 'online',
+      lifecycle: 'LEAD',
+      hasActiveChat: true,
+      lastVisit: new Date().toISOString(),
+      currentPage: '/products',
+      device: 'mobile',
+      browser: 'safari',
+      country: 'MX'
+    }
+  ],
+  total: 2,
+  hasMore: false
+};
+
+/**
  * Configura autenticación mockeada para las pruebas E2E
  * Establece tokens y datos de usuario en localStorage
  *
  * @param page - Instancia de Page de Playwright
  */
 export async function setupAuthMock(page: Page): Promise<void> {
-  // IMPORTANTE: Bloquear redirecciones a Keycloak ANTES de cualquier navegación
+  // IMPORTANTE: Bloquear redirecciones y mockear endpoints de autenticación
   await page.route('**/*', (route) => {
     const url = route.request().url();
 
@@ -35,57 +71,45 @@ export async function setupAuthMock(page: Page): Promise<void> {
       return;
     }
 
-    // Interceptar llamadas al BFF de autenticación
-    if (url.includes('/api/bff/auth/')) {
+    // Mockear endpoint BFF de autenticación /bff/auth/me
+    if (url.includes('/bff/auth/me')) {
+      console.log('[AUTH MOCK] Interceptando /bff/auth/me');
       route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
-          authenticated: true,
-          user: MOCK_USER
+          sub: MOCK_USER.id,
+          email: MOCK_USER.email,
+          name: MOCK_USER.name,
+          roles: ['user', 'commercial'],
+          app: 'console',
+          session: {
+            companyId: MOCK_USER.companyId,
+            tenantId: MOCK_USER.tenantId
+          }
         })
       });
       return;
     }
 
-    // Interceptar validación de tokens
-    if (url.includes('/api/auth/validate')) {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          valid: true,
-          user: MOCK_USER
-        })
-      });
+    // Bloquear intentos de login BFF
+    if (url.includes('/bff/auth/login')) {
+      console.log('[AUTH MOCK] Bloqueando /bff/auth/login - usuario ya autenticado');
+      route.abort();
       return;
     }
 
     // Permitir todas las demás peticiones
+    // La aplicación usará los mocks internos de visitors.ts
     route.continue();
   });
 
   // Navegar a la página base para tener acceso al localStorage del dominio correcto
   await page.goto('/');
 
-  // Configurar tokens de autenticación en localStorage
-  await page.evaluate(({ token, user }) => {
-    // Token de acceso
-    localStorage.setItem('access-token', token);
-
-    // Datos del usuario
-    localStorage.setItem('user', JSON.stringify(user));
-
-    // Otros datos que pueda necesitar la aplicación
-    localStorage.setItem('isAuthenticated', 'true');
-
-    // Mock de configuración de empresa/tenant
-    localStorage.setItem('selectedSite', JSON.stringify({
-      tenantId: user.tenantId,
-      siteName: 'Test Site',
-      companyId: user.companyId
-    }));
-  }, { token: MOCK_ACCESS_TOKEN, user: MOCK_USER });
+  // La aplicación ahora usará el UserService con BFF mockeado
+  // No necesitamos configurar localStorage manualmente porque el APP_INITIALIZER
+  // llamará a /bff/auth/me que está mockeado arriba
 }
 
 /**
