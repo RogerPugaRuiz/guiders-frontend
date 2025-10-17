@@ -27,22 +27,59 @@
       <table class="visitors-table">
         <thead>
           <tr>
-            <th class="visitors-table__header visitors-table__header--visitor">
+            <th 
+              class="visitors-table__header visitors-table__header--visitor visitors-table__header--sortable"
+              [class.visitors-table__header--active]="currentSort().field === 'name'"
+              (click)="toggleSort('name')"
+            >
               <div class="header-content">
-                Visitante
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M7 10l5 5 5-5"/>
-                </svg>
+                <span>Visitante</span>
+                @if (currentSort().field === 'name') {
+                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (currentSort().direction === 'desc') {
+                      <path d="M7 10l5 5 5-5"/>
+                    } @else {
+                      <path d="M7 14l5-5 5 5"/>
+                    }
+                  </svg>
+                }
               </div>
             </th>
-            <th class="visitors-table__header visitors-table__header--status">Estado de conexión</th>
-            <th class="visitors-table__header visitors-table__header--lifecycle">Etapa</th>
-            <th class="visitors-table__header visitors-table__header--activity">
+            <th
+              class="visitors-table__header visitors-table__header--status visitors-table__header--sortable"
+              [class.visitors-table__header--active]="currentSort().field === 'status'"
+              (click)="toggleSort('status')"
+            >
               <div class="header-content">
-                Actividad
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M7 10l5 5 5-5"/>
-                </svg>
+                <span>Estado de conexión</span>
+                @if (currentSort().field === 'status') {
+                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (currentSort().direction === 'desc') {
+                      <path d="M7 10l5 5 5-5"/>
+                    } @else {
+                      <path d="M7 14l5-5 5 5"/>
+                    }
+                  </svg>
+                }
+              </div>
+            </th>
+            <th class="visitors-table__header visitors-table__header--lifecycle">Etapa</th>
+            <th 
+              class="visitors-table__header visitors-table__header--activity visitors-table__header--sortable"
+              [class.visitors-table__header--active]="currentSort().field === 'lastVisit'"
+              (click)="toggleSort('lastVisit')"
+            >
+              <div class="header-content">
+                <span>Actividad</span>
+                @if (currentSort().field === 'lastVisit') {
+                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (currentSort().direction === 'desc') {
+                      <path d="M7 10l5 5 5-5"/>
+                    } @else {
+                      <path d="M7 14l5-5 5 5"/>
+                    }
+                  </svg>
+                }
               </div>
             </th>
             <th class="visitors-table__header visitors-table__header--actions">Acciones</th>

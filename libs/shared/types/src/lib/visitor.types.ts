@@ -144,7 +144,7 @@ export interface VisitorFilters {
 
 // Tipos para ordenamiento
 export interface VisitorSort {
-  field: 'lastVisit' | 'firstVisit' | 'name' | 'totalChats' | 'lifecycle';
+  field: 'lastVisit' | 'firstVisit' | 'name' | 'totalChats' | 'lifecycle' | 'status';
   direction: 'asc' | 'desc';
 }
 

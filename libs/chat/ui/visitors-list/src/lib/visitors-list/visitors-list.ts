@@ -59,7 +59,7 @@ export class VisitorsListComponent {
   // Internal state
   readonly searchQuery = signal<string>('');
   readonly currentFilters = signal<VisitorFilters>({});
-  readonly currentSort = signal<VisitorSort>({ field: 'lastVisit', direction: 'desc' });
+  readonly currentSort = signal<VisitorSort>({ field: 'firstVisit', direction: 'desc' }); // Cambiar a firstVisit (createdAt) por defecto
   readonly internalSelectedIds = signal<Set<string>>(new Set());
   readonly showDropdown = signal<string | null>(null);
   // Track visitors with pending operations (for optimistic UI)
@@ -119,7 +119,8 @@ export class VisitorsListComponent {
     { field: 'lastVisit', label: 'Última visita' },
     { field: 'firstVisit', label: 'Primera visita' },
     { field: 'name', label: 'Nombre' },
-    { field: 'totalChats', label: 'Total de chats' }
+    { field: 'totalChats', label: 'Total de chats' },
+    { field: 'status', label: 'Estado de conexión' }
   ] as const;
 
   onSearchChange(query: string): void {
@@ -380,13 +381,33 @@ export class VisitorsListComponent {
     this.sortChange.emit(newSort);
   }
 
+  toggleSort(field: string): void {
+    const currentSort = this.currentSort();
+    const sortField = field as VisitorSort['field'];
+    
+    let newDirection: 'asc' | 'desc' = 'desc';
+    
+    // Si ya estamos ordenando por este campo, alternar la dirección
+    if (currentSort.field === sortField) {
+      newDirection = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    }
+    // Si es un nuevo campo, usar dirección por defecto según el tipo
+    else {
+      // Para fechas, descendente por defecto (más recientes primero)
+      // Para nombre, ascendente por defecto (A-Z)
+      newDirection = sortField === 'name' ? 'asc' : 'desc';
+    }
+    
+    this.onSortChange(sortField, newDirection);
+  }
+
   private sortVisitors(visitors: Visitor[]): Visitor[] {
     const sort = this.currentSort();
-    
+
     return [...visitors].sort((a, b) => {
       let aValue: string | number | Date;
       let bValue: string | number | Date;
-      
+
       switch (sort.field) {
         case 'lastVisit':
           aValue = a.lastVisit;
@@ -404,10 +425,26 @@ export class VisitorsListComponent {
           aValue = a.totalChats;
           bValue = b.totalChats;
           break;
+        case 'status':
+          // Convertir status a valores numéricos para ordenar correctamente
+          // online = 2, idle = 1, offline = 0
+          // desc: online primero (2 > 1 > 0)
+          // asc: offline primero (0 > 1 > 2)
+          const statusToNumber = (status: string): number => {
+            switch (status) {
+              case 'online': return 2;
+              case 'idle': return 1;
+              case 'offline': return 0;
+              default: return -1;
+            }
+          };
+          aValue = statusToNumber(a.status);
+          bValue = statusToNumber(b.status);
+          break;
         default:
           return 0;
       }
-      
+
       if (aValue < bValue) {
         return sort.direction === 'asc' ? -1 : 1;
       } else if (aValue > bValue) {

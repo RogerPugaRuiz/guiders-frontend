@@ -29,6 +29,8 @@ interface VisitorQueryParams {
   status?: string;
   search?: string;
   includeOffline?: boolean;
+  sortBy?: 'createdAt' | 'lastActivity' | 'connectionStatus';
+  sortOrder?: 'asc' | 'desc';
 }
 
 
@@ -49,7 +51,7 @@ export class VisitorsDataService {
 
   // Obtener visitantes con filtros y paginación usando tenant-visitors endpoint
   getVisitors(tenantId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
-    const { limit = 10, offset = 0, status, search, includeOffline } = params;
+    const { limit = 10, offset = 0, status, search, includeOffline, sortBy, sortOrder } = params;
     
     let queryParams = new HttpParams()
       .set('limit', limit.toString())
@@ -65,6 +67,14 @@ export class VisitorsDataService {
     
     if (includeOffline !== undefined) {
       queryParams = queryParams.set('includeOffline', includeOffline.toString());
+    }
+
+    if (sortBy) {
+      queryParams = queryParams.set('sortBy', sortBy);
+    }
+
+    if (sortOrder) {
+      queryParams = queryParams.set('sortOrder', sortOrder);
     }
 
     // Usar el endpoint tenant-visitors con el ID de la empresa obtenido de /api/me/company

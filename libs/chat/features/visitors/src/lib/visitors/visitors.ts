@@ -133,7 +133,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       includeOffline: true,
       hasActiveChat: false
     },
-    sort: { field: 'lastVisit', direction: 'desc' },
+    sort: { field: 'firstVisit', direction: 'desc' }, // Cambiar a firstVisit (createdAt) descendente
     pagination: {
       limit: this.loadPageSize(),
       offset: 0,
@@ -569,11 +569,21 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }, 500); // Simular latencia de red
     } else {
       // USAR SERVICIO REAL
+      const currentSort = currentState.sort;
+      
+      // Mapear los campos de sort internos a los del backend
+      const sortByMap: Record<string, 'createdAt' | 'lastActivity'> = {
+        'firstVisit': 'createdAt',
+        'lastVisit': 'lastActivity'
+      };
+      
       const queryParams = {
         limit: currentState.pagination.limit,
         offset: currentState.pagination.offset || 0,
         includeOffline: this.currentFilter().filters.includeOffline,
-        search: currentState.searchQuery || undefined
+        search: currentState.searchQuery || undefined,
+        sortBy: sortByMap[currentSort.field] || 'createdAt',
+        sortOrder: currentSort.direction
       };
 
       this.visitorsService.getVisitors(tenantId, queryParams)
@@ -686,11 +696,21 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }, 300); // Breve delay para mostrar la animación
     } else {
       // USAR SERVICIO REAL
+      const currentSort = currentState.sort;
+      
+      // Mapear los campos de sort internos a los del backend
+      const sortByMap: Record<string, 'createdAt' | 'lastActivity'> = {
+        'firstVisit': 'createdAt',
+        'lastVisit': 'lastActivity'
+      };
+      
       const queryParams = {
         limit: currentState.pagination.limit,
         offset: currentState.pagination.offset || 0,
         includeOffline: this.currentFilter().filters.includeOffline,
-        search: currentState.searchQuery || undefined
+        search: currentState.searchQuery || undefined,
+        sortBy: sortByMap[currentSort.field] || 'createdAt',
+        sortOrder: currentSort.direction
       };
 
       this.visitorsService.getVisitors(tenantId, queryParams)
