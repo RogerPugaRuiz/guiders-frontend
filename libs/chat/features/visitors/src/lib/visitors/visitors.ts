@@ -317,6 +317,23 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       if (params['filter']) {
         this.onFilterPresetChange(params['filter']);
       }
+      
+      // Leer el parámetro de página de la URL
+      if (params['page']) {
+        const pageNumber = parseInt(params['page'], 10);
+        if (!isNaN(pageNumber) && pageNumber > 0) {
+          // Actualizar el estado con la página desde la URL
+          const currentState = this.state();
+          const offset = (pageNumber - 1) * currentState.pagination.limit;
+          this.updateState({
+            pagination: {
+              ...currentState.pagination,
+              currentPage: pageNumber,
+              offset
+            }
+          });
+        }
+      }
     });
 
     // Obtener sitios de la empresa usando el endpoint correcto /api/companies/{companyId}/sites
@@ -818,6 +835,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }
     });
     
+    // Actualizar la URL con el parámetro de página
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page },
+      queryParamsHandling: 'merge' // Mantener otros parámetros como 'filter'
+    });
+    
     this.loadVisitors();
   }
 
@@ -834,6 +858,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
     // Guardar en localStorage
     this.savePageSize(pageSize);
+
+    // Actualizar la URL para reflejar que estamos en la página 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1 },
+      queryParamsHandling: 'merge'
+    });
 
     this.loadVisitors();
   }

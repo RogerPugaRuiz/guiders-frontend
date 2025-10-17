@@ -119,10 +119,20 @@ export async function setupAuthMock(page: Page): Promise<void> {
  * @param page - Instancia de Page de Playwright
  */
 export async function clearVisitorsLocalStorage(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    localStorage.removeItem('visitors_auto_refresh_interval');
-    localStorage.removeItem('visitors_page_size');
-  });
+  try {
+    await page.evaluate(() => {
+      try {
+        localStorage.removeItem('visitors_auto_refresh_interval');
+        localStorage.removeItem('visitors_page_size');
+      } catch (e) {
+        // Ignorar errores de acceso a localStorage
+        console.warn('Could not access localStorage:', e);
+      }
+    });
+  } catch (error) {
+    // Ignorar errores si no podemos acceder a localStorage
+    console.warn('Could not clear visitors localStorage:', error);
+  }
 }
 
 /**
