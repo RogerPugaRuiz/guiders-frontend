@@ -2,11 +2,13 @@ import { Component, input, output, computed, signal, HostListener, inject, Chang
 import { CommonModule } from '@angular/common';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
-import { 
-  Visitor, 
-  VisitorFilters, 
+import { ChatService } from '@guiders-frontend/chat-service';
+import {
+  Visitor,
+  VisitorFilters,
   VisitorSort,
-  CreateChatWithVisitorRequest 
+  CreateChatWithVisitorRequest,
+  Chat
 } from '@guiders-frontend/shared/types';
 
 export interface VisitorListConfig {
@@ -55,6 +57,7 @@ export class VisitorsListComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly chatWidgetService = inject(ChatWidgetService);
+  private readonly chatService = inject(ChatService);
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -153,11 +156,49 @@ export class VisitorsListComponent {
 
   onCreateChat(visitor: Visitor, event: Event): void {
     event.stopPropagation();
-    
-    console.log('[VisitorsList] Abriendo widget para crear chat con visitante:', visitor.id);
-    
-    // Solo abrir el widget de chat, NO emitir evento (para evitar que se abra el modal)
-    this.chatWidgetService.openWidget(visitor);
+
+    console.log('[VisitorsList] Verificando chats existentes para visitante:', visitor.id);
+
+    // Verificar primero si el visitante tiene chats asignados al comercial actual
+    this.chatService.getVisitorMyChats(visitor.id).subscribe({
+      next: (response: { chats: Chat[]; total: number; totalVisitorChats: number; hasMore: boolean; nextCursor?: string | null }) => {
+        console.log('[VisitorsList] Respuesta de chats del visitante:', response);
+
+        // Si no hay chats asignados y el visitante no tiene chats en total, crear uno nuevo
+        if (response.totalVisitorChats === 0 && response.chats.length === 0) {
+          console.log('[VisitorsList] No hay chats existentes, abriendo widget para crear nuevo chat');
+          this.chatWidgetService.openWidget(visitor);
+        }
+        // Si hay chats asignados al comercial actual, abrir el primer chat
+        else if (response.chats.length > 0) {
+          const firstChat = response.chats[0];
+          console.log('[VisitorsList] Chat existente encontrado, abriendo chat:', firstChat.chatId);
+          this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
+          this.snackBar.open('Abriendo chat existente con este visitante', 'Cerrar', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top'
+          });
+        }
+        // Si el visitante tiene chats pero ninguno asignado a este comercial
+        else {
+          console.log('[VisitorsList] El visitante tiene chats pero ninguno asignado al comercial actual');
+          this.snackBar.open('Este visitante ya tiene un chat activo con otro comercial', 'Cerrar', {
+            duration: 5000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top'
+          });
+        }
+      },
+      error: (error: unknown) => {
+        console.error('[VisitorsList] Error al verificar chats del visitante:', error);
+        this.snackBar.open('Error al verificar chats del visitante', 'Cerrar', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top'
+        });
+      }
+    });
   }
 
   onViewDetails(visitor: Visitor, event?: Event): void {
@@ -172,11 +213,33 @@ export class VisitorsListComponent {
   onViewChat(visitor: Visitor, event: Event): void {
     event.stopPropagation();
     console.log('[VisitorsList] Abriendo widget para ver chat activo del visitante:', visitor.id);
-    
-    // Si el visitante tiene un chat activo, abrir el widget con ese chat
-    // Nota: Necesitarías obtener el chatId del visitante si está disponible
-    // Por ahora, simplemente abrimos el widget con el visitante
-    this.chatWidgetService.openWidget(visitor);
+
+    // Obtener el chat asignado al comercial actual para este visitante
+    this.chatService.getVisitorMyChats(visitor.id).subscribe({
+      next: (response: { chats: Chat[]; total: number; totalVisitorChats: number; hasMore: boolean; nextCursor?: string | null }) => {
+        if (response.chats.length > 0) {
+          const firstChat = response.chats[0];
+          console.log('[VisitorsList] Abriendo chat existente:', firstChat.chatId);
+          this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
+        } else {
+          console.log('[VisitorsList] No se encontró chat asignado, abriendo widget para crear uno');
+          this.chatWidgetService.openWidget(visitor);
+          this.snackBar.open('No se encontró un chat activo con este visitante', 'Cerrar', {
+            duration: 3000,
+            horizontalPosition: 'right',
+            verticalPosition: 'top'
+          });
+        }
+      },
+      error: (error: unknown) => {
+        console.error('[VisitorsList] Error al obtener chat del visitante:', error);
+        this.snackBar.open('Error al abrir el chat', 'Cerrar', {
+          duration: 3000,
+          horizontalPosition: 'right',
+          verticalPosition: 'top'
+        });
+      }
+    });
   }
 
   onViewHistory(visitor: Visitor, event?: Event): void {

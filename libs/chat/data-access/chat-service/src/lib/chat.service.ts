@@ -304,6 +304,53 @@ export class ChatService {
   // ===== MÉTODOS DE CHAT =====
 
   /**
+   * Obtener chats de un visitante asignados al comercial actual
+   * GET /api/v2/chats/visitor/:visitorId/my-chat
+   * @param visitorId - ID del visitante
+   * @returns Observable con los chats asignados al comercial actual para ese visitante
+   */
+  getVisitorMyChats(visitorId: string): Observable<{
+    chats: Chat[];
+    total: number;
+    totalVisitorChats: number;
+    hasMore: boolean;
+    nextCursor?: string | null;
+  }> {
+    this.setLoading(true);
+
+    return this.http.get<{
+      chats: ApiChatResponse[];
+      total: number;
+      totalVisitorChats: number;
+      hasMore: boolean;
+      nextCursor?: string | null;
+    }>(`${this.baseUrl}/chats/visitor/${visitorId}/my-chat`, this.getHttpOptions())
+      .pipe(
+        map(response => {
+          const chats = this.transformChatsFromApi(response.chats);
+          this.setLoading(false);
+          return {
+            chats,
+            total: response.total,
+            totalVisitorChats: response.totalVisitorChats,
+            hasMore: response.hasMore,
+            nextCursor: response.nextCursor
+          };
+        }),
+        catchError(error => {
+          this.handleError('Error al obtener chats del visitante', error);
+          return of({
+            chats: [],
+            total: 0,
+            totalVisitorChats: 0,
+            hasMore: false,
+            nextCursor: null
+          });
+        })
+      );
+  }
+
+  /**
    * Obtener lista de chats para un comercial específico
    */
   getCommercialChats(commercialId: string, options?: {
