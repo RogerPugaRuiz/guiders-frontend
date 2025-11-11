@@ -180,6 +180,17 @@
             }
           </div>
         }
+
+        <!-- Typing indicators -->
+        @for (typingUser of typingUsers(); track typingUser.userId) {
+          <div class="typing-indicator-wrapper">
+            <guiders-typing-indicator
+              [userName]="typingUser.userName"
+              [userType]="typingUser.userType"
+              [variant]="'bubble'"
+            />
+          </div>
+        }
       }
     }
   </div>

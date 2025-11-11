@@ -23,87 +23,167 @@
   border-radius: tokens.$border-radius-md;
   box-shadow: tokens.$shadow-sm;
 
+  // Header - Modern design with avatar
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: tokens.$spacing-md tokens.$spacing-lg;
-    
-    min-height: 64px;
+    border-bottom: 1px solid tokens.$color-border-light;
+    min-height: 72px;
     flex-shrink: 0;
   }
 
-  &__chat-info {
+  &__header-content {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-md;
+    flex: 1;
+    min-width: 0;
+  }
+
+  // Avatar con inicial
+  &__avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: tokens.$border-radius-full;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+  }
+
+  &__avatar-text {
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  // Badge de presencia en el avatar
+  &__presence-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid tokens.$color-surface-primary;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+
+    &[data-status='online'] {
+      background-color: #10b981;
+    }
+
+    &[data-status='away'] {
+      background-color: #f59e0b;
+    }
+
+    &[data-status='busy'] {
+      background-color: #ef4444;
+    }
+
+    &[data-status='offline'] {
+      background-color: #9ca3af;
+    }
+  }
+
+  // Información del visitante
+  &__info {
     display: flex;
     flex-direction: column;
-    gap: tokens.$spacing-xs;
+    gap: 2px;
     min-width: 0;
     flex: 1;
   }
 
-  &__title {
-    font-size: tokens.$font-size-lg;
-    font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
+  &__name {
     margin: 0;
-    line-height: tokens.$line-height-tight;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: tokens.$color-text-primary;
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  &__status {
-    display: flex;
-    align-items: center;
-    gap: tokens.$spacing-xs;
-    
-    &[data-status="ACTIVE"] {
-      .guiders-chat-placeholder__status-icon {
-        color: #22c55e; // Verde para estado activo
-      }
-    }
-    
-    &[data-status="PENDING"] {
-      .guiders-chat-placeholder__status-icon {
-        color: #f59e0b; // Amarillo para estado pendiente
-      }
-    }
-    
-    &[data-status="CLOSED"] {
-      .guiders-chat-placeholder__status-icon {
-        color: tokens.$color-text-secondary;
-      }
-    }
-    
-    &[data-status="TRANSFERRED"],
-    &[data-status="ASSIGNED"] {
-      .guiders-chat-placeholder__status-icon {
-        color: #3b82f6; // Azul para estados transferido/asignado
-      }
-    }
-  }
-
-  &__status-icon {
-    flex-shrink: 0;
   }
 
   &__status-text {
-    font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-secondary;
-    font-weight: tokens.$font-weight-medium;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    // Color según estado
+    &[data-status='online'] {
+      color: #10b981;
+    }
+
+    &[data-status='away'] {
+      color: #f59e0b;
+    }
+
+    &[data-status='busy'] {
+      color: #ef4444;
+    }
+
+    &[data-status='offline'] {
+      color: tokens.$color-text-tertiary;
+    }
+
+    // Dot indicator antes del texto
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
   }
 
+  // Botones de acción
   &__actions {
     display: flex;
     align-items: center;
-    gap: tokens.$spacing-xs;
+    gap: tokens.$spacing-2xs;
     flex-shrink: 0;
-    
-    guiders-button {
-      &:focus-visible {
-        outline: 2px solid tokens.$color-primary-500;
-        outline-offset: 2px;
-      }
+  }
+
+  &__action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: tokens.$color-text-tertiary;
+    cursor: pointer;
+    border-radius: tokens.$border-radius-sm;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+
+    &:hover {
+      background: tokens.$color-surface-secondary;
+      color: tokens.$color-text-secondary;
+    }
+
+    &:active {
+      transform: scale(0.96);
+      background: tokens.$color-surface-tertiary;
+    }
+
+    &--close:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
     }
   }
 

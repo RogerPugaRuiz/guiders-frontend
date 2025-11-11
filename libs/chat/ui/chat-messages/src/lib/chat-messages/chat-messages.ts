@@ -1,22 +1,25 @@
-import { Component, computed, input, output, signal, ViewChild, ElementRef, AfterViewInit, AfterViewChecked, inject } from '@angular/core';
+import { Component, computed, input, output, signal, ViewChild, ElementRef, AfterViewInit, AfterViewChecked, inject, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Message, Chat } from '@guiders-frontend/shared/types';
 import { TextField } from '@guiders-frontend/text-field';
 import { Button } from '@guiders-frontend/button';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
+import { PresenceService } from '@guiders-frontend/presence-service';
+import { TypingIndicator } from '@guiders-frontend/typing-indicator';
 
 @Component({
   selector: 'guiders-chat-messages',
-  imports: [CommonModule, FormsModule, TextField, Button],
+  imports: [CommonModule, FormsModule, TextField, Button, TypingIndicator],
   templateUrl: './chat-messages.html',
   styleUrl: './chat-messages.scss',
 })
 export class ChatMessages implements AfterViewInit, AfterViewChecked {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef;
 
-  // Servicio de mensajes no leídos
+  // Servicios
   private readonly unreadMessagesService = inject(UnreadMessagesService);
+  private readonly presenceService = inject(PresenceService);
 
   // IntersectionObserver para detectar mensajes visibles
   private intersectionObserver: IntersectionObserver | null = null;
@@ -42,6 +45,35 @@ export class ChatMessages implements AfterViewInit, AfterViewChecked {
   readonly isTyping = signal<boolean>(false);
   readonly editingMessageId = signal<string | null>(null);
   readonly editingContent = signal<string>('');
+
+  // Typing indicators
+  readonly typingUsers = signal<{ userId: string; userName: string; userType: 'commercial' | 'visitor' }[]>([]);
+
+  // Effect para actualizar typing users desde PresenceService
+  constructor() {
+    effect(() => {
+      const chatId = this.chat().chatId;
+      const typingUserIds = this.presenceService.getTypingUsers(chatId);
+      const participants = this.chat().participants;
+
+      // Mapear userIds a información completa
+      const typingUsersInfo = typingUserIds
+        .map(userId => {
+          const participant = participants.find(p => p.id === userId);
+          if (!participant || participant.id === this.currentUserId()) {
+            return null; // No mostrar typing del usuario actual
+          }
+          return {
+            userId: participant.id,
+            userName: participant.name || participant.email || 'Usuario',
+            userType: (participant.role === 'commercial' ? 'commercial' : 'visitor') as 'commercial' | 'visitor'
+          };
+        })
+        .filter(u => u !== null) as { userId: string; userName: string; userType: 'commercial' | 'visitor' }[];
+
+      this.typingUsers.set(typingUsersInfo);
+    });
+  }
 
   // Computed values
   readonly groupedMessages = computed(() => {

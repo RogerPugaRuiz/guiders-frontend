@@ -1,36 +1,42 @@
 <div class="guiders-chat-placeholder">
   <div class="guiders-chat-placeholder__header">
-    <div class="guiders-chat-placeholder__chat-info">
-      <h2 class="guiders-chat-placeholder__title">{{ getChatDisplayName() }}</h2>
-      <div class="guiders-chat-placeholder__status" 
-           [attr.data-status]="selectedChat.status">
-        <guiders-icon 
-          [name]="getStatusIconName()" 
-          size="sm" 
-          class="guiders-chat-placeholder__status-icon" />
-        <span class="guiders-chat-placeholder__status-text">
-          {{ getChatStatusInfo().label }}
-        </span>
+    <div class="guiders-chat-placeholder__header-content">
+      <!-- Avatar con inicial -->
+      <div class="guiders-chat-placeholder__avatar">
+        <span class="guiders-chat-placeholder__avatar-text">{{ getVisitorInitial() }}</span>
+        @if (getParticipantPresenceStatus(); as presenceStatus) {
+          <span class="guiders-chat-placeholder__presence-indicator" [attr.data-status]="presenceStatus"></span>
+        }
+      </div>
+
+      <!-- Información del visitante -->
+      <div class="guiders-chat-placeholder__info">
+        <h3 class="guiders-chat-placeholder__name">{{ getChatDisplayName() }}</h3>
+        @if (getParticipantPresenceStatus(); as presenceStatus) {
+          <span class="guiders-chat-placeholder__status-text" [attr.data-status]="presenceStatus">
+            {{ getPresenceStatusLabel(presenceStatus) }}
+          </span>
+        }
       </div>
     </div>
-    
+
     @if (showActions) {
       <div class="guiders-chat-placeholder__actions">
-        <guiders-button 
-          variant="ghost" 
-          size="small"
-          [ariaLabel]="'Configuración del chat'"
-          (click)="onSettingsClick()">
+        <button
+          class="guiders-chat-placeholder__action-btn"
+          (click)="onSettingsClick()"
+          type="button"
+          aria-label="Configuración del chat">
           <guiders-icon name="settings" size="sm" />
-        </guiders-button>
-        
-        <guiders-button 
-          variant="ghost" 
-          size="small"
-          [ariaLabel]="'Cerrar chat'"
-          (click)="onCloseChat()">
+        </button>
+
+        <button
+          class="guiders-chat-placeholder__action-btn guiders-chat-placeholder__action-btn--close"
+          (click)="onCloseChat()"
+          type="button"
+          aria-label="Cerrar chat">
           <guiders-icon name="close" size="sm" />
-        </guiders-button>
+        </button>
       </div>
     }
   </div>
@@ -127,6 +133,7 @@
 
   @if (messages.length > 0) {
     <guiders-message-input
+      [chatId]="selectedChat.chatId"
       (messageSent)="onMessageSent($event)"
     />
   }

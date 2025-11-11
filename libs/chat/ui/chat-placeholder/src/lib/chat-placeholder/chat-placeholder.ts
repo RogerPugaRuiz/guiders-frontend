@@ -11,25 +11,30 @@ import {
   OnDestroy,
   ViewChild,
   ElementRef,
-  inject
+  inject,
+  computed,
+  effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chat, User } from '@guiders-frontend/shared/types';
+import { Chat, User, PresenceStatus, Participant } from '@guiders-frontend/shared/types';
 import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Message } from '@guiders-frontend/shared/types';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
+import { PresenceService } from '@guiders-frontend/presence-service';
+import { PresenceBadge } from '@guiders-frontend/presence-badge';
 
 @Component({
   selector: 'guiders-chat-placeholder',
   standalone: true,
-  imports: [CommonModule, Button, IconComponent, MessageInput],
+  imports: [CommonModule, Button, IconComponent, MessageInput, PresenceBadge],
   templateUrl: './chat-placeholder.html',
   styleUrl: './chat-placeholder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly presenceService = inject(PresenceService);
   
   @Input({ required: true }) selectedChat!: Chat;
   @Input() showActions = true;
@@ -93,6 +98,54 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
       default:
         return { label: 'Desconocido', color: 'neutral', icon: 'help-circle' };
     }
+  }
+
+  /**
+   * Obtener estado de presencia del otro participante
+   */
+  getParticipantPresenceStatus(): PresenceStatus | undefined {
+    const otherParticipant = this.selectedChat.participants?.find(
+      (p: User) => p.id !== this.currentUserId
+    );
+
+    if (!otherParticipant) return undefined;
+
+    const participant = this.presenceService.getParticipantPresence(
+      this.selectedChat.chatId,
+      otherParticipant.id
+    );
+
+    return participant?.connectionStatus;
+  }
+
+  /**
+   * Obtener texto descriptivo del estado de presencia
+   */
+  getPresenceStatusLabel(status?: PresenceStatus): string {
+    if (!status) return '';
+
+    const labels: Record<PresenceStatus, string> = {
+      online: 'En línea',
+      offline: 'Desconectado',
+      away: 'Ausente',
+      busy: 'Ocupado',
+      chatting: 'Conversando',
+    };
+
+    return labels[status];
+  }
+
+  /**
+   * Obtener inicial del visitante para el avatar
+   */
+  getVisitorInitial(): string {
+    const name = this.getChatDisplayName();
+
+    if (name && name.trim() && name !== 'Chat') {
+      return name.trim().charAt(0).toUpperCase();
+    }
+
+    return 'V';
   }
 
   /**
