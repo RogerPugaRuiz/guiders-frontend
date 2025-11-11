@@ -50,7 +50,7 @@ export class VisitorsDataService {
   }
 
   // Obtener visitantes con filtros y paginación usando tenant-visitors endpoint
-  getVisitors(tenantId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
+  getVisitors(companyId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
     const { limit = 10, offset = 0, status, search, includeOffline, sortBy, sortOrder } = params;
     
     let queryParams = new HttpParams()
@@ -78,16 +78,16 @@ export class VisitorsDataService {
     }
 
     // Usar el endpoint tenant-visitors con el ID de la empresa obtenido de /api/me/company
-    console.log(`[VisitorsDataService] Calling API: ${this.baseUrl}/tenant-visitors/${tenantId}/visitors`);
+    console.log(`[VisitorsDataService] Calling API: ${this.baseUrl}/tenant-visitors/${companyId}/visitors`);
     console.log('[VisitorsDataService] Query params:', queryParams.toString());
-    
+
     // Usar cookies BFF para autenticación (no token manual)
-    const options = { 
+    const options = {
       params: queryParams,
       withCredentials: true // Usa las cookies BFF automáticamente
     };
-    
-    return this.http.get<GetTenantVisitorsResponse>(`${this.baseUrl}/tenant-visitors/${tenantId}/visitors`, options)
+
+    return this.http.get<GetTenantVisitorsResponse>(`${this.baseUrl}/tenant-visitors/${companyId}/visitors`, options)
       .pipe(
         tap(response => console.log('[VisitorsDataService] Raw API Response:', response)),
         map(response => {
@@ -101,7 +101,7 @@ export class VisitorsDataService {
             currentUrl: apiVisitor.currentUrl, // URL actual donde está navegando
             domain: apiVisitor.siteName,
             siteId: apiVisitor.siteId,
-            tenantId: response.tenantId,
+            companyId: response.companyId,
             firstVisit: new Date(apiVisitor.createdAt),
             lastVisit: new Date(apiVisitor.lastActivity),
             totalSessions: 1, // Valor por defecto
@@ -314,15 +314,15 @@ export class VisitorsDataService {
   }
 
   // Obtener estadísticas de visitantes usando tenant-visitors endpoint
-  getVisitorStats(tenantId: string): Observable<VisitorStats> {
-    return this.http.get<VisitorStats>(`${this.baseUrl}/tenant-visitors/${tenantId}/visitors/stats`, { withCredentials: true });
+  getVisitorStats(companyId: string): Observable<VisitorStats> {
+    return this.http.get<VisitorStats>(`${this.baseUrl}/tenant-visitors/${companyId}/visitors/stats`, { withCredentials: true });
   }
 
   // Obtener información de la empresa del usuario autenticado
   getCompanySites(): Observable<{
     sites: Array<{
       siteId: string;
-      tenantId: string;
+      companyId: string;
       siteName: string;
       domain: string;
       isActive: boolean;
@@ -348,7 +348,7 @@ export class VisitorsDataService {
         // El companyId ES el siteId válido que espera el backend
         const sites = companyInfo.domains.map(domain => ({
           siteId: companyInfo.id, // Usar directamente el company id como siteId (es un UUID válido)
-          tenantId: companyInfo.id, // Usar el company id como tenant id
+          companyId: companyInfo.id, // Usar el company id
           siteName: domain,
           domain: domain,
           isActive: true // Asumir que todos los dominios están activos
@@ -357,7 +357,7 @@ export class VisitorsDataService {
         return new Observable<{
           sites: Array<{
             siteId: string;
-            tenantId: string;
+            companyId: string;
             siteName: string;
             domain: string;
             isActive: boolean;
@@ -393,7 +393,7 @@ export class VisitorsDataService {
    */
   getUserSites(): Observable<Array<{
     siteId: string;
-    tenantId: string;
+    companyId: string;
     siteName: string;
     domain: string;
     isActive: boolean;
@@ -405,7 +405,7 @@ export class VisitorsDataService {
       switchMap(response => {
         return new Observable<Array<{
           siteId: string;
-          tenantId: string;
+          companyId: string;
           siteName: string;
           domain: string;
           isActive: boolean;
@@ -423,7 +423,7 @@ export class VisitorsDataService {
   private getCompanySitesFallback(): Observable<{
     sites: Array<{
       siteId: string;
-      tenantId: string;
+      companyId: string;
       siteName: string;
       domain: string;
       isActive: boolean;
@@ -448,7 +448,7 @@ export class VisitorsDataService {
         return this.http.get<{
           sites: Array<{
             siteId: string;
-            tenantId: string;
+            companyId: string;
             siteName: string;
             domain: string;
             isActive: boolean;
@@ -456,8 +456,8 @@ export class VisitorsDataService {
           companyId: string;
           companyName: string;
           totalSites: number;
-        }>(`${this.baseUrl}/sites/user`, { 
-          withCredentials: true 
+        }>(`${this.baseUrl}/sites/user`, {
+          withCredentials: true
         });
       })
     );
@@ -466,17 +466,17 @@ export class VisitorsDataService {
   // Obtener sitio específico por ID (para compatibilidad)
   getSiteById(siteId: string): Observable<{
     siteId: string;
-    tenantId: string;
+    companyId: string;
     siteName: string;
     companyName: string;
     domain: string;
     isActive: boolean;
   }> {
     console.log(`[VisitorsDataService] Obteniendo sitio por ID: ${siteId}`);
-    
+
     return this.http.get<{
       siteId: string;
-      tenantId: string;
+      companyId: string;
       siteName: string;
       companyName: string;
       domain: string;
@@ -498,7 +498,7 @@ export class VisitorsDataService {
    */
   resolveSite(host: string): Observable<{
     siteId: string;
-    tenantId: string;
+    companyId: string;
     siteName: string;
     companyName: string;
   }> {
@@ -516,13 +516,13 @@ export class VisitorsDataService {
         if (matchingSite) {
           return new Observable<{
             siteId: string;
-            tenantId: string;
+            companyId: string;
             siteName: string;
             companyName: string;
           }>(subscriber => {
             subscriber.next({
               siteId: matchingSite.siteId,
-              tenantId: matchingSite.tenantId,
+              companyId: matchingSite.companyId,
               siteName: matchingSite.siteName,
               companyName: response.companyName
             });

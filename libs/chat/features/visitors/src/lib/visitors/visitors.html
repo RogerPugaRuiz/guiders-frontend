@@ -1,49 +1,6 @@
 <div class="visitors-page">
   <!-- Grid Bento principal -->
   <div class="visitors-grid bento-grid bento-grid--4-cols bento-grid--comfortable">
-    <!-- Título simplificado -->
-    <div class="visitors-header-card bento-card bento-card--4x1">
-      <div class="page-header">
-        <div class="page-info">
-          <h1 class="page-title">
-            Visitantes - {{ getFilterDescription(selectedFilterId()) }}
-          </h1>
-          <p class="page-description">Gestiona visitantes y crea chats proactivos</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- KPI Cards - Estadísticas -->
-    <guiders-bento-kpi
-      size="1x1"
-      variant="neutral"
-      title="Total"
-      [value]="visitorStats().total"
-    />
-    
-    <guiders-bento-kpi
-      size="1x1"
-      variant="neutral"
-      title="En Línea"
-      [value]="visitorStats().online"
-      [trend]="{ value: 12, direction: 'up' }"
-    />
-    
-    <guiders-bento-kpi
-      size="1x1"
-      variant="neutral"
-      title="Con Chat"
-      [value]="visitorStats().withActiveChat"
-    />
-    
-    <guiders-bento-kpi
-      size="1x1"
-      variant="neutral"
-      title="Leads"
-      [value]="visitorStats().leads"
-      [trend]="{ value: 8, direction: 'up' }"
-    />
-
     <!-- Panel principal - Lista de visitantes -->
     <div class="bento-card bento-card--4x3 visitors-panel">
       <div class="bento-card-header">
@@ -202,28 +159,4 @@
     </div> -->
 
   </div>
-
-  <!-- Modal para crear chat -->
-  @if (selectedVisitorForChat()) {
-    <lib-create-chat-modal
-      [visitor]="selectedVisitorForChat()!"
-      [isOpen]="showCreateChatModal()"
-      [loading]="state().loading"
-      [config]="modalConfig()"
-      (modalClose)="closeCreateChatModal()"
-      (createChat)="onModalCreateChat($event)"
-    />
-  }
-
-  <!-- Modal para chats pendientes -->
-  @if (pendingChatsModalData()) {
-    <guiders-pending-chats-modal
-      [isOpen]="showPendingChatsModal()"
-      [data]="pendingChatsModalData()!"
-      [loading]="state().loading"
-      (closeModal)="closePendingChatsModal()"
-      (takeChat)="onTakePendingChat($event)"
-      (transferChat)="onTransferPendingChat($event)"
-    />
-  }
 </div>

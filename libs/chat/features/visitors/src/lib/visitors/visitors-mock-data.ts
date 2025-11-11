@@ -98,7 +98,7 @@ export function generateMockVisitors(count = 100): Visitor[] {
       sessionId: `session-${i.toString().padStart(4, '0')}-${Date.now()}`,
       domain: domains[Math.floor(Math.random() * domains.length)],
       siteId: `site-${Math.floor(Math.random() * 3) + 1}`,
-      tenantId: `tenant-${Math.floor(Math.random() * 2) + 1}`,
+      companyId: `company-${Math.floor(Math.random() * 2) + 1}`,
       name,
       email: hasEmail ? `${firstName.toLowerCase()}.${lastName.toLowerCase()}@${domains[Math.floor(Math.random() * domains.length)]}` : undefined,
       phone: hasPhone ? `+34 ${Math.floor(Math.random() * 900 + 600)} ${Math.floor(Math.random() * 900000 + 100000)}` : undefined,

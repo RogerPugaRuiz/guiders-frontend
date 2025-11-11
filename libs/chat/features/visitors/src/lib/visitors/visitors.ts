@@ -8,9 +8,6 @@ import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widge
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
-import { CreateChatModal, CreateChatModalConfig } from '@guiders-frontend/create-chat-modal';
-import { PendingChatsModal } from '@guiders-frontend/pending-chats-modal';
-import { BentoKpiComponent } from '@guiders-frontend/bento-kpi';
 import { PaginationComponent } from '@guiders-frontend/pagination';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
@@ -42,9 +39,6 @@ type AssignChatResponse = {
   imports: [
     CommonModule,
     VisitorsListComponent,
-    CreateChatModal,
-    PendingChatsModal,
-    BentoKpiComponent,
     PaginationComponent
   ],
   templateUrl: './visitors.html',
@@ -75,8 +69,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly STORAGE_KEY_AUTO_REFRESH = 'visitors_auto_refresh_interval';
   private readonly STORAGE_KEY_PAGE_SIZE = 'visitors_page_size';
 
-  // ID del tenant (empresa) resuelto dinámicamente
-  readonly tenantId = signal<string | null>(null);
+  // ID de la empresa resuelto dinámicamente
+  readonly companyId = signal<string | null>(null);
 
   // Flag para indicar cuando se está refrescando (sin loader)
   readonly isRefreshing = signal<boolean>(false);
@@ -208,20 +202,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   readonly selectedFilterId = signal<string>('unassigned');
 
-  // Modal state
-  readonly showCreateChatModal = signal<boolean>(false);
-  readonly selectedVisitorForChat = signal<Visitor | null>(null);
-
-  // Pending chats modal state
-  readonly showPendingChatsModal = signal<boolean>(false);
-  readonly pendingChatsModalData = signal<{visitor: Visitor, pendingChatIds: string[]} | null>(null);
-
-  // Modal configuration
-  readonly modalConfig = signal<CreateChatModalConfig>({
-    requireMessage: true,
-    maxMessageLength: 500
-  });
-
   // Computed values
   readonly currentFilter = computed(() => {
     const filterId = this.selectedFilterId();
@@ -350,7 +330,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       .subscribe((response: {
         sites: Array<{
           siteId: string;
-          tenantId: string;
+          companyId: string;
           siteName: string;
           domain: string;
           isActive: boolean;
@@ -386,8 +366,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           return;
         }
 
-        console.log(`[Visitors] Usando tenant: ${selectedSite.siteName} (${selectedSite.tenantId}) de la empresa: ${response.companyName}`);
-        this.tenantId.set(selectedSite.tenantId);
+        console.log(`[Visitors] Usando sitio: ${selectedSite.siteName} (${selectedSite.companyId}) de la empresa: ${response.companyName}`);
+        this.companyId.set(selectedSite.companyId);
 
         this.loadVisitors();
         this.loadStats();
@@ -529,9 +509,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   // Métodos para cargar datos
   loadVisitors(): void {
-    // Aún no hay tenantId resuelto
-    const tenantId = this.tenantId();
-    if (!tenantId) {
+    // Aún no hay companyId resuelto
+    const companyId = this.companyId();
+    if (!companyId) {
       return;
     }
 
@@ -586,7 +566,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         sortOrder: currentSort.direction
       };
 
-      this.visitorsService.getVisitors(tenantId, queryParams)
+      this.visitorsService.getVisitors(companyId, queryParams)
         .pipe(
           catchError((error: Error) => {
             console.error('Error loading visitors:', error);
@@ -615,9 +595,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   private loadStats(): void {
-    const tenantId = this.tenantId();
-    if (!tenantId) return;
-    
+    const companyId = this.companyId();
+    if (!companyId) return;
+
     // Decidir si usar mock o servicio real basado en el token
     if (this.useMockData) {
       // USAR MOCK
@@ -627,7 +607,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }, 300); // Simular latencia de red
     } else {
       // USAR SERVICIO REAL
-      this.visitorsService.getVisitorStats(tenantId)
+      this.visitorsService.getVisitorStats(companyId)
         .pipe(
           catchError((error: Error) => {
             console.error('Error loading visitor stats:', error);
@@ -657,8 +637,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   // Método para refrescar visitantes SIN activar loading (para operaciones silenciosas)
   refreshVisitorsSilently(): void {
-    const tenantId = this.tenantId();
-    if (!tenantId) return;
+    const companyId = this.companyId();
+    if (!companyId) return;
 
     // Activar flag de refreshing para feedback visual
     this.isRefreshing.set(true);
@@ -713,7 +693,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         sortOrder: currentSort.direction
       };
 
-      this.visitorsService.getVisitors(tenantId, queryParams)
+      this.visitorsService.getVisitors(companyId, queryParams)
         .pipe(
           catchError(() => of({ visitors: [], total: 0, hasMore: false })),
           finalize(() => {
@@ -783,26 +763,27 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // Manejar selección múltiple para acciones en lote
   }
 
-  onCreateChat(_request: CreateChatWithVisitorRequest): void {
-    // Ya no es necesario abrir el modal - el widget maneja la creación del chat
-    // El evento se emite desde visitors-list pero no hacemos nada aquí
-    console.log('[Visitors] Evento createChat recibido (ignorado - widget maneja la creación)');
-  }
+  onCreateChat(request: CreateChatWithVisitorRequest): void {
+    console.log('[Visitors] Creando chat con visitante:', request.visitorId);
 
-  openCreateChatModal(visitor: Visitor): void {
-    this.selectedVisitorForChat.set(visitor);
-    this.showCreateChatModal.set(true);
-  }
-
-  onModalCreateChat(request: CreateChatWithVisitorRequest): void {
-    // NO activar loading aquí - operación silenciosa en segundo plano
+    // Buscar el visitante en el estado actual
+    const visitor = this.state().visitors.find(v => v.id === request.visitorId);
+    if (!visitor) {
+      console.error('Visitor not found:', request.visitorId);
+      this.snackBar.open('Error: visitante no encontrado', 'Cerrar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
 
     this.visitorsService.createChatWithVisitor(request)
       .pipe(
         catchError((error: Error) => {
           console.error('Error creating chat:', error);
-          this.updateState({ 
-            error: 'Error al crear el chat. Inténtalo de nuevo.'
+          this.snackBar.open('Error al crear el chat. Inténtalo de nuevo.', 'Cerrar', {
+            duration: 3000,
+            panelClass: ['error-snackbar']
           });
           return of(null);
         })
@@ -810,23 +791,22 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       .subscribe((response: { chatId: string } | null) => {
         if (response) {
           console.log('Chat created successfully:', response.chatId);
-          
-          // Cerrar el modal
-          this.closeCreateChatModal();
-          
-          // Navegar al chat creado
-          // this.router.navigate(['/chat', response.chatId]);
-          
+
+          // Abrir el chat en el widget
+          this.chatWidgetService.openWithChat(response.chatId, visitor);
+
+          // Mostrar notificación de éxito
+          this.snackBar.open('Chat creado exitosamente', 'Cerrar', {
+            duration: 2000,
+            panelClass: ['success-snackbar']
+          });
+
           // Refrescar la lista de visitantes SIN loading
           this.refreshVisitorsSilently();
         }
       });
   }
 
-  closeCreateChatModal(): void {
-    this.showCreateChatModal.set(false);
-    this.selectedVisitorForChat.set(null);
-  }
 
   onSearchChange(query: string): void {
     this.updateState({ searchQuery: query });
@@ -927,10 +907,29 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     return filter?.description || '';
   }
 
-  // Pending chats modal methods
+  // Pending chats handler - abre el primer chat pendiente en el widget
   onViewPendingChats(data: {visitor: Visitor, pendingChatIds: string[]}): void {
-    this.pendingChatsModalData.set(data);
-    this.showPendingChatsModal.set(true);
+    console.log('[Visitors] Ver chats pendientes para visitante:', data.visitor.id, 'chats:', data.pendingChatIds);
+
+    if (data.pendingChatIds.length === 0) {
+      this.snackBar.open('No hay chats pendientes para este visitante', 'Cerrar', {
+        duration: 2000
+      });
+      return;
+    }
+
+    // Abrir el primer chat pendiente en el widget
+    const firstChatId = data.pendingChatIds[0];
+    this.chatWidgetService.openWithChat(firstChatId, data.visitor);
+
+    // Notificar si hay más chats pendientes
+    if (data.pendingChatIds.length > 1) {
+      this.snackBar.open(
+        `Mostrando 1 de ${data.pendingChatIds.length} chats pendientes`,
+        'Cerrar',
+        { duration: 3000 }
+      );
+    }
   }
 
   onTakePendingChatAutomatically(data: {visitor: Visitor, chatId: string}): void {
@@ -1084,10 +1083,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     });
   }
 
-  closePendingChatsModal(): void {
-    this.showPendingChatsModal.set(false);
-    this.pendingChatsModalData.set(null);
-  }
 
   // Método para limpiar el estado de procesamiento cuando una operación termina
   onOperationCompleted(visitorId: string): void {
@@ -1124,9 +1119,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       if (response?.success) {
         console.log('Chat asignado exitosamente:', response);
 
-        // Cerrar el modal
-        this.closePendingChatsModal();
-
         // Mostrar mensaje de éxito (opcional)
         // this.updateState({ successMessage: 'Chat asignado exitosamente' });
 
@@ -1158,9 +1150,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       .subscribe((response: { success: boolean; assignedAt: string } | null) => {
         if (response?.success) {
           console.log('Chat transferido exitosamente:', response);
-
-          // Cerrar el modal
-          this.closePendingChatsModal();
 
           // Refrescar la lista de visitantes SIN loading
           this.refreshVisitorsSilently();
