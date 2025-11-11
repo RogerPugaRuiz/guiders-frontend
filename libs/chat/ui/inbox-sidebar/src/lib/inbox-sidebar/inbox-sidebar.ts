@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chat } from '@guiders-frontend/shared/types';
+import { Chat, PresenceStatus } from '@guiders-frontend/shared/types';
 import { GuidersConversationListComponent } from '@guiders-frontend/chat/ui/conversation-list';
 
 @Component({
@@ -14,9 +14,10 @@ import { GuidersConversationListComponent } from '@guiders-frontend/chat/ui/conv
 export class GuidersInboxSidebarComponent {
   @Input({ required: true }) conversations: Chat[] = [];
   @Input() selectedConversationId: string | null = null;
+  @Input() presenceMap: Record<string, PresenceStatus | undefined> = {};
   @Input() title = 'Conversaciones';
   @Input() showNewChatButton = true;
-  
+
   @Output() conversationSelected = new EventEmitter<Chat>();
   @Output() newChatClicked = new EventEmitter<void>();
 

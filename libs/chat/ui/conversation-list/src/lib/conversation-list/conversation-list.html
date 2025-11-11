@@ -4,6 +4,7 @@
       *ngFor="let conversation of conversations"
       [conversation]="conversation"
       [isSelected]="conversation.chatId === selectedConversationId"
+      [participantPresenceStatus]="presenceMap[conversation.chatId]"
       (conversationSelected)="onSelect(conversation)"
       class="conversation-item"
       [ngClass]="{ 'is-selected': conversation.chatId === selectedConversationId }"

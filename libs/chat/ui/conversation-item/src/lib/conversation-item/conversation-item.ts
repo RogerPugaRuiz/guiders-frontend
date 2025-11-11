@@ -1,12 +1,13 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chat, User } from '@guiders-frontend/shared/types';
+import { Chat, User, PresenceStatus } from '@guiders-frontend/shared/types';
 import { UnreadBadge } from '@guiders-frontend/unread-badge';
+import { PresenceBadge } from '@guiders-frontend/presence-badge';
 
 @Component({
   selector: 'guiders-conversation-item',
   standalone: true,
-  imports: [CommonModule, UnreadBadge],
+  imports: [CommonModule, UnreadBadge, PresenceBadge],
   templateUrl: './conversation-item.html',
   styleUrl: './conversation-item.scss',
 })
@@ -15,8 +16,16 @@ export class ConversationItem {
   readonly conversation = input.required<Chat>();
   readonly isSelected = input<boolean>(false);
 
-  // Outputs usando signals API  
+  // Estado de presencia del participante (opcional)
+  readonly participantPresenceStatus = input<PresenceStatus | undefined>(undefined);
+
+  // Outputs usando signals API
   readonly conversationSelected = output<Chat>();
+
+  // Computed para determinar si mostrar badge de presencia
+  readonly showPresenceBadge = computed(() => {
+    return this.participantPresenceStatus() !== undefined;
+  });
 
   /**
    * Manejar click en la conversación
@@ -68,6 +77,19 @@ export class ConversationItem {
     if (!avatar) return false;
     // Considerar que una URL contiene 'http' o empieza con '/' (ruta relativa)
     return typeof avatar === 'string' && (avatar.startsWith('http') || avatar.startsWith('/'));
+  }
+
+  /**
+   * Obtener inicial del visitante para el avatar
+   */
+  getVisitorInitial(): string {
+    const name = this.getChatDisplayName();
+
+    if (name && name.trim() && name !== 'Chat') {
+      return name.trim().charAt(0).toUpperCase();
+    }
+
+    return 'V';
   }
 
   /**

@@ -4,6 +4,7 @@
 		<guiders-inbox-sidebar
 			[conversations]="conversations()"
 			[selectedConversationId]="selectedConversationId()"
+			[presenceMap]="chatPresenceMap()"
 			[title]="'Conversaciones'"
 			[showNewChatButton]="true"
 			(conversationSelected)="onUserSelected($event)"

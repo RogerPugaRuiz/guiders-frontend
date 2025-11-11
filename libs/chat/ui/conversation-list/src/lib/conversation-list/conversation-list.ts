@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild, ElementRef, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chat } from '@guiders-frontend/shared/types';
+import { Chat, PresenceStatus } from '@guiders-frontend/shared/types';
 import { ConversationItem } from '@guiders-frontend/chat/ui/conversation-item';
 
 @Component({
@@ -14,6 +14,7 @@ import { ConversationItem } from '@guiders-frontend/chat/ui/conversation-item';
 export class GuidersConversationListComponent implements OnChanges {
   @Input({ required: true }) conversations: Chat[] = [];
   @Input() selectedConversationId: string | null = null;
+  @Input() presenceMap: Record<string, PresenceStatus | undefined> = {};
   @Output() conversationSelected = new EventEmitter<Chat>();
 
   @ViewChild('list', { static: true }) listRef?: ElementRef<HTMLDivElement>;

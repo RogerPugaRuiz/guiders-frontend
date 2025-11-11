@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
-import { Chat, Message } from '@guiders-frontend/shared/types';
+import { Chat, Message, PresenceStatus } from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
+import { PresenceService } from '@guiders-frontend/presence-service';
 import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-sidebar';
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
 import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-placeholder';
@@ -43,6 +44,7 @@ export class Inbox implements OnInit {
   private readonly chatService = inject(ChatService);
   private readonly sessionService = inject(SessionService);
   private readonly unreadMessagesService = inject(UnreadMessagesService);
+  private readonly presenceService = inject(PresenceService);
 
   // ===== ESTADO PRINCIPAL =====
   readonly selectedConversationId = signal<string | null>(null);
@@ -58,6 +60,9 @@ export class Inbox implements OnInit {
     nextCursor?: string;
     isLoadingMore: boolean;
   }>>({});
+
+  // Estado de presencia por chat
+  readonly chatPresenceMap = signal<Record<string, PresenceStatus | undefined>>({});
 
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
@@ -183,6 +188,11 @@ export class Inbox implements OnInit {
 
         // Refrescar contadores de mensajes no leídos para todos los chats
         this.unreadMessagesService.refreshUnreadCounts(chatIds);
+
+        // Cargar estado de presencia para cada chat
+        chats.forEach(chat => {
+          this.loadChatPresence(chat.chatId);
+        });
       },
       error: (error) => {
         console.error('Error al cargar chats:', error);
@@ -455,8 +465,56 @@ export class Inbox implements OnInit {
             this.chatService.webSocketService.joinMultipleRooms(chatIds);
             // Refrescar contadores después de reconectar
             this.unreadMessagesService.refreshUnreadCounts(chatIds);
+            // Refrescar presencia después de reconectar
+            chatIds.forEach(chatId => this.loadChatPresence(chatId));
           }
         }
       });
+
+    // Suscribirse a cambios de presencia vía WebSocket
+    this.presenceService.presenceChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        console.log('[Inbox] Cambio de presencia detectado:', event);
+        // Recargar presencia para todos los chats del usuario afectado
+        this.conversations().forEach(chat => {
+          const isParticipant = chat.participants?.some(p => p.id === event.userId);
+          if (isParticipant) {
+            this.loadChatPresence(chat.chatId);
+          }
+        });
+      });
+  }
+
+  /**
+   * Cargar estado de presencia para un chat específico
+   */
+  private loadChatPresence(chatId: string): void {
+    this.presenceService.getChatPresence(chatId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (chatPresence) => {
+          // Obtener el estado del otro participante (no el usuario actual)
+          const currentUserId = this.currentUserId();
+          const otherParticipant = chatPresence.participants.find(
+            p => p.userId !== currentUserId
+          );
+
+          this.chatPresenceMap.update(map => ({
+            ...map,
+            [chatId]: otherParticipant?.connectionStatus
+          }));
+        },
+        error: (error) => {
+          console.error(`[Inbox] Error al cargar presencia para chat ${chatId}:`, error);
+        }
+      });
+  }
+
+  /**
+   * Obtener estado de presencia para un chat específico
+   */
+  getParticipantPresence(chatId: string): PresenceStatus | undefined {
+    return this.chatPresenceMap()[chatId];
   }
 }

@@ -1,10 +1,7 @@
 @use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
 // === CONVERSATION ITEM COMPONENT ===
-// Componente individual pa@media (max-width: tokens.$breakpoint-md) {
-  .conversation-item {
-    padding: tokens.$spacing-xs tokens.$spacing-sm;
-  }mostrar cada conversación en la lista del inbox
+// Componente individual para mostrar cada conversación en la lista del inbox
 // - Completamente autónomo y reutilizable
 // - Sigue patrones de diseño B2B de Guiders
 // - Accesibilidad WCAG 2.2 AA
@@ -51,31 +48,59 @@
   }
 }
 
+// Avatar con inicial y gradiente
 .conversation-item__avatar {
+  position: relative;
   width: 48px;
   height: 48px;
+  border-radius: tokens.$border-radius-full;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Fondo por defecto: usar token primario (azul de marca) */
-  background: tokens.$color-primary-500;
-  border-radius: tokens.$border-radius-full;
   flex-shrink: 0;
-  font-size: tokens.$font-size-xl;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
 }
 
-.conversation-item__avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: tokens.$border-radius-full;
-  display: block;
+.conversation-item__avatar-text {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.conversation-item__avatar .icon-tabler-user {
-  width: 24px;
-  height: 24px;
-  color: tokens.$color-text-inverse; /* icono blanco desde token */
+// Badge de presencia en el avatar
+.conversation-item__presence-indicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid tokens.$color-surface-primary;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+
+  &[data-status='online'] {
+    background-color: #10b981;
+  }
+
+  &[data-status='away'] {
+    background-color: #f59e0b;
+  }
+
+  &[data-status='busy'] {
+    background-color: #ef4444;
+  }
+
+  &[data-status='offline'] {
+    background-color: #9ca3af;
+  }
+
+  &[data-status='chatting'] {
+    background-color: #10b981;
+  }
 }
 
 .conversation-item__content {
