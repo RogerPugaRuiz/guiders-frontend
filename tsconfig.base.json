@@ -86,6 +86,12 @@
         "libs/chat/ui/message-input/src/index.ts"
       ],
       "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
+      "@guiders-frontend/commercial-presence": [
+        "libs/auth/data-access/commercial-presence/src/index.ts"
+      ],
+      "@guiders-frontend/commercial-status": [
+        "libs/auth/data-access/commercial-status/src/index.ts"
+      ],
       "@guiders-frontend/contacts": [
         "libs/chat/features/contacts/src/index.ts"
       ],
@@ -102,16 +108,28 @@
       "@guiders-frontend/pending-chats-modal": [
         "libs/chat/ui/pending-chats-modal/src/index.ts"
       ],
+      "@guiders-frontend/presence-badge": [
+        "libs/chat/ui/presence-badge/src/index.ts"
+      ],
+      "@guiders-frontend/presence-service": [
+        "libs/chat/data-access/presence-service/src/index.ts"
+      ],
       "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
       "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
+      "@guiders-frontend/status-selector": [
+        "libs/shared/ui/status-selector/src/index.ts"
+      ],
       "@guiders-frontend/text-field": [
         "libs/shared/ui/text-field/src/index.ts"
       ],
       "@guiders-frontend/toast": ["libs/shared/ui/toast/src/index.ts"],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/typing-indicator": [
+        "libs/chat/ui/typing-indicator/src/index.ts"
+      ],
       "@guiders-frontend/unread-badge": [
         "libs/chat/ui/unread-badge/src/index.ts"
       ],

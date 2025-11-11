@@ -21,7 +21,7 @@ export interface Visitor {
   currentUrl?: string;
   domain: string;
   siteId: string;
-  tenantId: string;
+  companyId: string;
   
   // Metadata de tracking
   userAgent?: string;
@@ -179,9 +179,9 @@ export interface TenantVisitor {
   totalChatsCount: number; // Total de chats del visitante
 }
 
-// Respuesta del endpoint tenant-visitors
+// Respuesta del endpoint tenant-visitors (usando companyId)
 export interface GetTenantVisitorsResponse {
-  tenantId: string;
+  companyId: string;
   companyName: string;
   visitors: TenantVisitor[];
   totalCount: number;
