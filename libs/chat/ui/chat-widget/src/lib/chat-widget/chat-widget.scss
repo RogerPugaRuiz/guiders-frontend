@@ -80,79 +80,205 @@
     border-bottom-right-radius: 0;
   }
 
-  // Header
+  // Header - Modern design with avatar
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: tokens.$spacing-md;
+    padding: tokens.$spacing-md tokens.$spacing-lg;
     background: tokens.$color-surface-primary;
-    color: tokens.$color-text-primary;
-    border-bottom: 1px solid tokens.$color-border-subtle;
+    border-bottom: 1px solid tokens.$color-border-light;
+    min-height: 72px;
   }
 
-  &__header-info {
+  &__header-content {
     display: flex;
     align-items: center;
-    gap: tokens.$spacing-sm;
+    gap: tokens.$spacing-md;
+    flex: 1;
+    min-width: 0;
   }
 
-  &__header-text {
+  // Avatar con inicial
+  &__avatar {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: tokens.$border-radius-full;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     display: flex;
-    flex-direction: column;
-    gap: tokens.$spacing-2xs;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
   }
 
-  &__title {
-    margin: 0;
-    font-size: tokens.$font-size-base;
+  &__avatar-text {
+    font-size: 16px;
     font-weight: 600;
-    line-height: 1.2;
-    color: tokens.$color-text-primary;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
-  &__status {
-    font-size: tokens.$font-size-xs;
-    color: tokens.$color-text-secondary;
+  // Badge de presencia en el avatar
+  &__presence-indicator {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 3px solid tokens.$color-surface-primary;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 
+    &[data-status='success'] {
+      background-color: #10b981;
+    }
+
+    &[data-status='warning'] {
+      background-color: #f59e0b;
+    }
+
+    &[data-status='danger'] {
+      background-color: #ef4444;
+    }
+
+    &[data-status='neutral'] {
+      background-color: #9ca3af;
+    }
+
+    // Backward compatibility
     &[data-status='green'] {
-      color: tokens.$color-success-600;
+      background-color: #10b981;
     }
 
     &[data-status='yellow'] {
-      color: tokens.$color-warning-600;
+      background-color: #f59e0b;
     }
 
     &[data-status='red'] {
-      color: tokens.$color-danger-600;
+      background-color: #ef4444;
+    }
+
+    &[data-status='gray'] {
+      background-color: #9ca3af;
+    }
+  }
+
+  // Información del visitante
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: tokens.$color-text-primary;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__status-text {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    // Color según estado
+    &[data-status='success'] {
+      color: #10b981;
+    }
+
+    &[data-status='warning'] {
+      color: #f59e0b;
+    }
+
+    &[data-status='danger'] {
+      color: #ef4444;
+    }
+
+    &[data-status='neutral'] {
+      color: tokens.$color-text-tertiary;
+    }
+
+    // Backward compatibility
+    &[data-status='green'] {
+      color: #10b981;
+    }
+
+    &[data-status='yellow'] {
+      color: #f59e0b;
+    }
+
+    &[data-status='red'] {
+      color: #ef4444;
     }
 
     &[data-status='gray'] {
       color: tokens.$color-text-tertiary;
     }
+
+    // Dot indicator antes del texto
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
   }
 
+  // Botones de acción
   &__header-actions {
     display: flex;
     align-items: center;
-    gap: tokens.$spacing-xs;
+    gap: tokens.$spacing-2xs;
+    flex-shrink: 0;
   }
 
   &__action-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: tokens.$spacing-xs;
+    width: 32px;
+    height: 32px;
+    padding: 0;
     background: transparent;
     border: none;
-    color: tokens.$color-text-secondary;
+    color: tokens.$color-text-tertiary;
     cursor: pointer;
-    border-radius: 4px;
-    transition: all 0.2s ease;
+    border-radius: tokens.$border-radius-sm;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
 
     &:hover {
-      background: tokens.$color-surface-hover;
-      color: tokens.$color-text-primary;
+      background: tokens.$color-surface-secondary;
+      color: tokens.$color-text-secondary;
+    }
+
+    &:active {
+      transform: scale(0.96);
+      background: tokens.$color-surface-tertiary;
+    }
+
+    &--close:hover {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+
+    svg {
+      display: block;
     }
   }
 

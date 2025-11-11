@@ -23,30 +23,41 @@
     <div class="chat-widget__container">
       <!-- Header -->
       <div class="chat-widget__header">
-        <div class="chat-widget__header-info">
-          <div class="chat-widget__header-text">
-            <h3 class="chat-widget__title">{{ getChatDisplayName() }}</h3>
-            <span class="chat-widget__status" [attr.data-status]="getChatStatusInfo().color">
+        <div class="chat-widget__header-content">
+          <!-- Avatar inicial -->
+          <div class="chat-widget__avatar">
+            <span class="chat-widget__avatar-text">{{ getVisitorInitial() }}</span>
+            <span class="chat-widget__presence-indicator" [attr.data-status]="getChatStatusInfo().color"></span>
+          </div>
+
+          <!-- Información del visitante -->
+          <div class="chat-widget__info">
+            <h3 class="chat-widget__name">{{ getChatDisplayName() }}</h3>
+            <span class="chat-widget__status-text" [attr.data-status]="getChatStatusInfo().color">
               {{ getChatStatusInfo().label }}
             </span>
           </div>
         </div>
+
+        <!-- Botones de acción -->
         <div class="chat-widget__header-actions">
-          <button 
-            class="chat-widget__action-btn" 
-            (click)="onMinimize()" 
+          <button
+            class="chat-widget__action-btn"
+            (click)="onMinimize()"
             type="button"
-            title="Minimizar">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            title="Minimizar"
+            aria-label="Minimizar chat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </button>
-          <button 
-            class="chat-widget__action-btn" 
-            (click)="onClose()" 
+          <button
+            class="chat-widget__action-btn chat-widget__action-btn--close"
+            (click)="onClose()"
             type="button"
-            title="Cerrar">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            title="Cerrar chat"
+            aria-label="Cerrar chat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
               <line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -124,7 +135,18 @@
                 </div>
               </div>
             }
-            
+
+            <!-- Typing indicator -->
+            @if (isVisitorTyping()) {
+              <div class="chat-widget__message-row chat-widget__message-row--visitor">
+                <guiders-typing-indicator
+                  [userName]="visitorName()"
+                  [userType]="'visitor'"
+                  [variant]="'bubble'"
+                />
+              </div>
+            }
+
             @if (messages().length === 0) {
               <div class="chat-widget__empty">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -140,7 +162,8 @@
       <!-- Input de mensajes -->
       @if (!loading() && !error()) {
         <div class="chat-widget__footer">
-          <guiders-message-input 
+          <guiders-message-input
+            [chatId]="currentChatId()"
             (messageSent)="onSendMessage($event)">
           </guiders-message-input>
         </div>

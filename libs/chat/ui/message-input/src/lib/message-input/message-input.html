@@ -3,7 +3,8 @@
     #textarea
     class="message-input__textarea"
     [(ngModel)]="messageText"
-    (input)="adjustTextareaHeight()"
+    (input)="onInput()"
+    (blur)="onBlur()"
     (keydown)="onKeyDown($event)"
     placeholder="Escribe un mensaje..."
     rows="1"

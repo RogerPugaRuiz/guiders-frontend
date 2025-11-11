@@ -15,13 +15,15 @@ import { Subject, takeUntil } from 'rxjs';
 import { ChatWidgetService, WidgetState } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
-import { Message, SendMessageRequest, Visitor } from '@guiders-frontend/shared/types';
+import { Message, SendMessageRequest, Visitor, PresenceStatus, MessageListResponse } from '@guiders-frontend/shared/types';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
+import { TypingIndicator } from '@guiders-frontend/typing-indicator';
+import { PresenceService } from '@guiders-frontend/presence-service';
 
 @Component({
   selector: 'guiders-chat-widget',
   standalone: true,
-  imports: [CommonModule, MessageInput],
+  imports: [CommonModule, MessageInput, TypingIndicator],
   templateUrl: './chat-widget.html',
   styleUrls: ['./chat-widget.scss']
 })
@@ -29,6 +31,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   private readonly widgetService = inject(ChatWidgetService);
   private readonly chatService = inject(ChatService);
   private readonly userService = inject(UserService);
+  private readonly presenceService = inject(PresenceService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -71,6 +74,33 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     return visitor?.name || visitor?.email || 'Visitante anónimo';
   });
 
+  // Typing indicator
+  readonly typingUsers = signal<string[]>([]);
+  readonly isVisitorTyping = computed(() => {
+    const visitor = this.currentVisitor();
+    const typing = this.typingUsers();
+    return visitor && typing.length > 0 && typing.includes(visitor.id);
+  });
+
+  // Visitor presence
+  readonly visitorPresenceStatus = signal<PresenceStatus | undefined>(undefined);
+  readonly visitorPresenceBadge = computed(() => {
+    const status = this.visitorPresenceStatus();
+    if (!status) {
+      return { label: 'Desconectado', color: 'neutral' };
+    }
+
+    const statusMap: Record<PresenceStatus, { label: string; color: string }> = {
+      'online': { label: 'En línea', color: 'success' },
+      'away': { label: 'Ausente', color: 'warning' },
+      'busy': { label: 'Ocupado', color: 'danger' },
+      'chatting': { label: 'En chat', color: 'success' },
+      'offline': { label: 'Desconectado', color: 'neutral' }
+    };
+
+    return statusMap[status] || { label: 'Desconectado', color: 'neutral' };
+  });
+
   ngOnInit(): void {
     // Suscribirse al estado del widget
     this.widgetService.widgetData$
@@ -85,13 +115,14 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         // 🔄 Si hay un cambio de chat o visitante, limpiar estado anterior
         if ((isNewChat || isNewVisitor) && previousChatId) {
           console.log('[ChatWidget] 🧹 Limpiando estado anterior - Chat anterior:', previousChatId, 'Nuevo chat:', data.chatId);
-          
+
           // Salir de la sala WebSocket anterior
           this.chatService.webSocketService.leaveRoom(previousChatId);
-          
-          // Limpiar mensajes y errores
+
+          // Limpiar mensajes, errores y presencia
           this.messages.set([]);
           this.error.set(null);
+          this.visitorPresenceStatus.set(undefined);
         }
         
         this.widgetState.set(data.state);
@@ -136,20 +167,69 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       .subscribe(message => {
         if (message && message.chatId === this.currentChatId()) {
           console.log('[ChatWidget] Nuevo mensaje recibido via WebSocket:', message);
-          
+
           // ✨ FILTRAR MENSAJES PROPIOS - Ya fueron agregados por la respuesta HTTP
           const currentUserId = this.userService.getUserId();
           if (currentUserId && message.senderId === currentUserId) {
             console.log('[ChatWidget] ⏭️ Mensaje propio ignorado (ya agregado por HTTP):', message.messageId);
             return;
           }
-          
+
           console.log('[ChatWidget] ✅ Mensaje de otro usuario, agregando:', message.messageId);
           this.addMessageToList(message);
           this.shouldScrollToBottom = true;
           this.cdr.detectChanges();
         }
       });
+
+    // Suscribirse a eventos de typing
+    this.presenceService.typingStart$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(event => {
+        if (event.chatId === this.currentChatId()) {
+          const typing = this.presenceService.getTypingUsers(event.chatId);
+          this.typingUsers.set(typing);
+          this.cdr.detectChanges();
+        }
+      });
+
+    this.presenceService.typingStop$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(event => {
+        if (event.chatId === this.currentChatId()) {
+          const typing = this.presenceService.getTypingUsers(event.chatId);
+          this.typingUsers.set(typing);
+          this.cdr.detectChanges();
+        }
+      });
+
+    // Suscribirse a cambios de presencia
+    console.log('[ChatWidget] 🎧 Suscribiéndose a cambios de presencia...');
+    this.presenceService.presenceChanged$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(event => {
+        console.log('[ChatWidget] 📡 Cambio de presencia detectado:', event);
+        const visitor = this.currentVisitor();
+        const chatId = this.currentChatId();
+
+        console.log('[ChatWidget] 📋 Estado actual:', {
+          visitorId: visitor?.id,
+          chatId: chatId,
+          eventUserId: event.userId,
+          eventStatus: event.status,
+          matches: visitor && event.userId === visitor.id
+        });
+
+        // Solo actualizar si es el visitante del chat actual
+        if (visitor && chatId && event.userId === visitor.id) {
+          console.log('[ChatWidget] ✅ Actualizando presencia del visitante:', event.status);
+          this.visitorPresenceStatus.set(event.status);
+          this.cdr.detectChanges();
+        } else {
+          console.log('[ChatWidget] ⏭️ Evento ignorado - No coincide con el visitante actual');
+        }
+      });
+    console.log('[ChatWidget] ✅ Suscripción a cambios de presencia configurada');
   }
 
   ngAfterViewChecked(): void {
@@ -232,10 +312,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
           
           this.messages.set([optimisticMessage]);
           this.shouldScrollToBottom = true;
-          
+
           // Unirse a la sala de WebSocket
           this.chatService.webSocketService.joinRoom(result.chatId);
-          
+
+          // Cargar presencia inicial del chat
+          this.loadChatPresence(result.chatId);
+
           // ✅ Actualizar chatId en el servicio y desactivar la bandera
           setTimeout(() => {
             this.widgetService.updateChatId(result.chatId);
@@ -288,17 +371,20 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
           
           this.shouldScrollToBottom = true;
           this.loading.set(false);
-          
+
           // Unirse a la sala de WebSocket
           this.chatService.webSocketService.joinRoom(chatId);
-          
+
+          // Cargar presencia inicial del chat
+          this.loadChatPresence(chatId);
+
           // Configurar scroll infinito si hay más mensajes
           if (response.hasMore) {
             setTimeout(() => {
               this.setupIntersectionObserver();
             }, 500);
           }
-          
+
           this.cdr.detectChanges();
         },
         error: (err) => {
@@ -308,6 +394,34 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
           this.cdr.detectChanges();
         }
       });
+  }
+
+  /**
+   * Cargar presencia inicial del chat
+   */
+  private loadChatPresence(chatId: string): void {
+    console.log('[ChatWidget] 📡 Cargando presencia para chat:', chatId);
+
+    this.presenceService.getChatPresence(chatId).subscribe({
+      next: (presence) => {
+        console.log('[ChatWidget] Presencia cargada:', presence);
+
+        // Buscar el participante visitante
+        const visitor = this.currentVisitor();
+        if (!visitor) return;
+
+        const visitorParticipant = presence.participants.find(p => p.userId === visitor.id);
+        if (visitorParticipant) {
+          console.log('[ChatWidget] Estado de presencia del visitante:', visitorParticipant.connectionStatus);
+          this.visitorPresenceStatus.set(visitorParticipant.connectionStatus);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('[ChatWidget] Error al cargar presencia:', err);
+        // No mostrar error al usuario, es información complementaria
+      }
+    });
   }
 
   /**
@@ -447,7 +561,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     this.loading.set(false);
     this.currentChatId.set(null);
     this.currentVisitor.set(null);
-    
+    this.visitorPresenceStatus.set(undefined);
+
     this.widgetService.closeWidget();
   }
 
@@ -531,11 +646,36 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   }
 
   /**
-   * Obtener información del estado del chat
+   * Obtener inicial del visitante para el avatar
+   */
+  getVisitorInitial(): string {
+    const visitor = this.currentVisitor();
+    if (!visitor) return 'V';
+
+    // Intentar obtener inicial del nombre
+    if (visitor.name && visitor.name.trim()) {
+      const firstLetter = visitor.name.trim().charAt(0).toUpperCase();
+      return firstLetter;
+    }
+
+    // Si no hay nombre, usar inicial del email
+    if (visitor.email && visitor.email.trim()) {
+      const firstLetter = visitor.email.trim().charAt(0).toUpperCase();
+      return firstLetter;
+    }
+
+    // Por defecto, usar 'V' de Visitante
+    return 'V';
+  }
+
+  /**
+   * Obtener información del estado del chat para el header
+   * Retorna el badge de presencia del visitante con:
+   * - label: Texto a mostrar (ej: "En línea", "Ausente", etc.)
+   * - color: Color del badge ('success', 'warning', 'danger', 'neutral')
    */
   getChatStatusInfo(): { label: string; color: string } {
-    // Como no tenemos info de estado del chat aún, devolvemos "En línea"
-    return { label: 'En línea', color: 'success' };
+    return this.visitorPresenceBadge();
   }
 
   /**
@@ -594,7 +734,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   /**
    * Track by para ngFor de mensajes
    */
-  trackMessageById(index: number, message: Message): string {
+  trackMessageById(_index: number, message: Message): string {
     return message.messageId;
   }
 
@@ -676,24 +816,24 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       limit: 50
       // El endpoint por defecto devuelve sentAt DESC
     }).subscribe({
-      next: (response) => {
+      next: (response: MessageListResponse) => {
         console.log('[ChatWidget] Mensajes antiguos cargados:', response.messages.length);
-        
+
         // Los mensajes vienen en orden descendente
         // Los revertimos y los agregamos AL INICIO del array existente
         const newMessages = [...response.messages].reverse();
         const currentMessages = this.messages();
         this.messages.set([...newMessages, ...currentMessages]);
-        
+
         // Actualizar paginación
         this.nextCursor = response.nextCursor;
         this.hasMoreMessages.set(response.hasMore);
         this.isLoadingMore.set(false);
         this.isHandlingIntersection = false;
-        
+
         // Preservar posición de scroll
         this.preserveScrollPosition();
-        
+
         // Reconfigurar observer si hay más mensajes
         if (response.hasMore) {
           this.cleanupIntersectionObserver();
@@ -703,10 +843,10 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         } else {
           this.cleanupIntersectionObserver();
         }
-        
+
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: unknown) => {
         console.error('[ChatWidget] Error al cargar mensajes antiguos:', err);
         this.isLoadingMore.set(false);
         this.isHandlingIntersection = false;
@@ -736,12 +876,4 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     });
   }
 
-  /**
-   * Programar scroll al final
-   */
-  private scheduleScrollToBottom(): void {
-    setTimeout(() => {
-      this.scrollToBottom();
-    }, 0);
-  }
 }

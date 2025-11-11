@@ -6,9 +6,13 @@ import {
   ElementRef,
   AfterViewInit,
   signal,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  input,
+  inject,
+  OnDestroy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PresenceService } from '@guiders-frontend/presence-service';
 
 @Component({
   selector: 'guiders-message-input',
@@ -17,23 +21,61 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './message-input.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MessageInput implements AfterViewInit {
+export class MessageInput implements AfterViewInit, OnDestroy {
   @Output() messageSent = new EventEmitter<string>();
 
   @ViewChild('textarea') textareaRef?: ElementRef<HTMLTextAreaElement>;
+
+  // Input para el chatId (puede ser null antes de crear el chat)
+  readonly chatId = input<string | null>(null);
 
   messageText = ''; // Usar propiedad normal para mejor compatibilidad con ngModel
   readonly isSending = signal(false);
   private sendingTimestamp = 0;
   private readonly SEND_DEBOUNCE_MS = 500; // Prevenir envíos duplicados dentro de 500ms
 
+  // Servicio de presencia para typing indicators
+  private readonly presenceService = inject(PresenceService);
+
   ngAfterViewInit(): void {
     this.adjustTextareaHeight();
-    
+
     // Hacer foco en el textarea después de la inicialización
     setTimeout(() => {
       this.textareaRef?.nativeElement.focus();
     }, 100);
+  }
+
+  ngOnDestroy(): void {
+    // Detener typing al destruir el componente
+    const chatId = this.chatId();
+    if (chatId) {
+      this.presenceService.stopTyping(chatId);
+    }
+  }
+
+  onInput(): void {
+    // Ajustar altura del textarea
+    this.adjustTextareaHeight();
+
+    const chatId = this.chatId();
+    if (!chatId) return; // No enviar typing si no hay chat
+
+    // Enviar evento de typing si hay texto
+    if (this.messageText.trim().length > 0) {
+      this.presenceService.startTyping(chatId);
+    } else {
+      // Si borra todo el texto, detener typing
+      this.presenceService.stopTyping(chatId);
+    }
+  }
+
+  onBlur(): void {
+    // Detener typing cuando pierde el foco
+    const chatId = this.chatId();
+    if (chatId) {
+      this.presenceService.stopTyping(chatId);
+    }
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -59,7 +101,13 @@ export class MessageInput implements AfterViewInit {
 
     this.sendingTimestamp = now;
     this.isSending.set(true);
-    
+
+    // Detener typing antes de enviar
+    const chatId = this.chatId();
+    if (chatId) {
+      this.presenceService.stopTyping(chatId);
+    }
+
     console.log('[MessageInput] Enviando mensaje:', text);
     this.messageSent.emit(text);
 
