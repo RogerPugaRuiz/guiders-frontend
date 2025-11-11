@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit, DestroyRef } from '@angular/core';
+import { Component, inject, signal, computed, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -39,7 +39,7 @@ import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-
   templateUrl: './inbox.html',
   styleUrl: './inbox.scss',
 })
-export class Inbox implements OnInit {
+export class Inbox implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly chatService = inject(ChatService);
   private readonly sessionService = inject(SessionService);
@@ -98,6 +98,20 @@ export class Inbox implements OnInit {
     this.initializeDataSubscriptions();
     this.loadInitialData();
     this.initializeUnreadMessagesSync();
+  }
+
+  ngOnDestroy() {
+    console.log('[Inbox] 🔴 === COMPONENTE DESTRUIDO - LIMPIANDO ESTADO ===');
+
+    // Limpiar el chat activo en UnreadMessagesService
+    // Esto es CRÍTICO: permite que las notificaciones funcionen cuando el usuario cambia de ruta
+    this.unreadMessagesService.setActiveChat(null);
+
+    // Limpiar estado local (opcional, pero recomendado para claridad)
+    this.selectedConversationId.set(null);
+    this.chatService.selectChat(null);
+
+    console.log('[Inbox] ✅ Estado de chat activo limpiado correctamente');
   }
 
     // ===== INICIALIZACIÓN =====
