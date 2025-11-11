@@ -41,12 +41,41 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    position: relative; // Para posicionar el badge
   }
 
   &__initial {
     font-size: tokens.$font-size-base;
     font-weight: tokens.$font-weight-semibold;
     line-height: 1;
+  }
+
+  // Badge de estado de conexión
+  &__status-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: tokens.$border-radius-circle;
+    border: 2px solid tokens.$color-surface-primary;
+    background-color: tokens.$color-neutral-500; // Estado neutral por defecto
+    transition: background-color tokens.$duration-fast tokens.$easing-standard;
+
+    // Estado: Conectado y activo (verde)
+    &--success {
+      background-color: tokens.$color-success-500;
+    }
+
+    // Estado: Desconectado (rojo)
+    &--danger {
+      background-color: tokens.$color-error-600;
+    }
+
+    // Estado: Conectado pero inactivo (amarillo/warning)
+    &--warning {
+      background-color: tokens.$color-warning-500;
+    }
   }
 
   &__info {

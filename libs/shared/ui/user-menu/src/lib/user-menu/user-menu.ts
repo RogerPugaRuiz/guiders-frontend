@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild, effect, inject } from '@angular/core';
 import { getAvatarColor } from '@guiders-frontend/avatar-colors';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
+import { CommercialStatusService } from '@guiders-frontend/commercial-status';
 
 @Component({
   selector: 'guiders-user-menu',
@@ -11,6 +12,7 @@ import { UserService } from '@guiders-frontend/auth/data-access/session';
 })
 export class UserMenu {
   private readonly userService = inject(UserService);
+  readonly statusService = inject(CommercialStatusService);
 
   // Inputs
   userEmail = input.required<string>();

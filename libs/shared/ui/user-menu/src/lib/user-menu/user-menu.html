@@ -11,6 +11,15 @@
   <!-- Avatar del usuario -->
   <div class="user-menu__avatar" [style.background-color]="getAvatarBackgroundColor()">
     <span class="user-menu__initial">{{ getUserInitials() }}</span>
+    <!-- Indicador de estado de conexión -->
+    <span
+      class="user-menu__status-badge"
+      [class.user-menu__status-badge--success]="statusService.getStatusColor() === 'success'"
+      [class.user-menu__status-badge--danger]="statusService.getStatusColor() === 'danger'"
+      [class.user-menu__status-badge--warning]="statusService.connectionStatus() === 'online' && !statusService.isActive()"
+      [attr.aria-label]="statusService.getStatusText()"
+      [attr.title]="statusService.getStatusText()">
+    </span>
   </div>
   
   <!-- Información del usuario (solo visible cuando no está compacto) -->
