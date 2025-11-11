@@ -7,8 +7,7 @@ export interface User {
   sub: string;
   email: string;
   roles: string[];
+  companyId: string; // ID de la empresa del usuario (requerido)
   app: string;
-  companyId?: string; // ID de la empresa del usuario
-  tenantId?: string;  // ID del tenant para multi-tenancy
   session: UserSession;
 }

@@ -31,8 +31,8 @@ export class UserService {
    * Obtiene el usuario actual desde el BFF y lo almacena en el signal
    */
   fetchUser(): Observable<User> {
-    return this.http.get<User>(`${this.environment.api.baseUrl}/bff/auth/me`, { 
-      withCredentials: true 
+    return this.http.get<User>(`${this.environment.api.baseUrl}/bff/auth/me`, {
+      withCredentials: true
     }).pipe(
       tap(user => {
         this._currentUser.set(user);

@@ -1,0 +1,20 @@
+{
+  "name": "commercial-presence",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/auth/data-access/commercial-presence/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:auth", "type:data-access"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/auth/data-access/commercial-presence"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
