@@ -1,0 +1,135 @@
+@use '../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+/**
+ * Presence Badge Component
+ *
+ * Indicator visual del estado de presencia de un usuario
+ * con dot circular de colores y opci�n de texto.
+ */
+
+// ===== WRAPPER =====
+.presence-badge-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: tokens.$spacing-xs; // 4px
+}
+
+// ===== BASE =====
+.presence-badge-dot {
+  display: inline-block;
+  border-radius: 50%; // C�rculo perfecto
+  border: 2px solid #ffffff; // Borde blanco para contraste
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1); // Sombra sutil
+  transition: all tokens.$duration-normal tokens.$easing-standard;
+}
+
+// ===== TAMA�OS =====
+.presence-badge--sm .presence-badge-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.presence-badge--md .presence-badge-dot {
+  width: 10px;
+  height: 10px;
+}
+
+.presence-badge--lg .presence-badge-dot {
+  width: 12px;
+  height: 12px;
+}
+
+// ===== ESTADOS (COLORES) =====
+
+// Online - Verde
+.presence-badge--online .presence-badge-dot {
+  background-color: #4ade80; // Green-400
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.4);
+}
+
+// Offline - Gris
+.presence-badge--offline .presence-badge-dot {
+  background-color: #9ca3af; // Gray-400
+  box-shadow: 0 0 0 1px rgba(156, 163, 175, 0.4);
+}
+
+// Away - Amarillo
+.presence-badge--away .presence-badge-dot {
+  background-color: #fbbf24; // Amber-400
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.4);
+}
+
+// Busy - Rojo
+.presence-badge--busy .presence-badge-dot {
+  background-color: #f87171; // Red-400
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.4);
+}
+
+// Chatting - Azul
+.presence-badge--chatting .presence-badge-dot {
+  background-color: #60a5fa; // Blue-400
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.4);
+}
+
+// ===== LABEL =====
+.presence-badge-label {
+  font-size: tokens.$font-size-sm; // 12px
+  font-weight: tokens.$font-weight-medium;
+  color: tokens.$color-text-secondary;
+  line-height: 1;
+}
+
+// ===== ANIMACI�N PULSE (ONLINE) =====
+.presence-badge--pulse .presence-badge-dot {
+  animation: presence-pulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes presence-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+// ===== TEMA OSCURO =====
+@media (prefers-color-scheme: dark) {
+  .presence-badge-dot {
+    border-color: #1f2937; // Gray-800
+  }
+
+  .presence-badge--online .presence-badge-dot {
+    background-color: #34d399; // Green-500 (m�s brillante)
+  }
+
+  .presence-badge--offline .presence-badge-dot {
+    background-color: #6b7280; // Gray-500
+  }
+
+  .presence-badge--away .presence-badge-dot {
+    background-color: #fcd34d; // Amber-300 (m�s brillante)
+  }
+
+  .presence-badge--busy .presence-badge-dot {
+    background-color: #fca5a5; // Red-300 (m�s brillante)
+  }
+
+  .presence-badge--chatting .presence-badge-dot {
+    background-color: #93c5fd; // Blue-300 (m�s brillante)
+  }
+
+  .presence-badge-label {
+    color: #d1d5db; // Gray-300
+  }
+}
+
+// ===== REDUCCI�N DE MOVIMIENTO =====
+@media (prefers-reduced-motion: reduce) {
+  .presence-badge-dot {
+    animation: none;
+    transition: none;
+  }
+}

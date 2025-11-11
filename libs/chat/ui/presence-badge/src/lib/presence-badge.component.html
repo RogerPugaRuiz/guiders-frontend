@@ -1,0 +1,11 @@
+<span
+  [ngClass]="badgeClasses()"
+  [attr.aria-label]="ariaLabel()"
+  role="status"
+  class="presence-badge-wrapper"
+>
+  <span class="presence-badge-dot"></span>
+  @if (showLabel()) {
+    <span class="presence-badge-label">{{ statusLabel() }}</span>
+  }
+</span>

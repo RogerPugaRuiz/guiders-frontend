@@ -1,0 +1,20 @@
+{
+  "name": "typing-indicator",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/ui/typing-indicator/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:chat", "type:ui"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/ui/typing-indicator"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

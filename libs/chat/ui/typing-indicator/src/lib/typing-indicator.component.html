@@ -1,0 +1,30 @@
+<div
+  [ngClass]="indicatorClasses()"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-live]="'polite'"
+  role="status"
+>
+  @if (variant() === 'bubble') {
+    <div class="typing-indicator__bubble">
+      <div class="typing-indicator__dots">
+        <span class="typing-indicator__dot"></span>
+        <span class="typing-indicator__dot"></span>
+        <span class="typing-indicator__dot"></span>
+      </div>
+    </div>
+    @if (showName()) {
+      <span class="typing-indicator__text">{{ displayText() }}</span>
+    }
+  }
+
+  @if (variant() === 'inline') {
+    <span class="typing-indicator__inline">
+      <span class="typing-indicator__inline-text">{{ displayText() }}</span>
+      <span class="typing-indicator__inline-dots">
+        <span class="typing-indicator__dot"></span>
+        <span class="typing-indicator__dot"></span>
+        <span class="typing-indicator__dot"></span>
+      </span>
+    </span>
+  }
+</div>

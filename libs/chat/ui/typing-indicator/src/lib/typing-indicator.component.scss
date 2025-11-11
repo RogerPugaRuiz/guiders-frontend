@@ -1,0 +1,200 @@
+@use '../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+/**
+ * Typing Indicator Component
+ *
+ * Indicador animado que muestra cuando un usuario est� escribiendo,
+ * dise�ado como una burbuja de mensaje o inline text.
+ */
+
+// ===== BASE =====
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm; // 8px
+  animation: fade-in 0.3s tokens.$easing-standard;
+}
+
+// ===== VARIANTE BUBBLE =====
+.typing-indicator--bubble {
+  padding: tokens.$spacing-xs 0; // 4px vertical
+
+  .typing-indicator__bubble {
+    display: inline-flex;
+    align-items: center;
+    padding: tokens.$spacing-sm tokens.$spacing-md; // 8px 12px
+    background-color: #f3f4f6; // Gray-100
+    border-radius: 16px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    min-height: 36px;
+  }
+
+  .typing-indicator__dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .typing-indicator__dot {
+    width: 8px;
+    height: 8px;
+    background-color: #9ca3af; // Gray-400
+    border-radius: 50%;
+    animation: typing-pulse 1.4s ease-in-out infinite;
+
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+
+  .typing-indicator__text {
+    font-size: tokens.$font-size-sm; // 12px
+    color: tokens.$color-text-secondary;
+    font-style: italic;
+    margin-left: tokens.$spacing-xs; // 4px
+  }
+}
+
+// ===== VARIANTE INLINE =====
+.typing-indicator--inline {
+  padding: tokens.$spacing-xs; // 4px
+
+  .typing-indicator__inline {
+    display: inline-flex;
+    align-items: center;
+    gap: tokens.$spacing-xs; // 4px
+    font-size: tokens.$font-size-sm; // 12px
+    color: tokens.$color-text-secondary;
+    font-style: italic;
+  }
+
+  .typing-indicator__inline-dots {
+    display: inline-flex;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .typing-indicator__dot {
+    width: 4px;
+    height: 4px;
+    background-color: #9ca3af; // Gray-400
+    border-radius: 50%;
+    animation: typing-pulse 1.4s ease-in-out infinite;
+
+    &:nth-child(1) {
+      animation-delay: 0s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+  }
+}
+
+// ===== DIFERENCIACI�N POR TIPO DE USUARIO =====
+
+// Visitante - burbuja gris (izquierda)
+.typing-indicator--visitor {
+  .typing-indicator__bubble {
+    background-color: #f3f4f6; // Gray-100
+  }
+
+  .typing-indicator__dot {
+    background-color: #6b7280; // Gray-500
+  }
+}
+
+// Comercial - burbuja azul (derecha)
+.typing-indicator--commercial {
+  justify-content: flex-end;
+
+  .typing-indicator__bubble {
+    background-color: #dbeafe; // Blue-100
+  }
+
+  .typing-indicator__dot {
+    background-color: #3b82f6; // Blue-500
+  }
+
+  .typing-indicator__text {
+    order: -1; // Texto a la izquierda de la burbuja
+    margin-left: 0;
+    margin-right: tokens.$spacing-xs; // 4px
+  }
+}
+
+// ===== ANIMACIONES =====
+
+@keyframes typing-pulse {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ===== TEMA OSCURO =====
+@media (prefers-color-scheme: dark) {
+  .typing-indicator--visitor {
+    .typing-indicator__bubble {
+      background-color: #374151; // Gray-700
+    }
+
+    .typing-indicator__dot {
+      background-color: #9ca3af; // Gray-400
+    }
+  }
+
+  .typing-indicator--commercial {
+    .typing-indicator__bubble {
+      background-color: #1e3a5f; // Blue-900 dark
+    }
+
+    .typing-indicator__dot {
+      background-color: #60a5fa; // Blue-400
+    }
+  }
+
+  .typing-indicator__text,
+  .typing-indicator__inline-text {
+    color: #d1d5db; // Gray-300
+  }
+}
+
+// ===== REDUCCI�N DE MOVIMIENTO =====
+@media (prefers-reduced-motion: reduce) {
+  .typing-indicator,
+  .typing-indicator__dot {
+    animation: none;
+  }
+
+  .typing-indicator__dot {
+    opacity: 0.7;
+  }
+}
