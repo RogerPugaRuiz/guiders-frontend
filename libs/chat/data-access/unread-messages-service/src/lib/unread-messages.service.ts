@@ -1,5 +1,6 @@
-import { Injectable, inject, signal, computed, DestroyRef } from '@angular/core';
+import { Injectable, inject, signal, computed, DestroyRef, Injector } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Observable, BehaviorSubject, catchError, map, of, filter } from 'rxjs';
 import {
@@ -36,7 +37,9 @@ export class UnreadMessagesService {
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly webSocket = inject(WebSocketService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
+  private router: Router | null = null;
 
   // ===== SIGNALS (ESTADO REACTIVO) =====
 
@@ -731,6 +734,21 @@ export class UnreadMessagesService {
   }
 
   /**
+   * Obtener el Router de forma lazy para evitar dependencias circulares
+   */
+  private getRouter(): Router | null {
+    if (!this.router) {
+      try {
+        this.router = this.injector.get(Router);
+      } catch (error) {
+        console.warn('[UnreadMessagesService] No se pudo obtener el Router:', error);
+        return null;
+      }
+    }
+    return this.router;
+  }
+
+  /**
    * Mostrar notificación del navegador
    */
   private showBrowserNotification(message: Message): void {
@@ -769,8 +787,24 @@ export class UnreadMessagesService {
       // Navegar al chat al hacer click
       notification.onclick = () => {
         window.focus();
-        // TODO: Implementar navegación al chat
-        // this.router.navigate(['/inbox'], { queryParams: { chat: message.chatId } });
+
+        // Navegar a inbox con el chat seleccionado
+        const router = this.getRouter();
+        if (router) {
+          console.log('[UnreadMessagesService] 🚀 Navegando a inbox con chat:', message.chatId);
+          router.navigate(['/inbox'], {
+            queryParams: { chat: message.chatId }
+          }).then(() => {
+            console.log('[UnreadMessagesService] ✅ Navegación completada');
+          }).catch((error) => {
+            console.error('[UnreadMessagesService] ❌ Error en navegación:', error);
+          });
+        } else {
+          console.warn('[UnreadMessagesService] ⚠️ No se pudo navegar: Router no disponible');
+          // Fallback: usar location.href
+          window.location.href = `/inbox?chat=${message.chatId}`;
+        }
+
         notification.close();
       };
 
