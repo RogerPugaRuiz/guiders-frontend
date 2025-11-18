@@ -429,6 +429,33 @@
       background-color: #f59e0b;
     }
   }
+
+  &--away {
+    background-color: #fef3c7;
+    color: #92400e;
+
+    .status-dot {
+      background-color: #f59e0b;
+    }
+  }
+
+  &--busy {
+    background-color: #fee2e2;
+    color: #991b1b;
+
+    .status-dot {
+      background-color: #ef4444;
+    }
+  }
+
+  &--chatting {
+    background-color: #dbeafe;
+    color: #1e40af;
+
+    .status-dot {
+      background-color: #3b82f6;
+    }
+  }
 }
 
 .status-dot {

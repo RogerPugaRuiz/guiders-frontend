@@ -2,6 +2,7 @@
 export type VisitorLifecycle = 'ANON' | 'ENGAGED' | 'LEAD' | 'CONVERTED';
 export type VisitorStatus = 'online' | 'offline' | 'idle';
 export type SessionStatus = 'active' | 'inactive' | 'ended';
+export type ConnectionStatus = 'online' | 'offline' | 'away' | 'chatting' | 'busy';
 
 // Interface principal para visitante
 export interface Visitor {
@@ -18,6 +19,7 @@ export interface Visitor {
   
   // Información de sesión
   status: VisitorStatus;
+  connectionStatus?: ConnectionStatus; // Estado de conexión en tiempo real (WebSocket)
   currentUrl?: string;
   domain: string;
   siteId: string;
@@ -169,7 +171,7 @@ export interface GetVisitorsResponse {
 export interface TenantVisitor {
   id: string;
   fingerprint: string;
-  connectionStatus: "ONLINE" | "OFFLINE";
+  connectionStatus: "ONLINE" | "OFFLINE" | "AWAY" | "CHATTING" | "BUSY";
   siteId: string;
   siteName: string;
   currentUrl?: string; // URL actual donde está navegando el visitante

@@ -92,25 +92,38 @@ export class VisitorsDataService {
         tap(response => console.log('[VisitorsDataService] Raw API Response:', response)),
         map(response => {
           // Mapear la respuesta del tenant-visitors al formato GetVisitorsResponse
-          const mappedVisitors: Visitor[] = response.visitors.map(apiVisitor => ({
-            id: apiVisitor.id,
-            fingerprint: apiVisitor.fingerprint,
-            lifecycle: 'ANON' as const, // Valor por defecto
-            isNewVisitor: false, // Se puede calcular basado en createdAt
-            status: apiVisitor.connectionStatus === 'ONLINE' ? 'online' as const : 'offline' as const,
-            currentUrl: apiVisitor.currentUrl, // URL actual donde está navegando
-            domain: apiVisitor.siteName,
-            siteId: apiVisitor.siteId,
-            companyId: response.companyId,
-            firstVisit: new Date(apiVisitor.createdAt),
-            lastVisit: new Date(apiVisitor.lastActivity),
-            totalSessions: 1, // Valor por defecto
-            totalPageViews: 0, // Valor por defecto
-            averageSessionDuration: 0, // Valor por defecto
-            hasActiveChat: false, // Valor por defecto
-            totalChats: apiVisitor.totalChatsCount, // Mapear totalChatsCount del backend
-            pendingChatIds: apiVisitor.pendingChatIds || [] // ¡IMPORTANTE! Mapear los chats pendientes del backend
-          }));
+          const mappedVisitors: Visitor[] = response.visitors.map(apiVisitor => {
+            // Convertir connectionStatus de mayúsculas (backend) a minúsculas (frontend)
+            const connectionStatus = apiVisitor.connectionStatus.toLowerCase() as 'online' | 'offline' | 'away' | 'chatting' | 'busy';
+
+            // Mapear status (VisitorStatus) basado en connectionStatus
+            const status = connectionStatus === 'online' || connectionStatus === 'chatting'
+              ? 'online' as const
+              : connectionStatus === 'away'
+                ? 'idle' as const
+                : 'offline' as const;
+
+            return {
+              id: apiVisitor.id,
+              fingerprint: apiVisitor.fingerprint,
+              lifecycle: 'ANON' as const, // Valor por defecto
+              isNewVisitor: false, // Se puede calcular basado en createdAt
+              status: status,
+              connectionStatus: connectionStatus, // ¡IMPORTANTE! Mapear el connectionStatus completo
+              currentUrl: apiVisitor.currentUrl, // URL actual donde está navegando
+              domain: apiVisitor.siteName,
+              siteId: apiVisitor.siteId,
+              companyId: response.companyId,
+              firstVisit: new Date(apiVisitor.createdAt),
+              lastVisit: new Date(apiVisitor.lastActivity),
+              totalSessions: 1, // Valor por defecto
+              totalPageViews: 0, // Valor por defecto
+              averageSessionDuration: 0, // Valor por defecto
+              hasActiveChat: false, // Valor por defecto
+              totalChats: apiVisitor.totalChatsCount, // Mapear totalChatsCount del backend
+              pendingChatIds: apiVisitor.pendingChatIds || [] // ¡IMPORTANTE! Mapear los chats pendientes del backend
+            };
+          });
 
           const mappedResponse: GetVisitorsResponse = {
             visitors: mappedVisitors,

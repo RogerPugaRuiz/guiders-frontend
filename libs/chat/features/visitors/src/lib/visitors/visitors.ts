@@ -1,10 +1,12 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef, ChangeDetectorRef, ViewChild, DestroyRef } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
+import { PresenceService } from '@guiders-frontend/presence-service';
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
@@ -18,8 +20,10 @@ import {
   CreateChatWithVisitorRequest,
   VisitorState,
   GetVisitorsResponse,
-  VisitorStats
+  VisitorStats,
+  ConnectionStatus
 } from '@guiders-frontend/shared/types';
+import { PresenceChangedEvent } from '@guiders-frontend/shared/types';
 import { getMockVisitorsResponse, getMockVisitorStats } from './visitors-mock-data';
 
 // Tipo parcial para respuestas de asignación de chat
@@ -55,6 +59,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly snackBar = inject(MatSnackBar);
   private readonly chatWidgetService = inject(ChatWidgetService);
+  private readonly presenceService = inject(PresenceService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Referencia al componente hijo de la lista de visitantes
   @ViewChild(VisitorsListComponent) visitorsListComponent?: VisitorsListComponent;
@@ -378,6 +384,64 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
     // Configurar intervalo para actualizar el tiempo transcurrido cada minuto
     this.setupTimeUpdateInterval();
+
+    // 🔥 NUEVO: Suscribirse a cambios de presencia en tiempo real vía WebSocket
+    this.setupPresenceListener();
+  }
+
+  /**
+   * Configura listener para eventos de presencia en tiempo real
+   * Actualiza el estado de conexión de los visitantes sin necesidad de polling
+   */
+  private setupPresenceListener(): void {
+    this.presenceService.presenceChanged$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event: PresenceChangedEvent) => {
+        console.log('[Visitors] 🔔 Evento de presencia recibido en tiempo real:', {
+          userId: event.userId,
+          userType: event.userType,
+          status: event.status,
+          previousStatus: event.previousStatus,
+          timestamp: event.timestamp
+        });
+
+        // Solo procesar eventos de visitantes
+        if (event.userType !== 'visitor') {
+          return;
+        }
+
+        // Actualizar el estado del visitante en la lista actual
+        const currentState = this.state();
+        const visitors = currentState.visitors;
+
+        const visitorIndex = visitors.findIndex(v => v.id === event.userId);
+
+        if (visitorIndex === -1) {
+          console.log('[Visitors] ⚠️ Visitante no encontrado en la lista actual, omitiendo actualización');
+          return;
+        }
+
+        // Crear nuevo array con el visitante actualizado
+        const updatedVisitors = [...visitors];
+        updatedVisitors[visitorIndex] = {
+          ...updatedVisitors[visitorIndex],
+          connectionStatus: event.status as ConnectionStatus
+        };
+
+        console.log('[Visitors] ✅ Estado del visitante actualizado en tiempo real:', {
+          visitorId: event.userId,
+          previousStatus: event.previousStatus,
+          newStatus: event.status
+        });
+
+        // Actualizar el estado con los visitantes modificados
+        this.updateState({
+          visitors: updatedVisitors
+        });
+
+        // Forzar detección de cambios para que Angular actualice la vista
+        this.cdr.detectChanges();
+      });
   }
 
   ngOnDestroy(): void {

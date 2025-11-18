@@ -17,17 +17,15 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat, User, PresenceStatus, Participant } from '@guiders-frontend/shared/types';
-import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Message } from '@guiders-frontend/shared/types';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
 import { PresenceService } from '@guiders-frontend/presence-service';
-import { PresenceBadge } from '@guiders-frontend/presence-badge';
 
 @Component({
   selector: 'guiders-chat-placeholder',
   standalone: true,
-  imports: [CommonModule, Button, IconComponent, MessageInput, PresenceBadge],
+  imports: [CommonModule, IconComponent, MessageInput],
   templateUrl: './chat-placeholder.html',
   styleUrl: './chat-placeholder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

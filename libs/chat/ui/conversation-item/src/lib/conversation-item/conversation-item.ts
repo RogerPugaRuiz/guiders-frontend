@@ -2,12 +2,11 @@ import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat, User, PresenceStatus } from '@guiders-frontend/shared/types';
 import { UnreadBadge } from '@guiders-frontend/unread-badge';
-import { PresenceBadge } from '@guiders-frontend/presence-badge';
 
 @Component({
   selector: 'guiders-conversation-item',
   standalone: true,
-  imports: [CommonModule, UnreadBadge, PresenceBadge],
+  imports: [CommonModule, UnreadBadge],
   templateUrl: './conversation-item.html',
   styleUrl: './conversation-item.scss',
 })

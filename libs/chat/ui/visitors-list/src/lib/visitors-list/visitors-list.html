@@ -142,13 +142,16 @@
               <!-- Estado de conexión -->
               <td class="visitors-table__cell visitors-table__cell--status">
                 <div class="connection-status">
-                  <span class="status-badge status-badge--{{ visitor.status }}">
+                  <span class="status-badge status-badge--{{ visitor.connectionStatus || visitor.status }}">
                     <span class="status-dot"></span>
-                    @switch (visitor.status) {
+                    @switch (visitor.connectionStatus || visitor.status) {
                       @case ('online') { En línea }
                       @case ('offline') { Desconectado }
                       @case ('idle') { Inactivo }
-                      @default { {{ visitor.status }} }
+                      @case ('away') { Ausente }
+                      @case ('busy') { Ocupado }
+                      @case ('chatting') { Conversando }
+                      @default { {{ visitor.connectionStatus || visitor.status }} }
                     }
                   </span>
                 </div>
