@@ -1,0 +1,20 @@
+{
+  "name": "profile-modal",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/auth/ui/profile-modal/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:auth", "type:ui"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/auth/ui/profile-modal"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

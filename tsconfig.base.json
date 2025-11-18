@@ -114,6 +114,12 @@
       "@guiders-frontend/presence-service": [
         "libs/chat/data-access/presence-service/src/index.ts"
       ],
+      "@guiders-frontend/profile-modal": [
+        "libs/auth/ui/profile-modal/src/index.ts"
+      ],
+      "@guiders-frontend/profile-service": [
+        "libs/auth/data-access/profile-service/src/index.ts"
+      ],
       "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
       "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],

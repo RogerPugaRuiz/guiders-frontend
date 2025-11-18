@@ -1,12 +1,14 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
-import { UserService } from '@guiders-frontend/auth/data-access/session';
+import { UserService, UserProfile } from '@guiders-frontend/auth/data-access/session';
 import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
+import { ProfileModal, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
+import { ProfileService } from '@guiders-frontend/profile-service';
 
 @Component({
-  imports: [RouterModule, Sidebar, ChatWidgetComponent],
+  imports: [RouterModule, Sidebar, ChatWidgetComponent, ProfileModal],
   selector: 'console-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -15,11 +17,17 @@ export class App {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly unreadMessagesService = inject(UnreadMessagesService);
-  
+  private readonly profileService = inject(ProfileService);
+
   protected title = 'console';
 
   // Usuario actual desde el servicio
   readonly currentUser = this.userService.currentUser;
+
+  // Estado del modal de perfil
+  readonly isProfileModalOpen = signal<boolean>(false);
+  readonly isUploadingAvatar = signal<boolean>(false);
+  readonly userProfile = signal<UserProfile | null>(null);
 
   // Configuración del sidebar para console
   readonly sidebarConfig = signal<SidebarConfig>({
@@ -123,8 +131,70 @@ export class App {
   }
 
   onConfigureAccount(): void {
-    console.log('Configurar cuenta...');
-    // TODO: Navegar a la página de configuración cuando esté implementada
-    this.router.navigate(['/settings']);
+    console.log('Abrir modal de configuración de perfil...');
+
+    // Cargar el perfil completo antes de abrir el modal
+    this.profileService.getUserProfile().subscribe({
+      next: (profile: UserProfile) => {
+        console.log('Perfil del usuario cargado:', profile);
+        this.userProfile.set(profile);
+        this.isProfileModalOpen.set(true);
+      },
+      error: (error: Error) => {
+        console.error('Error al cargar perfil del usuario:', error);
+        alert('Error al cargar tu perfil. Inténtalo de nuevo.');
+      }
+    });
+  }
+
+  onProfileModalClose(): void {
+    this.isProfileModalOpen.set(false);
+    this.userProfile.set(null);
+  }
+
+  onAvatarUpdate(request: AvatarUpdateRequest): void {
+    console.log('Actualizando avatar...', request);
+    this.isUploadingAvatar.set(true);
+
+    this.profileService.uploadAvatar(request.userId, request.file).subscribe({
+      next: (response: { avatarUrl: string; message: string }) => {
+        console.log('Avatar actualizado exitosamente:', response);
+
+        // Actualizar el userProfile con la nueva URL del avatar
+        const currentProfile = this.userProfile();
+        if (currentProfile) {
+          this.userProfile.set({
+            ...currentProfile,
+            avatarUrl: response.avatarUrl
+          });
+        }
+
+        // Recargar el perfil completo para asegurar sincronización
+        this.profileService.getUserProfile().subscribe({
+          next: (profile: UserProfile) => {
+            console.log('Perfil actualizado después de cambio de avatar');
+            this.userProfile.set(profile);
+          },
+          error: (error: Error) => {
+            console.error('Error al actualizar perfil:', error);
+          }
+        });
+
+        // Cerrar el modal
+        this.isUploadingAvatar.set(false);
+        this.isProfileModalOpen.set(false);
+
+        // TODO: Mostrar notificación de éxito
+        alert('Avatar actualizado exitosamente');
+      },
+      error: (error: Error) => {
+        console.error('Error al actualizar avatar:', error);
+        this.isUploadingAvatar.set(false);
+
+        // Mostrar mensaje de error al usuario
+        const errorMessage = error.message || 'Error al actualizar el avatar. Inténtalo de nuevo.';
+        alert(errorMessage);
+      }
+    });
   }
 }
