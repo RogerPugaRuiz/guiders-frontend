@@ -47,19 +47,28 @@
         
         <!-- Badges -->
         <div class="guiders-visitor-card__badges">
+          @if (tierIcon()) {
+            <span
+              class="guiders-visitor-card__badge guiders-visitor-card__badge--tier"
+              [attr.data-tier]="leadScore()?.tier"
+              [title]="'Score: ' + (leadScore()?.score ?? 0)">
+              {{ tierIcon() }}
+            </span>
+          }
+
           @if (visitor().isNewVisitor) {
             <span class="guiders-visitor-card__badge guiders-visitor-card__badge--new">
               Nuevo
             </span>
           }
-          
+
           @if (visitor().hasActiveChat) {
             <span class="guiders-visitor-card__badge guiders-visitor-card__badge--chat">
               Chat activo
             </span>
           }
-          
-          <span 
+
+          <span
             class="guiders-visitor-card__badge guiders-visitor-card__badge--lifecycle"
             [attr.data-lifecycle]="visitor().lifecycle">
             {{ lifecycleIcon() }} {{ lifecycleLabel() }}
@@ -89,7 +98,29 @@
           <span class="guiders-visitor-card__detail-icon">🌐</span>
           <span class="guiders-visitor-card__detail-text">{{ visitor().domain }}</span>
         </div>
-        
+
+        @if (visitor().currentUrl) {
+          <div class="guiders-visitor-card__detail guiders-visitor-card__detail--url">
+            <span class="guiders-visitor-card__detail-icon">📄</span>
+            <span
+              class="guiders-visitor-card__detail-text"
+              [title]="visitor().currentUrl">
+              {{ visitor().currentUrl }}
+            </span>
+            <button
+              type="button"
+              class="guiders-visitor-card__copy-btn"
+              (click)="onCopyUrl($event)"
+              title="Copiar URL"
+              aria-label="Copiar URL al portapapeles">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </button>
+          </div>
+        }
+
         <div class="guiders-visitor-card__detail">
           <span class="guiders-visitor-card__detail-icon">📊</span>
           <span class="guiders-visitor-card__detail-text">{{ visitor().totalChats }} chats</span>

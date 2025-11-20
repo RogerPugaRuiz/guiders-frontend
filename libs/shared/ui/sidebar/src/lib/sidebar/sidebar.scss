@@ -36,7 +36,8 @@
   background: tokens.$color-surface-secondary;
   position: relative;
   overflow: hidden;
-  box-shadow: tokens.$shadow-lg;
+  border-right: 1px solid tokens.$color-border-light;
+  // box-shadow: tokens.$shadow-lg;
 
   // Iconos de navegación - definición base
   .sidebar__nav-icon {

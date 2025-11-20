@@ -33,6 +33,32 @@ interface VisitorQueryParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface LeadScoreSignals {
+  isRecurrentVisitor: boolean;
+  hasHighEngagement: boolean;
+  hasInvestedTime: boolean;
+  needsHelp: boolean;
+}
+
+export interface LeadScore {
+  score: number;
+  tier: 'cold' | 'warm' | 'hot';
+  signals: LeadScoreSignals;
+}
+
+export interface VisitorActivity {
+  visitorId: string;
+  totalSessions: number;
+  totalChats: number;
+  totalPagesVisited: number;
+  totalTimeConnectedMs: number;
+  currentConnectionStatus: 'ONLINE' | 'OFFLINE' | 'AWAY' | 'BUSY' | 'CHATTING';
+  lifecycle: 'ANON' | 'ENGAGED' | 'LEAD' | 'CONVERTED';
+  lastActivityAt: string;
+  currentUrl: string;
+  leadScore: LeadScore;
+}
+
 
 
 @Injectable({
@@ -147,6 +173,40 @@ export class VisitorsDataService {
     return this.http.get<GetVisitorResponse>(
       `${this.baseUrl}/visitors/${visitorId}`,
       { withCredentials: true }
+    );
+  }
+
+  // Obtener página actual del visitante
+  getVisitorCurrentPage(visitorId: string): Observable<{
+    currentUrl: string;
+    updatedAt: string;
+  }> {
+    return this.http.get<{
+      currentUrl: string;
+      updatedAt: string;
+    }>(
+      `${this.baseUrl}/visitors/${visitorId}/current-page`,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => console.log('[VisitorsDataService] Current page:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error getting current page:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Obtener actividad del visitante (para carga inicial de detalles)
+  getVisitorActivity(visitorId: string): Observable<VisitorActivity> {
+    return this.http.get<VisitorActivity>(
+      `${this.baseUrl}/visitors/${visitorId}/activity`,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => console.log('[VisitorsDataService] Visitor activity:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error getting visitor activity:', error);
+        return throwError(() => error);
+      })
     );
   }
 

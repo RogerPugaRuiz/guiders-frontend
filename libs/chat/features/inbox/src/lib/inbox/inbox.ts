@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
-import { Chat, Message, PresenceStatus } from '@guiders-frontend/shared/types';
+import { Chat, Message, PresenceStatus, Visitor } from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { PresenceService } from '@guiders-frontend/presence-service';
+import { VisitorsDataService, VisitorActivity } from '@guiders-frontend/visitors-data-service';
 import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-sidebar';
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
 import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-placeholder';
+import { VisitorDetailPanel } from '@guiders-frontend/visitor-detail-panel';
 
 /**
  * Inbox - Coordinador principal del chat
@@ -34,7 +36,8 @@ import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-
     HttpClientModule,
     GuidersInboxSidebarComponent,
     GuidersChatWelcomeStateComponent,
-    GuidersChatPlaceholderComponent
+    GuidersChatPlaceholderComponent,
+    VisitorDetailPanel
   ],
   templateUrl: './inbox.html',
   styleUrl: './inbox.scss',
@@ -45,6 +48,7 @@ export class Inbox implements OnInit, OnDestroy {
   private readonly sessionService = inject(SessionService);
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly presenceService = inject(PresenceService);
+  private readonly visitorsDataService = inject(VisitorsDataService);
 
   // ===== ESTADO PRINCIPAL =====
   readonly selectedConversationId = signal<string | null>(null);
@@ -63,6 +67,15 @@ export class Inbox implements OnInit, OnDestroy {
 
   // Estado de presencia por chat
   readonly chatPresenceMap = signal<Record<string, PresenceStatus | undefined>>({});
+
+  // Estado del panel de detalles del visitante
+  readonly showVisitorPanel = signal<boolean>(false);
+
+  // URL actual del visitante seleccionado
+  readonly visitorCurrentUrl = signal<string | null>(null);
+
+  // Actividad del visitante seleccionado
+  readonly visitorActivity = signal<VisitorActivity | null>(null);
 
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
@@ -87,6 +100,61 @@ export class Inbox implements OnInit, OnDestroy {
     return this.messagePaginationMap()[chatId] ?? { total: 0, hasMore: false, isLoadingMore: false };
   });
 
+  readonly selectedVisitor = computed((): Visitor | null => {
+    const chat = this.selectedChat();
+    if (!chat?.participants?.length) return null;
+
+    // Obtener el primer participante como visitante
+    const participant = chat.participants[0];
+    if (!participant) return null;
+
+    // Mapear presencia a estado de visitante
+    const presenceStatus = this.chatPresenceMap()[chat.chatId];
+    let visitorStatus: 'online' | 'offline' | 'idle' = 'offline';
+    if (presenceStatus === 'online' || presenceStatus === 'chatting') {
+      visitorStatus = 'online';
+    } else if (presenceStatus === 'away' || presenceStatus === 'busy') {
+      visitorStatus = 'idle';
+    }
+
+    // Extraer dominio de la URL actual
+    const currentUrl = this.visitorCurrentUrl();
+    let domain = '';
+    if (currentUrl) {
+      try {
+        const url = new URL(currentUrl);
+        domain = url.hostname;
+      } catch {
+        domain = '';
+      }
+    }
+
+    // Obtener datos de actividad del visitante
+    const activity = this.visitorActivity();
+
+    // Convertir el participante a Visitor con datos reales de activity
+    return {
+      id: participant.id || '',
+      siteId: 'site-001',
+      companyId: 'company-001',
+      name: participant.name || 'Visitante anónimo',
+      email: participant.email || 'visitante@ejemplo.com',
+      phone: '+34 612 345 678',
+      domain: domain,
+      currentUrl: currentUrl || undefined,
+      status: visitorStatus,
+      lifecycle: activity?.lifecycle || 'ENGAGED',
+      firstVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Hace 7 días
+      lastVisit: activity?.lastActivityAt ? new Date(activity.lastActivityAt) : (chat.updatedAt || chat.createdAt),
+      totalChats: activity?.totalChats ?? 0,
+      totalSessions: activity?.totalSessions ?? 0,
+      totalPageViews: activity?.totalPagesVisited ?? 0,
+      averageSessionDuration: activity ? Math.floor(activity.totalTimeConnectedMs / 1000) : 0,
+      isNewVisitor: false,
+      hasActiveChat: true
+    };
+  });
+
   // ===== LIFECYCLE =====
   ngOnInit() {
     // Configurar UnreadMessagesService con el usuario actual
@@ -98,6 +166,7 @@ export class Inbox implements OnInit, OnDestroy {
     this.initializeDataSubscriptions();
     this.loadInitialData();
     this.initializeUnreadMessagesSync();
+    this.initializePageChangeListener();
   }
 
   ngOnDestroy() {
@@ -238,6 +307,12 @@ export class Inbox implements OnInit, OnDestroy {
     // Cargar mensajes para la conversación seleccionada
     console.log('[Inbox] 📥 Cargando mensajes del chat...');
     this.loadMessages(conversation.chatId);
+
+    // Cargar URL actual del visitante
+    const visitorId = conversation.participants?.[0]?.id;
+    if (visitorId) {
+      this.loadVisitorCurrentPage(visitorId);
+    }
   }
 
   /**
@@ -268,11 +343,26 @@ export class Inbox implements OnInit, OnDestroy {
 
     this.selectedConversationId.set(null);
     this.chatService.selectChat(null);
+    this.showVisitorPanel.set(false);
 
     // ✅ NOTIFICAR AL SERVICIO QUE NO HAY CHAT ACTIVO
     console.log('[Inbox] 🚀 Llamando a unreadMessagesService.setActiveChat(null)...');
     this.unreadMessagesService.setActiveChat(null);
     console.log('[Inbox] ✅ Chat cerrado correctamente');
+  }
+
+  /**
+   * Toggle del panel de detalles del visitante
+   */
+  toggleVisitorPanel(): void {
+    this.showVisitorPanel.update(value => !value);
+  }
+
+  /**
+   * Cerrar panel de detalles del visitante
+   */
+  onCloseVisitorPanel(): void {
+    this.showVisitorPanel.set(false);
   }
 
   /**
@@ -530,5 +620,50 @@ export class Inbox implements OnInit, OnDestroy {
    */
   getParticipantPresence(chatId: string): PresenceStatus | undefined {
     return this.chatPresenceMap()[chatId];
+  }
+
+  /**
+   * Cargar la actividad del visitante (datos iniciales del panel de detalles)
+   */
+  private loadVisitorCurrentPage(visitorId: string): void {
+    this.visitorsDataService.getVisitorActivity(visitorId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (activity) => {
+          console.log('[Inbox] Actividad del visitante:', activity);
+          this.visitorActivity.set(activity);
+          this.visitorCurrentUrl.set(activity.currentUrl);
+        },
+        error: (error) => {
+          console.error('[Inbox] Error al cargar actividad del visitante:', error);
+          this.visitorActivity.set(null);
+          this.visitorCurrentUrl.set(null);
+        }
+      });
+  }
+
+  /**
+   * Inicializar listener para cambios de página del visitante
+   */
+  private initializePageChangeListener(): void {
+    // Escuchar evento WebSocket de cambio de página
+    this.chatService.webSocketService.on('visitor:page-changed', (...args: unknown[]) => {
+      const event = args[0] as {
+        visitorId: string;
+        chatId: string;
+        previousPage: string | null;
+        currentPage: string;
+        timestamp: string;
+      };
+
+      console.log('[Inbox] Cambio de página detectado:', event);
+
+      // Verificar si el cambio es para el chat seleccionado
+      const selectedChatId = this.selectedConversationId();
+      if (selectedChatId === event.chatId) {
+        console.log('[Inbox] Actualizando URL del visitante:', event.currentPage);
+        this.visitorCurrentUrl.set(event.currentPage);
+      }
+    });
   }
 }

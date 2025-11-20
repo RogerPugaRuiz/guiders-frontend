@@ -265,6 +265,23 @@
       color: var(--color-success);
     }
   }
+
+  &--tier {
+    padding: var(--spacing-1);
+    cursor: help;
+
+    &[data-tier="cold"] {
+      background-color: color-mix(in srgb, var(--color-info) 20%, transparent);
+    }
+
+    &[data-tier="warm"] {
+      background-color: color-mix(in srgb, var(--color-warning) 20%, transparent);
+    }
+
+    &[data-tier="hot"] {
+      background-color: color-mix(in srgb, var(--color-error) 20%, transparent);
+    }
+  }
 }
 
 // === DETALLES ===
@@ -292,6 +309,43 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.guiders-visitor-card__detail--url {
+  .guiders-visitor-card__detail-text {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.guiders-visitor-card__copy-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-6);
+  height: var(--spacing-6);
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-on-surface-tertiary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--easing-standard);
+
+  &:hover {
+    background: var(--color-surface-secondary);
+    color: var(--color-brand);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
 }
 
 // === ESTADÍSTICAS EXTENDIDAS ===

@@ -4,7 +4,7 @@
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: #ffffff;
+  background: tokens.$color-surface-primary;
 }
 
 .console-main {
@@ -21,7 +21,7 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  background: #f8f9fa;
+  background: tokens.$color-surface-primary;
   padding: 0;
 }
 

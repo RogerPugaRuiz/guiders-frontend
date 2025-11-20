@@ -1,0 +1,169 @@
+<!-- Visitor Detail Panel Component -->
+<div class="visitor-detail-panel" [class.visitor-detail-panel--open]="isOpen()">
+  <!-- Header -->
+  <div class="visitor-detail-panel__header">
+    <h3 class="visitor-detail-panel__title">Detalles del visitante</h3>
+    <button
+      type="button"
+      class="visitor-detail-panel__close-btn"
+      (click)="onClose()"
+      aria-label="Cerrar panel">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Current URL Section -->
+  @if (visitor().currentUrl) {
+    <div class="visitor-detail-panel__section">
+      <h5 class="visitor-detail-panel__section-title">Página actual</h5>
+      <div class="visitor-detail-panel__url-card">
+        <div class="visitor-detail-panel__url-content">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <span class="visitor-detail-panel__url-text" [title]="visitor().currentUrl">
+            {{ truncatedUrl() }}
+          </span>
+        </div>
+        <div class="visitor-detail-panel__url-actions">
+          <button
+            type="button"
+            class="visitor-detail-panel__url-btn"
+            (click)="onCopyUrl()"
+            [title]="urlCopied() ? 'Copiado!' : 'Copiar URL'"
+            [class.copied]="urlCopied()">
+            @if (urlCopied()) {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            } @else {
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            }
+          </button>
+          <button
+            type="button"
+            class="visitor-detail-panel__url-btn"
+            (click)="onOpenUrl()"
+            title="Abrir en nueva pestaña">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Contact Info -->
+  <div class="visitor-detail-panel__section">
+    <h5 class="visitor-detail-panel__section-title">Información de contacto</h5>
+    <div class="visitor-detail-panel__info-list">
+      @if (visitor().email) {
+        <div class="visitor-detail-panel__info-item">
+          <span class="visitor-detail-panel__info-icon">
+            <svg width="14" height="14" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+              <path d="M7 9L12 12.5L17 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              <path d="M2 17V7C2 5.89543 2.89543 5 4 5H20C21.1046 5 22 5.89543 22 7V17C22 18.1046 21.1046 19 20 19H4C2.89543 19 2 18.1046 2 17Z" stroke="currentColor" stroke-width="1.5"></path>
+            </svg>
+          </span>
+          <span class="visitor-detail-panel__info-value">{{ visitor().email }}</span>
+        </div>
+      }
+      @if (visitor().phone) {
+        <div class="visitor-detail-panel__info-item">
+          <span class="visitor-detail-panel__info-icon">
+            <svg width="14" height="14" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+              <path d="M18.1182 14.702L14 15.5C11.2183 14.1038 9.5 12.5 8.5 10L9.26995 5.8699L7.81452 2L4.0636 2C2.93605 2 2.04814 2.93178 2.21654 4.04668C2.63695 6.83 3.87653 11.8765 7.5 15.5C11.3052 19.3052 16.7857 20.9564 19.802 21.6127C20.9668 21.8662 22 20.9575 22 19.7655L22 16.1812L18.1182 14.702Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span class="visitor-detail-panel__info-value">{{ visitor().phone }}</span>
+        </div>
+      }
+      <div class="visitor-detail-panel__info-item">
+        <span class="visitor-detail-panel__info-icon">
+          <svg width="14" height="14" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" color="currentColor">
+            <path d="M3.33789 17C5.06694 19.989 8.29866 22 12.0001 22C15.7015 22 18.9332 19.989 20.6622 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M3.33789 7C5.06694 4.01099 8.29866 2 12.0001 2C15.7015 2 18.9332 4.01099 20.6622 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 21.9506C13 21.9506 14.4079 20.0966 15.2947 16.9999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M13 2.04932C13 2.04932 14.4079 3.90328 15.2947 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M11 21.9506C11 21.9506 9.59215 20.0966 8.70532 16.9999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M11 2.04932C11 2.04932 9.59215 3.90328 8.70532 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M9 10L10.5 15L12 10L13.5 15L15 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M1 10L2.5 15L4 10L5.5 15L7 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+            <path d="M17 10L18.5 15L20 10L21.5 15L23 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </span>
+        <span class="visitor-detail-panel__info-value">{{ visitor().domain }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Stats -->
+  <div class="visitor-detail-panel__section">
+    <h5 class="visitor-detail-panel__section-title">Actividad</h5>
+    <div class="visitor-detail-panel__stats">
+      <div class="visitor-detail-panel__stat">
+        <span class="visitor-detail-panel__stat-value">{{ visitor().totalChats }}</span>
+        <span class="visitor-detail-panel__stat-label">Chats</span>
+      </div>
+      <div class="visitor-detail-panel__stat">
+        <span class="visitor-detail-panel__stat-value">{{ visitor().totalSessions }}</span>
+        <span class="visitor-detail-panel__stat-label">Sesiones</span>
+      </div>
+      <div class="visitor-detail-panel__stat">
+        <span class="visitor-detail-panel__stat-value">{{ visitor().totalPageViews }}</span>
+        <span class="visitor-detail-panel__stat-label">Páginas</span>
+      </div>
+      <div class="visitor-detail-panel__stat">
+        <span class="visitor-detail-panel__stat-value">{{ formattedSessionDuration() }}</span>
+        <span class="visitor-detail-panel__stat-label">Tiempo conectado</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lifecycle & Tags -->
+  <div class="visitor-detail-panel__section">
+    <h5 class="visitor-detail-panel__section-title">Estado</h5>
+    <div class="visitor-detail-panel__tags">
+      @if (leadScore()) {
+        <span
+          class="visitor-detail-panel__tag visitor-detail-panel__tag--tier"
+          [attr.data-tier]="leadScore()?.tier"
+          [title]="signalsTooltip()">
+          {{ tierIcon() }} {{ tierLabel() }}
+          @if (leadScore()?.score) {
+            <span class="visitor-detail-panel__score">({{ leadScore()?.score }})</span>
+          }
+        </span>
+      }
+      <span class="visitor-detail-panel__tag visitor-detail-panel__tag--lifecycle" [attr.data-lifecycle]="visitor().lifecycle">
+        {{ lifecycleIcon() }} {{ lifecycleLabel() }}
+      </span>
+      @if (visitor().isNewVisitor) {
+        <span class="visitor-detail-panel__tag visitor-detail-panel__tag--new">
+          Nuevo
+        </span>
+      }
+      @if (visitor().hasActiveChat) {
+        <span class="visitor-detail-panel__tag visitor-detail-panel__tag--active">
+          Chat activo
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Last Visit -->
+  <div class="visitor-detail-panel__footer">
+    <span class="visitor-detail-panel__last-visit">
+      Última visita: {{ lastVisitFormatted() }}
+    </span>
+  </div>
+</div>

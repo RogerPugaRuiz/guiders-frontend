@@ -146,6 +146,9 @@
       "@guiders-frontend/visitor-card": [
         "libs/chat/ui/visitor-card/src/index.ts"
       ],
+      "@guiders-frontend/visitor-detail-panel": [
+        "libs/chat/ui/visitor-detail-panel/src/index.ts"
+      ],
       "@guiders-frontend/visitors": [
         "libs/chat/features/visitors/src/index.ts"
       ],

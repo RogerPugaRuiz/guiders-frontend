@@ -1,4 +1,4 @@
-<div class="inbox" [attr.data-testid]="'chat-inbox'">
+<div class="inbox" [attr.data-testid]="'chat-inbox'" [class.inbox--panel-open]="showVisitorPanel()">
 	<!-- Panel izquierdo: Sidebar completo -->
 	<div class="inbox__sidebar">
 		<guiders-inbox-sidebar
@@ -12,7 +12,7 @@
 		/>
 	</div>
 
-	<!-- Panel derecho: Chat activo -->
+	<!-- Panel central: Chat activo -->
 	<div class="inbox__main">
 		@if (selectedConversationId() && selectedChat()) {
 			<guiders-chat-placeholder
@@ -24,7 +24,7 @@
 				[isLoading]="isLoading()"
 				[isLoadingMore]="currentPagination().isLoadingMore"
 				[hasMoreMessages]="currentPagination().hasMore"
-				(settingsClicked)="onChatSettings()"
+				(settingsClicked)="toggleVisitorPanel()"
 				(closeChat)="onCloseChat()"
 				(messageSent)="onSendMessage($event)"
 				(loadMoreMessages)="onLoadMoreMessages()"
@@ -39,4 +39,16 @@
 			/>
 		}
 	</div>
+
+	<!-- Panel derecho: Detalles del visitante -->
+	@if (showVisitorPanel() && selectedVisitor()) {
+		<div class="inbox__detail-panel">
+			<guiders-visitor-detail-panel
+				[visitor]="selectedVisitor()!"
+				[isOpen]="showVisitorPanel()"
+				[leadScore]="visitorActivity()?.leadScore ?? null"
+				(close)="onCloseVisitorPanel()"
+			/>
+		</div>
+	}
 </div>

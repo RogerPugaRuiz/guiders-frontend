@@ -7,25 +7,57 @@
 
 .message-input {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: tokens.$spacing-sm;
-  padding: tokens.$spacing-md;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  background: tokens.$color-surface-primary;
+  border-top: 1px solid tokens.$color-border-subtle;
+
+  &__input-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: tokens.$spacing-sm;
+    background: tokens.$color-surface-secondary;
+    border-radius: 24px;
+    padding: 6px 6px 6px 16px;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+
+    &:focus-within {
+      background: tokens.$color-surface-primary;
+      border-color: tokens.$color-border-default;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+  }
 
   &__textarea {
     flex: 1;
-    min-height: 40px;
+    min-height: 24px;
     max-height: 120px;
-    padding: tokens.$spacing-sm tokens.$spacing-md;
+    padding: 8px 0;
     font-family: tokens.$font-family-ui;
     font-size: tokens.$font-size-base;
-    line-height: 1.5;
+    line-height: 1.4;
     color: tokens.$color-text-primary;
-    background-color: tokens.$color-surface-secondary;
-    border: 1px solid tokens.$color-border-default;
-    border-radius: tokens.$border-radius-md;
+    background: transparent;
+    border: none;
     resize: none;
     overflow-y: auto;
-    transition: border-color 150ms ease;
+
+    // Scrollbar styling
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: tokens.$color-border-default;
+      border-radius: 2px;
+    }
 
     &::placeholder {
       color: tokens.$color-text-tertiary;
@@ -33,8 +65,6 @@
 
     &:focus {
       outline: none;
-      border-color: tokens.$color-primary-500;
-      box-shadow: 0 0 0 3px tokens.$color-primary-50;
     }
 
     &:disabled {
@@ -48,40 +78,86 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     padding: 0;
-    color: tokens.$color-text-inverse;
-    background-color: tokens.$color-primary-600;
+    color: white;
+    background: linear-gradient(135deg, #007bff 0%, #0066cc 100%);
     border: none;
-    border-radius: tokens.$border-radius-md;
+    border-radius: 50%;
     cursor: pointer;
-    transition: background-color 150ms ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 6px rgba(0, 123, 255, 0.3);
+    animation: sendButtonAppear 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover:not(:disabled) {
-      background-color: tokens.$color-primary-700;
+      background: linear-gradient(135deg, #0066cc 0%, #0056b3 100%);
+      transform: scale(1.1);
+      box-shadow: 0 3px 10px rgba(0, 123, 255, 0.4);
     }
 
     &:active:not(:disabled) {
-      background-color: tokens.$color-primary-700;
+      transform: scale(0.9);
+      box-shadow: 0 1px 4px rgba(0, 123, 255, 0.3);
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
-      outline-offset: 2px;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3),
+                  0 3px 10px rgba(0, 123, 255, 0.4);
     }
 
     &:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-disabled;
     }
 
     svg {
       display: block;
-      width: 20px;
-      height: 20px;
-      fill: currentColor; /* Hace que el SVG herede el color del botón */
-      stroke: none;
+      width: 16px;
+      height: 16px;
+      transition: transform 0.2s ease;
+    }
+
+    &:hover:not(:disabled) svg {
+      transform: translateX(1px);
+    }
+  }
+}
+
+@keyframes sendButtonAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 480px) {
+  .message-input {
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+
+    &__input-wrapper {
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    &__send-button {
+      width: 40px;
+      height: 40px;
+
+      svg {
+        width: 18px;
+        height: 18px;
+      }
     }
   }
 }

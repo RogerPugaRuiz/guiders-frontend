@@ -20,9 +20,8 @@
   align-items: center;
   justify-content: center;
   height: 100%;
- width: 100%;
+  width: 100%;
   padding: tokens.$spacing-xl;
-  background-color: tokens.$color-surface-secondary;
 
   &__content {
     display: flex;

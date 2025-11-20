@@ -4,16 +4,17 @@
  * Cumple WCAG 2.2 AA
  */
 
-import { 
-  Component, 
-  ChangeDetectionStrategy, 
-  computed, 
-  input, 
-  output 
+import {
+  Component,
+  ChangeDetectionStrategy,
+  computed,
+  input,
+  output
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Button } from '@guiders-frontend/button';
 import { Visitor, CreateChatWithVisitorRequest } from '@guiders-frontend/shared/types';
+import { LeadScore } from '@guiders-frontend/visitors-data-service';
 
 export type VisitorCardSize = 'compact' | 'default' | 'detailed';
 
@@ -32,6 +33,7 @@ export class VisitorCard {
   readonly selected = input<boolean>(false);
   readonly disabled = input<boolean>(false);
   readonly selectable = input<boolean>(false);
+  readonly leadScore = input<LeadScore | null>(null);
 
   // === OUTPUTS ===
   readonly visitorClick = output<Visitor>();
@@ -109,6 +111,16 @@ export class VisitorCard {
     };
   });
 
+  readonly tierIcon = computed(() => {
+    const tier = this.leadScore()?.tier;
+    switch (tier) {
+      case 'hot': return '🔴';
+      case 'warm': return '🟡';
+      case 'cold': return '🔵';
+      default: return null;
+    }
+  });
+
   // === EVENT HANDLERS ===
   onCardClick(event: Event): void {
     if (this.disabled()) return;
@@ -155,6 +167,14 @@ export class VisitorCard {
   onViewDetails(event: Event): void {
     event.stopPropagation();
     this.viewDetails.emit(this.visitor());
+  }
+
+  async onCopyUrl(event: Event): Promise<void> {
+    event.stopPropagation();
+    const url = this.visitor().currentUrl;
+    if (url) {
+      await navigator.clipboard.writeText(url);
+    }
   }
 
   // === PRIVATE METHODS ===

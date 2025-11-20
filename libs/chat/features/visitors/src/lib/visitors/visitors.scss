@@ -222,12 +222,9 @@
 
 /* Bento Card Base */
 .bento-card {
-  background: tokens.$color-surface-primary;
-  border-radius: tokens.$border-radius-md;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: tokens.$shadow-sm;
   min-height: 0; // Permitir que el contenido se contraiga
 
   &--outlined {
