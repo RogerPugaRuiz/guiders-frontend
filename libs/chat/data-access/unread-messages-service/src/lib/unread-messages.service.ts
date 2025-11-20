@@ -93,6 +93,11 @@ export class UnreadMessagesService {
   private audioContext: AudioContext | null = null;
   private audioResumed = false;
 
+  // ===== TÍTULO PARPADEANTE =====
+  private originalTitle: string = '';
+  private titleFlashInterval: ReturnType<typeof setInterval> | null = null;
+  private isTitleFlashing = false;
+
   constructor() {
     console.log('[UnreadMessagesService] 🚀 === SERVICIO INICIALIZADO ===');
     console.log('[UnreadMessagesService] 📋 BaseUrl:', this.baseUrl);
@@ -203,6 +208,11 @@ export class UnreadMessagesService {
     this.unreadCountSubject.next(this.unreadCountMap());
     console.log(`[UnreadMessagesService] ✅ BehaviorSubject actualizado`);
     console.log(`[UnreadMessagesService] 📊 Contador actual DESPUÉS: ${this.unreadCountMap()[chatId] || 0}`);
+
+    // Detener parpadeo si no hay más mensajes no leídos
+    if (this.totalUnreadCount() === 0) {
+      this.stopTitleFlashing();
+    }
 
     // ✅ OBTENER MENSAJES NO LEÍDOS DEL SERVIDOR (no solo locales)
     // Esto es crítico porque puede haber mensajes no leídos que llegaron
@@ -511,6 +521,9 @@ export class UnreadMessagesService {
           console.log('[UnreadMessagesService] 🔕 No mostrar notificación (notificationsEnabled:', this.notificationsEnabled, ')');
         }
 
+        // 4. Iniciar parpadeo del título
+        this.startTitleFlashing();
+
         console.log(`[UnreadMessagesService] 📊 === PROCESAMIENTO COMPLETADO ===`);
       });
   }
@@ -755,8 +768,20 @@ export class UnreadMessagesService {
    * - O la pestaña está visible pero el usuario está en otro chat
    */
   private showBrowserNotification(message: Message): void {
+    console.log('[UnreadMessagesService] 🔔 === INTENTANDO MOSTRAR NOTIFICACIÓN ===');
+    console.log('[UnreadMessagesService] 📋 Estado de permisos:', {
+      notificationsEnabled: this.notificationsEnabled,
+      notificationInWindow: 'Notification' in window,
+      notificationPermission: 'Notification' in window ? Notification.permission : 'N/A'
+    });
+
     if (!this.notificationsEnabled || !('Notification' in window)) {
-      console.log('[UnreadMessagesService] Notificaciones del navegador deshabilitadas');
+      console.log('[UnreadMessagesService] ❌ Notificaciones del navegador deshabilitadas');
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
+      console.log('[UnreadMessagesService] ❌ Permiso de notificaciones NO concedido:', Notification.permission);
       return;
     }
 
@@ -876,6 +901,123 @@ export class UnreadMessagesService {
   }
 
   /**
+   * Mostrar notificación de prueba para verificar que funcionan
+   */
+  testNotification(): void {
+    console.log('[UnreadMessagesService] 🧪 === PRUEBA DE NOTIFICACIÓN ===');
+    console.log('[UnreadMessagesService] 📋 Notification API disponible:', 'Notification' in window);
+    console.log('[UnreadMessagesService] 📋 Permiso actual:', 'Notification' in window ? Notification.permission : 'N/A');
+    console.log('[UnreadMessagesService] 📋 notificationsEnabled:', this.notificationsEnabled);
+
+    if (!('Notification' in window)) {
+      console.error('[UnreadMessagesService] ❌ Este navegador no soporta notificaciones');
+      return;
+    }
+
+    if (Notification.permission === 'denied') {
+      console.error('[UnreadMessagesService] ❌ Notificaciones bloqueadas por el usuario');
+      console.log('[UnreadMessagesService] 💡 Ve a Configuración del navegador > Privacidad > Notificaciones y permite localhost:4200');
+      return;
+    }
+
+    if (Notification.permission === 'default') {
+      console.log('[UnreadMessagesService] ⚠️ Solicitando permiso...');
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          this.showTestNotification();
+        } else {
+          console.error('[UnreadMessagesService] ❌ Permiso denegado');
+        }
+      });
+      return;
+    }
+
+    this.showTestNotification();
+  }
+
+  private showTestNotification(): void {
+    try {
+      const notification = new Notification('🧪 Prueba de notificación', {
+        body: 'Si ves esto, las notificaciones funcionan correctamente!',
+        icon: '/favicon.ico',
+        tag: 'test-notification'
+      });
+
+      console.log('[UnreadMessagesService] ✅ Notificación de prueba creada');
+
+      notification.onclick = () => {
+        console.log('[UnreadMessagesService] 👆 Click en notificación de prueba');
+        notification.close();
+      };
+
+      setTimeout(() => notification.close(), 5000);
+    } catch (error) {
+      console.error('[UnreadMessagesService] ❌ Error al crear notificación:', error);
+    }
+  }
+
+  // ===== TÍTULO PARPADEANTE =====
+
+  /**
+   * Iniciar parpadeo del título de la pestaña
+   * Alterna entre el título original y "💬 (X) Nuevo mensaje"
+   */
+  private startTitleFlashing(): void {
+    // Si ya está parpadeando, actualizar solo el contador
+    if (this.isTitleFlashing) {
+      return;
+    }
+
+    // Guardar título original
+    this.originalTitle = document.title;
+    this.isTitleFlashing = true;
+
+    console.log('[UnreadMessagesService] 🔔 Iniciando parpadeo del título');
+
+    let showingAlert = false;
+
+    this.titleFlashInterval = setInterval(() => {
+      const totalUnread = this.totalUnreadCount();
+
+      if (totalUnread === 0) {
+        this.stopTitleFlashing();
+        return;
+      }
+
+      if (showingAlert) {
+        document.title = this.originalTitle;
+      } else {
+        document.title = `💬 (${totalUnread}) Nuevo mensaje`;
+      }
+
+      showingAlert = !showingAlert;
+    }, 1000);
+  }
+
+  /**
+   * Detener parpadeo del título y restaurar título original
+   */
+  private stopTitleFlashing(): void {
+    if (!this.isTitleFlashing) {
+      return;
+    }
+
+    console.log('[UnreadMessagesService] 🔕 Deteniendo parpadeo del título');
+
+    if (this.titleFlashInterval) {
+      clearInterval(this.titleFlashInterval);
+      this.titleFlashInterval = null;
+    }
+
+    // Restaurar título original
+    if (this.originalTitle) {
+      document.title = this.originalTitle;
+    }
+
+    this.isTitleFlashing = false;
+  }
+
+  /**
    * Configurar reanudación del AudioContext después de gesto del usuario
    * Necesario para evitar el error de autoplay policy de Chrome
    */
@@ -925,5 +1067,6 @@ export class UnreadMessagesService {
     this.unreadMessagesMap.set({});
     this.error.set(null);
     this.isLoading.set(false);
+    this.stopTitleFlashing();
   }
 }
