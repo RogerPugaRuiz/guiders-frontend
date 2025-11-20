@@ -21,14 +21,14 @@
       "@guiders-frontend/auth/data-access/session": [
         "libs/auth/data-access/session/src/index.ts"
       ],
-      "@guiders-frontend/avatar-colors": [
-        "libs/shared/utils/avatar-colors/src/index.ts"
-      ],
       "@guiders-frontend/auth/features/login": [
         "libs/auth/features/login/src/index.ts"
       ],
       "@guiders-frontend/auth/ui/login-form": [
         "libs/auth/ui/login-form/src/index.ts"
+      ],
+      "@guiders-frontend/avatar-colors": [
+        "libs/shared/utils/avatar-colors/src/index.ts"
       ],
       "@guiders-frontend/badge": ["libs/shared/ui/badge/src/index.ts"],
       "@guiders-frontend/bento-card": [
@@ -90,6 +90,9 @@
         "libs/shared/design-tokens/src/index.ts"
       ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/notification-service": [
+        "libs/chat/data-access/notification-service/src/index.ts"
+      ],
       "@guiders-frontend/pagination": [
         "libs/shared/ui/pagination/src/index.ts"
       ],

@@ -84,6 +84,19 @@ export class Inbox implements OnInit {
   ngOnInit() {
     this.initializeDataSubscriptions();
     this.loadInitialData();
+    this.requestNotificationPermission();
+  }
+
+  /**
+   * Solicitar permiso de notificaciones del navegador
+   */
+  private async requestNotificationPermission(): Promise<void> {
+    try {
+      const permission = await this.chatService.requestNotificationPermission();
+      console.log('[Inbox] Notification permission:', permission);
+    } catch (error) {
+      console.warn('[Inbox] Error requesting notification permission:', error);
+    }
   }
 
     // ===== INICIALIZACIÓN =====

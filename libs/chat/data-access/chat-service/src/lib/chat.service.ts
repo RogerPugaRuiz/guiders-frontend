@@ -14,6 +14,7 @@ import {
 } from '@guiders-frontend/shared/types';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { WebSocketService, ChatStatusUpdate } from '@guiders-frontend/chat/data-access/websocket-service';
+import { NotificationService } from '@guiders-frontend/notification-service';
 
 // Tipos internos para las respuestas de la API
 interface ApiChatResponse {
@@ -140,6 +141,7 @@ export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly webSocket = inject(WebSocketService);
+  private readonly notificationService = inject(NotificationService);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
   
   // Estado global del chat
@@ -162,13 +164,39 @@ export class ChatService {
   constructor() {
     // Inicializar con token del localStorage si existe
     this.authToken = localStorage.getItem('access-token');
-    
+
     // Obtener el userId (sub) del token JWT
     this.currentUserId = this.getCurrentUserId();
     console.log('[ChatService] Usuario actual inicializado (sub del token):', this.currentUserId);
 
     // Inicializar WebSocket
     this.initializeWebSocket();
+
+    // Registrar callback para cuando se hace clic en una notificación
+    this.notificationService.setOnNotificationClick((chatId: string) => {
+      this.selectChat(chatId);
+    });
+  }
+
+  /**
+   * Solicitar permiso para notificaciones del navegador
+   */
+  async requestNotificationPermission(): Promise<NotificationPermission> {
+    return this.notificationService.requestPermission();
+  }
+
+  /**
+   * Verificar si las notificaciones están habilitadas
+   */
+  get notificationsEnabled(): boolean {
+    return this.notificationService.isEnabled();
+  }
+
+  /**
+   * Obtener el servicio de notificaciones
+   */
+  get notifications(): NotificationService {
+    return this.notificationService;
   }
 
   /**
@@ -187,17 +215,27 @@ export class ChatService {
       .subscribe(message => {
         console.log('[ChatService] Mensaje recibido via WebSocket:', message);
         console.log('[ChatService] Comparando senderId:', message.senderId, 'con currentUserId:', this.currentUserId);
-        
+
         // Ignorar mensajes propios - ya fueron agregados por la respuesta HTTP
         if (message.senderId === this.currentUserId) {
           console.log('[ChatService] ✅ Mensaje propio ignorado (ya fue agregado por HTTP):', message.messageId);
           return;
         }
-        
+
         console.log('[ChatService] ✅ Mensaje de otro usuario, agregando al estado');
         // Normalizar el mensaje para asegurar que sentAt sea Date
         const normalizedMessage = this.normalizeMessage(message);
         this.addMessageToState(normalizedMessage.chatId, normalizedMessage);
+
+        // Mostrar notificación del navegador
+        const chat = this.chatsSubject.value.find(c => c.chatId === normalizedMessage.chatId);
+        if (chat) {
+          this.notificationService.showMessageNotification(
+            normalizedMessage,
+            chat,
+            this.selectedChatSubject.value
+          );
+        }
       });
 
     // Suscribirse a cambios de estado del chat
