@@ -750,6 +750,9 @@ export class UnreadMessagesService {
 
   /**
    * Mostrar notificación del navegador
+   * Solo muestra notificaciones cuando:
+   * - La pestaña está en background (document.hidden === true)
+   * - O la pestaña está visible pero el usuario está en otro chat
    */
   private showBrowserNotification(message: Message): void {
     if (!this.notificationsEnabled || !('Notification' in window)) {
@@ -757,13 +760,23 @@ export class UnreadMessagesService {
       return;
     }
 
+    // Verificar si la pestaña está en background
+    const isPageHidden = document.hidden || document.visibilityState === 'hidden';
+    console.log('[UnreadMessagesService] 📋 Estado de visibilidad:', {
+      hidden: document.hidden,
+      visibilityState: document.visibilityState,
+      isPageHidden
+    });
+
     // Reproducir sonido de notificación
     this.playNotificationSound();
 
-    // Preparar título de la notificación
-    const title = '💬 Nuevo mensaje de chat';
+    // Preparar título de la notificación con más contexto
+    const title = isPageHidden
+      ? '💬 Nuevo mensaje de visitante'
+      : '💬 Mensaje en otro chat';
 
-    // Preparar contenido
+    // Preparar contenido con preview del mensaje
     const body = message.content.length > 100
       ? `${message.content.substring(0, 100)}...`
       : message.content;
@@ -771,17 +784,18 @@ export class UnreadMessagesService {
     console.log('[UnreadMessagesService] 🔔 Mostrando notificación del navegador:', {
       title,
       body,
-      chatId: message.chatId
+      chatId: message.chatId,
+      isPageHidden
     });
 
     try {
       const notification = new Notification(title, {
         body: body,
-        icon: '/favicon.ico', // Usar favicon como icono por defecto
+        icon: '/favicon.ico', // Icono de la notificación
         badge: '/favicon.ico',
-        tag: message.chatId, // Agrupa notificaciones del mismo chat
+        tag: `chat-${message.chatId}`, // Agrupa notificaciones del mismo chat
         requireInteraction: false, // No requiere interacción del usuario
-        silent: false, // Permitir que el navegador reproduzca su sonido también
+        silent: true, // Ya reproducimos nuestro propio sonido
       });
 
       // Navegar al chat al hacer click
