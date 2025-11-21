@@ -289,11 +289,13 @@
     flex-direction: column;
     overflow: hidden;
     background: transparent;
+    position: relative;
   }
 
   &__messages {
     flex: 1;
     padding: tokens.$spacing-md;
+    padding-bottom: 80px; // Espacio para el input flotante
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -408,10 +410,12 @@
     }
   }
 
-  // Footer (input de mensajes)
+  // Footer (input de mensajes) - Flotante
   &__footer {
-    padding: tokens.$spacing-md;
-    background: tokens.$color-surface-primary;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
   }
 
   // Scroll infinito

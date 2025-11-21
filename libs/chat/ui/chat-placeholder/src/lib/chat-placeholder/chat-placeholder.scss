@@ -22,6 +22,15 @@
   background-color: tokens.$color-surface-primary;
   border-radius: tokens.$border-radius-md;
   box-shadow: tokens.$shadow-sm;
+  position: relative;
+
+  // Message input flotante
+  guiders-message-input {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
 
   // Header - Modern design with avatar
   &__header {
@@ -193,6 +202,7 @@
     flex-direction: column;
     background-color: tokens.$color-surface-secondary;
     min-height: 0;
+    position: relative;
   }
 
   &__state {
@@ -223,6 +233,7 @@
     flex-direction: column;
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-lg;
+    padding-bottom: 80px; // Espacio para el input flotante
     overflow-y: auto;
     background-color: transparent;
     border-radius: tokens.$border-radius-md;
