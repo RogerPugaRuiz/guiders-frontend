@@ -66,6 +66,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Variable para guardar la posición del scroll
   private savedScrollPosition = 0;
 
+  // Flag para indicar si debe hacer scroll al top después de cargar
+  private shouldScrollToTop = false;
+
   // Intervalo para actualizar el tiempo transcurrido
   private timeUpdateIntervalId?: number;
 
@@ -570,15 +573,19 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para cargar datos
-  loadVisitors(): void {
+  loadVisitors(options: { scrollToTop?: boolean } = {}): void {
     // Aún no hay companyId resuelto
     const companyId = this.companyId();
     if (!companyId) {
       return;
     }
 
-    // Guardar la posición del scroll antes de cargar
-    this.saveScrollPosition();
+    // Guardar la posición del scroll antes de cargar (solo si no vamos a hacer scroll al top)
+    if (options.scrollToTop) {
+      this.shouldScrollToTop = true;
+    } else {
+      this.saveScrollPosition();
+    }
 
     this.updateState({ loading: true, error: null });
 
@@ -796,7 +803,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     if (scrollContainer) {
       // Usar setTimeout para asegurar que el DOM se haya actualizado
       setTimeout(() => {
-        scrollContainer.scrollTop = this.savedScrollPosition;
+        if (this.shouldScrollToTop) {
+          scrollContainer.scrollTop = 0;
+          this.shouldScrollToTop = false;
+        } else {
+          scrollContainer.scrollTop = this.savedScrollPosition;
+        }
       }, 0);
     }
   }
@@ -900,10 +912,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge' // Mantener otros parámetros como 'filter'
     });
 
-    // Scroll al top de la tabla
-    this.scrollToTop();
-
-    this.loadVisitors();
+    this.loadVisitors({ scrollToTop: true });
   }
 
   onPageSizeChange(pageSize: number): void {
@@ -927,10 +936,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       queryParamsHandling: 'merge'
     });
 
-    // Scroll al top de la tabla
-    this.scrollToTop();
-
-    this.loadVisitors();
+    this.loadVisitors({ scrollToTop: true });
   }
 
   firstPage(): void {
