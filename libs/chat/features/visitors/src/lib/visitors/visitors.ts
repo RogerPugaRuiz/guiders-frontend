@@ -643,8 +643,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           }),
           finalize(() => {
             this.updateState({ loading: false });
-            // Restaurar la posición del scroll después de cargar
-            this.restoreScrollPosition();
           })
         )
         .subscribe((response: GetVisitorsResponse) => {
@@ -659,6 +657,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
           // Actualizar timestamp de última carga
           this.lastRefreshTime.set(new Date());
+
+          // Restaurar la posición del scroll después de actualizar el estado
+          this.restoreScrollPosition();
         });
     }
   }
@@ -801,15 +802,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // Buscar el contenedor con scroll (ya no es :host, es .visitors-panel__list-container)
     const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
     if (scrollContainer) {
-      // Usar setTimeout para asegurar que el DOM se haya actualizado
-      setTimeout(() => {
+      // Usar requestAnimationFrame para asegurar que el DOM se haya renderizado completamente
+      requestAnimationFrame(() => {
         if (this.shouldScrollToTop) {
           scrollContainer.scrollTop = 0;
           this.shouldScrollToTop = false;
         } else {
           scrollContainer.scrollTop = this.savedScrollPosition;
         }
-      }, 0);
+      });
     }
   }
 
