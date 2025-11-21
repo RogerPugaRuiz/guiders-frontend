@@ -160,11 +160,11 @@
   &--sortable {
     cursor: pointer;
     user-select: none;
-    
+
     &:hover {
-      background-color: rgba(0, 0, 0, 0.02);
+      background-color: #f8fafc; // Color sólido en lugar de transparente para evitar z-index issues
     }
-    
+
     &.visitors-table__header--active {
       color: #007bff;
     }
