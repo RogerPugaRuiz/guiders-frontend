@@ -1,6 +1,5 @@
 import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import {
@@ -54,7 +53,6 @@ export class VisitorsListComponent {
   readonly operationCompleted = output<string>(); // Emite el visitorId cuando la operación termina
 
   // Services
-  private readonly snackBar = inject(MatSnackBar);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly chatWidgetService = inject(ChatWidgetService);
   private readonly chatService = inject(ChatService);
@@ -174,29 +172,14 @@ export class VisitorsListComponent {
           const firstChat = response.chats[0];
           console.log('[VisitorsList] Chat existente encontrado, abriendo chat:', firstChat.chatId);
           this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
-          this.snackBar.open('Abriendo chat existente con este visitante', 'Cerrar', {
-            duration: 3000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top'
-          });
         }
         // Si el visitante tiene chats pero ninguno asignado a este comercial
         else {
           console.log('[VisitorsList] El visitante tiene chats pero ninguno asignado al comercial actual');
-          this.snackBar.open('Este visitante ya tiene un chat activo con otro comercial', 'Cerrar', {
-            duration: 5000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top'
-          });
         }
       },
       error: (error: unknown) => {
         console.error('[VisitorsList] Error al verificar chats del visitante:', error);
-        this.snackBar.open('Error al verificar chats del visitante', 'Cerrar', {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top'
-        });
       }
     });
   }
@@ -224,20 +207,10 @@ export class VisitorsListComponent {
         } else {
           console.log('[VisitorsList] No se encontró chat asignado, abriendo widget para crear uno');
           this.chatWidgetService.openWidget(visitor);
-          this.snackBar.open('No se encontró un chat activo con este visitante', 'Cerrar', {
-            duration: 3000,
-            horizontalPosition: 'right',
-            verticalPosition: 'top'
-          });
         }
       },
       error: (error: unknown) => {
         console.error('[VisitorsList] Error al obtener chat del visitante:', error);
-        this.snackBar.open('Error al abrir el chat', 'Cerrar', {
-          duration: 3000,
-          horizontalPosition: 'right',
-          verticalPosition: 'top'
-        });
       }
     });
   }
@@ -282,10 +255,9 @@ export class VisitorsListComponent {
     }
     
     const pendingChatIds = visitor.pendingChatIds || [];
-    
+
     if (pendingChatIds.length === 0) {
-      this.snackBar.open('No hay chats pendientes para este visitante', 'Cerrar', { duration: 3000 });
-      // this.closeDropdown();
+      console.log('[VisitorsList] No hay chats pendientes para este visitante');
       return;
     }
 
@@ -488,7 +460,7 @@ export class VisitorsListComponent {
           aValue = a.totalChats;
           bValue = b.totalChats;
           break;
-        case 'status':
+        case 'status': {
           // Convertir status a valores numéricos para ordenar correctamente
           // online = 2, idle = 1, offline = 0
           // desc: online primero (2 > 1 > 0)
@@ -504,6 +476,7 @@ export class VisitorsListComponent {
           aValue = statusToNumber(a.status);
           bValue = statusToNumber(b.status);
           break;
+        }
         default:
           return 0;
       }

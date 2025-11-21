@@ -131,7 +131,6 @@
       "@guiders-frontend/text-field": [
         "libs/shared/ui/text-field/src/index.ts"
       ],
-      "@guiders-frontend/toast": ["libs/shared/ui/toast/src/index.ts"],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/typing-indicator": [
         "libs/chat/ui/typing-indicator/src/index.ts"

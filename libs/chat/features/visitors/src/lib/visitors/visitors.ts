@@ -3,7 +3,6 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { PresenceService } from '@guiders-frontend/presence-service';
@@ -57,7 +56,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly document = inject(DOCUMENT);
   private readonly useMockData = inject(USE_MOCK_DATA);
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly snackBar = inject(MatSnackBar);
   private readonly chatWidgetService = inject(ChatWidgetService);
   private readonly presenceService = inject(PresenceService);
   private readonly destroyRef = inject(DestroyRef);
@@ -834,10 +832,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const visitor = this.state().visitors.find(v => v.id === request.visitorId);
     if (!visitor) {
       console.error('Visitor not found:', request.visitorId);
-      this.snackBar.open('Error: visitante no encontrado', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['error-snackbar']
-      });
       return;
     }
 
@@ -845,10 +839,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       .pipe(
         catchError((error: Error) => {
           console.error('Error creating chat:', error);
-          this.snackBar.open('Error al crear el chat. Inténtalo de nuevo.', 'Cerrar', {
-            duration: 3000,
-            panelClass: ['error-snackbar']
-          });
           return of(null);
         })
       )
@@ -858,12 +848,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
           // Abrir el chat en el widget
           this.chatWidgetService.openWithChat(response.chatId, visitor);
-
-          // Mostrar notificación de éxito
-          this.snackBar.open('Chat creado exitosamente', 'Cerrar', {
-            duration: 2000,
-            panelClass: ['success-snackbar']
-          });
 
           // Refrescar la lista de visitantes SIN loading
           this.refreshVisitorsSilently();
@@ -976,9 +960,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     console.log('[Visitors] Ver chats pendientes para visitante:', data.visitor.id, 'chats:', data.pendingChatIds);
 
     if (data.pendingChatIds.length === 0) {
-      this.snackBar.open('No hay chats pendientes para este visitante', 'Cerrar', {
-        duration: 2000
-      });
+      console.log('[Visitors] No hay chats pendientes para este visitante');
       return;
     }
 
@@ -986,13 +968,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const firstChatId = data.pendingChatIds[0];
     this.chatWidgetService.openWithChat(firstChatId, data.visitor);
 
-    // Notificar si hay más chats pendientes
+    // Log si hay más chats pendientes
     if (data.pendingChatIds.length > 1) {
-      this.snackBar.open(
-        `Mostrando 1 de ${data.pendingChatIds.length} chats pendientes`,
-        'Cerrar',
-        { duration: 3000 }
-      );
+      console.log(`[Visitors] Mostrando 1 de ${data.pendingChatIds.length} chats pendientes`);
     }
   }
 
@@ -1047,19 +1025,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }),
       catchError((error: Error) => {
         console.error('❌ Error al tomar el chat:', error);
-        
-        // Mostrar SnackBar de error
-        this.snackBar.open(
-          '❌ Error al tomar el chat. Inténtalo de nuevo.',
-          'Cerrar',
-          {
-            duration: 5000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: 'snackbar-error'
-          }
-        );
-        
+
         // 🔑 REVERTIR actualización optimista
         console.log('⏮️ Revirtiendo actualización optimista');
         this.updateState({ visitors: originalVisitors });
@@ -1091,19 +1057,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       if (isAssigned) {
         console.log('✅ Chat asignado exitosamente en servidor:', response);
 
-        // Mostrar SnackBar de éxito
-        const visitorName = data.visitor.name || 'Visitante anónimo';
-        this.snackBar.open(
-          `✅ Chat con ${visitorName} tomado exitosamente`,
-          'Cerrar',
-          {
-            duration: 4000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: 'snackbar-success'
-          }
-        );
-
         // 🎯 Abrir el widget de chat con el chat asignado
         console.log('🚀 Abriendo widget de chat para el chat:', data.chatId);
         this.chatWidgetService.openWithChat(data.chatId, data.visitor);
@@ -1122,18 +1075,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       } else {
         // Respuesta diferente, interpretada como rechazo
         console.log('⚠️ Servidor rechazó la asignación - response:', response);
-
-        // Mostrar SnackBar de advertencia
-        this.snackBar.open(
-          '⚠️ El servidor rechazó la asignación del chat',
-          'Cerrar',
-          {
-            duration: 5000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top',
-            panelClass: 'snackbar-warning'
-          }
-        );
 
         // Revertir
         this.updateState({ visitors: originalVisitors });

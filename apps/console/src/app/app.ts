@@ -142,7 +142,6 @@ export class App {
       },
       error: (error: Error) => {
         console.error('Error al cargar perfil del usuario:', error);
-        alert('Error al cargar tu perfil. Inténtalo de nuevo.');
       }
     });
   }
@@ -183,17 +182,10 @@ export class App {
         // Cerrar el modal
         this.isUploadingAvatar.set(false);
         this.isProfileModalOpen.set(false);
-
-        // TODO: Mostrar notificación de éxito
-        alert('Avatar actualizado exitosamente');
       },
       error: (error: Error) => {
         console.error('Error al actualizar avatar:', error);
         this.isUploadingAvatar.set(false);
-
-        // Mostrar mensaje de error al usuario
-        const errorMessage = error.message || 'Error al actualizar el avatar. Inténtalo de nuevo.';
-        alert(errorMessage);
       }
     });
   }
