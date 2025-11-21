@@ -801,6 +801,16 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     }
   }
 
+  private scrollToTop(): void {
+    // Hacer scroll al top del contenedor de la lista
+    const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
+    if (scrollContainer) {
+      setTimeout(() => {
+        scrollContainer.scrollTop = 0;
+      }, 0);
+    }
+  }
+
   private updateState(updates: Partial<VisitorState>): void {
     this.state.update(current => ({ ...current, ...updates }));
     // CRÍTICO: Forzar detección de cambios con OnPush
@@ -874,7 +884,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   onPageChange(page: number): void {
     const currentState = this.state();
     const offset = (page - 1) * currentState.pagination.limit;
-    
+
     this.updateState({
       pagination: {
         ...currentState.pagination,
@@ -882,14 +892,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         offset
       }
     });
-    
+
     // Actualizar la URL con el parámetro de página
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page },
       queryParamsHandling: 'merge' // Mantener otros parámetros como 'filter'
     });
-    
+
+    // Scroll al top de la tabla
+    this.scrollToTop();
+
     this.loadVisitors();
   }
 
@@ -913,6 +926,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       queryParams: { page: 1 },
       queryParamsHandling: 'merge'
     });
+
+    // Scroll al top de la tabla
+    this.scrollToTop();
 
     this.loadVisitors();
   }
