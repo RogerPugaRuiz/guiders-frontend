@@ -301,14 +301,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Leer query parameters de la URL
     this.route.queryParams.subscribe(params => {
-      if (params['filter']) {
+      // Solo cambiar filtro si es diferente al actual (evita doble carga)
+      if (params['filter'] && params['filter'] !== this.selectedFilterId()) {
         this.onFilterPresetChange(params['filter']);
       }
-      
-      // Leer el parámetro de página de la URL
+
+      // Leer el parámetro de página de la URL (solo para navegación directa)
+      // No actualizar si ya estamos en esa página (evita conflicto con onPageChange)
       if (params['page']) {
         const pageNumber = parseInt(params['page'], 10);
-        if (!isNaN(pageNumber) && pageNumber > 0) {
+        const currentPage = this.state().pagination.currentPage || 1;
+        if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber !== currentPage) {
           // Actualizar el estado con la página desde la URL
           const currentState = this.state();
           const offset = (pageNumber - 1) * currentState.pagination.limit;
@@ -613,7 +616,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         // Actualizar timestamp de última carga
         this.lastRefreshTime.set(new Date());
 
-        // Restaurar la posición del scroll después de cargar
+        // Forzar detección de cambios para que Angular renderice los nuevos datos
+        this.cdr.detectChanges();
+
+        // Restaurar la posición del scroll después de renderizar
         this.restoreScrollPosition();
       }, 500); // Simular latencia de red
     } else {
@@ -658,7 +664,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           // Actualizar timestamp de última carga
           this.lastRefreshTime.set(new Date());
 
-          // Restaurar la posición del scroll después de actualizar el estado
+          // Forzar detección de cambios para que Angular renderice los nuevos datos
+          this.cdr.detectChanges();
+
+          // Restaurar la posición del scroll después de renderizar
           this.restoreScrollPosition();
         });
     }
