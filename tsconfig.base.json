@@ -121,6 +121,9 @@
         "libs/auth/data-access/profile-service/src/index.ts"
       ],
       "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
+      "@guiders-frontend/save-filter-dialog": [
+        "libs/chat/ui/save-filter-dialog/src/index.ts"
+      ],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
       "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
@@ -151,11 +154,20 @@
       "@guiders-frontend/visitors": [
         "libs/chat/features/visitors/src/index.ts"
       ],
+      "@guiders-frontend/visitors-active-filters": [
+        "libs/chat/ui/visitors-active-filters/src/index.ts"
+      ],
+      "@guiders-frontend/visitors-advanced-filters": [
+        "libs/chat/ui/visitors-advanced-filters/src/index.ts"
+      ],
       "@guiders-frontend/visitors-data-service": [
         "libs/chat/data-access/visitors-data-service/src/index.ts"
       ],
       "@guiders-frontend/visitors-list": [
         "libs/chat/ui/visitors-list/src/index.ts"
+      ],
+      "@guiders-frontend/visitors-quick-filters": [
+        "libs/chat/ui/visitors-quick-filters/src/index.ts"
       ]
     }
   },

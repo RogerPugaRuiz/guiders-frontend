@@ -1,0 +1,245 @@
+@if (isOpen()) {
+  <div
+    class="advanced-filters__backdrop"
+    (click)="onBackdropClick($event)"
+    (keydown.escape)="onClose()"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div class="advanced-filters__panel" role="dialog" aria-labelledby="advanced-filters-title">
+      <header class="advanced-filters__header">
+        <h2 id="advanced-filters-title" class="advanced-filters__title">Filtros avanzados</h2>
+        <button
+          type="button"
+          class="advanced-filters__close"
+          (click)="onClose()"
+          aria-label="Cerrar"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 5L5 15M5 5l10 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="advanced-filters__content">
+        <!-- Ciclo de vida -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Ciclo de vida</h3>
+          <div class="advanced-filters__checkbox-group">
+            @for (option of lifecycleOptions; track option.value) {
+              <label class="advanced-filters__checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="lifecycle()[option.value]"
+                  (change)="toggleLifecycle(option.value)"
+                />
+                <span class="advanced-filters__checkbox-label">{{ option.label }}</span>
+              </label>
+            }
+          </div>
+        </section>
+
+        <!-- Estado de conexión -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Estado de conexión</h3>
+          <div class="advanced-filters__checkbox-group">
+            @for (option of connectionStatusOptions; track option.value) {
+              <label class="advanced-filters__checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="connectionStatus()[option.value]"
+                  (change)="toggleConnectionStatus(option.value)"
+                />
+                <span class="advanced-filters__checkbox-label">{{ option.label }}</span>
+              </label>
+            }
+          </div>
+        </section>
+
+        <!-- Fechas de creación -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Fecha de creación</h3>
+          <div class="advanced-filters__date-range">
+            <div class="advanced-filters__field">
+              <label class="advanced-filters__label" for="created-from">Desde</label>
+              <input
+                id="created-from"
+                type="date"
+                class="advanced-filters__input"
+                [ngModel]="createdFrom()"
+                (ngModelChange)="createdFrom.set($event)"
+              />
+            </div>
+            <div class="advanced-filters__field">
+              <label class="advanced-filters__label" for="created-to">Hasta</label>
+              <input
+                id="created-to"
+                type="date"
+                class="advanced-filters__input"
+                [ngModel]="createdTo()"
+                (ngModelChange)="createdTo.set($event)"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Última actividad -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Última actividad</h3>
+          <div class="advanced-filters__date-range">
+            <div class="advanced-filters__field">
+              <label class="advanced-filters__label" for="activity-from">Desde</label>
+              <input
+                id="activity-from"
+                type="date"
+                class="advanced-filters__input"
+                [ngModel]="lastActivityFrom()"
+                (ngModelChange)="lastActivityFrom.set($event)"
+              />
+            </div>
+            <div class="advanced-filters__field">
+              <label class="advanced-filters__label" for="activity-to">Hasta</label>
+              <input
+                id="activity-to"
+                type="date"
+                class="advanced-filters__input"
+                [ngModel]="lastActivityTo()"
+                (ngModelChange)="lastActivityTo.set($event)"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- URL contiene -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">URL actual</h3>
+          <div class="advanced-filters__field">
+            <label class="advanced-filters__label" for="url-contains">Contiene</label>
+            <input
+              id="url-contains"
+              type="text"
+              class="advanced-filters__input"
+              placeholder="ej: /pricing, /contact"
+              [ngModel]="currentUrlContains()"
+              (ngModelChange)="currentUrlContains.set($event)"
+            />
+          </div>
+        </section>
+
+        <!-- Opciones booleanas -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Otras opciones</h3>
+          <div class="advanced-filters__radio-group">
+            <span class="advanced-filters__radio-label">Política de privacidad:</span>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="privacy"
+                [checked]="hasAcceptedPrivacyPolicy() === undefined"
+                (change)="setPrivacyPolicy(undefined)"
+              />
+              <span>Todas</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="privacy"
+                [checked]="hasAcceptedPrivacyPolicy() === true"
+                (change)="setPrivacyPolicy(true)"
+              />
+              <span>Aceptada</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="privacy"
+                [checked]="hasAcceptedPrivacyPolicy() === false"
+                (change)="setPrivacyPolicy(false)"
+              />
+              <span>No aceptada</span>
+            </label>
+          </div>
+
+          <div class="advanced-filters__radio-group">
+            <span class="advanced-filters__radio-label">Sesiones activas:</span>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="sessions"
+                [checked]="hasActiveSessions() === undefined"
+                (change)="setActiveSessions(undefined)"
+              />
+              <span>Todas</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="sessions"
+                [checked]="hasActiveSessions() === true"
+                (change)="setActiveSessions(true)"
+              />
+              <span>Sí</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="sessions"
+                [checked]="hasActiveSessions() === false"
+                (change)="setActiveSessions(false)"
+              />
+              <span>No</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Ordenamiento -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Ordenar por</h3>
+          <div class="advanced-filters__sort">
+            <select
+              class="advanced-filters__select"
+              [ngModel]="sortField()"
+              (ngModelChange)="sortField.set($event)"
+            >
+              @for (option of sortFieldOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            <select
+              class="advanced-filters__select"
+              [ngModel]="sortDirection()"
+              (ngModelChange)="sortDirection.set($event)"
+            >
+              <option value="DESC">Descendente</option>
+              <option value="ASC">Ascendente</option>
+            </select>
+          </div>
+        </section>
+      </div>
+
+      <footer class="advanced-filters__footer">
+        <button
+          type="button"
+          class="advanced-filters__btn advanced-filters__btn--secondary"
+          (click)="onClear()"
+        >
+          Limpiar
+        </button>
+        <button
+          type="button"
+          class="advanced-filters__btn advanced-filters__btn--outline"
+          (click)="onSave()"
+        >
+          Guardar filtro
+        </button>
+        <button
+          type="button"
+          class="advanced-filters__btn advanced-filters__btn--primary"
+          (click)="onApply()"
+        >
+          Aplicar
+        </button>
+      </footer>
+    </div>
+  </div>
+}

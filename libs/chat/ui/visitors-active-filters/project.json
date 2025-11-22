@@ -1,0 +1,20 @@
+{
+  "name": "visitors-active-filters",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/ui/visitors-active-filters/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["scope:chat", "type:ui"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/ui/visitors-active-filters"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

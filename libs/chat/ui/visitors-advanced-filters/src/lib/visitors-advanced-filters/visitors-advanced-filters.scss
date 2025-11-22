@@ -1,0 +1,275 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+.advanced-filters {
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: tokens.$z-index-modal;
+    display: flex;
+    justify-content: flex-end;
+    background: tokens.$color-overlay-backdrop;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    background: tokens.$color-surface-primary;
+    box-shadow: tokens.$shadow-xl;
+    animation: slideIn 0.2s ease-out;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: tokens.$spacing-md;
+    border-bottom: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+  }
+
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: tokens.$border-radius-md;
+    background: transparent;
+    color: tokens.$color-text-secondary;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      background: tokens.$color-surface-secondary;
+      color: tokens.$color-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+  }
+
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: tokens.$spacing-md;
+  }
+
+  &__section {
+    margin-bottom: tokens.$spacing-lg;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__section-title {
+    margin: 0 0 tokens.$spacing-sm;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-subtle;
+    border-radius: tokens.$border-radius-sm;
+    background: tokens.$color-surface-primary;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      border-color: tokens.$color-border-default;
+      background: tokens.$color-surface-secondary;
+    }
+
+    &:has(input:checked) {
+      border-color: tokens.$color-primary-500;
+      background: tokens.$color-primary-50;
+    }
+
+    input {
+      display: none;
+    }
+  }
+
+  &__checkbox-label {
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-primary;
+  }
+
+  &__date-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: tokens.$spacing-sm;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-2xs;
+  }
+
+  &__label {
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-medium;
+    color: tokens.$color-text-secondary;
+  }
+
+  &__input,
+  &__select {
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-subtle;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-primary;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      border-color: tokens.$color-border-default;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: tokens.$color-primary-500;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    &::placeholder {
+      color: tokens.$color-text-tertiary;
+    }
+  }
+
+  &__radio-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: tokens.$spacing-sm;
+    margin-bottom: tokens.$spacing-sm;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__radio-label {
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-secondary;
+    flex-basis: 100%;
+  }
+
+  &__radio {
+    display: inline-flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-primary;
+    cursor: pointer;
+
+    input {
+      accent-color: tokens.$color-primary-500;
+    }
+  }
+
+  &__sort {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: tokens.$spacing-sm;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-md;
+    border-top: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__btn {
+    padding: tokens.$spacing-xs tokens.$spacing-md;
+    border-radius: tokens.$border-radius-md;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+
+    &--primary {
+      border: none;
+      background: tokens.$color-primary-500;
+      color: tokens.$color-text-inverse;
+
+      &:hover {
+        background: tokens.$color-primary-600;
+      }
+    }
+
+    &--secondary {
+      border: 1px solid tokens.$color-border-subtle;
+      background: tokens.$color-surface-primary;
+      color: tokens.$color-text-secondary;
+
+      &:hover {
+        background: tokens.$color-surface-secondary;
+        color: tokens.$color-text-primary;
+      }
+    }
+
+    &--outline {
+      border: 1px solid tokens.$color-primary-500;
+      background: transparent;
+      color: tokens.$color-primary-500;
+
+      &:hover {
+        background: tokens.$color-primary-50;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

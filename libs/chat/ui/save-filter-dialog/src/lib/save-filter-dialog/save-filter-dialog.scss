@@ -1,0 +1,190 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+.save-filter-dialog {
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: tokens.$z-index-modal;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: tokens.$color-overlay-backdrop;
+    animation: fadeIn 0.15s ease-out;
+  }
+
+  &__modal {
+    width: 100%;
+    max-width: 420px;
+    margin: tokens.$spacing-md;
+    background: tokens.$color-surface-primary;
+    border-radius: tokens.$border-radius-lg;
+    box-shadow: tokens.$shadow-xl;
+    animation: scaleIn 0.15s ease-out;
+  }
+
+  &__header {
+    padding: tokens.$spacing-md tokens.$spacing-lg;
+    border-bottom: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: tokens.$font-size-lg;
+    font-weight: tokens.$font-weight-semibold;
+    color: tokens.$color-text-primary;
+  }
+
+  &__content {
+    padding: tokens.$spacing-lg;
+  }
+
+  &__warning {
+    display: flex;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-md;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-warning-50;
+    color: tokens.$color-warning-700;
+
+    svg {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    p {
+      margin: 0;
+      font-size: tokens.$font-size-sm;
+      line-height: 1.5;
+    }
+  }
+
+  &__field {
+    margin-bottom: tokens.$spacing-md;
+
+    &:last-of-type {
+      margin-bottom: tokens.$spacing-sm;
+    }
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: tokens.$spacing-xs;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    color: tokens.$color-text-primary;
+  }
+
+  &__required {
+    color: tokens.$color-danger-500;
+  }
+
+  &__optional {
+    font-weight: tokens.$font-weight-regular;
+    color: tokens.$color-text-tertiary;
+  }
+
+  &__input,
+  &__textarea {
+    width: 100%;
+    padding: tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-subtle;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-primary;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      border-color: tokens.$color-border-default;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: tokens.$color-primary-500;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    &::placeholder {
+      color: tokens.$color-text-tertiary;
+    }
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: tokens.$font-size-xs;
+    color: tokens.$color-text-tertiary;
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-md tokens.$spacing-lg;
+    border-top: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__btn {
+    padding: tokens.$spacing-xs tokens.$spacing-md;
+    border-radius: tokens.$border-radius-md;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    &--primary {
+      border: none;
+      background: tokens.$color-primary-500;
+      color: tokens.$color-text-inverse;
+
+      &:hover:not(:disabled) {
+        background: tokens.$color-primary-600;
+      }
+    }
+
+    &--secondary {
+      border: 1px solid tokens.$color-border-subtle;
+      background: tokens.$color-surface-primary;
+      color: tokens.$color-text-secondary;
+
+      &:hover {
+        background: tokens.$color-surface-secondary;
+        color: tokens.$color-text-primary;
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

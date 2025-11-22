@@ -64,7 +64,25 @@
               </div>
             </th>
             <th class="visitors-table__header visitors-table__header--lifecycle">Etapa</th>
-            <th 
+            <th
+              class="visitors-table__header visitors-table__header--created visitors-table__header--sortable"
+              [class.visitors-table__header--active]="currentSort().field === 'firstVisit'"
+              (click)="toggleSort('firstVisit')"
+            >
+              <div class="header-content">
+                <span>Creado</span>
+                @if (currentSort().field === 'firstVisit') {
+                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    @if (currentSort().direction === 'desc') {
+                      <path d="M7 10l5 5 5-5"/>
+                    } @else {
+                      <path d="M7 14l5-5 5 5"/>
+                    }
+                  </svg>
+                }
+              </div>
+            </th>
+            <th
               class="visitors-table__header visitors-table__header--activity visitors-table__header--sortable"
               [class.visitors-table__header--active]="currentSort().field === 'lastVisit'"
               (click)="toggleSort('lastVisit')"
@@ -126,14 +144,6 @@
                           ID: {{ visitor.fingerprint || visitor.id.slice(0, 8) }}
                         }
                       </div>
-                      <div class="visitor-location">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <line x1="2" y1="12" x2="22" y2="12"/>
-                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                        {{ visitor.domain }}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -177,6 +187,20 @@
                       <span class="tag tag--gray">{{ visitor.lifecycle }}</span>
                     }
                   }
+                </div>
+              </td>
+
+              <!-- Fecha de creación -->
+              <td class="visitors-table__cell visitors-table__cell--created">
+                <div class="created-info">
+                  <div class="created-date-wrapper">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12,6 12,12 16,14"/>
+                    </svg>
+                    <span class="created-date">{{ formatCreatedAt(visitor.firstVisit).date }}</span>
+                  </div>
+                  <span class="created-time">{{ formatCreatedAt(visitor.firstVisit).time }}</span>
                 </div>
               </td>
 

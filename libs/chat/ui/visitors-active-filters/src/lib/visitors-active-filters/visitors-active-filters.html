@@ -1,0 +1,43 @@
+<div class="active-filters">
+  <div class="active-filters__actions">
+    <button
+      type="button"
+      class="active-filters__advanced-btn"
+      (click)="onOpenAdvanced()"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Filtros avanzados
+    </button>
+  </div>
+
+  @if (hasFilters()) {
+    <div class="active-filters__chips">
+      @for (chip of filterChips(); track chip.key) {
+        <div class="active-filters__chip">
+          <span class="active-filters__chip-label">{{ chip.label }}:</span>
+          <span class="active-filters__chip-value">{{ chip.value }}</span>
+          <button
+            type="button"
+            class="active-filters__chip-remove"
+            (click)="onRemoveFilter(chip.key)"
+            [attr.aria-label]="'Eliminar filtro ' + chip.label"
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="active-filters__clear-all"
+        (click)="onClearAll()"
+      >
+        Limpiar todo
+      </button>
+    </div>
+  }
+</div>
