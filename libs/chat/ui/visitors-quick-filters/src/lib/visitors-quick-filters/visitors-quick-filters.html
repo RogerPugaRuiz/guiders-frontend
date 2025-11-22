@@ -1,0 +1,90 @@
+<div class="quick-filters">
+  @if (loading()) {
+    <div class="quick-filters__skeleton">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="quick-filters__skeleton-item"></div>
+      }
+    </div>
+  } @else {
+    <div class="quick-filters__list">
+      @for (filter of filters(); track filter.id) {
+        <button
+          type="button"
+          class="quick-filters__chip"
+          [class.quick-filters__chip--active]="isActive(filter.id)"
+          (click)="onFilterClick(filter.id)"
+          [attr.aria-pressed]="isActive(filter.id)"
+        >
+          <span class="quick-filters__label">{{ filter.label }}</span>
+          <span class="quick-filters__count">{{ filter.count }}</span>
+        </button>
+      }
+    </div>
+
+    @if (savedFilters().length > 0) {
+      <div class="quick-filters__divider"></div>
+      <div class="quick-filters__saved">
+        @for (filter of savedFilters(); track filter.id) {
+          <button
+            type="button"
+            class="quick-filters__chip quick-filters__chip--saved"
+            [class.quick-filters__chip--active]="isSavedFilterActive(filter.id)"
+            (click)="onSavedFilterClick(filter)"
+            [attr.aria-pressed]="isSavedFilterActive(filter.id)"
+            [title]="filter.description || filter.name"
+          >
+            <svg class="quick-filters__icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            <span class="quick-filters__label">{{ filter.name }}</span>
+            <button
+              type="button"
+              class="quick-filters__delete"
+              (click)="onSavedFilterDeleteClick($event, filter)"
+              title="Eliminar filtro"
+              [attr.aria-label]="'Eliminar filtro ' + filter.name"
+            >
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </button>
+        }
+      </div>
+    }
+  }
+
+  <!-- Modal de confirmación de eliminación -->
+  @if (showDeleteConfirm()) {
+    <div class="quick-filters__modal-overlay" (click)="onCancelDelete()">
+      <div class="quick-filters__modal" (click)="$event.stopPropagation()">
+        <div class="quick-filters__modal-header">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <h4>Eliminar filtro</h4>
+        </div>
+        <p class="quick-filters__modal-message">
+          ¿Estás seguro de que deseas eliminar el filtro <strong>"{{ pendingDeleteFilter()?.name }}"</strong>?
+        </p>
+        <div class="quick-filters__modal-actions">
+          <button
+            type="button"
+            class="quick-filters__modal-btn quick-filters__modal-btn--cancel"
+            (click)="onCancelDelete()"
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="quick-filters__modal-btn quick-filters__modal-btn--confirm"
+            (click)="onConfirmDelete()"
+          >
+            Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

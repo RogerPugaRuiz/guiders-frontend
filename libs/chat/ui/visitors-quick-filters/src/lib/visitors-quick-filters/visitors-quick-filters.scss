@@ -1,0 +1,282 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+.quick-filters {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-subtle;
+    border-radius: tokens.$border-radius-full;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-secondary;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+    white-space: nowrap;
+
+    &:hover {
+      background: tokens.$color-surface-secondary;
+      border-color: tokens.$color-border-default;
+      color: tokens.$color-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+
+    &--active {
+      background: tokens.$color-primary-500;
+      border-color: tokens.$color-primary-500;
+      color: tokens.$color-text-inverse;
+
+      &:hover {
+        background: tokens.$color-primary-600;
+        border-color: tokens.$color-primary-600;
+        color: tokens.$color-text-inverse;
+      }
+
+      .quick-filters__count {
+        background: rgba(255, 255, 255, 0.2);
+        color: tokens.$color-text-inverse;
+      }
+    }
+  }
+
+  &__label {
+    line-height: 1;
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 tokens.$spacing-2xs;
+    border-radius: tokens.$border-radius-full;
+    background: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-secondary;
+    font-size: tokens.$font-size-xs;
+    font-weight: tokens.$font-weight-semibold;
+    line-height: 1;
+  }
+
+  &__skeleton {
+    display: flex;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__skeleton-item {
+    width: 80px;
+    height: 32px;
+    border-radius: tokens.$border-radius-full;
+    background: tokens.$color-surface-secondary;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 24px;
+    background: tokens.$color-border-subtle;
+    margin: 0 tokens.$spacing-xs;
+  }
+
+  &__saved {
+    display: flex;
+    flex-wrap: wrap;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  &__chip--saved {
+    background: tokens.$color-primary-50;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-primary-700;
+    position: relative;
+    padding-right: tokens.$spacing-xl;
+
+    .quick-filters__icon {
+      color: tokens.$color-primary-500;
+    }
+
+    &:hover {
+      background: tokens.$color-surface-secondary;
+      border-color: tokens.$color-border-default;
+
+      .quick-filters__delete {
+        opacity: 1;
+      }
+    }
+
+    &.quick-filters__chip--active {
+      background: tokens.$color-primary-500;
+      border-color: tokens.$color-primary-500;
+      color: tokens.$color-text-inverse;
+
+      .quick-filters__icon {
+        color: tokens.$color-text-inverse;
+        opacity: 1;
+      }
+
+      .quick-filters__delete {
+        color: rgba(255, 255, 255, 0.8);
+
+        &:hover {
+          color: tokens.$color-text-inverse;
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+
+  &__delete {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: tokens.$border-radius-full;
+    background: transparent;
+    color: tokens.$color-text-tertiary;
+    cursor: pointer;
+    opacity: 0;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      background: tokens.$color-surface-tertiary;
+      color: #ef4444;
+    }
+
+    &:focus-visible {
+      opacity: 1;
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 1px;
+    }
+  }
+
+  &__modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+
+  &__modal {
+    background: tokens.$color-surface-primary;
+    border-radius: tokens.$border-radius-lg;
+    padding: tokens.$spacing-lg;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  &__modal-header {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-sm;
+    margin-bottom: tokens.$spacing-md;
+
+    svg {
+      color: #f59e0b;
+    }
+
+    h4 {
+      margin: 0;
+      font-size: tokens.$font-size-lg;
+      font-weight: tokens.$font-weight-semibold;
+      color: tokens.$color-text-primary;
+    }
+  }
+
+  &__modal-message {
+    margin: 0 0 tokens.$spacing-lg;
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-secondary;
+    line-height: 1.5;
+
+    strong {
+      color: tokens.$color-text-primary;
+    }
+  }
+
+  &__modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: tokens.$spacing-sm;
+  }
+
+  &__modal-btn {
+    padding: tokens.$spacing-xs tokens.$spacing-md;
+    border-radius: tokens.$border-radius-md;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &--cancel {
+      background: tokens.$color-surface-secondary;
+      border: 1px solid tokens.$color-border-default;
+      color: tokens.$color-text-secondary;
+
+      &:hover {
+        background: tokens.$color-surface-tertiary;
+        color: tokens.$color-text-primary;
+      }
+    }
+
+    &--confirm {
+      background: #ef4444;
+      border: 1px solid #ef4444;
+      color: white;
+
+      &:hover {
+        background: #dc2626;
+        border-color: #dc2626;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

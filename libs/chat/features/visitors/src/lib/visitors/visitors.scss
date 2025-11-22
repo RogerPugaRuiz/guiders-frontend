@@ -413,6 +413,15 @@
     overflow: visible; // Cambiar de hidden a visible para permitir dropdowns
   }
 
+  &__filters {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    border-bottom: 1px solid tokens.$color-border-subtle;
+    flex-shrink: 0; // No se encoge
+  }
+
   &__list-container {
     flex: 1;
     overflow-y: auto; // Solo este contenedor tiene scroll

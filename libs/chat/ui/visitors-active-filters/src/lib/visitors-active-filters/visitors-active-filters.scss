@@ -1,0 +1,121 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+.active-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: tokens.$spacing-sm;
+
+  &__actions {
+    display: flex;
+    align-items: center;
+  }
+
+  &__advanced-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    border: 1px solid tokens.$color-border-subtle;
+    border-radius: tokens.$border-radius-md;
+    background: tokens.$color-surface-primary;
+    color: tokens.$color-text-secondary;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      background: tokens.$color-surface-secondary;
+      border-color: tokens.$color-border-default;
+      color: tokens.$color-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
+  &__chips {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+    padding: tokens.$spacing-2xs tokens.$spacing-xs;
+    border-radius: tokens.$border-radius-sm;
+    background: tokens.$color-info-50;
+    font-size: tokens.$font-size-sm;
+    line-height: 1;
+  }
+
+  &__chip-label {
+    color: tokens.$color-text-secondary;
+    font-weight: tokens.$font-weight-medium;
+  }
+
+  &__chip-value {
+    color: tokens.$color-text-primary;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__chip-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: none;
+    border-radius: tokens.$border-radius-full;
+    background: transparent;
+    color: tokens.$color-text-tertiary;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      background: tokens.$color-surface-tertiary;
+      color: tokens.$color-text-primary;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 1px;
+    }
+  }
+
+  &__clear-all {
+    padding: tokens.$spacing-2xs tokens.$spacing-xs;
+    border: none;
+    border-radius: tokens.$border-radius-sm;
+    background: transparent;
+    color: tokens.$color-primary-500;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    cursor: pointer;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      background: tokens.$color-surface-secondary;
+      color: tokens.$color-primary-600;
+    }
+
+    &:focus-visible {
+      outline: 2px solid tokens.$color-primary-500;
+      outline-offset: 2px;
+    }
+  }
+}

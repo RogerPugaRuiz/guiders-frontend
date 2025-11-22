@@ -12,15 +12,26 @@ import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
 import { PaginationComponent } from '@guiders-frontend/pagination';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
+import { VisitorsQuickFilters } from '@guiders-frontend/visitors-quick-filters';
+import { VisitorsActiveFilters } from '@guiders-frontend/visitors-active-filters';
+import { VisitorsAdvancedFilters } from '@guiders-frontend/visitors-advanced-filters';
+import { SaveFilterDialog, SaveFilterData } from '@guiders-frontend/save-filter-dialog';
 import {
   Visitor,
   VisitorFilters,
   VisitorSort,
   CreateChatWithVisitorRequest,
   VisitorState,
-  GetVisitorsResponse,
   VisitorStats,
-  ConnectionStatus
+  ConnectionStatus,
+  QuickFilter,
+  SavedFilter,
+  VisitorSearchFilters,
+  VisitorSearchSort,
+  VisitorSearchResult,
+  VisitorSearchRequest,
+  VisitorSortField,
+  SortDirection
 } from '@guiders-frontend/shared/types';
 import { PresenceChangedEvent } from '@guiders-frontend/shared/types';
 import { getMockVisitorsResponse, getMockVisitorStats } from './visitors-mock-data';
@@ -42,7 +53,11 @@ type AssignChatResponse = {
   imports: [
     CommonModule,
     VisitorsListComponent,
-    PaginationComponent
+    PaginationComponent,
+    VisitorsQuickFilters,
+    VisitorsActiveFilters,
+    VisitorsAdvancedFilters,
+    SaveFilterDialog
   ],
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.scss'],
@@ -208,6 +223,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   ]);
 
   readonly selectedFilterId = signal<string>('unassigned');
+
+  // Estado para filtros complejos (nueva API)
+  readonly quickFilters = signal<QuickFilter[]>([]);
+  readonly savedFilters = signal<SavedFilter[]>([]);
+  readonly selectedSavedFilterId = signal<string | null>(null);
+  readonly activeSearchFilters = signal<VisitorSearchFilters>({});
+  readonly activeSearchSort = signal<VisitorSearchSort>({ field: 'lastActivity', direction: 'DESC' });
+  readonly advancedFiltersOpen = signal<boolean>(false);
+  readonly saveDialogOpen = signal<boolean>(false);
+  readonly pendingFilterToSave = signal<{ filters: VisitorSearchFilters; sort?: VisitorSearchSort } | null>(null);
+  readonly useNewFiltersApi = signal<boolean>(true); // Flag para usar nueva API
 
   // Computed values
   readonly currentFilter = computed(() => {
@@ -381,6 +407,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
         this.loadVisitors();
         this.loadStats();
+
+        // Cargar filtros para el nuevo sistema
+        this.loadQuickFilters();
+        this.loadSavedFilters();
 
         // Configurar auto-refresh inicial
         this.setupAutoRefresh();
@@ -623,41 +653,63 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         this.restoreScrollPosition();
       }, 500); // Simular latencia de red
     } else {
-      // USAR SERVICIO REAL
+      // USAR SERVICIO REAL - Usando searchVisitors como endpoint único
       const currentSort = currentState.sort;
-      
+
       // Mapear los campos de sort internos a los del backend
-      const sortByMap: Record<string, 'createdAt' | 'lastActivity'> = {
+      const sortFieldMap: Record<string, VisitorSortField> = {
         'firstVisit': 'createdAt',
         'lastVisit': 'lastActivity'
       };
-      
-      const queryParams = {
-        limit: currentState.pagination.limit,
-        offset: currentState.pagination.offset || 0,
-        includeOffline: this.currentFilter().filters.includeOffline,
-        search: currentState.searchQuery || undefined,
-        sortBy: sortByMap[currentSort.field] || 'createdAt',
-        sortOrder: currentSort.direction
+
+      // Usar filtros activos del sistema de búsqueda
+      const searchFilters: VisitorSearchFilters = { ...this.activeSearchFilters() };
+
+      // Mantener compatibilidad con búsqueda del sistema antiguo
+      if (currentState.searchQuery && !searchFilters.currentUrlContains) {
+        searchFilters.currentUrlContains = currentState.searchQuery;
+      }
+
+      const request: VisitorSearchRequest = {
+        filters: searchFilters,
+        sort: {
+          field: sortFieldMap[currentSort.field] || 'createdAt',
+          direction: currentSort.direction.toUpperCase() as SortDirection
+        },
+        page: Math.floor((currentState.pagination.offset || 0) / currentState.pagination.limit) + 1,
+        limit: currentState.pagination.limit
       };
 
-      this.visitorsService.getVisitors(companyId, queryParams)
+      this.visitorsService.searchVisitors(companyId, request)
         .pipe(
           catchError((error: Error) => {
             console.error('Error loading visitors:', error);
-            return of({ visitors: [], total: 0, hasMore: false });
+            return of({
+              visitors: [],
+              pagination: {
+                total: 0,
+                page: 1,
+                limit: currentState.pagination.limit,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPreviousPage: false
+              }
+            });
           }),
           finalize(() => {
             this.updateState({ loading: false });
           })
         )
-        .subscribe((response: GetVisitorsResponse) => {
+        .subscribe(response => {
+          // Mapear VisitorSearchResult a Visitor
+          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
+
           this.updateState({
-            visitors: response.visitors,
+            visitors: mappedVisitors,
             error: null,
             pagination: {
               ...currentState.pagination,
-              totalCount: response.total
+              totalCount: response.pagination.total
             }
           });
 
@@ -754,38 +806,60 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         this.isRefreshing.set(false);
       }, 300); // Breve delay para mostrar la animación
     } else {
-      // USAR SERVICIO REAL
+      // USAR SERVICIO REAL - Usando searchVisitors como endpoint único
       const currentSort = currentState.sort;
-      
+
       // Mapear los campos de sort internos a los del backend
-      const sortByMap: Record<string, 'createdAt' | 'lastActivity'> = {
+      const sortFieldMap: Record<string, VisitorSortField> = {
         'firstVisit': 'createdAt',
         'lastVisit': 'lastActivity'
       };
-      
-      const queryParams = {
-        limit: currentState.pagination.limit,
-        offset: currentState.pagination.offset || 0,
-        includeOffline: this.currentFilter().filters.includeOffline,
-        search: currentState.searchQuery || undefined,
-        sortBy: sortByMap[currentSort.field] || 'createdAt',
-        sortOrder: currentSort.direction
+
+      // Usar filtros activos del sistema de búsqueda
+      const searchFilters: VisitorSearchFilters = { ...this.activeSearchFilters() };
+
+      // Mantener compatibilidad con búsqueda del sistema antiguo
+      if (currentState.searchQuery && !searchFilters.currentUrlContains) {
+        searchFilters.currentUrlContains = currentState.searchQuery;
+      }
+
+      const request: VisitorSearchRequest = {
+        filters: searchFilters,
+        sort: {
+          field: sortFieldMap[currentSort.field] || 'createdAt',
+          direction: currentSort.direction.toUpperCase() as SortDirection
+        },
+        page: Math.floor((currentState.pagination.offset || 0) / currentState.pagination.limit) + 1,
+        limit: currentState.pagination.limit
       };
 
-      this.visitorsService.getVisitors(companyId, queryParams)
+      this.visitorsService.searchVisitors(companyId, request)
         .pipe(
-          catchError(() => of({ visitors: [], total: 0, hasMore: false })),
+          catchError(() => of({
+            visitors: [],
+            pagination: {
+              total: 0,
+              page: 1,
+              limit: currentState.pagination.limit,
+              totalPages: 0,
+              hasNextPage: false,
+              hasPreviousPage: false
+            }
+          })),
           finalize(() => {
             // Desactivar flag de refreshing
             this.isRefreshing.set(false);
           })
         )
-        .subscribe((response: GetVisitorsResponse) => {
+        .subscribe(response => {
+          // Mapear VisitorSearchResult a Visitor
+          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
+
           this.updateState({
-            visitors: response.visitors,
+            visitors: mappedVisitors,
             pagination: {
               ...currentState.pagination,
-              totalCount: response.total
+              totalCount: response.pagination.total
             }
           });
 
@@ -796,6 +870,305 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           this.restoreScrollPosition();
         });
     }
+  }
+
+  // ============================================
+  // Métodos para Sistema de Filtros Complejos
+  // ============================================
+
+  /** Cargar filtros rápidos desde la API */
+  loadQuickFilters(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.visitorsService.getQuickFilters(companyId)
+      .pipe(catchError(() => of({ filters: [] })))
+      .subscribe(response => {
+        this.quickFilters.set(response.filters);
+      });
+  }
+
+  /** Cargar filtros guardados desde la API */
+  loadSavedFilters(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.visitorsService.getSavedFilters(companyId)
+      .pipe(catchError(() => of({ filters: [], total: 0 })))
+      .subscribe(response => {
+        this.savedFilters.set(response.filters);
+      });
+  }
+
+  /** Manejar selección de filtro rápido */
+  onQuickFilterSelect(filterId: string): void {
+    // Buscar el filtro rápido seleccionado
+    const filter = this.quickFilters().find(f => f.id === filterId);
+    if (!filter) return;
+
+    // Actualizar el filtro seleccionado para mostrar estado activo en UI
+    this.selectedFilterId.set(filterId);
+
+    // Limpiar selección de filtro guardado
+    this.selectedSavedFilterId.set(null);
+
+    // Aplicar filtro según el ID (mapear a filtros de búsqueda)
+    const filterMapping: Record<string, VisitorSearchFilters> = {
+      'online': { connectionStatus: ['online', 'chatting'] },
+      'leads': { lifecycle: ['LEAD', 'CONVERTED'] },
+      'today': { lastActivityFrom: new Date().toISOString().split('T')[0] + 'T00:00:00.000Z' },
+      'this_week': { lastActivityFrom: this.getStartOfWeek().toISOString() },
+      'active': { hasActiveSessions: true },
+      'high_intent': { lifecycle: ['LEAD', 'CONVERTED'] },
+      'new_visitors': { lifecycle: ['ANON'] },
+      'returning': { lifecycle: ['ENGAGED', 'LEAD', 'CONVERTED'] }
+    };
+
+    const searchFilters = filterMapping[filterId] || {};
+    this.activeSearchFilters.set(searchFilters);
+    this.searchVisitorsWithFilters();
+  }
+
+  /** Manejar selección de filtro guardado */
+  onSavedFilterSelect(filter: SavedFilter): void {
+    // Marcar el filtro guardado como activo
+    this.selectedSavedFilterId.set(filter.id);
+    // Limpiar selección de filtro rápido
+    this.selectedFilterId.set('');
+
+    // Aplicar los filtros y ordenamiento del filtro guardado
+    this.activeSearchFilters.set(filter.filters);
+    if (filter.sort) {
+      this.activeSearchSort.set(filter.sort);
+    }
+
+    this.searchVisitorsWithFilters();
+  }
+
+  /** Manejar eliminación de filtro guardado */
+  onSavedFilterDelete(filterId: string): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.visitorsService.deleteFilter(companyId, filterId).pipe(
+      catchError(error => {
+        console.error('Error al eliminar filtro:', error);
+        throw error;
+      })
+    ).subscribe({
+      next: () => {
+        // Si el filtro eliminado estaba seleccionado, limpiar selección
+        if (this.selectedSavedFilterId() === filterId) {
+          this.selectedSavedFilterId.set(null);
+          this.activeSearchFilters.set({});
+          this.searchVisitorsWithFilters();
+        }
+        // Recargar lista de filtros guardados
+        this.loadSavedFilters();
+      },
+      error: (error) => {
+        console.error('Error al eliminar filtro:', error);
+      }
+    });
+  }
+
+  /** Aplicar filtros avanzados */
+  onAdvancedFiltersApply(event: { filters: VisitorSearchFilters; sort?: VisitorSearchSort }): void {
+    this.activeSearchFilters.set(event.filters);
+    if (event.sort) {
+      this.activeSearchSort.set(event.sort);
+    }
+    this.advancedFiltersOpen.set(false);
+    this.searchVisitorsWithFilters();
+  }
+
+  /** Eliminar un filtro específico */
+  onFilterRemove(filterKey: string): void {
+    const currentFilters = this.activeSearchFilters();
+    const updatedFilters = { ...currentFilters };
+
+    // Eliminar el filtro según su clave
+    switch (filterKey) {
+      case 'lifecycle':
+        delete updatedFilters.lifecycle;
+        break;
+      case 'connectionStatus':
+        delete updatedFilters.connectionStatus;
+        break;
+      case 'hasAcceptedPrivacyPolicy':
+        delete updatedFilters.hasAcceptedPrivacyPolicy;
+        break;
+      case 'created':
+        delete updatedFilters.createdFrom;
+        delete updatedFilters.createdTo;
+        break;
+      case 'lastActivity':
+        delete updatedFilters.lastActivityFrom;
+        delete updatedFilters.lastActivityTo;
+        break;
+      case 'siteIds':
+        delete updatedFilters.siteIds;
+        break;
+      case 'currentUrlContains':
+        delete updatedFilters.currentUrlContains;
+        break;
+      case 'hasActiveSessions':
+        delete updatedFilters.hasActiveSessions;
+        break;
+    }
+
+    this.activeSearchFilters.set(updatedFilters);
+    this.searchVisitorsWithFilters();
+  }
+
+  /** Limpiar todos los filtros */
+  onFiltersClearAll(): void {
+    this.activeSearchFilters.set({});
+    this.searchVisitorsWithFilters();
+  }
+
+  /** Abrir panel de filtros avanzados */
+  onOpenAdvancedFilters(): void {
+    this.advancedFiltersOpen.set(true);
+  }
+
+  /** Cerrar panel de filtros avanzados */
+  onCloseAdvancedFilters(): void {
+    this.advancedFiltersOpen.set(false);
+  }
+
+  /** Solicitar guardar filtro (abre diálogo) */
+  onRequestSaveFilter(event: { filters: VisitorSearchFilters; sort?: VisitorSearchSort }): void {
+    // Guardar filtros pendientes sin aplicarlos todavía
+    this.pendingFilterToSave.set(event);
+    this.advancedFiltersOpen.set(false);
+    this.saveDialogOpen.set(true);
+  }
+
+  /** Guardar filtro personalizado */
+  onSaveFilter(data: SaveFilterData): void {
+    const companyId = this.companyId();
+    const pending = this.pendingFilterToSave();
+    if (!companyId || !pending) return;
+
+    const request = {
+      name: data.name,
+      description: data.description,
+      filters: pending.filters,
+      sort: pending.sort || this.activeSearchSort()
+    };
+
+    this.visitorsService.saveFilter(companyId, request)
+      .pipe(catchError(error => {
+        console.error('Error saving filter:', error);
+        return of(null);
+      }))
+      .subscribe(response => {
+        if (response) {
+          this.saveDialogOpen.set(false);
+          this.pendingFilterToSave.set(null);
+          this.loadSavedFilters(); // Recargar lista de filtros guardados
+        }
+      });
+  }
+
+  /** Cancelar diálogo de guardar */
+  onCancelSaveDialog(): void {
+    this.saveDialogOpen.set(false);
+    this.pendingFilterToSave.set(null);
+  }
+
+  /** Buscar visitantes usando la nueva API de filtros */
+  private searchVisitorsWithFilters(): void {
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    this.updateState({ loading: true, error: null });
+
+    const currentState = this.state();
+    const request = {
+      filters: this.activeSearchFilters(),
+      sort: this.activeSearchSort(),
+      page: currentState.pagination.currentPage || 1,
+      limit: currentState.pagination.limit
+    };
+
+    this.visitorsService.searchVisitors(companyId, request)
+      .pipe(
+        catchError(error => {
+          console.error('Error searching visitors:', error);
+          return of({
+            visitors: [],
+            pagination: {
+              total: 0,
+              page: 1,
+              limit: 20,
+              totalPages: 0,
+              hasNextPage: false,
+              hasPreviousPage: false
+            }
+          });
+        }),
+        finalize(() => this.updateState({ loading: false }))
+      )
+      .subscribe(response => {
+        // Mapear VisitorSearchResult a Visitor
+        const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
+
+        this.updateState({
+          visitors: mappedVisitors,
+          pagination: {
+            ...currentState.pagination,
+            totalCount: response.pagination.total
+          }
+        });
+
+        this.lastRefreshTime.set(new Date());
+        this.loadQuickFilters(); // Actualizar contadores
+      });
+  }
+
+  /** Mapear array de resultados de búsqueda a Visitors */
+  private mapSearchResultsToVisitors(results: VisitorSearchResult[]): Visitor[] {
+    return results.map(result => this.mapSearchResultToVisitor(result));
+  }
+
+  /** Mapear resultado de búsqueda a Visitor */
+  private mapSearchResultToVisitor(result: VisitorSearchResult): Visitor {
+    const status = result.connectionStatus === 'online' || result.connectionStatus === 'chatting'
+      ? 'online' as const
+      : result.connectionStatus === 'away'
+        ? 'idle' as const
+        : 'offline' as const;
+
+    return {
+      id: result.id,
+      fingerprint: result.fingerprint || '',
+      lifecycle: result.lifecycle,
+      isNewVisitor: false,
+      status,
+      connectionStatus: result.connectionStatus,
+      currentUrl: result.currentUrl,
+      domain: '', // No disponible en la respuesta
+      siteId: result.siteId,
+      companyId: result.tenantId,
+      firstVisit: new Date(result.createdAt),
+      lastVisit: new Date(result.updatedAt),
+      totalSessions: result.totalSessionsCount,
+      totalPageViews: 0,
+      averageSessionDuration: 0,
+      hasActiveChat: result.activeSessionsCount > 0,
+      totalChats: 0,
+      pendingChatIds: []
+    };
+  }
+
+  /** Obtener inicio de la semana actual */
+  private getStartOfWeek(): Date {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    return new Date(now.setDate(diff));
   }
 
   // Métodos auxiliares para mantener la posición del scroll

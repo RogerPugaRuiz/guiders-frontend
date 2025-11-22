@@ -4,6 +4,12 @@ export type VisitorStatus = 'online' | 'offline' | 'idle';
 export type SessionStatus = 'active' | 'inactive' | 'ended';
 export type ConnectionStatus = 'online' | 'offline' | 'away' | 'chatting' | 'busy';
 
+// Enums para filtros de búsqueda (API)
+export type VisitorLifecycleFilter = 'ANON' | 'ENGAGED' | 'LEAD' | 'CONVERTED';
+export type VisitorConnectionStatusFilter = 'online' | 'away' | 'chatting' | 'offline';
+export type VisitorSortField = 'createdAt' | 'updatedAt' | 'lastActivity' | 'lifecycle' | 'connectionStatus';
+export type SortDirection = 'ASC' | 'DESC';
+
 // Interface principal para visitante
 export interface Visitor {
   id: string;
@@ -295,4 +301,122 @@ export interface VisitorState {
   error: string | null;
   stats: VisitorStats | null;
   searchQuery: string;
+}
+
+// ============================================
+// Tipos para Sistema de Filtros Complejos
+// ============================================
+
+// Filtros de búsqueda avanzada (POST /search)
+export interface VisitorSearchFilters {
+  lifecycle?: VisitorLifecycleFilter[];
+  connectionStatus?: VisitorConnectionStatusFilter[];
+  hasAcceptedPrivacyPolicy?: boolean;
+  createdFrom?: string; // ISO 8601
+  createdTo?: string; // ISO 8601
+  lastActivityFrom?: string; // ISO 8601
+  lastActivityTo?: string; // ISO 8601
+  siteIds?: string[];
+  currentUrlContains?: string;
+  hasActiveSessions?: boolean;
+}
+
+// Ordenamiento para búsqueda
+export interface VisitorSearchSort {
+  field: VisitorSortField;
+  direction: SortDirection;
+}
+
+// Request para búsqueda con filtros complejos
+export interface VisitorSearchRequest {
+  filters?: VisitorSearchFilters;
+  sort?: VisitorSearchSort;
+  page?: number;
+  limit?: number;
+}
+
+// Visitante en respuesta de búsqueda
+export interface VisitorSearchResult {
+  id: string;
+  tenantId: string;
+  siteId: string;
+  fingerprint?: string;
+  lifecycle: VisitorLifecycleFilter;
+  connectionStatus: VisitorConnectionStatusFilter;
+  hasAcceptedPrivacyPolicy: boolean;
+  currentUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  activeSessionsCount: number;
+  totalSessionsCount: number;
+}
+
+// Paginación de búsqueda
+export interface VisitorSearchPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+// Response de búsqueda con filtros complejos
+export interface VisitorSearchResponse {
+  visitors: VisitorSearchResult[];
+  pagination: VisitorSearchPagination;
+  appliedFilters?: Record<string, unknown>;
+}
+
+// Filtro rápido (Quick Filter)
+export interface QuickFilter {
+  id: string;
+  label: string;
+  count: number;
+  isActive: boolean;
+}
+
+// Response de filtros rápidos
+export interface QuickFiltersResponse {
+  filters: QuickFilter[];
+}
+
+// Filtro guardado (Saved Filter)
+export interface SavedFilter {
+  id: string;
+  name: string;
+  description?: string;
+  filters: VisitorSearchFilters;
+  sort?: VisitorSearchSort;
+  userId: string;
+  tenantId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Response de filtros guardados
+export interface SavedFiltersResponse {
+  filters: SavedFilter[];
+  total: number;
+}
+
+// Request para guardar filtro
+export interface SaveFilterRequest {
+  name: string;
+  description?: string;
+  filters: VisitorSearchFilters;
+  sort?: VisitorSearchSort;
+}
+
+// Response al guardar filtro
+export interface SaveFilterResponse {
+  id: string;
+}
+
+// Estado de filtros activos (para UI)
+export interface ActiveFiltersState {
+  quickFilterId?: string;
+  savedFilterId?: string;
+  customFilters?: VisitorSearchFilters;
+  sort?: VisitorSearchSort;
 }

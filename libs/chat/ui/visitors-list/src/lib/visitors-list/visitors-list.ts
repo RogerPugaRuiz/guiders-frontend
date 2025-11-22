@@ -1,4 +1,4 @@
-import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
@@ -7,7 +7,8 @@ import {
   VisitorFilters,
   VisitorSort,
   CreateChatWithVisitorRequest,
-  Chat
+  Chat,
+  VisitorSearchSort
 } from '@guiders-frontend/shared/types';
 
 export interface VisitorListConfig {
@@ -40,6 +41,7 @@ export class VisitorsListComponent {
     pageSize: 20
   });
   readonly selectedVisitorIds = input<string[]>([]);
+  readonly externalSort = input<VisitorSearchSort | null>(null);
 
   // Outputs
   readonly visitorClick = output<Visitor>();
@@ -65,6 +67,31 @@ export class VisitorsListComponent {
   readonly showDropdown = signal<string | null>(null);
   // Track visitors with pending operations (for optimistic UI)
   readonly processingVisitorIds = signal<Set<string>>(new Set());
+
+  constructor() {
+    // Sync external sort with internal sort
+    effect(() => {
+      const external = this.externalSort();
+      if (external) {
+        // Map API sort fields to table sort fields
+        const fieldMap: Record<string, VisitorSort['field']> = {
+          'lastActivity': 'lastVisit',
+          'createdAt': 'firstVisit',
+          'updatedAt': 'lastVisit',
+          'lifecycle': 'lifecycle',
+          'connectionStatus': 'status'
+        };
+
+        const mappedField = fieldMap[external.field] || 'lastVisit';
+        const mappedDirection = external.direction.toLowerCase() as 'asc' | 'desc';
+
+        this.currentSort.set({
+          field: mappedField,
+          direction: mappedDirection
+        });
+      }
+    }, { allowSignalWrites: true });
+  }
 
   // Computed values
   readonly filteredVisitors = computed(() => {
@@ -520,8 +547,24 @@ export class VisitorsListComponent {
     if (diffMins < 60) return `Hace ${diffMins}m`;
     if (diffHours < 24) return `Hace ${diffHours}h`;
     if (diffDays < 7) return `Hace ${diffDays}d`;
-    
+
     return new Date(date).toLocaleDateString();
+  }
+
+  formatCreatedAt(date: Date): { date: string; time: string } {
+    if (!date) return { date: '-', time: '' };
+    const d = new Date(date);
+    return {
+      date: d.toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric'
+      }),
+      time: d.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
   }
 
   getInitials(name: string): string {

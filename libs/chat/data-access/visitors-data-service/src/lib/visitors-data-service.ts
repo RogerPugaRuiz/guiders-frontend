@@ -1,13 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { tap, catchError, switchMap, map } from 'rxjs/operators';
+import { tap, catchError, switchMap } from 'rxjs/operators';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
-import { 
-  Visitor, 
-  GetVisitorsResponse,
-  GetTenantVisitorsResponse,
+import {
+  Visitor,
   GetVisitorResponse,
   GetVisitorSessionsResponse,
   CreateChatWithVisitorRequest,
@@ -20,18 +18,14 @@ import {
   EndSessionResponse,
   VisitorStats,
   Chat,
-  GetChatsResponse
+  GetChatsResponse,
+  VisitorSearchRequest,
+  VisitorSearchResponse,
+  QuickFiltersResponse,
+  SavedFiltersResponse,
+  SaveFilterRequest,
+  SaveFilterResponse
 } from '@guiders-frontend/shared/types';
-
-interface VisitorQueryParams {
-  limit?: number;
-  offset?: number;
-  status?: string;
-  search?: string;
-  includeOffline?: boolean;
-  sortBy?: 'createdAt' | 'lastActivity' | 'connectionStatus';
-  sortOrder?: 'asc' | 'desc';
-}
 
 export interface LeadScoreSignals {
   isRecurrentVisitor: boolean;
@@ -73,99 +67,6 @@ export class VisitorsDataService {
   // Función para obtener el token de acceso
   private getAccessToken(): string | null {
     return localStorage.getItem('access-token');
-  }
-
-  // Obtener visitantes con filtros y paginación usando tenant-visitors endpoint
-  getVisitors(companyId: string, params: VisitorQueryParams = {}): Observable<GetVisitorsResponse> {
-    const { limit = 10, offset = 0, status, search, includeOffline, sortBy, sortOrder } = params;
-    
-    let queryParams = new HttpParams()
-      .set('limit', limit.toString())
-      .set('offset', offset.toString());
-      
-    if (status) {
-      queryParams = queryParams.set('status', status);
-    }
-    
-    if (search) {
-      queryParams = queryParams.set('search', search);
-    }
-    
-    if (includeOffline !== undefined) {
-      queryParams = queryParams.set('includeOffline', includeOffline.toString());
-    }
-
-    if (sortBy) {
-      queryParams = queryParams.set('sortBy', sortBy);
-    }
-
-    if (sortOrder) {
-      queryParams = queryParams.set('sortOrder', sortOrder);
-    }
-
-    // Usar el endpoint tenant-visitors con el ID de la empresa obtenido de /api/me/company
-    console.log(`[VisitorsDataService] Calling API: ${this.baseUrl}/tenant-visitors/${companyId}/visitors`);
-    console.log('[VisitorsDataService] Query params:', queryParams.toString());
-
-    // Usar cookies BFF para autenticación (no token manual)
-    const options = {
-      params: queryParams,
-      withCredentials: true // Usa las cookies BFF automáticamente
-    };
-
-    return this.http.get<GetTenantVisitorsResponse>(`${this.baseUrl}/tenant-visitors/${companyId}/visitors`, options)
-      .pipe(
-        tap(response => console.log('[VisitorsDataService] Raw API Response:', response)),
-        map(response => {
-          // Mapear la respuesta del tenant-visitors al formato GetVisitorsResponse
-          const mappedVisitors: Visitor[] = response.visitors.map(apiVisitor => {
-            // Convertir connectionStatus de mayúsculas (backend) a minúsculas (frontend)
-            const connectionStatus = apiVisitor.connectionStatus.toLowerCase() as 'online' | 'offline' | 'away' | 'chatting' | 'busy';
-
-            // Mapear status (VisitorStatus) basado en connectionStatus
-            const status = connectionStatus === 'online' || connectionStatus === 'chatting'
-              ? 'online' as const
-              : connectionStatus === 'away'
-                ? 'idle' as const
-                : 'offline' as const;
-
-            return {
-              id: apiVisitor.id,
-              fingerprint: apiVisitor.fingerprint,
-              lifecycle: 'ANON' as const, // Valor por defecto
-              isNewVisitor: false, // Se puede calcular basado en createdAt
-              status: status,
-              connectionStatus: connectionStatus, // ¡IMPORTANTE! Mapear el connectionStatus completo
-              currentUrl: apiVisitor.currentUrl, // URL actual donde está navegando
-              domain: apiVisitor.siteName,
-              siteId: apiVisitor.siteId,
-              companyId: response.companyId,
-              firstVisit: new Date(apiVisitor.createdAt),
-              lastVisit: new Date(apiVisitor.lastActivity),
-              totalSessions: 1, // Valor por defecto
-              totalPageViews: 0, // Valor por defecto
-              averageSessionDuration: 0, // Valor por defecto
-              hasActiveChat: false, // Valor por defecto
-              totalChats: apiVisitor.totalChatsCount, // Mapear totalChatsCount del backend
-              pendingChatIds: apiVisitor.pendingChatIds || [] // ¡IMPORTANTE! Mapear los chats pendientes del backend
-            };
-          });
-
-          const mappedResponse: GetVisitorsResponse = {
-            visitors: mappedVisitors,
-            total: response.totalCount,
-            hasMore: false, // No hay paginación en este endpoint
-            nextCursor: undefined
-          };
-
-          console.log('[VisitorsDataService] Mapped Response:', mappedResponse);
-          return mappedResponse;
-        }),
-        catchError(error => {
-          console.error('[VisitorsDataService] Error:', error);
-          return throwError(() => error);
-        })
-      );
   }
 
   // Obtener visitante por ID
@@ -604,6 +505,114 @@ export class VisitorsDataService {
         } else {
           return throwError(() => new Error(`No se encontró sitio para el host: ${hostname}`));
         }
+      })
+    );
+  }
+
+  // ============================================
+  // Métodos para Sistema de Filtros Complejos
+  // ============================================
+
+  /**
+   * Buscar visitantes con filtros complejos
+   * POST /tenant-visitors/:tenantId/visitors/search
+   */
+  searchVisitors(
+    tenantId: string,
+    request: VisitorSearchRequest = {}
+  ): Observable<VisitorSearchResponse> {
+    console.log(`[VisitorsDataService] Searching visitors with filters:`, request);
+
+    return this.http.post<VisitorSearchResponse>(
+      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/search`,
+      request,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => console.log('[VisitorsDataService] Search response:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error searching visitors:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Obtener filtros rápidos disponibles con contadores
+   * GET /tenant-visitors/:tenantId/visitors/filters/quick
+   */
+  getQuickFilters(tenantId: string): Observable<QuickFiltersResponse> {
+    console.log(`[VisitorsDataService] Getting quick filters for tenant: ${tenantId}`);
+
+    return this.http.get<QuickFiltersResponse>(
+      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/quick`,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => console.log('[VisitorsDataService] Quick filters:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error getting quick filters:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Obtener filtros guardados del usuario
+   * GET /tenant-visitors/:tenantId/visitors/filters/saved
+   */
+  getSavedFilters(tenantId: string): Observable<SavedFiltersResponse> {
+    console.log(`[VisitorsDataService] Getting saved filters for tenant: ${tenantId}`);
+
+    return this.http.get<SavedFiltersResponse>(
+      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved`,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => console.log('[VisitorsDataService] Saved filters:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error getting saved filters:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Guardar un filtro personalizado
+   * POST /tenant-visitors/:tenantId/visitors/filters/saved
+   * Límite: máximo 20 filtros por usuario
+   */
+  saveFilter(
+    tenantId: string,
+    filter: SaveFilterRequest
+  ): Observable<SaveFilterResponse> {
+    console.log(`[VisitorsDataService] Saving filter:`, filter);
+
+    return this.http.post<SaveFilterResponse>(
+      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved`,
+      filter,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => console.log('[VisitorsDataService] Filter saved:', response)),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error saving filter:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Eliminar un filtro guardado
+   * DELETE /tenant-visitors/:tenantId/visitors/filters/saved/:filterId
+   */
+  deleteFilter(tenantId: string, filterId: string): Observable<void> {
+    console.log(`[VisitorsDataService] Deleting filter: ${filterId}`);
+
+    return this.http.delete<void>(
+      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved/${filterId}`,
+      { withCredentials: true }
+    ).pipe(
+      tap(() => console.log('[VisitorsDataService] Filter deleted')),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error deleting filter:', error);
+        return throwError(() => error);
       })
     );
   }

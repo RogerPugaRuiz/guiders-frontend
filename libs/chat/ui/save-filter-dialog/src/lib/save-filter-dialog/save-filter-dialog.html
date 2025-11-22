@@ -1,0 +1,80 @@
+@if (isOpen()) {
+  <div
+    class="save-filter-dialog__backdrop"
+    (click)="onBackdropClick($event)"
+    (keydown.escape)="onCancel()"
+    tabindex="-1"
+    role="presentation"
+  >
+    <div class="save-filter-dialog__modal" role="dialog" aria-labelledby="save-filter-title" aria-modal="true">
+      <header class="save-filter-dialog__header">
+        <h2 id="save-filter-title" class="save-filter-dialog__title">Guardar filtro</h2>
+      </header>
+
+      <div class="save-filter-dialog__content">
+        @if (isLimitReached) {
+          <div class="save-filter-dialog__warning">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 6v4m0 4h.01M10 18a8 8 0 100-16 8 8 0 000 16z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <p>Has alcanzado el límite de {{ maxFilters() }} filtros guardados. Elimina alguno para poder guardar uno nuevo.</p>
+          </div>
+        } @else {
+          <div class="save-filter-dialog__field">
+            <label class="save-filter-dialog__label" for="filter-name">
+              Nombre <span class="save-filter-dialog__required">*</span>
+            </label>
+            <input
+              id="filter-name"
+              type="text"
+              class="save-filter-dialog__input"
+              placeholder="ej: Leads activos esta semana"
+              [ngModel]="name()"
+              (ngModelChange)="name.set($event)"
+              maxlength="50"
+            />
+          </div>
+
+          <div class="save-filter-dialog__field">
+            <label class="save-filter-dialog__label" for="filter-description">
+              Descripción <span class="save-filter-dialog__optional">(opcional)</span>
+            </label>
+            <textarea
+              id="filter-description"
+              class="save-filter-dialog__textarea"
+              placeholder="Describe brevemente el propósito del filtro..."
+              [ngModel]="description()"
+              (ngModelChange)="description.set($event)"
+              maxlength="200"
+              rows="3"
+            ></textarea>
+          </div>
+
+          <p class="save-filter-dialog__hint">
+            {{ currentFilterCount() }} de {{ maxFilters() }} filtros guardados
+          </p>
+        }
+      </div>
+
+      <footer class="save-filter-dialog__footer">
+        <button
+          type="button"
+          class="save-filter-dialog__btn save-filter-dialog__btn--secondary"
+          (click)="onCancel()"
+        >
+          Cancelar
+        </button>
+        @if (!isLimitReached) {
+          <button
+            type="button"
+            class="save-filter-dialog__btn save-filter-dialog__btn--primary"
+            [disabled]="!isValid"
+            (click)="onSave()"
+          >
+            Guardar
+          </button>
+        }
+      </footer>
+    </div>
+  </div>
+}

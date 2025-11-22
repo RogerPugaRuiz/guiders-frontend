@@ -43,6 +43,27 @@
       </div>
       
       <div class="bento-card-content visitors-panel__content">
+        <!-- Filtros rápidos y activos -->
+        <div class="visitors-panel__filters">
+          <guiders-visitors-quick-filters
+            [filters]="quickFilters()"
+            [activeFilterId]="selectedFilterId()"
+            [loading]="state().loading"
+            [savedFilters]="savedFilters()"
+            [selectedSavedFilterId]="selectedSavedFilterId()"
+            (filterSelect)="onQuickFilterSelect($event)"
+            (savedFilterSelect)="onSavedFilterSelect($event)"
+            (savedFilterDelete)="onSavedFilterDelete($event)"
+          />
+
+          <guiders-visitors-active-filters
+            [filters]="activeSearchFilters()"
+            (removeFilter)="onFilterRemove($event)"
+            (clearAll)="onFiltersClearAll()"
+            (openAdvanced)="onOpenAdvancedFilters()"
+          />
+        </div>
+
         @if (state().error) {
           <div class="error-content">
             <span class="error-text">{{ state().error }}</span>
@@ -59,6 +80,7 @@
               [error]="state().error"
               [config]="listConfig()"
               [selectedVisitorIds]="[]"
+              [externalSort]="activeSearchSort()"
               (visitorClick)="onVisitorClick($event)"
               (visitorSelect)="onVisitorSelect($event)"
               (createChat)="onCreateChat($event)"
@@ -159,4 +181,23 @@
     </div> -->
 
   </div>
+
+  <!-- Modal de filtros avanzados -->
+  <guiders-visitors-advanced-filters
+    [isOpen]="advancedFiltersOpen()"
+    [currentFilters]="activeSearchFilters()"
+    [currentSort]="activeSearchSort()"
+    (apply)="onAdvancedFiltersApply($event)"
+    (closePanel)="onCloseAdvancedFilters()"
+    (saveFilter)="onRequestSaveFilter($event)"
+  />
+
+  <!-- Diálogo para guardar filtro -->
+  <guiders-save-filter-dialog
+    [isOpen]="saveDialogOpen()"
+    [currentFilterCount]="savedFilters().length"
+    [maxFilters]="20"
+    (saveFilter)="onSaveFilter($event)"
+    (cancelDialog)="onCancelSaveDialog()"
+  />
 </div>
