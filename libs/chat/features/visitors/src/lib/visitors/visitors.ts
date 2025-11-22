@@ -906,6 +906,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const filter = this.quickFilters().find(f => f.id === filterId);
     if (!filter) return;
 
+    // Actualizar el filtro seleccionado para mostrar estado activo en UI
+    this.selectedFilterId.set(filterId);
+
     // Limpiar selección de filtro guardado
     this.selectedSavedFilterId.set(null);
 

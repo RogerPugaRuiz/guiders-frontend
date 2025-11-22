@@ -80,14 +80,21 @@ async function setupCompleteTestMocks(page: Page): Promise<void> {
     const url = route.request().url();
     const method = route.request().method();
 
+    // Debug: log all API requests
+    if (url.includes('localhost:3000') || url.includes('/api/') || url.includes('/bff/')) {
+      console.log('[E2E MOCK]', method, url);
+    }
+
     // Block Keycloak redirects
     if (url.includes('keycloak') || url.includes('/realms/') || url.includes('/auth/realms/')) {
+      console.log('[E2E MOCK] Blocking Keycloak:', url);
       route.abort();
       return;
     }
 
-    // Mock BFF auth/me endpoint
+    // Mock BFF auth/me endpoint - match any path containing /bff/auth/me
     if (url.includes('/bff/auth/me')) {
+      console.log('[E2E MOCK] Responding to /bff/auth/me');
       route.fulfill({
         status: 200,
         contentType: 'application/json',
@@ -99,7 +106,29 @@ async function setupCompleteTestMocks(page: Page): Promise<void> {
           app: 'console',
           session: {
             companyId: MOCK_USER.companyId,
-            tenantId: MOCK_USER.tenantId
+            tenantId: MOCK_USER.tenantId,
+            exp: Math.floor(Date.now() / 1000) + 3600 // +1 hora
+          }
+        })
+      });
+      return;
+    }
+
+    // Mock BFF auth/refresh - return success with new session
+    if (url.includes('/bff/auth/refresh')) {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          sub: MOCK_USER.id,
+          email: MOCK_USER.email,
+          name: MOCK_USER.name,
+          roles: ['user', 'commercial'],
+          app: 'console',
+          session: {
+            companyId: MOCK_USER.companyId,
+            tenantId: MOCK_USER.tenantId,
+            exp: Math.floor(Date.now() / 1000) + 3600
           }
         })
       });
@@ -118,6 +147,51 @@ async function setupCompleteTestMocks(page: Page): Promise<void> {
           'Location': redirectUrl
         },
         body: ''
+      });
+      return;
+    }
+
+    // Mock company endpoint - returns company info with domains
+    if (url.includes('/api/me/company')) {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          id: MOCK_USER.companyId,
+          companyName: 'Test Company',
+          domains: ['example.com', 'test.com']
+        })
+      });
+      return;
+    }
+
+    // Mock commercials connect endpoint
+    if (url.includes('/commercials/connect')) {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ connected: true })
+      });
+      return;
+    }
+
+    // Mock sites/user endpoint - required for visitors page to load
+    if (url.includes('/sites/user')) {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          sites: [
+            {
+              id: 'site-1',
+              name: 'Test Site',
+              domain: 'example.com',
+              tenantId: MOCK_USER.tenantId,
+              companyId: MOCK_USER.companyId
+            }
+          ],
+          totalSites: 1
+        })
       });
       return;
     }
@@ -179,9 +253,6 @@ async function setupCompleteTestMocks(page: Page): Promise<void> {
     // Allow all other requests
     route.continue();
   });
-
-  // Navigate to root to initialize auth
-  await page.goto('/');
 }
 
 test.describe('Visitors - Complex Filters', () => {
@@ -193,12 +264,12 @@ test.describe('Visitors - Complex Filters', () => {
     test('should display quick filter chips', async ({ page }) => {
       await page.goto('/visitors');
 
-      // Wait for quick filters to load
-      await expect(page.locator('.quick-filters__list')).toBeVisible();
+      // Wait for first quick filter chip to load (longer timeout due to auth)
+      await expect(page.locator('.quick-filters__chip').first()).toBeVisible({ timeout: 15000 });
 
-      // Verify all quick filters are displayed
+      // Verify all quick filters are displayed (exclude saved filters)
       for (const filter of MOCK_QUICK_FILTERS.filters) {
-        await expect(page.locator(`.quick-filters__chip:has-text("${filter.label}")`)).toBeVisible();
+        await expect(page.locator(`.quick-filters__chip:not(.quick-filters__chip--saved):has-text("${filter.label}")`)).toBeVisible();
       }
     });
 
@@ -206,14 +277,14 @@ test.describe('Visitors - Complex Filters', () => {
       await page.goto('/visitors');
 
       // Check that counts are displayed
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
       await expect(onlineFilter.locator('.quick-filters__count')).toHaveText('5');
     });
 
     test('should activate filter on click and show active state', async ({ page }) => {
       await page.goto('/visitors');
 
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
       await onlineFilter.click();
 
       // Verify active state
@@ -223,7 +294,7 @@ test.describe('Visitors - Complex Filters', () => {
     test('should apply "Leads" quick filter', async ({ page }) => {
       await page.goto('/visitors');
 
-      const leadsFilter = page.locator('.quick-filters__chip:has-text("Leads")');
+      const leadsFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Leads")');
       await leadsFilter.click();
 
       await expect(leadsFilter).toHaveClass(/quick-filters__chip--active/);
@@ -232,7 +303,7 @@ test.describe('Visitors - Complex Filters', () => {
     test('should apply "Hoy" quick filter', async ({ page }) => {
       await page.goto('/visitors');
 
-      const todayFilter = page.locator('.quick-filters__chip:has-text("Hoy")');
+      const todayFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Hoy")');
       await todayFilter.click();
 
       await expect(todayFilter).toHaveClass(/quick-filters__chip--active/);
@@ -241,7 +312,7 @@ test.describe('Visitors - Complex Filters', () => {
     test('should apply "Esta semana" quick filter', async ({ page }) => {
       await page.goto('/visitors');
 
-      const weekFilter = page.locator('.quick-filters__chip:has-text("Esta semana")');
+      const weekFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Esta semana")');
       await weekFilter.click();
 
       await expect(weekFilter).toHaveClass(/quick-filters__chip--active/);
@@ -250,7 +321,7 @@ test.describe('Visitors - Complex Filters', () => {
     test('should deselect quick filter when clicking again', async ({ page }) => {
       await page.goto('/visitors');
 
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
 
       // Click to select
       await onlineFilter.click();
@@ -271,7 +342,7 @@ test.describe('Visitors - Complex Filters', () => {
       await advancedButton.click();
 
       // Verify panel is visible
-      await expect(page.locator('.advanced-filters')).toBeVisible();
+      await expect(page.locator('.advanced-filters__panel')).toBeVisible();
     });
 
     test('should display filter options in advanced panel', async ({ page }) => {
@@ -282,7 +353,8 @@ test.describe('Visitors - Complex Filters', () => {
       await advancedButton.click();
 
       // Check filter sections are present
-      await expect(page.locator('.advanced-filters__section')).toHaveCount({ min: 1 });
+      const sections = page.locator('.advanced-filters__section');
+      await expect(sections.first()).toBeVisible();
     });
 
     test('should close panel when clicking close button', async ({ page }) => {
@@ -291,13 +363,13 @@ test.describe('Visitors - Complex Filters', () => {
       // Open panel
       const advancedButton = page.locator('button:has-text("Filtros")');
       await advancedButton.click();
-      await expect(page.locator('.advanced-filters')).toBeVisible();
+      await expect(page.locator('.advanced-filters__panel')).toBeVisible();
 
       // Close panel
       const closeButton = page.locator('.advanced-filters__close');
       await closeButton.click();
 
-      await expect(page.locator('.advanced-filters')).not.toBeVisible();
+      await expect(page.locator('.advanced-filters__panel')).not.toBeVisible();
     });
 
     test('should apply filters when clicking apply button', async ({ page }) => {
@@ -318,7 +390,7 @@ test.describe('Visitors - Complex Filters', () => {
       await applyButton.click();
 
       // Panel should close
-      await expect(page.locator('.advanced-filters')).not.toBeVisible();
+      await expect(page.locator('.advanced-filters__panel')).not.toBeVisible();
     });
 
     test('should show active filters as chips after applying', async ({ page }) => {
@@ -344,7 +416,7 @@ test.describe('Visitors - Complex Filters', () => {
       await page.goto('/visitors');
 
       // Apply a quick filter first
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
       await onlineFilter.click();
 
       // Should show active filter chip
@@ -364,7 +436,7 @@ test.describe('Visitors - Complex Filters', () => {
       await page.goto('/visitors');
 
       // Apply a filter
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
       await onlineFilter.click();
 
       // Click clear all if available
@@ -562,7 +634,7 @@ test.describe('Visitors - Complex Filters', () => {
       await expect(page.locator('.quick-filters__list')).toBeVisible();
 
       // Apply a quick filter
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
       await onlineFilter.click();
 
       // Verify filter is active (search was called to update results)
@@ -589,7 +661,7 @@ test.describe('Visitors - Complex Filters', () => {
       await expect(savedFilter).toHaveClass(/quick-filters__chip--active/);
 
       // Apply quick filter
-      const onlineFilter = page.locator('.quick-filters__chip:has-text("Online")');
+      const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
       await onlineFilter.click();
 
       // Saved filter should be deselected
