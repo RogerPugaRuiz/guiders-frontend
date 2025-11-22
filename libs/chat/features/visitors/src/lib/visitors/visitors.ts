@@ -702,7 +702,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         )
         .subscribe(response => {
           // Mapear VisitorSearchResult a Visitor
-          const mappedVisitors: Visitor[] = response.visitors.map(v => this.mapSearchResultToVisitor(v));
+          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
 
           this.updateState({
             visitors: mappedVisitors,
@@ -853,7 +853,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         )
         .subscribe(response => {
           // Mapear VisitorSearchResult a Visitor
-          const mappedVisitors: Visitor[] = response.visitors.map(v => this.mapSearchResultToVisitor(v));
+          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
 
           this.updateState({
             visitors: mappedVisitors,
@@ -1110,7 +1110,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       )
       .subscribe(response => {
         // Mapear VisitorSearchResult a Visitor
-        const mappedVisitors: Visitor[] = response.visitors.map(v => this.mapSearchResultToVisitor(v));
+        const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
 
         this.updateState({
           visitors: mappedVisitors,
@@ -1123,6 +1123,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         this.lastRefreshTime.set(new Date());
         this.loadQuickFilters(); // Actualizar contadores
       });
+  }
+
+  /** Mapear array de resultados de búsqueda a Visitors */
+  private mapSearchResultsToVisitors(results: VisitorSearchResult[]): Visitor[] {
+    return results.map(result => this.mapSearchResultToVisitor(result));
   }
 
   /** Mapear resultado de búsqueda a Visitor */

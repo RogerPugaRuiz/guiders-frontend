@@ -106,19 +106,19 @@
   }
 
   &__chip--saved {
-    background: #eff6ff;
-    border-color: #bfdbfe;
-    color: #1e40af;
+    background: tokens.$color-primary-50;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-primary-700;
     position: relative;
     padding-right: tokens.$spacing-xl;
 
     .quick-filters__icon {
-      color: #3b82f6;
+      color: tokens.$color-primary-500;
     }
 
     &:hover {
-      background: #dbeafe;
-      border-color: #93c5fd;
+      background: tokens.$color-surface-secondary;
+      border-color: tokens.$color-border-default;
 
       .quick-filters__delete {
         opacity: 1;
@@ -126,8 +126,8 @@
     }
 
     &.quick-filters__chip--active {
-      background: #3b82f6;
-      border-color: #3b82f6;
+      background: tokens.$color-primary-500;
+      border-color: tokens.$color-primary-500;
       color: tokens.$color-text-inverse;
 
       .quick-filters__icon {
