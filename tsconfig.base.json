@@ -90,6 +90,15 @@
         "libs/shared/design-tokens/src/index.ts"
       ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/onboarding-container": [
+        "libs/shared/ui/onboarding-container/src/index.ts"
+      ],
+      "@guiders-frontend/onboarding-spotlight": [
+        "libs/shared/ui/onboarding-spotlight/src/index.ts"
+      ],
+      "@guiders-frontend/onboarding-tour": [
+        "libs/shared/ui/onboarding-tour/src/index.ts"
+      ],
       "@guiders-frontend/pagination": [
         "libs/shared/ui/pagination/src/index.ts"
       ],

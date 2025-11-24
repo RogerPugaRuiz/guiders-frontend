@@ -1,0 +1,6 @@
+// Onboarding Container Styles
+// The container itself is invisible - it just orchestrates child components
+
+:host {
+  display: contents;
+}

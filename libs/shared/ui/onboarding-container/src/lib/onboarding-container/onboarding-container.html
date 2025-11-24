@@ -1,0 +1,23 @@
+<!-- Spotlight overlay that highlights the target element -->
+@if (isActive() && currentStep()) {
+  <guiders-onboarding-spotlight
+    [targetSelector]="currentStep()!.target ?? null"
+    [isActive]="isActive()"
+  />
+}
+
+<!-- Tour tooltip that shows step information -->
+@if (isActive() && currentStep()) {
+  <guiders-onboarding-tour
+    [step]="currentStep()!"
+    [stepNumber]="currentStepIndex() + 1"
+    [totalSteps]="totalSteps()"
+    [showPrevious]="currentStepIndex() > 0"
+    [showSkip]="true"
+    [isActive]="isActive()"
+    (next)="handleNext()"
+    (previous)="handlePrevious()"
+    (skip)="handleSkip()"
+    (close)="handleClose()"
+  />
+}

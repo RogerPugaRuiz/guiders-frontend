@@ -1,0 +1,6 @@
+@if (isActive() && hasTarget()) {
+  <div class="guiders-spotlight-overlay" [ngStyle]="overlayStyles()">
+    <!-- Dark overlay with cutout -->
+    <div class="guiders-spotlight-cutout" [ngStyle]="spotlightStyles()"></div>
+  </div>
+}

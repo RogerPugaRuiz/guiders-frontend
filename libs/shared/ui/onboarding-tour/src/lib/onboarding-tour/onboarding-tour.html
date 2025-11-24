@@ -1,0 +1,82 @@
+@if (isActive()) {
+  <div class="guiders-tour-tooltip" [ngStyle]="tooltipStyles()">
+    <!-- Header -->
+    <div class="guiders-tour-header">
+      <div class="guiders-tour-header-content">
+        <span class="guiders-tour-step-indicator">
+          Paso {{ stepNumber() }} de {{ totalSteps() }}
+        </span>
+        <button
+          type="button"
+          class="guiders-tour-close"
+          (click)="handleClose()"
+          aria-label="Cerrar tour"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 4L4 12M4 4l8 8"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="guiders-tour-progress">
+        <div
+          class="guiders-tour-progress-bar"
+          [style.width.%]="progressPercent()"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="guiders-tour-content">
+      <h3 class="guiders-tour-title">{{ step().title }}</h3>
+      <p class="guiders-tour-description">{{ step().description }}</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="guiders-tour-actions">
+      <div class="guiders-tour-actions-left">
+        @if (showSkip() && !isLastStep()) {
+          <button
+            type="button"
+            class="guiders-tour-button guiders-tour-button--text"
+            (click)="handleSkip()"
+          >
+            Omitir tour
+          </button>
+        }
+      </div>
+
+      <div class="guiders-tour-actions-right">
+        @if (showPrevious() && !isFirstStep()) {
+          <guiders-button
+            variant="outline"
+            size="small"
+            (click)="handlePrevious()"
+          >
+            Anterior
+          </guiders-button>
+        }
+
+        <guiders-button
+          variant="primary"
+          size="small"
+          (click)="handleNext()"
+        >
+          {{ actionButtonLabel() }}
+        </guiders-button>
+      </div>
+    </div>
+  </div>
+}

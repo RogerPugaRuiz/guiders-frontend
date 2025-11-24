@@ -1,0 +1,183 @@
+@use '@guiders-frontend/design-tokens' as *;
+
+.guiders-tour-tooltip {
+  position: fixed;
+  z-index: calc($z-index-modal + 10);
+  background: $color-surface-primary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-2xl;
+  width: 400px;
+  max-width: calc(100vw - $spacing-lg * 2);
+  pointer-events: auto;
+  animation: tourFadeIn $animation-duration-normal $animation-easing-standard;
+}
+
+@keyframes tourFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% + 10px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+// Header
+.guiders-tour-header {
+  padding: $spacing-md $spacing-md $spacing-sm;
+  border-bottom: 1px solid $color-border-primary;
+}
+
+.guiders-tour-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: $spacing-sm;
+}
+
+.guiders-tour-step-indicator {
+  @include typography('caption');
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+}
+
+.guiders-tour-close {
+  @include button-reset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: $color-text-secondary;
+  border-radius: $border-radius-sm;
+  transition: all $animation-duration-fast $animation-easing-standard;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-surface-hover;
+    color: $color-text-primary;
+  }
+
+  &:active {
+    background: $color-surface-selected;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Progress
+.guiders-tour-progress {
+  position: relative;
+  height: 3px;
+  background: $color-surface-tertiary;
+  border-radius: $border-radius-full;
+  overflow: hidden;
+}
+
+.guiders-tour-progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: $color-brand-primary;
+  border-radius: $border-radius-full;
+  transition: width $animation-duration-normal $animation-easing-standard;
+}
+
+// Content
+.guiders-tour-content {
+  padding: $spacing-lg $spacing-md;
+}
+
+.guiders-tour-title {
+  @include typography('heading-sm');
+  color: $color-text-primary;
+  margin: 0 0 $spacing-sm;
+  font-weight: $font-weight-semibold;
+}
+
+.guiders-tour-description {
+  @include typography('body-medium');
+  color: $color-text-secondary;
+  margin: 0;
+  line-height: $line-height-relaxed;
+}
+
+// Actions
+.guiders-tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md;
+  border-top: 1px solid $color-border-primary;
+  gap: $spacing-md;
+}
+
+.guiders-tour-actions-left,
+.guiders-tour-actions-right {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.guiders-tour-button {
+  @include button-reset;
+  @include typography('body-small');
+  padding: $spacing-xs $spacing-sm;
+  color: $color-text-secondary;
+  border-radius: $border-radius-md;
+  transition: all $animation-duration-fast $animation-easing-standard;
+  cursor: pointer;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    background: $color-surface-hover;
+    color: $color-text-primary;
+  }
+
+  &:active {
+    background: $color-surface-selected;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  &--text {
+    background: transparent;
+  }
+}
+
+// Responsive
+@media (max-width: $breakpoint-md) {
+  .guiders-tour-tooltip {
+    width: calc(100vw - $spacing-lg * 2);
+    max-width: none;
+  }
+
+  .guiders-tour-content {
+    padding: $spacing-md;
+  }
+
+  .guiders-tour-actions {
+    flex-direction: column;
+    align-items: stretch;
+
+    .guiders-tour-actions-left,
+    .guiders-tour-actions-right {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .guiders-tour-actions-right {
+      flex-direction: column;
+
+      guiders-button {
+        width: 100%;
+      }
+    }
+  }
+}

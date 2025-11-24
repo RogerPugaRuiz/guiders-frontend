@@ -48,7 +48,8 @@
             [ariaLabel]="getItemAriaLabel(item)"
             [ariaCurrent]="isItemActive(item) ? 'page' : undefined"
             [ariaExpanded]="item.children && item.children.length > 0 ? isItemExpanded(item.id) : undefined"
-            class="sidebar__nav-link">
+            class="sidebar__nav-link"
+            [attr.data-tour]="'sidebar-' + item.id">
             
             @if (item.icon) {
               <guiders-icon
@@ -188,7 +189,8 @@
         [userName]="userName()"
         [compact]="isCollapsed()"
         (logout)="onUserLogout()"
-        (configureAccount)="onUserConfigureAccount()" />
+        (configureAccount)="onUserConfigureAccount()"
+        data-tour="user-menu" />
     }
   </footer>
 </aside>

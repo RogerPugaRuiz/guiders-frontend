@@ -7,12 +7,16 @@
     (itemClick)="onSidebarItemClick($event)"
     (toggleSidebar)="onSidebarToggle($event)"
     (userLogout)="onLogout()"
-    (userConfigureAccount)="onConfigureAccount()">
+    (userConfigureAccount)="onConfigureAccount()"
+    data-tour="sidebar">
   </guiders-sidebar>
-  
+
   <div class="console-main">
     <main class="console-content">
       <router-outlet></router-outlet>
     </main>
   </div>
 </div>
+
+<!-- Onboarding system -->
+<guiders-onboarding-container />

@@ -1,10 +1,15 @@
 import { Component, signal, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
-import { UserService } from '@guiders-frontend/auth/data-access/session';
+import {
+  UserService,
+  OnboardingService,
+} from '@guiders-frontend/auth/data-access/session';
+import { OnboardingContainer } from '@guiders-frontend/onboarding-container';
+import { consoleTours } from './tours/console-tours';
 
 @Component({
-  imports: [RouterModule, Sidebar],
+  imports: [RouterModule, Sidebar, OnboardingContainer],
   selector: 'console-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -12,6 +17,7 @@ import { UserService } from '@guiders-frontend/auth/data-access/session';
 export class App {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly onboardingService = inject(OnboardingService);
   
   protected title = 'console';
 
@@ -111,5 +117,17 @@ export class App {
     console.log('Configurar cuenta...');
     // TODO: Navegar a la página de configuración cuando esté implementada
     this.router.navigate(['/settings']);
+  }
+
+  constructor() {
+    // Register all console tours
+    this.onboardingService.registerTours(consoleTours);
+
+    // Auto-start welcome tour for new users after a short delay
+    // This gives the app time to render
+    setTimeout(() => {
+      const currentRoute = this.router.url || '/inbox';
+      this.onboardingService.autoStartToursForRoute(currentRoute);
+    }, 1000);
   }
 }

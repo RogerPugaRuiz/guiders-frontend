@@ -1,0 +1,25 @@
+@use '@guiders-frontend/design-tokens' as *;
+
+.guiders-spotlight-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+  transition: opacity $animation-duration-normal $animation-easing-standard;
+  z-index: $z-index-modal;
+}
+
+.guiders-spotlight-cutout {
+  position: fixed;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+  transition:
+    top $animation-duration-normal $animation-easing-standard,
+    left $animation-duration-normal $animation-easing-standard,
+    width $animation-duration-normal $animation-easing-standard,
+    height $animation-duration-normal $animation-easing-standard,
+    border-radius $animation-duration-normal $animation-easing-standard;
+  pointer-events: auto;
+}
