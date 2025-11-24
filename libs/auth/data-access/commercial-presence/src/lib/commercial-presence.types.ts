@@ -34,15 +34,6 @@ export interface ConnectCommercialRequest {
 }
 
 /**
- * Request para enviar heartbeat
- */
-export interface HeartbeatRequest {
-  id: string;
-  lastActivity: string;
-  metadata?: CommercialMetadata;
-}
-
-/**
  * Request para desconectar un comercial
  */
 export interface DisconnectCommercialRequest {

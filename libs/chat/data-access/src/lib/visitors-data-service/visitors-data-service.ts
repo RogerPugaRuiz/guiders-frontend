@@ -2,8 +2,8 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
-import { 
-  Visitor, 
+import {
+  Visitor,
   VisitorFilters,
   VisitorPagination,
   GetVisitorsResponse,
@@ -13,8 +13,6 @@ import {
   CreateChatWithVisitorResponse,
   IdentifyVisitorRequest,
   IdentifyVisitorResponse,
-  HeartbeatRequest,
-  HeartbeatResponse,
   EndSessionRequest,
   EndSessionResponse,
   VisitorStats,
@@ -159,14 +157,6 @@ export class VisitorsDataService {
   identifyVisitor(request: IdentifyVisitorRequest): Observable<IdentifyVisitorResponse> {
     return this.http.post<IdentifyVisitorResponse>(
       `${this.baseUrl}/visitors/identify`,
-      request
-    );
-  }
-
-  // Mantener sesión activa (heartbeat)
-  sendHeartbeat(request: HeartbeatRequest): Observable<HeartbeatResponse> {
-    return this.http.post<HeartbeatResponse>(
-      `${this.baseUrl}/visitors/session/heartbeat`,
       request
     );
   }

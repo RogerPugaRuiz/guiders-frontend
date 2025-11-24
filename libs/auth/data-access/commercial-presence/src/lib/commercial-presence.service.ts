@@ -1,8 +1,9 @@
 import { Injectable, inject, DestroyRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject, throwError, timer, EMPTY } from 'rxjs';
-import { catchError, map, tap, retry, switchMap } from 'rxjs/operators';
+import { Observable, BehaviorSubject, throwError, EMPTY } from 'rxjs';
+import { catchError, map, tap, retry } from 'rxjs/operators';
 import { ENVIRONMENT_TOKEN, UserService } from '@guiders-frontend/auth/data-access/session';
+import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-service';
 import {
   ConnectionStatus,
   CommercialMetadata,
@@ -17,7 +18,7 @@ import {
 /**
  * Servicio de presencia para comerciales
  *
- * Gestiona la conexión, heartbeat y desconexión de comerciales en tiempo real.
+ * Gestiona la conexión y desconexión de comerciales en tiempo real.
  * Implementa reconexión automática y manejo de errores.
  *
  * @see {@link https://github.com/tu-repo/docs/guia-integracion-frontend.md} Guía de Integración
@@ -30,6 +31,7 @@ export class CommercialPresenceService {
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly webSocketService = inject(WebSocketService);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2/commercials`;
 
   // Estado de conexión
@@ -44,10 +46,7 @@ export class CommercialPresenceService {
   readonly lastActivity$ = this.lastActivitySubject.asObservable();
   readonly error$ = this.errorSubject.asObservable();
 
-  // Control del heartbeat
-  private heartbeatIntervalId: ReturnType<typeof setInterval> | null = null;
-  private readonly HEARTBEAT_INTERVAL = 30000; // 30 segundos
-  private readonly RECONNECT_DELAY = 5000; // 5 segundos
+  // Configuración de reintentos
   private readonly MAX_RETRY_ATTEMPTS = 3;
 
   // Información del comercial
@@ -55,9 +54,7 @@ export class CommercialPresenceService {
   private commercialName: string | null = null;
 
   // Métricas y debugging
-  private heartbeatCount = 0;
   private reconnectAttempts = 0;
-  private lastHeartbeatTime: Date | null = null;
   private connectionStartTime: Date | null = null;
 
   // Reconexión automática por actividad del usuario
@@ -65,6 +62,11 @@ export class CommercialPresenceService {
   private lastUserActivityTime = 0;
   private readonly USER_ACTIVITY_DEBOUNCE_MS = 2000; // 2 segundos de debounce
   private reconnectingFromActivity = false;
+
+  // Emisión de actividad vía WebSocket
+  private lastActivityEmissionTime = 0;
+  private readonly ACTIVITY_THROTTLE_MS = 30000; // 30 segundos de throttle
+  private activityListenersEnabled = false;
 
   constructor() {
     // Manejar cierre de pestaña/navegador
@@ -80,7 +82,6 @@ export class CommercialPresenceService {
 
   /**
    * Conectar comercial al sistema
-   * Inicia el heartbeat automático si la conexión es exitosa
    */
   connect(commercialId?: string, commercialName?: string): Observable<CommercialInfo> {
     // Obtener ID del usuario desde UserService si no se proporciona
@@ -145,12 +146,14 @@ export class CommercialPresenceService {
       }),
       tap(commercial => {
         this.connectionStartTime = new Date();
-        this.heartbeatCount = 0;
         this.reconnectAttempts = 0;
         this.isConnectedSubject.next(true);
         this.connectionStatusSubject.next(commercial.connectionStatus);
         this.lastActivitySubject.next(new Date(commercial.lastActivity));
         this.errorSubject.next(null);
+
+        // Habilitar listeners de actividad para emitir user:activity vía WebSocket
+        this.enableActivityListeners();
 
         console.group(`[CommercialPresenceService] ✅ CONECTADO EXITOSAMENTE`);
         console.log('🆔 Commercial ID:', commercial.id);
@@ -159,19 +162,19 @@ export class CommercialPresenceService {
         console.log('⏰ Última actividad:', commercial.lastActivity);
         console.log('📊 Está activo:', commercial.isActive);
         console.log('🕐 Hora de conexión:', this.connectionStartTime.toISOString());
-        console.log('⏱️ Intervalo de heartbeat:', `${this.HEARTBEAT_INTERVAL / 1000}s`);
         console.groupEnd();
-
-        // Iniciar heartbeat automático
-        this.startHeartbeat();
       }),
-      catchError(error => this.handleError('Error al conectar comercial', error))
+      catchError(error => {
+        // Resetear estado de conexión en caso de error
+        this.isConnectedSubject.next(false);
+        this.connectionStatusSubject.next('offline');
+        return this.handleError('Error al conectar comercial', error);
+      })
     );
   }
 
   /**
    * Desconectar comercial del sistema
-   * Detiene el heartbeat automático
    */
   disconnect(): Observable<void> {
     if (!this.isConnectedSubject.value || !this.commercialId) {
@@ -184,9 +187,6 @@ export class CommercialPresenceService {
       ? Math.round((new Date().getTime() - this.connectionStartTime.getTime()) / 1000)
       : 0;
 
-    // Detener heartbeat antes de desconectar
-    this.stopHeartbeat();
-
     const request: DisconnectCommercialRequest = {
       id: this.commercialId
     };
@@ -198,7 +198,6 @@ export class CommercialPresenceService {
       endpoint,
       method: 'POST',
       commercialId: this.commercialId,
-      totalHeartbeats: this.heartbeatCount,
       sessionDuration: `${sessionDuration}s (${Math.round(sessionDuration / 60)}min)`,
       hasAuthToken: !!localStorage.getItem('access-token')
     });
@@ -219,6 +218,9 @@ export class CommercialPresenceService {
         }
       }),
       tap(() => {
+        // Deshabilitar listeners de actividad
+        this.disableActivityListeners();
+
         this.isConnectedSubject.next(false);
         this.connectionStatusSubject.next('offline');
         this.lastActivitySubject.next(null);
@@ -226,14 +228,11 @@ export class CommercialPresenceService {
         console.group('[CommercialPresenceService] ✅ DESCONECTADO EXITOSAMENTE');
         console.log('🆔 Commercial ID:', this.commercialId);
         console.log('⏱️ Duración de sesión:', `${sessionDuration}s (${Math.round(sessionDuration / 60)}min)`);
-        console.log('💓 Total de heartbeats:', this.heartbeatCount);
         console.log('🔄 Intentos de reconexión:', this.reconnectAttempts);
         console.groupEnd();
 
         // Resetear métricas
-        this.heartbeatCount = 0;
         this.reconnectAttempts = 0;
-        this.lastHeartbeatTime = null;
         this.connectionStartTime = null;
       }),
       catchError(error => {
@@ -246,84 +245,6 @@ export class CommercialPresenceService {
         this.isConnectedSubject.next(false);
         this.connectionStatusSubject.next('offline');
         return EMPTY;
-      })
-    );
-  }
-
-  /**
-   * Enviar heartbeat manual
-   * Normalmente esto se hace automáticamente cada 30 segundos
-   */
-  sendHeartbeat(): Observable<CommercialInfo> {
-    if (!this.commercialId) {
-      const error = 'No hay comercial conectado para enviar heartbeat';
-      console.error('[CommercialPresenceService]', error);
-      return throwError(() => new Error(error));
-    }
-
-    this.heartbeatCount++;
-    const timestamp = new Date();
-    const timeSinceLastHeartbeat = this.lastHeartbeatTime
-      ? Math.round((timestamp.getTime() - this.lastHeartbeatTime.getTime()) / 1000)
-      : 0;
-    const timeSinceConnection = this.connectionStartTime
-      ? Math.round((timestamp.getTime() - this.connectionStartTime.getTime()) / 1000)
-      : 0;
-
-    // Payload simplificado: solo enviar el ID
-    const request = {
-      id: this.commercialId
-    };
-
-    const endpoint = `${this.baseUrl}/heartbeat`;
-
-    console.group(`[CommercialPresenceService] 💓 HEARTBEAT #${this.heartbeatCount} - ${timestamp.toISOString()}`);
-    console.log('📤 Request:', {
-      endpoint,
-      method: 'PUT',
-      commercialId: this.commercialId,
-      timeSinceLastHeartbeat: `${timeSinceLastHeartbeat}s`,
-      timeSinceConnection: `${timeSinceConnection}s`,
-      hasAuthToken: !!localStorage.getItem('access-token')
-    });
-    console.groupEnd();
-
-    return this.http.put<ApiResponse<CommercialInfo>>(
-      endpoint,
-      request,
-      this.getHttpOptions()
-    ).pipe(
-      map(response => {
-        console.group(`[CommercialPresenceService] 📥 HEARTBEAT Response #${this.heartbeatCount}`);
-        console.log('✅ Success:', response.success);
-        console.log('📊 Commercial:', response.commercial);
-        console.groupEnd();
-
-        if (!response.success || !response.commercial) {
-          throw new Error(response.message || 'Error en heartbeat');
-        }
-        return response.commercial;
-      }),
-      tap(commercial => {
-        this.lastHeartbeatTime = timestamp;
-        this.lastActivitySubject.next(new Date(commercial.lastActivity));
-
-        console.log(
-          `[CommercialPresenceService] ✅ Heartbeat #${this.heartbeatCount} exitoso - ` +
-          `Estado: ${commercial.connectionStatus} | ` +
-          `Activo: ${commercial.isActive} | ` +
-          `Próximo en ${this.HEARTBEAT_INTERVAL / 1000}s`
-        );
-      }),
-      catchError(error => {
-        console.group(`[CommercialPresenceService] ❌ HEARTBEAT ERROR #${this.heartbeatCount}`);
-        console.error('Error:', error);
-        console.log('⚠️ Iniciando proceso de reconexión...');
-        console.groupEnd();
-
-        // Intentar reconectar si falla el heartbeat
-        this.handleHeartbeatError();
-        return throwError(() => error);
       })
     );
   }
@@ -444,16 +365,11 @@ export class CommercialPresenceService {
 
     // Timing
     connectionStartTime: Date | null;
-    lastHeartbeatTime: Date | null;
     lastActivity: Date | null;
     sessionDuration: number | null; // en segundos
-    timeSinceLastHeartbeat: number | null; // en segundos
 
     // Métricas
-    heartbeatCount: number;
     reconnectAttempts: number;
-    heartbeatInterval: number; // en milisegundos
-    isHeartbeatActive: boolean;
 
     // Configuración
     baseUrl: string;
@@ -462,9 +378,6 @@ export class CommercialPresenceService {
     const now = new Date();
     const sessionDuration = this.connectionStartTime
       ? Math.round((now.getTime() - this.connectionStartTime.getTime()) / 1000)
-      : null;
-    const timeSinceLastHeartbeat = this.lastHeartbeatTime
-      ? Math.round((now.getTime() - this.lastHeartbeatTime.getTime()) / 1000)
       : null;
 
     return {
@@ -476,16 +389,11 @@ export class CommercialPresenceService {
 
       // Timing
       connectionStartTime: this.connectionStartTime,
-      lastHeartbeatTime: this.lastHeartbeatTime,
       lastActivity: this.lastActivitySubject.value,
       sessionDuration,
-      timeSinceLastHeartbeat,
 
       // Métricas
-      heartbeatCount: this.heartbeatCount,
       reconnectAttempts: this.reconnectAttempts,
-      heartbeatInterval: this.HEARTBEAT_INTERVAL,
-      isHeartbeatActive: this.heartbeatIntervalId !== null,
 
       // Configuración
       baseUrl: this.baseUrl,
@@ -509,16 +417,11 @@ export class CommercialPresenceService {
     console.log('═════════════════════════════════════════════');
     console.log('⏱️ TIMING');
     console.log('  Inicio de sesión:', info.connectionStartTime?.toISOString() || 'N/A');
-    console.log('  Último heartbeat:', info.lastHeartbeatTime?.toISOString() || 'N/A');
     console.log('  Última actividad:', info.lastActivity?.toISOString() || 'N/A');
     console.log('  Duración de sesión:', info.sessionDuration ? `${info.sessionDuration}s (${Math.round(info.sessionDuration / 60)}min)` : 'N/A');
-    console.log('  Tiempo desde último heartbeat:', info.timeSinceLastHeartbeat ? `${info.timeSinceLastHeartbeat}s` : 'N/A');
     console.log('═════════════════════════════════════════════');
     console.log('📊 MÉTRICAS');
-    console.log('  Total de heartbeats:', info.heartbeatCount);
     console.log('  Intentos de reconexión:', info.reconnectAttempts);
-    console.log('  Intervalo de heartbeat:', `${info.heartbeatInterval / 1000}s`);
-    console.log('  Heartbeat activo:', info.isHeartbeatActive ? '✅' : '❌');
     console.log('═════════════════════════════════════════════');
     console.log('⚙️ CONFIGURACIÓN');
     console.log('  Base URL:', info.baseUrl);
@@ -563,7 +466,6 @@ export class CommercialPresenceService {
     console.log('[CommercialPresenceService] ⚠️ Marcado como offline localmente');
     this.isConnectedSubject.next(false);
     this.connectionStatusSubject.next('offline');
-    this.stopHeartbeat();
   }
 
   // ===== MÉTODOS PRIVADOS =====
@@ -654,79 +556,6 @@ export class CommercialPresenceService {
   };
 
   /**
-   * Iniciar heartbeat automático
-   */
-  private startHeartbeat(): void {
-    // Limpiar heartbeat anterior si existe
-    this.stopHeartbeat();
-
-    console.log('[CommercialPresenceService] 💓 Iniciando heartbeat (cada 30s)');
-
-    this.heartbeatIntervalId = setInterval(() => {
-      this.sendHeartbeat().subscribe({
-        error: () => {
-          // El error ya se maneja en sendHeartbeat
-        }
-      });
-    }, this.HEARTBEAT_INTERVAL);
-  }
-
-  /**
-   * Detener heartbeat automático
-   */
-  private stopHeartbeat(): void {
-    if (this.heartbeatIntervalId) {
-      clearInterval(this.heartbeatIntervalId);
-      this.heartbeatIntervalId = null;
-      console.log('[CommercialPresenceService] 💔 Heartbeat detenido');
-    }
-  }
-
-  /**
-   * Manejar error en heartbeat e intentar reconexión
-   */
-  private handleHeartbeatError(): void {
-    this.reconnectAttempts++;
-
-    console.group(`[CommercialPresenceService] 🔄 RECONEXIÓN - Intento #${this.reconnectAttempts}`);
-    console.log('⚠️ Heartbeat falló, intentando reconectar...');
-    console.log('🆔 Commercial ID:', this.commercialId);
-    console.log('⏱️ Delay antes de reconectar:', `${this.RECONNECT_DELAY / 1000}s`);
-    console.log('💓 Heartbeats exitosos antes del error:', this.heartbeatCount - 1);
-    console.groupEnd();
-
-    this.stopHeartbeat();
-    this.isConnectedSubject.next(false);
-
-    // Esperar antes de reconectar
-    timer(this.RECONNECT_DELAY).pipe(
-      tap(() => {
-        console.log(`[CommercialPresenceService] ⏰ Ejecutando reconexión #${this.reconnectAttempts}...`);
-      }),
-      switchMap(() => {
-        if (this.commercialId && this.commercialName) {
-          return this.connect(this.commercialId, this.commercialName);
-        }
-        console.error('[CommercialPresenceService] ❌ No hay información del comercial para reconectar');
-        return EMPTY;
-      })
-    ).subscribe({
-      next: () => {
-        console.group('[CommercialPresenceService] ✅ RECONEXIÓN EXITOSA');
-        console.log('🔄 Intento de reconexión:', this.reconnectAttempts);
-        console.log('✅ Servicio restaurado correctamente');
-        console.groupEnd();
-      },
-      error: (error) => {
-        console.group(`[CommercialPresenceService] ❌ RECONEXIÓN FALLIDA #${this.reconnectAttempts}`);
-        console.error('Error:', error);
-        console.log('⚠️ Se intentará reconectar en el siguiente heartbeat');
-        console.groupEnd();
-      }
-    });
-  }
-
-  /**
    * Manejar cierre de pestaña/navegador
    */
   private handleBeforeUnload(): void {
@@ -746,7 +575,6 @@ export class CommercialPresenceService {
       console.group('[CommercialPresenceService] 📡 BEFOREUNLOAD - Cerrando pestaña/navegador');
       console.log('🆔 Commercial ID:', this.commercialId);
       console.log('⏱️ Duración de sesión:', `${sessionDuration}s (${Math.round(sessionDuration / 60)}min)`);
-      console.log('💓 Total de heartbeats:', this.heartbeatCount);
       console.log('📡 Beacon enviado:', beaconSent ? '✅' : '❌');
       console.log('🌐 Endpoint:', `${this.baseUrl}/disconnect`);
       console.groupEnd();
@@ -754,11 +582,79 @@ export class CommercialPresenceService {
   }
 
   /**
+   * Habilitar listeners de actividad para emitir user:activity vía WebSocket
+   */
+  private enableActivityListeners(): void {
+    if (typeof window === 'undefined' || this.activityListenersEnabled) {
+      return;
+    }
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+
+    events.forEach(event => {
+      document.addEventListener(event, this.emitUserActivity, { passive: true });
+    });
+
+    this.activityListenersEnabled = true;
+    console.log('[CommercialPresenceService] 📡 Listeners de actividad WebSocket habilitados');
+  }
+
+  /**
+   * Deshabilitar listeners de actividad WebSocket
+   */
+  private disableActivityListeners(): void {
+    if (typeof window === 'undefined' || !this.activityListenersEnabled) {
+      return;
+    }
+
+    const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+
+    events.forEach(event => {
+      document.removeEventListener(event, this.emitUserActivity);
+    });
+
+    this.activityListenersEnabled = false;
+    this.lastActivityEmissionTime = 0;
+    console.log('[CommercialPresenceService] 🔇 Listeners de actividad WebSocket deshabilitados');
+  }
+
+  /**
+   * Emitir actividad del usuario vía WebSocket con throttle de 30s
+   */
+  private emitUserActivity = (): void => {
+    // Solo emitir si estamos conectados
+    if (!this.isConnectedSubject.value) {
+      return;
+    }
+
+    // Implementar throttle: solo emitir cada 30 segundos
+    const now = Date.now();
+    const timeSinceLastEmission = now - this.lastActivityEmissionTime;
+
+    if (timeSinceLastEmission < this.ACTIVITY_THROTTLE_MS) {
+      return;
+    }
+
+    this.lastActivityEmissionTime = now;
+
+    // Emitir evento user:activity vía WebSocket
+    this.webSocketService.emit('user:activity', {
+      commercialId: this.commercialId,
+      timestamp: new Date().toISOString()
+    });
+
+    // Actualizar última actividad local
+    this.lastActivitySubject.next(new Date());
+
+    console.log('[CommercialPresenceService] 📡 user:activity emitido vía WebSocket');
+  };
+
+  /**
    * Limpiar recursos
    */
   private cleanup(): void {
-    this.stopHeartbeat();
     this.removeUserActivityListeners();
+    this.disableActivityListeners();
 
     if (typeof window !== 'undefined') {
       window.removeEventListener('beforeunload', this.handleBeforeUnload.bind(this));

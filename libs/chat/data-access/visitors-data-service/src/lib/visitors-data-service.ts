@@ -12,8 +12,6 @@ import {
   CreateChatWithVisitorResponse,
   IdentifyVisitorRequest,
   IdentifyVisitorResponse,
-  HeartbeatRequest,
-  HeartbeatResponse,
   EndSessionRequest,
   EndSessionResponse,
   VisitorStats,
@@ -214,15 +212,6 @@ export class VisitorsDataService {
   identifyVisitor(request: IdentifyVisitorRequest): Observable<IdentifyVisitorResponse> {
     return this.http.post<IdentifyVisitorResponse>(
       `${this.baseUrl}/visitors/identify`,
-      request,
-      { withCredentials: true }
-    );
-  }
-
-  // Mantener sesión activa (heartbeat)
-  sendHeartbeat(request: HeartbeatRequest): Observable<HeartbeatResponse> {
-    return this.http.post<HeartbeatResponse>(
-      `${this.baseUrl}/visitors/session/heartbeat`,
       request,
       { withCredentials: true }
     );
