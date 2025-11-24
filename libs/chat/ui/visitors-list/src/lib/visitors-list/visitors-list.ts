@@ -611,4 +611,21 @@ export class VisitorsListComponent {
     return `${seconds}s`;
   }
 
+  truncateUrl(url: string | undefined, maxLength: number = 40): string {
+    if (!url) return '-';
+
+    // Remove protocol for cleaner display
+    let cleanUrl = url.replace(/^https?:\/\//, '');
+
+    if (cleanUrl.length <= maxLength) {
+      return cleanUrl;
+    }
+
+    // Keep start and end, add ellipsis in middle
+    const startLength = Math.floor(maxLength * 0.6);
+    const endLength = maxLength - startLength - 3; // 3 for "..."
+
+    return `${cleanUrl.slice(0, startLength)}...${cleanUrl.slice(-endLength)}`;
+  }
+
 }
