@@ -85,17 +85,24 @@ export async function setupAuthMock(page: Page): Promise<void> {
           app: 'console',
           session: {
             companyId: MOCK_USER.companyId,
-            tenantId: MOCK_USER.tenantId
+            tenantId: MOCK_USER.tenantId,
+            exp: Math.floor(Date.now() / 1000) + 3600 // +1 hora
           }
         })
       });
       return;
     }
 
-    // Bloquear intentos de login BFF
+    // Redirigir intentos de login BFF de vuelta a la app
     if (url.includes('/bff/auth/login')) {
-      console.log('[AUTH MOCK] Bloqueando /bff/auth/login - usuario ya autenticado');
-      route.abort();
+      console.log('[AUTH MOCK] Redirigiendo /bff/auth/login de vuelta a la app');
+      const urlObj = new URL(url);
+      const redirect = urlObj.searchParams.get('redirect') || 'http://localhost:4200/';
+      route.fulfill({
+        status: 302,
+        headers: { 'Location': decodeURIComponent(redirect) },
+        body: ''
+      });
       return;
     }
 

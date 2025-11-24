@@ -192,7 +192,7 @@
 
               <!-- Fecha de creación -->
               <td class="visitors-table__cell visitors-table__cell--created">
-                <div class="created-info">
+                <div class="created-info" title="Fecha de primera visita">
                   <div class="created-date-wrapper">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <circle cx="12" cy="12" r="10"/>
@@ -208,14 +208,14 @@
               <td class="visitors-table__cell visitors-table__cell--activity">
                 <div class="activity-info">
                   <div class="activity-main">
-                    <div class="activity-time-wrapper">
+                    <div class="activity-time-wrapper" title="Última actividad">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10"/>
                         <polyline points="12,6 12,12 16,14"/>
                       </svg>
                       <span class="activity-time">{{ formatLastVisit(visitor.lastVisit) }}</span>
                     </div>
-                    <div class="activity-location">
+                    <div class="activity-location" title="Página actual">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                         <circle cx="12" cy="10" r="3"/>
@@ -225,15 +225,24 @@
                   </div>
                   <div class="activity-stats">
                     @if (visitor.totalChats > 0) {
-                      <div class="stat-badge stat-badge--chats">
+                      <div class="stat-badge stat-badge--chats" title="Total de chats">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
                         </svg>
                         <span>{{ visitor.totalChats }}</span>
                       </div>
                     }
+                    @if (visitor.totalSessionDuration && visitor.totalSessionDuration > 0) {
+                      <div class="stat-badge stat-badge--duration" title="Tiempo total en sitio">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <circle cx="12" cy="12" r="10"/>
+                          <polyline points="12,6 12,12 16,14"/>
+                        </svg>
+                        <span>{{ formatDuration(visitor.totalSessionDuration) }}</span>
+                      </div>
+                    }
                     @if (visitor.totalSessions > 1) {
-                      <div class="stat-badge stat-badge--sessions">
+                      <div class="stat-badge stat-badge--sessions" title="Total de sesiones">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                           <path d="M12 2v10l4 4"/>
                           <circle cx="12" cy="12" r="10"/>

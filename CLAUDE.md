@@ -139,6 +139,7 @@ Always run after significant changes:
 ```bash
 npm run lint:fix
 npm run test
+
 ```
 
 ## Important Files to Reference
@@ -148,7 +149,7 @@ npm run test
 - `tsconfig.base.json` - Path mappings
 - `nx.json` - Generator defaults and target configurations
 - `.github/copilot-instructions.md` - Detailed development patterns
-- `guia-diseno-interfaces-b2b-web-desktop.md` - Complete UI/UX standards
+- `llm/ui-design-prompt.md` - AI prompt guide for UI component generation
 
 Before creating new libraries, check `nx graph` and align with existing dependency patterns. Maintain proper barrel exports from `src/index.ts`.
 
@@ -165,3 +166,4 @@ Before creating new libraries, check `nx graph` and align with existing dependen
 - If the user needs help with an Nx configuration or project graph error, use the `nx_workspace` tool to get any errors
 
 <!-- nx configuration end-->
+- responde siempre en español

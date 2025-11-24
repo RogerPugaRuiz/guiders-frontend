@@ -52,6 +52,7 @@ export interface Visitor {
   totalSessions: number;
   totalPageViews: number;
   averageSessionDuration: number;
+  totalSessionDuration?: number; // Duración total de sesiones en milisegundos
   
   // Estado de chat
   hasActiveChat: boolean;
@@ -223,16 +224,6 @@ export interface IdentifyVisitorResponse {
   isNewVisitor: boolean;
 }
 
-export interface HeartbeatRequest {
-  sessionId?: string;
-  visitorId?: string;
-}
-
-export interface HeartbeatResponse {
-  success: boolean;
-  message: string;
-}
-
 export interface EndSessionRequest {
   sessionId?: string;
   visitorId?: string;
@@ -319,6 +310,8 @@ export interface VisitorSearchFilters {
   siteIds?: string[];
   currentUrlContains?: string;
   hasActiveSessions?: boolean;
+  minTotalSessionsCount?: number; // Filtrar por número mínimo de sesiones
+  maxTotalSessionsCount?: number; // Filtrar por número máximo de sesiones
 }
 
 // Ordenamiento para búsqueda
@@ -349,6 +342,8 @@ export interface VisitorSearchResult {
   updatedAt: string;
   activeSessionsCount: number;
   totalSessionsCount: number;
+  totalSessionDuration: number; // Duración total de sesiones en milisegundos
+  totalChatsCount: number; // Total de chats del visitante
 }
 
 // Paginación de búsqueda

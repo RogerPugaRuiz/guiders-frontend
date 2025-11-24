@@ -920,8 +920,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       'this_week': { lastActivityFrom: this.getStartOfWeek().toISOString() },
       'active': { hasActiveSessions: true },
       'high_intent': { lifecycle: ['LEAD', 'CONVERTED'] },
-      'new_visitors': { lifecycle: ['ANON'] },
-      'returning': { lifecycle: ['ENGAGED', 'LEAD', 'CONVERTED'] }
+      'new_visitors': { maxTotalSessionsCount: 1 }, // Nuevos = 1 sesión
+      'returning': { minTotalSessionsCount: 2 } // Recurrentes = más de 1 sesión
     };
 
     const searchFilters = filterMapping[filterId] || {};
@@ -1145,7 +1145,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       id: result.id,
       fingerprint: result.fingerprint || '',
       lifecycle: result.lifecycle,
-      isNewVisitor: false,
+      isNewVisitor: result.totalSessionsCount === 1,
       status,
       connectionStatus: result.connectionStatus,
       currentUrl: result.currentUrl,
@@ -1157,8 +1157,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       totalSessions: result.totalSessionsCount,
       totalPageViews: 0,
       averageSessionDuration: 0,
+      totalSessionDuration: result.totalSessionDuration || 0,
       hasActiveChat: result.activeSessionsCount > 0,
-      totalChats: 0,
+      totalChats: result.totalChatsCount || 0,
       pendingChatIds: []
     };
   }

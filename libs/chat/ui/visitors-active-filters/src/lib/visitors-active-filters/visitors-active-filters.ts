@@ -95,6 +95,22 @@ export class VisitorsActiveFilters {
       });
     }
 
+    if (filters.minTotalSessionsCount !== undefined) {
+      chips.push({
+        key: 'minTotalSessionsCount',
+        label: 'Sesiones',
+        value: `≥ ${filters.minTotalSessionsCount}`
+      });
+    }
+
+    if (filters.maxTotalSessionsCount !== undefined) {
+      chips.push({
+        key: 'maxTotalSessionsCount',
+        label: 'Sesiones',
+        value: `≤ ${filters.maxTotalSessionsCount}`
+      });
+    }
+
     return chips;
   });
 
