@@ -628,4 +628,61 @@ export class VisitorsListComponent {
     return `${cleanUrl.slice(0, startLength)}...${cleanUrl.slice(-endLength)}`;
   }
 
+  getUrlSegmentTags(url: string | undefined): string[] {
+    if (!url) return ['raíz'];
+
+    try {
+      // Parse URL to get pathname
+      let pathname = url;
+
+      // Remove protocol and domain if present
+      if (url.includes('://')) {
+        const urlObj = new URL(url);
+        pathname = urlObj.pathname;
+      } else if (url.startsWith('/')) {
+        pathname = url;
+      } else {
+        // Just a domain without path
+        return ['raíz'];
+      }
+
+      // Remove query params and hash
+      pathname = pathname.split('?')[0].split('#')[0];
+
+      // Handle root path
+      if (pathname === '/' || pathname === '') {
+        return ['raíz'];
+      }
+
+      // Split into segments and filter empty
+      const segments = pathname.split('/').filter(s => s.length > 0);
+
+      if (segments.length === 0) {
+        return ['raíz'];
+      }
+
+      // Truncate long segments (like UUIDs)
+      const truncateSegment = (segment: string): string => {
+        if (segment.length > 12) {
+          return segment.slice(0, 8) + '...';
+        }
+        return segment;
+      };
+
+      // Return max 3 segments
+      if (segments.length <= 3) {
+        return segments.map(truncateSegment);
+      }
+
+      // More than 3: show first, ..., last
+      return [
+        truncateSegment(segments[0]),
+        '...',
+        truncateSegment(segments[segments.length - 1])
+      ];
+    } catch {
+      return ['raíz'];
+    }
+  }
+
 }
