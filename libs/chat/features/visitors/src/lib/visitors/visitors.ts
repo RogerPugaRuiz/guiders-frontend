@@ -1171,7 +1171,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       totalSessionDuration: result.totalSessionDuration || 0,
       hasActiveChat: result.activeSessionsCount > 0,
       totalChats: result.totalChatsCount || 0,
-      pendingChatIds: []
+      pendingChatIds: result.pendingChatIds || []
     };
   }
 

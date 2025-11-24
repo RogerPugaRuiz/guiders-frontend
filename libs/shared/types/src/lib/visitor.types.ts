@@ -344,6 +344,7 @@ export interface VisitorSearchResult {
   totalSessionsCount: number;
   totalSessionDuration: number; // Duración total de sesiones en milisegundos
   totalChatsCount: number; // Total de chats del visitante
+  pendingChatIds?: string[]; // IDs de chats pendientes de asignar
 }
 
 // Paginación de búsqueda
