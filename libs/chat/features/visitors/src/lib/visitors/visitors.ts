@@ -1015,6 +1015,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       case 'hasActiveSessions':
         delete updatedFilters.hasActiveSessions;
         break;
+      case 'minTotalSessionsCount':
+        delete updatedFilters.minTotalSessionsCount;
+        break;
+      case 'maxTotalSessionsCount':
+        delete updatedFilters.maxTotalSessionsCount;
+        break;
+      case 'sessionCount':
+        // Para eliminar filtros combinados de sesiones (ej: chip de "Nuevos" o "Recurrentes")
+        delete updatedFilters.minTotalSessionsCount;
+        delete updatedFilters.maxTotalSessionsCount;
+        break;
     }
 
     this.activeSearchFilters.set(updatedFilters);
