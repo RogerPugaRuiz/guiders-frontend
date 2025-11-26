@@ -174,15 +174,20 @@
     padding: 0;
     background: transparent;
     border: none;
-    color: tokens.$color-text-tertiary;
+    color: tokens.$color-text-primary;
     cursor: pointer;
     border-radius: tokens.$border-radius-sm;
     transition: all 0.15s ease;
     flex-shrink: 0;
 
+    // Aplicar mismo stroke-width que los iconos del sidebar
+    svg {
+      stroke-width: 2;
+    }
+
     &:hover {
       background: tokens.$color-surface-secondary;
-      color: tokens.$color-text-secondary;
+      color: tokens.$color-text-primary;
     }
 
     &:active {

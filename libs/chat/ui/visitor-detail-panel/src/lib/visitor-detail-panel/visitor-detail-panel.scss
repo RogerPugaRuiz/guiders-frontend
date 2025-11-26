@@ -14,7 +14,6 @@
   flex-direction: column;
   height: 100%;
   background: tokens.$color-surface-primary;
-  border-left: 1px solid tokens.$color-border-default;
   overflow-y: auto;
 
   &--open {
@@ -29,7 +28,6 @@
   align-items: center;
   justify-content: space-between;
   padding: tokens.$spacing-md tokens.$spacing-lg;
-  border-bottom: 1px solid tokens.$color-border-default;
   min-height: 73px;
   box-sizing: border-box;
   position: sticky;
@@ -57,9 +55,14 @@
   background: transparent;
   border: none;
   border-radius: tokens.$border-radius-sm;
-  color: tokens.$color-text-tertiary;
+  color: tokens.$color-text-primary;
   cursor: pointer;
   transition: all 0.2s ease;
+
+  // Aplicar mismo stroke-width que los iconos del sidebar
+  svg {
+    stroke-width: 2;
+  }
 
   &:hover {
     background: tokens.$color-surface-secondary;

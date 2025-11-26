@@ -36,6 +36,7 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   
   @Input({ required: true }) selectedChat!: Chat;
   @Input() showActions = true;
+  @Input() isPanelOpen = false; // Estado del panel de detalles del visitante
   @Input() placeholderMessage = 'Envía un mensaje para iniciar la conversación';
   @Input() messages: Message[] = [];
   @Input() currentUserId: string | null = null;

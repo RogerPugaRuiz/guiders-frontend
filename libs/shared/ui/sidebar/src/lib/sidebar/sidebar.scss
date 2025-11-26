@@ -50,6 +50,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    // Aplicar mismo stroke-width que el toggle button
+    ::ng-deep svg {
+      stroke-width: 2 !important;
+    }
   }
 
   // Estados colapsado
@@ -129,6 +134,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  // Aplicar mismo stroke-width que el toggle button
+  ::ng-deep svg {
+    stroke-width: 2 !important;
+  }
 }
 
 @keyframes sidebar-logo-enter {
@@ -244,6 +254,11 @@
   margin-left: tokens.$spacing-sm;
   color: tokens.$color-text-primary;
 
+  // Aplicar mismo stroke-width que el toggle button
+  ::ng-deep svg {
+    stroke-width: 2 !important;
+  }
+
   &--expanded {
     transform: rotate(180deg);
     color: tokens.$color-text-primary;
@@ -321,6 +336,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+
+  // Aplicar mismo stroke-width que el toggle button
+  ::ng-deep svg {
+    stroke-width: 2 !important;
+  }
 }
 
 .sidebar__submenu-text {
@@ -568,6 +588,11 @@
   justify-content: center;
   font-size: tokens.$font-size-lg;
   width: 20px;
+
+  // Aplicar mismo stroke-width que el toggle button
+  ::ng-deep svg {
+    stroke-width: 2 !important;
+  }
 }
 
 .sidebar__popover-text {
