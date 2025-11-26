@@ -37,7 +37,7 @@
   position: relative;
   overflow-x: hidden;
   overflow-y: visible;
-  border-right: 1px solid tokens.$color-border-light;
+  border-right: 1px solid tokens.$color-border-default;
   // box-shadow: tokens.$shadow-lg;
 
   // Iconos de navegación - definición base
@@ -612,7 +612,7 @@
 // Footer con user menu
 .sidebar__footer {
   margin-top: auto; // Empujar al final
-  border-top: 1px solid tokens.$color-border-subtle;
+  border-top: 1px solid tokens.$color-border-default;
   background: tokens.$color-surface-secondary;
 }
 
