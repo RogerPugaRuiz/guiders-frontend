@@ -626,14 +626,14 @@
 
 .activity-location {
   display: flex;
-  align-items: flex-start; // Cambiado de center a flex-start para permitir wrap vertical
-  gap: 6px;
+  align-items: flex-start; // Permitir wrap vertical del breadcrumb
+  gap: 4px;
 
   svg {
-    color: tokens.$color-text-secondary;
+    color: #71717a;
     flex-shrink: 0;
-    opacity: 0.8;
-    margin-top: 2px; // Ajuste para alinear con la primera línea de texto
+    opacity: 0.7;
+    margin-top: 1px; // Ajuste para alinear con el texto
   }
 }
 
@@ -646,7 +646,7 @@
 .url-segments {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   flex-wrap: wrap; // Permitir que los elementos pasen a la siguiente línea
   max-width: 100%; // Limitar al ancho del contenedor
 }
@@ -658,52 +658,52 @@
   cursor: pointer;
   font-family: inherit;
 
-  // Breadcrumb segment styling
+  // Breadcrumb segment styling - Diseño minimalista
   display: inline-flex;
   align-items: center;
-  padding: 2px 6px;
-  color: tokens.$color-text-secondary;
-  font-size: 10px;
-  font-weight: tokens.$font-weight-medium;
-  border-radius: 3px;
-  max-width: 120px; // Increased from 80px to show more text
+  padding: 0;
+  color: #71717a;
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
 
   // Domain (first segment) gets special styling
   &:first-child {
-    font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
-    max-width: 140px; // Slightly more space for domain
+    font-weight: 600;
+    color: #18181b;
+    max-width: 140px;
   }
 
   // Hover state
   &:hover {
-    background-color: tokens.$color-surface-secondary;
-    color: tokens.$color-text-primary;
+    color: #18181b;
+    text-decoration: underline;
   }
 
   // Active/pressed state
   &:active {
-    transform: scale(0.97);
-    background-color: tokens.$color-surface-tertiary;
+    color: #3b82f6;
   }
 
   // Focus state for accessibility
   &:focus-visible {
-    outline: 2px solid tokens.$color-primary-500;
-    outline-offset: 1px;
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 2px;
   }
 }
 
 .url-segment-separator {
-  color: tokens.$color-text-tertiary;
-  font-size: 12px; // Slightly larger for chevron symbol
+  color: #a1a1aa;
+  font-size: 10px;
   font-weight: 400;
-  margin: 0 2px; // Small spacing around chevron
-  user-select: none; // Prevent text selection
+  opacity: 0.5;
+  margin: 0 3px;
+  user-select: none;
 }
 
 .activity-stats {
