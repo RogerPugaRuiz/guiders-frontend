@@ -87,12 +87,12 @@
     cursor: pointer;
     transition: all 0.15s ease;
 
-    &:hover:not(:disabled) {
+    &:hover:not(.message-input__send-button--disabled) {
       background: #27272a;
       transform: scale(1.05);
     }
 
-    &:active:not(:disabled) {
+    &:active:not(.message-input__send-button--disabled) {
       transform: scale(0.95);
     }
 
@@ -101,7 +101,7 @@
       box-shadow: 0 0 0 3px rgba(24, 24, 27, 0.2);
     }
 
-    &:disabled {
+    &--disabled {
       opacity: 0.3;
       cursor: not-allowed;
       transform: none;
