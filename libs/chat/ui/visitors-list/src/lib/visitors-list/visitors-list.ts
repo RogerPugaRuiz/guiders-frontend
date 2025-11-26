@@ -632,43 +632,34 @@ export class VisitorsListComponent {
     if (!url) return ['raíz'];
 
     try {
-      // Parse URL to get all parts
-      let domain = '';
+      // Parse URL to get pathname
       let pathname = url;
-      let queryParams = '';
 
-      // Extract domain, pathname and query params
+      // Remove protocol and domain if present
       if (url.includes('://')) {
         const urlObj = new URL(url);
-        domain = urlObj.host; // e.g., 'example.com'
         pathname = urlObj.pathname;
-        queryParams = urlObj.search; // Includes '?' prefix
       } else if (url.startsWith('/')) {
-        const [path, query] = url.split('?');
-        pathname = path;
-        queryParams = query ? `?${query}` : '';
+        pathname = url;
       } else {
-        // Just a domain without protocol
-        return [url];
+        // Just a domain without path
+        return ['raíz'];
       }
 
-      // Remove hash but keep query params
-      pathname = pathname.split('#')[0];
-
-      // Start with domain if available
-      const allSegments: string[] = domain ? [domain] : [];
+      // Remove query params and hash
+      pathname = pathname.split('?')[0].split('#')[0];
 
       // Handle root path
       if (pathname === '/' || pathname === '') {
-        // If there are query params but no path, show them
-        if (queryParams) {
-          allSegments.push(queryParams);
-        }
-        return allSegments.length > 0 ? allSegments : ['raíz'];
+        return ['raíz'];
       }
 
       // Split into segments and filter empty
-      const pathSegments = pathname.split('/').filter(s => s.length > 0);
+      const segments = pathname.split('/').filter(s => s.length > 0);
+
+      if (segments.length === 0) {
+        return ['raíz'];
+      }
 
       // Truncate long segments (like UUIDs)
       const truncateSegment = (segment: string): string => {
@@ -678,85 +669,19 @@ export class VisitorsListComponent {
         return segment;
       };
 
-      // Add path segments with truncation
-      allSegments.push(...pathSegments.map(truncateSegment));
-
-      // Add query params as last segment if present
-      if (queryParams) {
-        allSegments.push(queryParams);
+      // Return max 3 segments
+      if (segments.length <= 3) {
+        return segments.map(truncateSegment);
       }
 
-      return allSegments.length > 0 ? allSegments : ['raíz'];
+      // More than 3: show first, ..., last
+      return [
+        truncateSegment(segments[0]),
+        '...',
+        truncateSegment(segments[segments.length - 1])
+      ];
     } catch {
       return ['raíz'];
-    }
-  }
-
-  /**
-   * Handle breadcrumb segment click - opens URL up to that segment in a new tab
-   */
-  onBreadcrumbSegmentClick(event: Event, segmentIndex: number, url: string | undefined): void {
-    event.stopPropagation();
-
-    if (!url) return;
-
-    try {
-      // Parse URL to reconstruct path up to clicked segment
-      let protocol = 'https';
-      let domain = '';
-      let pathname = url;
-      let queryParams = '';
-
-      // Extract all parts
-      if (url.includes('://')) {
-        const urlObj = new URL(url);
-        protocol = urlObj.protocol.replace(':', '');
-        domain = urlObj.host;
-        pathname = urlObj.pathname;
-        queryParams = urlObj.search;
-      } else if (url.startsWith('/')) {
-        const [path, query] = url.split('?');
-        pathname = path;
-        queryParams = query ? `?${query}` : '';
-        // No domain available, can't open URL
-        return;
-      } else {
-        return;
-      }
-
-      // Get displayed segments
-      const displayedSegments = this.getUrlSegmentTags(url);
-      const clickedSegment = displayedSegments[segmentIndex];
-
-      // Check if clicked on query params
-      const isQueryParamSegment = clickedSegment?.startsWith('?');
-
-      let reconstructedUrl: string;
-
-      if (segmentIndex === 0) {
-        // Clicked on domain - open just the domain
-        reconstructedUrl = `${protocol}://${domain}`;
-      } else if (isQueryParamSegment) {
-        // Clicked on query params - include full path + params
-        reconstructedUrl = `${protocol}://${domain}${pathname}${queryParams}`;
-      } else {
-        // Regular path segment
-        // Index 0 is domain, so path segments start at index 1
-        const pathSegments = pathname.split('/').filter(s => s.length > 0);
-        // Calculate how many path segments to include (subtract 1 for domain)
-        const pathSegmentsToInclude = pathSegments.slice(0, segmentIndex);
-
-        if (pathSegmentsToInclude.length === 0) {
-          reconstructedUrl = `${protocol}://${domain}`;
-        } else {
-          reconstructedUrl = `${protocol}://${domain}/${pathSegmentsToInclude.join('/')}`;
-        }
-      }
-
-      // Open in new tab
-      window.open(reconstructedUrl, '_blank', 'noopener,noreferrer');
-    } catch (error) {
-      console.error('Failed to open URL:', error);
     }
   }
 
