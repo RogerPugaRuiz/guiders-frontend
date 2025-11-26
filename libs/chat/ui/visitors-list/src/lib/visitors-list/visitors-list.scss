@@ -626,13 +626,14 @@
 
 .activity-location {
   display: flex;
-  align-items: center;
+  align-items: flex-start; // Cambiado de center a flex-start para permitir wrap vertical
   gap: 6px;
-  
+
   svg {
     color: tokens.$color-text-secondary;
     flex-shrink: 0;
     opacity: 0.8;
+    margin-top: 2px; // Ajuste para alinear con la primera línea de texto
   }
 }
 
