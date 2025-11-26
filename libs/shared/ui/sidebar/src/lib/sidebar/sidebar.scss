@@ -22,8 +22,8 @@
   
   &:not(.compact) {
     --sidebar-header-height: 64px;
-    --sidebar-nav-item-height: #{tokens.$size-3xl}; // 48px  
-    --sidebar-nav-padding: #{tokens.$spacing-md};
+    --sidebar-nav-item-height: 40px;
+    --sidebar-nav-padding: #{tokens.$spacing-sm};
   }
 }
 
@@ -35,7 +35,8 @@
   transition: width tokens.$duration-normal tokens.$easing-standard;
   background: tokens.$color-surface-secondary;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
   border-right: 1px solid tokens.$color-border-light;
   // box-shadow: tokens.$shadow-lg;
 
@@ -60,10 +61,15 @@
 
     .sidebar__nav-link {
       justify-content: center;
-      padding: tokens.$spacing-md;
-      
+      padding: tokens.$spacing-sm;
+      margin: 0 tokens.$spacing-sm;
+      width: calc(100% - 2 * tokens.$spacing-sm);
+      display: flex;
+      align-items: center;
+
       .sidebar__nav-icon {
         margin-right: 0;
+        margin-left: 0;
       }
     }
 
@@ -111,7 +117,7 @@
 
 .sidebar__logo-icon {
   flex-shrink: 0;
-  color: tokens.$color-text-secondary;
+  color: tokens.$color-text-primary;
   font-size: tokens.$font-size-xl;
   display: flex;
   align-items: center;
@@ -132,36 +138,17 @@
 .sidebar__logo-text {
   font-size: tokens.$font-size-xl;
   font-weight: tokens.$font-weight-bold;
-  color: tokens.$color-text-secondary;
+  color: tokens.$color-text-primary;
   line-height: tokens.$line-height-tight;
 }
 
 // Navegación
 .sidebar__nav {
-  flex: 1;
-  overflow-y: auto;
+  flex: 0 1 auto;
+  overflow-y: visible;
   padding: tokens.$spacing-lg 0;
-  
-  // Scroll personalizado
-  scrollbar-width: thin;
-  scrollbar-color: tokens.$color-border-default transparent;
-  
-  &::-webkit-scrollbar {
-    width: 4px;
-  }
-  
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: tokens.$color-border-default;
-    border-radius: tokens.$border-radius-md;
-  }
-  
-  &::-webkit-scrollbar-thumb:hover {
-    background: tokens.$color-border-strong;
-  }
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar__nav-list {
@@ -176,26 +163,28 @@
 
 // Enlaces de navegación
 .sidebar__nav-link {
-  width: 100%;
+  width: calc(100% - 2 * tokens.$spacing-sm);
   justify-content: flex-start;
   text-align: left;
   position: relative;
   margin: 0 tokens.$spacing-sm;
   border-radius: tokens.$border-radius-md;
-  
+  display: flex;
+  align-items: center;
+
   // Sobrescribir estilos del Button para layout específico
   &.sidebar__nav-link {
     min-height: var(--sidebar-nav-item-height);
-    padding: var(--sidebar-nav-padding) tokens.$spacing-lg;
-    
+    padding: var(--sidebar-nav-padding) tokens.$spacing-md;
+
     // Remover estilos de Button y aplicar los del sidebar
     background: transparent;
     border: none;
-    color: tokens.$color-text-tertiary;
-    
+    color: tokens.$color-text-primary;
+
     &:hover {
       background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-secondary;
+      color: tokens.$color-text-primary;
     }
     
     &:focus-visible {
@@ -205,19 +194,22 @@
   
   // Estado activo
   &--active {
-    background: tokens.$color-surface-tertiary !important;
+    background: tokens.$color-surface-pressed !important;
     color: tokens.$color-text-primary !important;
     font-weight: tokens.$font-weight-semibold;
 
-    &::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 20%;
-      bottom: 20%;
-      width: 2px;
-      background: tokens.$color-text-primary;
-      border-radius: 0 tokens.$border-radius-sm tokens.$border-radius-sm 0;
+    // Barra indicadora solo visible cuando el sidebar está expandido
+    .sidebar:not(.sidebar--collapsed) & {
+      &::before {
+        content: '';
+        position: absolute;
+        left: tokens.$spacing-xs;
+        top: 20%;
+        bottom: 20%;
+        width: 3px;
+        background: tokens.$color-primary-500;
+        border-radius: tokens.$border-radius-sm;
+      }
     }
   }
   
@@ -243,11 +235,11 @@
   font-size: tokens.$font-size-sm;
   transition: transform tokens.$duration-fast tokens.$easing-standard;
   margin-left: tokens.$spacing-sm;
-  color: tokens.$color-text-tertiary;
+  color: tokens.$color-text-primary;
 
   &--expanded {
     transform: rotate(180deg);
-    color: tokens.$color-text-secondary;
+    color: tokens.$color-text-primary;
   }
 }
 
@@ -291,25 +283,25 @@
   &.sidebar__submenu-link {
     min-height: tokens.$size-2xl;
     padding: tokens.$spacing-sm tokens.$spacing-md;
-    
+
     background: transparent;
     border: none;
-    color: tokens.$color-text-tertiary;
-    
+    color: tokens.$color-text-primary;
+
     &:hover {
       background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-secondary;
+      color: tokens.$color-text-primary;
     }
-    
+
     &:focus-visible {
       outline: 2px solid tokens.$color-primary-500;
       outline-offset: 1px;
     }
   }
-  
+
   // Estado activo para submenu
   &--active {
-    color: #000000 !important;
+    color: tokens.$color-text-primary !important;
   }
 }
 
@@ -538,7 +530,7 @@
   cursor: pointer;
   font-size: tokens.$font-size-sm;
   font-weight: tokens.$font-weight-medium;
-  color: tokens.$color-text-secondary;
+  color: tokens.$color-text-primary;
   transition: background-color tokens.$duration-fast tokens.$easing-standard,
               color tokens.$duration-fast tokens.$easing-standard;
   line-height: tokens.$line-height-tight;
