@@ -912,6 +912,23 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // Limpiar selección de filtro guardado
     this.selectedSavedFilterId.set(null);
 
+    // Resetear paginación a la página 1
+    const currentState = this.state();
+    this.updateState({
+      pagination: {
+        ...currentState.pagination,
+        currentPage: 1,
+        offset: 0
+      }
+    });
+
+    // Actualizar la URL para reflejar la página 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1 },
+      queryParamsHandling: 'merge'
+    });
+
     // Aplicar filtro según el ID (mapear a filtros de búsqueda)
     const filterMapping: Record<string, VisitorSearchFilters> = {
       'online': { connectionStatus: ['online', 'chatting'] },
@@ -935,6 +952,23 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     this.selectedSavedFilterId.set(filter.id);
     // Limpiar selección de filtro rápido
     this.selectedFilterId.set('');
+
+    // Resetear paginación a la página 1
+    const currentState = this.state();
+    this.updateState({
+      pagination: {
+        ...currentState.pagination,
+        currentPage: 1,
+        offset: 0
+      }
+    });
+
+    // Actualizar la URL para reflejar la página 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1 },
+      queryParamsHandling: 'merge'
+    });
 
     // Aplicar los filtros y ordenamiento del filtro guardado
     this.activeSearchFilters.set(filter.filters);
@@ -974,6 +1008,23 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   /** Aplicar filtros avanzados */
   onAdvancedFiltersApply(event: { filters: VisitorSearchFilters; sort?: VisitorSearchSort }): void {
+    // Resetear paginación a la página 1
+    const currentState = this.state();
+    this.updateState({
+      pagination: {
+        ...currentState.pagination,
+        currentPage: 1,
+        offset: 0
+      }
+    });
+
+    // Actualizar la URL para reflejar la página 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1 },
+      queryParamsHandling: 'merge'
+    });
+
     this.activeSearchFilters.set(event.filters);
     if (event.sort) {
       this.activeSearchSort.set(event.sort);
@@ -1028,12 +1079,46 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         break;
     }
 
+    // Resetear paginación a la página 1
+    const currentState = this.state();
+    this.updateState({
+      pagination: {
+        ...currentState.pagination,
+        currentPage: 1,
+        offset: 0
+      }
+    });
+
+    // Actualizar la URL para reflejar la página 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1 },
+      queryParamsHandling: 'merge'
+    });
+
     this.activeSearchFilters.set(updatedFilters);
     this.searchVisitorsWithFilters();
   }
 
   /** Limpiar todos los filtros */
   onFiltersClearAll(): void {
+    // Resetear paginación a la página 1
+    const currentState = this.state();
+    this.updateState({
+      pagination: {
+        ...currentState.pagination,
+        currentPage: 1,
+        offset: 0
+      }
+    });
+
+    // Actualizar la URL para reflejar la página 1
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 1 },
+      queryParamsHandling: 'merge'
+    });
+
     this.activeSearchFilters.set({});
     this.searchVisitorsWithFilters();
   }
