@@ -222,9 +222,16 @@
                       </svg>
                       <div class="url-segments">
                         @for (segment of getUrlSegmentTags(visitor.currentUrl); track $index; let last = $last) {
-                          <span class="url-segment-tag">{{ segment }}</span>
+                          <button
+                            type="button"
+                            class="url-segment-tag"
+                            (click)="onBreadcrumbSegmentClick($event, $index, visitor.currentUrl)"
+                            [attr.aria-label]="'Abrir URL hasta ' + segment + ' en nueva pestaña'"
+                            [title]="'Click para abrir: ' + segment">
+                            {{ segment }}
+                          </button>
                           @if (!last) {
-                            <span class="url-segment-separator">/</span>
+                            <span class="url-segment-separator" aria-hidden="true">›</span>
                           }
                         }
                       </div>
