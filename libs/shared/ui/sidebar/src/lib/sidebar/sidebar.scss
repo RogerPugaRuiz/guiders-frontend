@@ -55,8 +55,15 @@
   // Estados colapsado
   &--collapsed {
     .sidebar__header {
-      padding: tokens.$spacing-md tokens.$spacing-sm;
-      justify-content: center;
+      padding: tokens.$spacing-md 0;
+      display: block;
+      text-align: center;
+      min-height: var(--sidebar-header-height);
+    }
+
+    .sidebar__toggle {
+      margin: 0;
+      display: inline-block;
     }
 
     .sidebar__nav-link {

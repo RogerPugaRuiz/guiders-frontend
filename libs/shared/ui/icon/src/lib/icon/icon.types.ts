@@ -46,6 +46,7 @@ export type IconName =
   // Comunicación
   | 'message-circle'
   | 'message-square'
+  | 'inbox'
   | 'mail'
   | 'phone'
   | 'bell'
@@ -148,7 +149,7 @@ export const ICON_CATEGORIES = {
     'help-circle', 'loading', 'eye', 'eye-off'
   ],
   communication: [
-    'message-circle', 'message-square', 'mail', 'phone', 'bell', 'bell-off',
+    'message-circle', 'message-square', 'inbox', 'mail', 'phone', 'bell', 'bell-off',
     'video', 'microphone', 'microphone-off'
   ],
   users: [

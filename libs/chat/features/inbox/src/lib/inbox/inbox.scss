@@ -28,6 +28,8 @@
     max-width: 400px;
     height: 100%;
     overflow: hidden;
+    background: tokens.$color-surface-primary;
+    border-right: 1px solid tokens.$color-border-default;
   }
 
   &__main {
@@ -35,6 +37,8 @@
     height: 100%;
     overflow: hidden;
     min-width: 0; // Permite que el contenido se contraiga
+    background: tokens.$color-surface-secondary;
+    transition: background-color tokens.$duration-normal tokens.$easing-standard;
   }
 
   &__detail-panel {
@@ -42,6 +46,9 @@
     height: 100%;
     overflow: hidden;
     animation: slideInRight 0.25s ease-out;
+    background: tokens.$color-surface-primary;
+    border-left: 1px solid tokens.$color-border-default;
+    box-shadow: tokens.$shadow-lg;
   }
 
   // Estado cuando el panel está abierto
@@ -100,11 +107,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      
+
       &::before {
         content: 'Cargando...';
         color: tokens.$color-text-secondary;
         font-size: tokens.$font-size-lg;
+        font-weight: tokens.$font-weight-medium;
       }
     }
   }
@@ -116,11 +124,12 @@
       justify-content: center;
       flex-direction: column;
       gap: tokens.$spacing-md;
-      
+
       &::before {
         content: 'Error al cargar';
-        color: #ef4444; // Rojo para estado de error
+        color: tokens.$color-danger-500;
         font-size: tokens.$font-size-lg;
+        font-weight: tokens.$font-weight-semibold;
       }
     }
   }

@@ -110,12 +110,12 @@
 }
 
 .visitors-table__header {
-  color: #64748b;
+  color: tokens.$color-text-secondary;
   padding: tokens.$spacing-sm;
   text-align: left;
   font-weight: tokens.$font-weight-medium;
   background: tokens.$color-surface-primary;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid tokens.$color-border-subtle;
   white-space: nowrap;
   font-size: 12px;
   position: sticky;
@@ -124,14 +124,14 @@
   
   &--pending-chats {
     text-align: center;
-    color: #d97706;
+    color: tokens.$color-warning-700;
     font-weight: tokens.$font-weight-semibold;
     
     .header-content {
       justify-content: center;
       
       svg {
-        color: #f59e0b;
+        color: tokens.$color-warning-600;
         opacity: 0.8;
       }
     }
@@ -162,11 +162,11 @@
     user-select: none;
 
     &:hover {
-      background-color: #f8fafc; // Color sólido en lugar de transparente para evitar z-index issues
+      background-color: tokens.$color-surface-hover; // Color sólido en lugar de transparente para evitar z-index issues
     }
 
     &.visitors-table__header--active {
-      color: #007bff;
+      color: tokens.$color-primary-500;
     }
   }
   
@@ -176,13 +176,13 @@
 }
 
 .visitors-table__row {
-  border-bottom: 1px solid #d1d5db !important;
+  border-bottom: 1px solid tokens.$color-border-default !important;
   cursor: pointer;
   transition: background-color tokens.$duration-fast tokens.$easing-standard;
   position: relative;
   
   &:hover {
-    background-color: #f8fafc;
+    background-color: tokens.$color-surface-hover;
   }
   
   &--selected {
@@ -282,7 +282,7 @@
   border: 2px solid white;
   
   &--online {
-    background-color: #10b981;
+    background-color: tokens.$color-success-600;
     animation: pulse-green 2s infinite;
   }
   
@@ -291,7 +291,7 @@
   }
   
   &--idle {
-    background-color: #f59e0b;
+    background-color: tokens.$color-warning-600;
     animation: pulse-yellow 2s infinite;
   }
 }
@@ -331,7 +331,7 @@
 
 .name-text {
   font-weight: tokens.$font-weight-semibold;
-  color: #0f172a;
+  color: tokens.$color-text-primary;
   font-size: 13px;
 }
 
@@ -346,7 +346,7 @@
   align-items: center;
   gap: 3px;
   font-size: 11px;
-  color: #64748b;
+  color: tokens.$color-text-secondary;
   
   svg {
     width: 10px;
@@ -361,7 +361,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #64748b;
+  color: tokens.$color-text-secondary;
   
   svg {
     flex-shrink: 0;
@@ -376,7 +376,7 @@
   padding: 1px 4px;
   background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
   color: white;
-  border-radius: 6px;
+  border-radius: tokens.$border-radius-base;
   font-size: 9px;
   font-weight: tokens.$font-weight-bold;
   text-transform: uppercase;
@@ -408,13 +408,13 @@
     color: #065f46;
 
     .status-dot {
-      background-color: #10b981;
+      background-color: tokens.$color-success-600;
     }
   }
 
   &--offline {
     background-color: #f3f4f6;
-    color: #374151;
+    color: tokens.$color-text-secondary;
 
     .status-dot {
       background-color: #6b7280;
@@ -426,7 +426,7 @@
     color: #92400e;
 
     .status-dot {
-      background-color: #f59e0b;
+      background-color: tokens.$color-warning-600;
     }
   }
 
@@ -435,7 +435,7 @@
     color: #92400e;
 
     .status-dot {
-      background-color: #f59e0b;
+      background-color: tokens.$color-warning-600;
     }
   }
 
@@ -453,7 +453,7 @@
     color: #1e40af;
 
     .status-dot {
-      background-color: #3b82f6;
+      background-color: tokens.$color-info-600;
     }
   }
 }
@@ -512,7 +512,7 @@
 .visitor-info__new-badge {
   display: inline-block;
   padding: tokens.$spacing-xs tokens.$spacing-sm;
-  background-color: #f59e0b;
+  background-color: tokens.$color-warning-600;
   color: white;
   border-radius: tokens.$border-radius-sm;
   @include tokens.typography('caption');
@@ -533,13 +533,13 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 6px;
-  border-radius: 8px;
+  border-radius: tokens.$border-radius-md;
   font-size: 10px;
   font-weight: tokens.$font-weight-medium;
   
   &--gray {
     background-color: #f3f4f6;
-    color: #374151;
+    color: tokens.$color-text-secondary;
   }
   
   &--blue {
@@ -613,14 +613,14 @@
   svg {
     width: 12px;
     height: 12px;
-    color: #3b82f6;
+    color: tokens.$color-info-600;
     flex-shrink: 0;
   }
 }
 
 .activity-time {
   font-weight: tokens.$font-weight-semibold;
-  color: #0f172a;
+  color: tokens.$color-text-primary;
   font-size: 12px;
 }
 
@@ -630,7 +630,7 @@
   gap: 6px;
   
   svg {
-    color: #64748b;
+    color: tokens.$color-text-secondary;
     flex-shrink: 0;
     opacity: 0.8;
   }
@@ -638,7 +638,7 @@
 
 .location-text {
   font-size: 12px;
-  color: #64748b;
+  color: tokens.$color-text-secondary;
   font-weight: tokens.$font-weight-medium;
 }
 
@@ -652,7 +652,7 @@
 .url-segment-tag {
   display: inline-block;
   padding: 1px 4px;
-  background-color: #f1f5f9;
+  background-color: tokens.$color-surface-tertiary;
   color: #475569;
   font-size: 10px;
   font-weight: tokens.$font-weight-medium;
@@ -680,7 +680,7 @@
   align-items: center;
   gap: 2px;
   padding: 1px 4px;
-  border-radius: 6px;
+  border-radius: tokens.$border-radius-base;
   font-size: 9px;
   font-weight: tokens.$font-weight-medium;
   
@@ -694,18 +694,18 @@
     color: #1e40af;
     
     svg {
-      color: #3b82f6;
+      color: tokens.$color-info-600;
     }
   }
   
   &--pending-chats {
     background-color: #fef3c7;
-    color: #d97706;
-    border: 1px solid #f59e0b;
+    color: tokens.$color-warning-700;
+    border: 1px solid tokens.$color-warning-600;
     animation: pulse-pending 2s infinite;
     
     svg {
-      color: #f59e0b;
+      color: tokens.$color-warning-600;
     }
   }
   
@@ -732,7 +732,7 @@
     color: #92400e;
     
     svg {
-      color: #f59e0b;
+      color: tokens.$color-warning-600;
     }
   }
 }
@@ -742,7 +742,7 @@
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #64748b;
+  color: tokens.$color-text-secondary;
   
   svg {
     width: 12px;
@@ -853,7 +853,7 @@
   }
   
   &--primary {
-    background-color: #3b82f6;
+    background-color: tokens.$color-info-600;
     border-color: #3b82f6;
     color: white;
     
@@ -867,7 +867,7 @@
   }
   
   &--active {
-    background-color: #10b981;
+    background-color: tokens.$color-success-600;
     border-color: #10b981;
     color: white;
     
@@ -881,28 +881,28 @@
   
   &--ghost {
     background-color: transparent;
-    border-color: #e2e8f0;
-    color: #64748b;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-secondary;
     padding: 4px;
 
     &:hover {
-      background-color: #f1f5f9;
-      border-color: #cbd5e1;
-      color: #374151;
+      background-color: tokens.$color-surface-tertiary;
+      border-color: tokens.$color-border-default;
+      color: tokens.$color-text-secondary;
       transform: none; /* ensure no move */
       box-shadow: none;
     }
   }
 
   &--secondary {
-    background-color: #f1f5f9;
-    border-color: #e2e8f0;
-    color: #64748b;
+    background-color: tokens.$color-surface-tertiary;
+    border-color: tokens.$color-border-subtle;
+    color: tokens.$color-text-secondary;
 
     &:hover {
-      background-color: #e2e8f0;
-      border-color: #cbd5e1;
-      color: #475569;
+      background-color: tokens.$color-surface-tertiary;
+      border-color: tokens.$color-border-default;
+      color: tokens.$color-text-secondary;
       transform: none;
       box-shadow: none;
 
@@ -915,7 +915,7 @@
   }
 
   &--warning {
-    background-color: #f59e0b;
+    background-color: tokens.$color-warning-600;
     border-color: #f59e0b;
     color: white;
 
@@ -965,8 +965,8 @@
   min-width: 160px;
   margin-top: 4px; // Pequeño espacio desde el botón
   background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: tokens.$border-radius-md;
   padding: 4px 0;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
@@ -981,7 +981,7 @@
   border: none;
   text-align: left;
   font-size: 13px;
-  color: #374151;
+  color: tokens.$color-text-secondary;
   cursor: pointer;
   transition: background-color tokens.$duration-fast;
   
@@ -1009,15 +1009,15 @@
   font-size: tokens.$font-size-base;
   cursor: pointer;
   transition: all tokens.$duration-fast tokens.$easing-standard;
-  color: #64748b;
+  color: tokens.$color-text-secondary;
   
   &:hover {
-    background-color: #f1f5f9;
-    color: #1e293b;
+    background-color: tokens.$color-surface-tertiary;
+    color: tokens.$color-text-primary;
   }
   
   &:active {
-    background-color: #e2e8f0;
+    background-color: tokens.$color-surface-tertiary;
   }
   
   &--chat {
@@ -1030,7 +1030,7 @@
   &--details {
     &:hover {
       background-color: #f3f4f6;
-      color: #374151;
+      color: tokens.$color-text-secondary;
     }
   }
   
@@ -1085,7 +1085,7 @@
     align-items: center;
     gap: tokens.$spacing-xs;
     font-weight: tokens.$font-weight-semibold;
-    color: #d97706;
+    color: tokens.$color-warning-700;
     
     svg {
       width: 16px;
@@ -1447,7 +1447,7 @@
   display: inline-block;
   width: 8px;
   height: 8px;
-  background-color: #f59e0b;
+  background-color: tokens.$color-warning-600;
   border-radius: 50%;
   opacity: 0.8;
 }

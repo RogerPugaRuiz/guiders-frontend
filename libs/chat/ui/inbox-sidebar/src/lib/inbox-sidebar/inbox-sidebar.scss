@@ -20,14 +20,13 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  border-right: 1px solid tokens.$color-border-default;
 
   &__container {
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
-    margin: 1rem;
+    margin: tokens.$spacing-lg;
   }
 
   &__header {

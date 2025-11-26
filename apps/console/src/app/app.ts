@@ -47,7 +47,7 @@ export class App {
       {
         id: 'inbox',
         label: 'Bandeja de Entrada',
-        icon: 'message-square',
+        icon: 'inbox',
         route: '/inbox',
         // Agregar badge solo si hay mensajes no leídos
         ...(totalUnread > 0 && {
