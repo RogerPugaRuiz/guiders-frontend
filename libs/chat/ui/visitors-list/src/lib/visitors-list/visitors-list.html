@@ -144,6 +144,17 @@
                           ID: {{ visitor.fingerprint || visitor.id.slice(0, 8) }}
                         }
                       </div>
+                      @if (visitor.ipAddress) {
+                        <div class="visitor-ip">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                            <line x1="6" y1="6" x2="6.01" y2="6"/>
+                            <line x1="6" y1="18" x2="6.01" y2="18"/>
+                          </svg>
+                          {{ visitor.ipAddress }}
+                        </div>
+                      }
                     </div>
                   </div>
                 </div>
