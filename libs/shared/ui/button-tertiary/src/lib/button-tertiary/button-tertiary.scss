@@ -21,19 +21,19 @@
   background: transparent;
   color: tokens.$color-danger-500;
   box-shadow: none;
-  
+
   &:hover {
     background: rgba(220, 53, 69, 0.05);
     border-color: tokens.$color-danger-600;
     color: tokens.$color-danger-600;
   }
-  
+
   &:active {
     background: rgba(220, 53, 69, 0.1);
     border-color: tokens.$color-danger-700;
     color: tokens.$color-danger-700;
   }
-  
+
   &:focus-visible {
     outline: 2px solid tokens.$color-danger-500;
     outline-offset: 2px;

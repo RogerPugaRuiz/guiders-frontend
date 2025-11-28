@@ -12,8 +12,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Button } from '@guiders-frontend/button';
-import { UserProfile } from '@guiders-frontend/auth/data-access/session';
+import { ButtonPrimaryComponent } from '@guiders-frontend/button-primary';
+import { ButtonSecondaryComponent } from '@guiders-frontend/button-secondary';
+import { ButtonTertiaryComponent } from '@guiders-frontend/button-tertiary';
+import { UserProfile, SessionService } from '@guiders-frontend/auth/data-access/session';
 import { getAvatarColor } from '@guiders-frontend/avatar-colors';
+import { CommercialFingerprintService } from '@guiders-frontend/commercial-fingerprint-service';
+import { firstValueFrom } from 'rxjs';
 import {
   AllSettings,
   AvatarUpdateRequest,
@@ -28,7 +33,7 @@ import {
 
 @Component({
   selector: 'lib-profile-modal',
-  imports: [CommonModule, FormsModule, Button],
+  imports: [CommonModule, FormsModule, Button, ButtonPrimaryComponent, ButtonSecondaryComponent, ButtonTertiaryComponent],
   standalone: true,
   templateUrl: './profile-modal.html',
   styleUrl: './profile-modal.scss',
@@ -36,6 +41,8 @@ import {
 })
 export class ProfileModal {
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly commercialFingerprintService = inject(CommercialFingerprintService);
+  private readonly sessionService = inject(SessionService);
 
   // Inputs
   readonly currentUser = input.required<UserProfile>();
@@ -88,42 +95,14 @@ export class ProfileModal {
 
   // Form state for each section
   readonly profileForm = signal({
-    fullName: '',
-    status: 'online' as UserStatus,
-    timezone: 'America/Mexico_City',
-    phone: ''
+    fullName: ''
   });
 
-  readonly notificationsForm = signal({
-    soundEnabled: true,
-    volume: 70,
-    desktopNotifications: true,
-    onlyMentions: false,
-    dailyEmailSummary: false,
-    urgentSoundEnabled: true
-  });
-
-  readonly appearanceForm = signal({
-    theme: 'auto' as Theme,
-    fontSize: 'medium' as FontSize,
-    compactMode: false,
-    showAvatars: true,
-    language: 'es' as Language
-  });
-
-  readonly chatForm = signal({
-    autoAssignChats: false,
-    maxSimultaneousChats: 5,
-    chatSignature: '',
-    awayMessage: 'Estoy ausente en este momento. Te responderé pronto.',
-    sendWithEnter: true,
-    showTypingIndicator: true
-  });
-
-  readonly privacyForm = signal({
-    showOnlineStatus: true,
-    shareLastActivity: true
-  });
+  // Fingerprint registration state
+  readonly fingerprintInput = signal<string>('');
+  readonly isRegisteringFingerprint = signal<boolean>(false);
+  readonly fingerprintRegistered = signal<boolean>(false);
+  readonly fingerprintError = signal<string | null>(null);
 
   // Computed values
   readonly userName = computed(() => {
@@ -170,23 +149,6 @@ export class ProfileModal {
     return this.displayAvatarUrl() !== null;
   });
 
-  // Timezones list
-  readonly timezones = [
-    { value: 'America/Mexico_City', label: 'Ciudad de México (GMT-6)' },
-    { value: 'America/New_York', label: 'Nueva York (GMT-5)' },
-    { value: 'America/Los_Angeles', label: 'Los Ángeles (GMT-8)' },
-    { value: 'Europe/Madrid', label: 'Madrid (GMT+1)' },
-    { value: 'Europe/London', label: 'Londres (GMT+0)' }
-  ];
-
-  // Status options
-  readonly statusOptions = [
-    { value: 'online', label: 'En línea', color: '#10b981' },
-    { value: 'away', label: 'Ausente', color: '#f59e0b' },
-    { value: 'busy', label: 'No molestar', color: '#ef4444' },
-    { value: 'invisible', label: 'Invisible', color: '#6b7280' }
-  ];
-
   constructor() {
     // Effect para limpiar estado cuando se cierra el modal
     effect(() => {
@@ -204,26 +166,6 @@ export class ProfileModal {
           ...form,
           fullName: user.name
         }));
-      }
-    });
-
-    // Effect para cargar configuraciones actuales
-    effect(() => {
-      const settings = this.currentSettings();
-      if (settings.profile) {
-        this.profileForm.update(form => ({ ...form, ...settings.profile }));
-      }
-      if (settings.notifications) {
-        this.notificationsForm.update(form => ({ ...form, ...settings.notifications }));
-      }
-      if (settings.appearance) {
-        this.appearanceForm.update(form => ({ ...form, ...settings.appearance }));
-      }
-      if (settings.chat) {
-        this.chatForm.update(form => ({ ...form, ...settings.chat }));
-      }
-      if (settings.privacy) {
-        this.privacyForm.update(form => ({ ...form, ...settings.privacy }));
       }
     });
   }
@@ -334,37 +276,44 @@ export class ProfileModal {
         file: file
       });
     }
-
-    // Emitir cambios de la sección activa
-    const section = this.activeSection();
-    let settings;
-
-    switch (section) {
-      case 'profile':
-        settings = this.profileForm();
-        break;
-      case 'notifications':
-        settings = this.notificationsForm();
-        break;
-      case 'appearance':
-        settings = this.appearanceForm();
-        break;
-      case 'chat':
-        settings = this.chatForm();
-        break;
-      case 'privacy':
-        settings = this.privacyForm();
-        break;
-    }
-
-    if (settings) {
-      this.settingsUpdate.emit({ section, settings });
-    }
   }
 
   onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       this.onCancel();
+    }
+  }
+
+  async onRegisterFingerprint(): Promise<void> {
+    const fingerprint = this.fingerprintInput().trim();
+
+    if (!fingerprint) {
+      this.fingerprintError.set('Por favor ingresa un fingerprint válido');
+      return;
+    }
+
+    this.isRegisteringFingerprint.set(true);
+    this.fingerprintError.set(null);
+    this.fingerprintRegistered.set(false);
+
+    try {
+      const user = await firstValueFrom(this.sessionService.ensureSession$());
+      await firstValueFrom(
+        this.commercialFingerprintService.registerFingerprint(user.sub, fingerprint)
+      );
+
+      this.fingerprintRegistered.set(true);
+      this.fingerprintInput.set('');
+
+      // Limpiar el mensaje de éxito después de 3 segundos
+      setTimeout(() => {
+        this.fingerprintRegistered.set(false);
+      }, 3000);
+    } catch (error) {
+      console.error('Error registering fingerprint:', error);
+      this.fingerprintError.set('Error al registrar el fingerprint. Por favor intenta nuevamente.');
+    } finally {
+      this.isRegisteringFingerprint.set(false);
     }
   }
 
@@ -391,10 +340,5 @@ export class ProfileModal {
       return `${sizeInKB.toFixed(1)} KB`;
     }
     return `${sizeInMB.toFixed(2)} MB`;
-  }
-
-  getStatusColor(status: UserStatus): string {
-    const option = this.statusOptions.find(opt => opt.value === status);
-    return option?.color || '#6b7280';
   }
 }

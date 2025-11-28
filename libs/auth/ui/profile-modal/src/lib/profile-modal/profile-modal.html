@@ -111,18 +111,17 @@
                     />
 
                     <div class="avatar-actions">
-                      <label for="avatar-file-input" class="upload-button-wrapper">
-                        <button
-                          type="button"
-                          class="upload-button"
-                          [disabled]="loading()"
-                          aria-label="Cambiar avatar">
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 22V13M12 13L15.5 16.5M12 13L8.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M20 17.6073C21.4937 17.0221 23 15.6889 23 13C23 9 19.6667 8 18 8C18 6 18 2 12 2C6 2 6 6 6 8C4.33333 8 1 9 1 13C1 15.6889 2.50628 17.0221 4 17.6073" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                          </svg>
-                          <span>Cambiar foto</span>
-                        </button>
+                      <label
+                        for="avatar-file-input"
+                        class="upload-button"
+                        [class.disabled]="loading()"
+                        [attr.aria-disabled]="loading()"
+                        aria-label="Cambiar avatar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 22V13M12 13L15.5 16.5M12 13L8.5 16.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                          <path d="M20 17.6073C21.4937 17.0221 23 15.6889 23 13C23 9 19.6667 8 18 8C18 6 18 2 12 2C6 2 6 6 6 8C4.33333 8 1 9 1 13C1 15.6889 2.50628 17.0221 4 17.6073" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span>Cambiar foto</span>
                       </label>
 
                       @if (hasAvatarChanges()) {
@@ -180,49 +179,6 @@
               <p class="help-text">El email no se puede modificar</p>
             </div>
 
-            <!-- Status -->
-            <div class="form-group">
-              <label for="status" class="form-label">Estado de disponibilidad</label>
-              <div class="select-wrapper">
-                <select
-                  id="status"
-                  class="form-select"
-                  [(ngModel)]="profileForm().status">
-                  @for (option of statusOptions; track option.value) {
-                    <option [value]="option.value">
-                      {{ option.label }}
-                    </option>
-                  }
-                </select>
-              </div>
-            </div>
-
-            <!-- Timezone -->
-            <div class="form-group">
-              <label for="timezone" class="form-label">Zona horaria</label>
-              <div class="select-wrapper">
-                <select
-                  id="timezone"
-                  class="form-select"
-                  [(ngModel)]="profileForm().timezone">
-                  @for (tz of timezones; track tz.value) {
-                    <option [value]="tz.value">{{ tz.label }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-
-            <!-- Phone -->
-            <div class="form-group">
-              <label for="phone" class="form-label">Teléfono <span class="optional-label">(opcional)</span></label>
-              <input
-                type="tel"
-                id="phone"
-                class="form-input"
-                [(ngModel)]="profileForm().phone"
-                placeholder="+52 1 55 1234 5678"
-              />
-            </div>
           </div>
         }
 
@@ -230,100 +186,8 @@
         @if (activeSection() === 'notifications') {
           <div class="settings-section">
             <h3 class="section-title">Notificaciones</h3>
-            <p class="section-description">Configura cómo y cuándo recibir notificaciones</p>
-
-            <!-- Sound Enabled -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="notificationsForm().soundEnabled"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Sonido de mensajes</span>
-                  <span class="checkbox-description">Reproducir sonido al recibir mensajes</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Volume -->
-            @if (notificationsForm().soundEnabled) {
-              <div class="form-group">
-                <label for="volume" class="form-label">
-                  Volumen de notificaciones
-                  <span class="volume-value">{{ notificationsForm().volume }}%</span>
-                </label>
-                <input
-                  type="range"
-                  id="volume"
-                  class="form-range"
-                  min="0"
-                  max="100"
-                  step="5"
-                  [(ngModel)]="notificationsForm().volume"
-                />
-              </div>
-            }
-
-            <!-- Desktop Notifications -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="notificationsForm().desktopNotifications"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Notificaciones de escritorio</span>
-                  <span class="checkbox-description">Mostrar notificaciones del sistema operativo</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Only Mentions -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="notificationsForm().onlyMentions"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Solo notificar menciones</span>
-                  <span class="checkbox-description">Recibir notificaciones únicamente cuando te mencionen</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Daily Email Summary -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="notificationsForm().dailyEmailSummary"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Resumen diario por email</span>
-                  <span class="checkbox-description">Recibir un resumen de actividad cada día</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Urgent Sound -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="notificationsForm().urgentSoundEnabled"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Sonido especial para mensajes urgentes</span>
-                  <span class="checkbox-description">Usar un sonido diferente para mensajes marcados como urgentes</span>
-                </span>
-              </label>
+            <div class="empty-state">
+              <p class="empty-state-text">Esta funcionalidad estará disponible próximamente</p>
             </div>
           </div>
         }
@@ -332,137 +196,8 @@
         @if (activeSection() === 'appearance') {
           <div class="settings-section">
             <h3 class="section-title">Apariencia</h3>
-            <p class="section-description">Personaliza cómo se ve la aplicación</p>
-
-            <!-- Theme -->
-            <div class="form-group">
-              <span class="form-label">Tema</span>
-              <div class="radio-group">
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="light"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().theme"
-                  />
-                  <span class="radio-text">☀️ Claro</span>
-                </label>
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="dark"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().theme"
-                  />
-                  <span class="radio-text">🌙 Oscuro</span>
-                </label>
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="theme"
-                    value="auto"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().theme"
-                  />
-                  <span class="radio-text">🔄 Automático</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Font Size -->
-            <div class="form-group">
-              <span class="form-label">Tamaño de fuente</span>
-              <div class="radio-group">
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="fontSize"
-                    value="small"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().fontSize"
-                  />
-                  <span class="radio-text">Pequeño</span>
-                </label>
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="fontSize"
-                    value="medium"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().fontSize"
-                  />
-                  <span class="radio-text">Mediano</span>
-                </label>
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="fontSize"
-                    value="large"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().fontSize"
-                  />
-                  <span class="radio-text">Grande</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Compact Mode -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="appearanceForm().compactMode"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Modo compacto</span>
-                  <span class="checkbox-description">Reducir espaciado para mostrar más contenido</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Show Avatars -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="appearanceForm().showAvatars"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Mostrar avatares</span>
-                  <span class="checkbox-description">Ver fotos de perfil en chats y listas</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Language -->
-            <div class="form-group">
-              <span class="form-label">Idioma</span>
-              <div class="radio-group">
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="language"
-                    value="es"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().language"
-                  />
-                  <span class="radio-text">🇪🇸 Español</span>
-                </label>
-                <label class="radio-label">
-                  <input
-                    type="radio"
-                    name="language"
-                    value="en"
-                    class="form-radio"
-                    [(ngModel)]="appearanceForm().language"
-                  />
-                  <span class="radio-text">🇺🇸 English</span>
-                </label>
-              </div>
+            <div class="empty-state">
+              <p class="empty-state-text">Esta funcionalidad estará disponible próximamente</p>
             </div>
           </div>
         }
@@ -471,97 +206,8 @@
         @if (activeSection() === 'chat') {
           <div class="settings-section">
             <h3 class="section-title">Preferencias de Chat</h3>
-            <p class="section-description">Configura el comportamiento del sistema de chat</p>
-
-            <!-- Auto Assign -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="chatForm().autoAssignChats"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Auto-asignación de chats</span>
-                  <span class="checkbox-description">Asignar automáticamente chats nuevos cuando estés disponible</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Max Simultaneous Chats -->
-            <div class="form-group">
-              <label for="maxChats" class="form-label">
-                Límite de chats simultáneos
-                <span class="volume-value">{{ chatForm().maxSimultaneousChats }}</span>
-              </label>
-              <input
-                type="range"
-                id="maxChats"
-                class="form-range"
-                min="1"
-                max="10"
-                step="1"
-                [(ngModel)]="chatForm().maxSimultaneousChats"
-              />
-              <p class="help-text">Máximo número de chats que puedes atender al mismo tiempo</p>
-            </div>
-
-            <!-- Send with Enter -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="chatForm().sendWithEnter"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Enviar mensajes con Enter</span>
-                  <span class="checkbox-description">Presiona Enter para enviar (desactivado: Ctrl+Enter)</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Show Typing Indicator -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="chatForm().showTypingIndicator"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Mostrar indicador "escribiendo..."</span>
-                  <span class="checkbox-description">Los visitantes verán cuando estés escribiendo</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Chat Signature -->
-            <div class="form-group">
-              <label for="signature" class="form-label">Firma de chat <span class="optional-label">(opcional)</span></label>
-              <textarea
-                id="signature"
-                class="form-textarea"
-                rows="2"
-                [(ngModel)]="chatForm().chatSignature"
-                placeholder="Texto que aparecerá al final de tus mensajes"
-                maxlength="150"
-              ></textarea>
-              <p class="help-text">{{ chatForm().chatSignature.length }}/150 caracteres</p>
-            </div>
-
-            <!-- Away Message -->
-            <div class="form-group">
-              <label for="awayMessage" class="form-label">Mensaje de ausencia automático</label>
-              <textarea
-                id="awayMessage"
-                class="form-textarea"
-                rows="3"
-                [(ngModel)]="chatForm().awayMessage"
-                placeholder="Mensaje que se enviará automáticamente cuando estés ausente"
-                maxlength="300"
-              ></textarea>
-              <p class="help-text">{{ chatForm().awayMessage.length }}/300 caracteres</p>
+            <div class="empty-state">
+              <p class="empty-state-text">Esta funcionalidad estará disponible próximamente</p>
             </div>
           </div>
         }
@@ -569,80 +215,40 @@
         <!-- Privacy Section -->
         @if (activeSection() === 'privacy') {
           <div class="settings-section">
-            <h3 class="section-title">Privacidad y Cuenta</h3>
-            <p class="section-description">Controla tu privacidad y seguridad</p>
+            <h3 class="section-title">Privacidad</h3>
+            <p class="section-description">Gestiona la privacidad de tu navegación</p>
 
-            <!-- Show Online Status -->
+            <!-- Fingerprint Registration -->
             <div class="form-group">
-              <label class="checkbox-label">
+              <label for="fingerprint-input" class="form-label">Registro de Fingerprint</label>
+              <p class="help-text">
+                Registra tu fingerprint del navegador para que no aparezcas como visitante en tu sitio web
+              </p>
+              <div class="fingerprint-input-group">
                 <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="privacyForm().showOnlineStatus"
+                  id="fingerprint-input"
+                  type="text"
+                  class="form-input"
+                  placeholder="Pega aquí tu fingerprint del SDK web"
+                  [ngModel]="fingerprintInput()"
+                  (ngModelChange)="fingerprintInput.set($event)"
+                  [disabled]="isRegisteringFingerprint()"
                 />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Mostrar estado online</span>
-                  <span class="checkbox-description">Permitir que otros vean cuándo estás conectado</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Share Last Activity -->
-            <div class="form-group">
-              <label class="checkbox-label">
-                <input
-                  type="checkbox"
-                  class="form-checkbox"
-                  [(ngModel)]="privacyForm().shareLastActivity"
-                />
-                <span class="checkbox-text">
-                  <span class="checkbox-title">Compartir última actividad</span>
-                  <span class="checkbox-description">Mostrar la última vez que estuviste activo</span>
-                </span>
-              </label>
-            </div>
-
-            <!-- Account Actions -->
-            <div class="form-group">
-              <span class="form-label">Cuenta y seguridad</span>
-              <div class="action-buttons">
-                <guiders-button
+                <guiders-button-secondary
                   type="button"
-                  variant="outline"
-                  size="medium"
-                  [ariaLabel]="'Cambiar contraseña'">
-                  🔑 Cambiar contraseña
-                </guiders-button>
-
-                <guiders-button
-                  type="button"
-                  variant="outline"
-                  size="medium"
-                  [ariaLabel]="'Ver sesiones activas'">
-                  💻 Sesiones activas
-                </guiders-button>
-
-                <guiders-button
-                  type="button"
-                  variant="outline"
-                  size="medium"
-                  [ariaLabel]="'Descargar datos personales'">
-                  📥 Descargar mis datos
-                </guiders-button>
+                  (clicked)="onRegisterFingerprint()"
+                  class="fingerprint-register-btn">
+                  {{ isRegisteringFingerprint() ? 'Registrando...' : 'Registrar' }}
+                </guiders-button-secondary>
               </div>
-            </div>
 
-            <!-- Danger Zone -->
-            <div class="form-group danger-zone">
-              <span class="form-label danger-label">Zona de peligro</span>
-              <p class="help-text">Estas acciones son irreversibles</p>
-              <guiders-button
-                type="button"
-                variant="danger"
-                size="medium"
-                [ariaLabel]="'Cerrar cuenta'">
-                ⚠️ Cerrar mi cuenta
-              </guiders-button>
+              @if (fingerprintError()) {
+                <p class="error-text" role="alert">{{ fingerprintError() }}</p>
+              }
+
+              @if (fingerprintRegistered()) {
+                <p class="success-text" role="status">✓ Fingerprint registrado correctamente</p>
+              }
             </div>
           </div>
         }
@@ -661,32 +267,25 @@
 
         <!-- Right side: Action buttons -->
         <div class="footer-actions">
-          <guiders-button
+          <guiders-button-tertiary
             type="button"
-            variant="ghost"
-            size="medium"
-            (click)="onCancel()"
             [disabled]="loading()"
-            [ariaLabel]="'Cerrar sin guardar cambios'"
+            (clicked)="onCancel()"
             class="cancel-button">
             Cancelar
-          </guiders-button>
+          </guiders-button-tertiary>
 
-          <guiders-button
+          <guiders-button-primary
             type="button"
-            variant="primary"
-            size="medium"
-            (click)="onSubmit()"
             [disabled]="!canSubmit()"
-            [loading]="loading()"
-            [ariaLabel]="'Guardar cambios de configuración'"
+            (clicked)="onSubmit()"
             class="save-button">
             @if (loading()) {
               Guardando...
             } @else {
               Guardar cambios
             }
-          </guiders-button>
+          </guiders-button-primary>
         </div>
       </div>
     </div>

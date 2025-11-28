@@ -133,9 +133,10 @@
   }
 
   &.active {
-    background: tokens.$color-primary-50;
-    color: tokens.$color-primary-700;
-    font-weight: tokens.$font-weight-semibold;
+    background: rgba(0, 123, 255, 0.08);
+    color: tokens.$color-primary-600;
+    font-weight: tokens.$font-weight-medium;
+    border-left: 3px solid tokens.$color-primary-500;
   }
 
   &:focus-visible {
@@ -161,7 +162,7 @@
 
   // Cuando el sidebar-item está activo, cambiar el color del SVG
   .sidebar-item.active & ::ng-deep svg {
-    color: tokens.$color-primary-500;
+    color: tokens.$color-primary-600;
   }
 
   // Hover effect para el SVG
@@ -179,18 +180,20 @@
 .settings-content {
   padding: tokens.$spacing-xl;
   overflow-y: auto;
-  
+  min-height: 550px;
+  max-height: 550px;
+
   scrollbar-width: thin;
   scrollbar-color: tokens.$color-border-default transparent;
-  
+
   &::-webkit-scrollbar {
     width: 6px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: tokens.$color-border-default;
     border-radius: tokens.$border-radius-md;
@@ -213,6 +216,18 @@
   color: tokens.$color-text-tertiary;
   margin: 0 0 tokens.$spacing-xl 0;
   line-height: tokens.$line-height-relaxed;
+}
+
+// Empty state para secciones sin funcionalidad
+.empty-state {
+  padding: tokens.$spacing-2xl;
+  text-align: center;
+}
+
+.empty-state-text {
+  color: tokens.$color-text-tertiary;
+  font-size: tokens.$font-size-base;
+  margin: 0;
 }
 
 // Form groups
@@ -432,6 +447,40 @@
   line-height: 1.5;
 }
 
+// Error text
+.error-text {
+  margin-top: tokens.$spacing-xs;
+  font-size: tokens.$font-size-xs;
+  color: tokens.$color-danger-600;
+  line-height: 1.5;
+}
+
+// Success text
+.success-text {
+  margin-top: tokens.$spacing-xs;
+  font-size: tokens.$font-size-xs;
+  color: tokens.$color-success-600;
+  line-height: 1.5;
+  font-weight: tokens.$font-weight-medium;
+}
+
+// Fingerprint input group
+.fingerprint-input-group {
+  display: flex;
+  gap: tokens.$spacing-sm;
+  align-items: center;
+  margin-top: tokens.$spacing-sm;
+
+  .form-input {
+    flex: 1;
+  }
+
+  .fingerprint-register-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+}
+
 // Avatar Section (horizontal layout)
 .avatar-group {
   margin-bottom: tokens.$spacing-2xl;
@@ -623,11 +672,6 @@
   border-width: 0;
 }
 
-.upload-button-wrapper {
-  display: inline-block;
-  cursor: pointer;
-}
-
 .avatar-actions {
   display: flex;
   gap: tokens.$spacing-sm;
@@ -653,6 +697,7 @@
               0 1px 3px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
+  user-select: none;
 
   svg {
     flex-shrink: 0;
@@ -681,7 +726,7 @@
     transition: left 0.5s;
   }
 
-  &:hover:not(:disabled) {
+  &:hover:not(.disabled) {
     background: linear-gradient(135deg, #0066cc 0%, #0056b3 100%);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 123, 255, 0.35),
@@ -696,7 +741,7 @@
     }
   }
 
-  &:active:not(:disabled) {
+  &:active:not(.disabled) {
     transform: translateY(0) scale(0.98);
     box-shadow: 0 1px 3px rgba(0, 123, 255, 0.2);
   }
@@ -707,12 +752,13 @@
                 0 4px 12px rgba(0, 123, 255, 0.35);
   }
 
-  &:disabled {
+  &.disabled {
     opacity: 0.6;
     cursor: not-allowed;
     background: tokens.$color-surface-disabled;
     color: tokens.$color-text-disabled;
     box-shadow: none;
+    pointer-events: none;
   }
 }
 
