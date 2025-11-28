@@ -47,6 +47,14 @@
         
         <!-- Badges -->
         <div class="guiders-visitor-card__badges">
+          @if (debugIsMe()) {
+            <span
+              class="guiders-visitor-card__badge guiders-visitor-card__badge--me"
+              title="Eres tú navegando en tu sitio">
+              Tú
+            </span>
+          }
+
           @if (tierIcon()) {
             <span
               class="guiders-visitor-card__badge guiders-visitor-card__badge--tier"

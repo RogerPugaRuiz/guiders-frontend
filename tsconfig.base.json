@@ -86,6 +86,9 @@
         "libs/chat/ui/message-input/src/index.ts"
       ],
       "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
+      "@guiders-frontend/commercial-fingerprint-service": [
+        "libs/auth/data-access/commercial-fingerprint-service/src/index.ts"
+      ],
       "@guiders-frontend/commercial-presence": [
         "libs/auth/data-access/commercial-presence/src/index.ts"
       ],

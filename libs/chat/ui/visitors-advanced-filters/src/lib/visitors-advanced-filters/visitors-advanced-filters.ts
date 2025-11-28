@@ -49,11 +49,13 @@ export class VisitorsAdvancedFilters {
 
   hasAcceptedPrivacyPolicy = signal<boolean | undefined>(undefined);
   hasActiveSessions = signal<boolean | undefined>(undefined);
+  isInternal = signal<boolean | undefined>(undefined);
   currentUrlContains = signal<string>('');
   createdFrom = signal<string>('');
   createdTo = signal<string>('');
   lastActivityFrom = signal<string>('');
   lastActivityTo = signal<string>('');
+  ipAddress = signal<string>('');
 
   // Ordenamiento
   sortField = signal<string>('lastActivity');
@@ -116,6 +118,7 @@ export class VisitorsAdvancedFilters {
     // Other fields
     this.hasAcceptedPrivacyPolicy.set(filters.hasAcceptedPrivacyPolicy);
     this.hasActiveSessions.set(filters.hasActiveSessions);
+    this.isInternal.set(filters.isInternal);
     this.currentUrlContains.set(filters.currentUrlContains || '');
     this.createdFrom.set(filters.createdFrom?.split('T')[0] || '');
     this.createdTo.set(filters.createdTo?.split('T')[0] || '');
@@ -141,6 +144,10 @@ export class VisitorsAdvancedFilters {
     this.hasActiveSessions.set(value);
   }
 
+  setIsInternal(value: boolean | undefined): void {
+    this.isInternal.set(value);
+  }
+
   onApply(): void {
     const result = this.buildFiltersAndSort();
     this.apply.emit(result);
@@ -151,7 +158,9 @@ export class VisitorsAdvancedFilters {
     this.connectionStatus.set({ online: false, away: false, chatting: false, offline: false });
     this.hasAcceptedPrivacyPolicy.set(undefined);
     this.hasActiveSessions.set(undefined);
+    this.isInternal.set(undefined);
     this.currentUrlContains.set('');
+    this.ipAddress.set('');
     this.createdFrom.set('');
     this.createdTo.set('');
     this.lastActivityFrom.set('');
@@ -201,10 +210,16 @@ export class VisitorsAdvancedFilters {
     if (this.hasActiveSessions() !== undefined) {
       filters.hasActiveSessions = this.hasActiveSessions();
     }
+    if (this.isInternal() !== undefined) {
+      filters.isInternal = this.isInternal();
+    }
 
     // Text fields
     if (this.currentUrlContains()) {
       filters.currentUrlContains = this.currentUrlContains();
+    }
+    if (this.ipAddress()) {
+      filters.ipAddress = this.ipAddress();
     }
 
     // Date fields

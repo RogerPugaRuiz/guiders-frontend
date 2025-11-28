@@ -92,11 +92,24 @@ export class VisitorCard {
   readonly visitorInitials = computed(() => {
     const name = this.visitor().name;
     if (!name) return '?';
-    
+
     const parts = name.split(' ');
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-    
+
     return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+  });
+
+  // Debug isMe
+  readonly debugIsMe = computed(() => {
+    const visitor = this.visitor();
+    if (visitor.isMe) {
+      console.log('🎯 visitor-card: isMe badge debería mostrarse', {
+        id: visitor.id,
+        name: visitor.name,
+        isMe: visitor.isMe
+      });
+    }
+    return visitor.isMe;
   });
 
   readonly cssClasses = computed(() => {

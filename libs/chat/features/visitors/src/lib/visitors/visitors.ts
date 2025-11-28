@@ -1063,6 +1063,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       case 'currentUrlContains':
         delete updatedFilters.currentUrlContains;
         break;
+      case 'ipAddress':
+        delete updatedFilters.ipAddress;
+        break;
       case 'hasActiveSessions':
         delete updatedFilters.hasActiveSessions;
         break;
@@ -1071,6 +1074,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         break;
       case 'maxTotalSessionsCount':
         delete updatedFilters.maxTotalSessionsCount;
+        break;
+      case 'isInternal':
+        delete updatedFilters.isInternal;
         break;
       case 'sessionCount':
         // Para eliminar filtros combinados de sesiones (ej: chip de "Nuevos" o "Recurrentes")
@@ -1102,6 +1108,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   /** Limpiar todos los filtros */
   onFiltersClearAll(): void {
+    // Limpiar filtro rápido y filtro guardado seleccionados
+    this.selectedFilterId.set('');
+    this.selectedSavedFilterId.set(null);
+
     // Resetear paginación a la página 1
     const currentState = this.state();
     this.updateState({
@@ -1237,6 +1247,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         ? 'idle' as const
         : 'offline' as const;
 
+    // Debug: verificar isMe
+    if (result.isMe) {
+      console.log('🔍 Visitante isMe detectado:', {
+        id: result.id,
+        isMe: result.isMe,
+        fingerprint: result.fingerprint
+      });
+    }
+
     return {
       id: result.id,
       fingerprint: result.fingerprint || '',
@@ -1248,6 +1267,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       domain: '', // No disponible en la respuesta
       siteId: result.siteId,
       companyId: result.tenantId,
+      ipAddress: result.lastIpAddress,
+      userAgent: result.lastUserAgent,
       firstVisit: new Date(result.createdAt),
       lastVisit: new Date(result.updatedAt),
       totalSessions: result.totalSessionsCount,
@@ -1256,7 +1277,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       totalSessionDuration: result.totalSessionDuration || 0,
       hasActiveChat: result.activeSessionsCount > 0,
       totalChats: result.totalChatsCount || 0,
-      pendingChatIds: result.pendingChatIds || []
+      pendingChatIds: result.pendingChatIds || [],
+      isMe: result.isMe,
+      isInternal: result.isInternal
     };
   }
 

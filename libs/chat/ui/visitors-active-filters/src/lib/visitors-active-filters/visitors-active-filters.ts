@@ -87,11 +87,27 @@ export class VisitorsActiveFilters {
       });
     }
 
+    if (filters.ipAddress) {
+      chips.push({
+        key: 'ipAddress',
+        label: 'Dirección IP',
+        value: filters.ipAddress
+      });
+    }
+
     if (filters.hasActiveSessions !== undefined) {
       chips.push({
         key: 'hasActiveSessions',
         label: 'Sesiones activas',
         value: filters.hasActiveSessions ? 'Sí' : 'No'
+      });
+    }
+
+    if (filters.isInternal !== undefined) {
+      chips.push({
+        key: 'isInternal',
+        label: 'Visitantes internos',
+        value: filters.isInternal ? 'Solo internos' : 'Solo externos'
       });
     }
 

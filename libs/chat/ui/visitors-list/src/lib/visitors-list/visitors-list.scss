@@ -356,6 +356,21 @@
   }
 }
 
+.visitor-fingerprint {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: tokens.$color-text-secondary;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+}
+
 .visitor-ip {
   display: flex;
   align-items: center;
@@ -396,11 +411,39 @@
   font-weight: tokens.$font-weight-bold;
   text-transform: uppercase;
   letter-spacing: 0.025em;
-  
+
   svg {
     width: 6px;
     height: 6px;
   }
+}
+
+.me-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 4px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  border-radius: tokens.$border-radius-base;
+  font-size: 9px;
+  font-weight: tokens.$font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-right: 4px;
+}
+
+.internal-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 4px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border-radius: tokens.$border-radius-base;
+  font-size: 9px;
+  font-weight: tokens.$font-weight-bold;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-right: 4px;
 }
 
 // Estado de conexión

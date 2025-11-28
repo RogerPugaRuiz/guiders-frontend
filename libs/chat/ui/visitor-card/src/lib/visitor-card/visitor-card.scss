@@ -232,11 +232,17 @@
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   
+  &--me {
+    background-color: color-mix(in srgb, #9333ea 20%, transparent);
+    color: #9333ea;
+    font-weight: var(--font-weight-semibold);
+  }
+
   &--new {
     background-color: color-mix(in srgb, var(--color-brand) 20%, transparent);
     color: var(--color-brand);
   }
-  
+
   &--chat {
     background-color: color-mix(in srgb, var(--color-success) 20%, transparent);
     color: var(--color-success);

@@ -62,6 +62,8 @@ export interface Visitor {
   
   // Para UI
   isSelected?: boolean;
+  isMe?: boolean; // Indica si este visitante es el propio usuario
+  isInternal?: boolean; // Indica si este visitante es un usuario interno (empleado, admin, etc.)
 }
 
 // Interface para sesión de visitante
@@ -312,6 +314,8 @@ export interface VisitorSearchFilters {
   hasActiveSessions?: boolean;
   minTotalSessionsCount?: number; // Filtrar por número mínimo de sesiones
   maxTotalSessionsCount?: number; // Filtrar por número máximo de sesiones
+  ipAddress?: string; // Filtrar por dirección IP exacta
+  isInternal?: boolean; // Filtrar por visitantes internos
 }
 
 // Ordenamiento para búsqueda
@@ -345,6 +349,10 @@ export interface VisitorSearchResult {
   totalSessionDuration: number; // Duración total de sesiones en milisegundos
   totalChatsCount: number; // Total de chats del visitante
   pendingChatIds?: string[]; // IDs de chats pendientes de asignar
+  lastIpAddress?: string; // Última dirección IP del visitante
+  lastUserAgent?: string; // Último user agent del visitante
+  isMe?: boolean; // Indica si este visitante es el propio usuario
+  isInternal?: boolean; // Indica si este visitante es un usuario interno (empleado, admin, etc.)
 }
 
 // Paginación de búsqueda

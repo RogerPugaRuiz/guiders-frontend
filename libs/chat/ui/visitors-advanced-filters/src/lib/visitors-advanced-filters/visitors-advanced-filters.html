@@ -126,6 +126,22 @@
           </div>
         </section>
 
+        <!-- Dirección IP -->
+        <section class="advanced-filters__section">
+          <h3 class="advanced-filters__section-title">Dirección IP</h3>
+          <div class="advanced-filters__field">
+            <label class="advanced-filters__label" for="ip-address">IP exacta</label>
+            <input
+              id="ip-address"
+              type="text"
+              class="advanced-filters__input"
+              placeholder="ej: 192.168.1.100"
+              [ngModel]="ipAddress()"
+              (ngModelChange)="ipAddress.set($event)"
+            />
+          </div>
+        </section>
+
         <!-- Opciones booleanas -->
         <section class="advanced-filters__section">
           <h3 class="advanced-filters__section-title">Otras opciones</h3>
@@ -188,6 +204,37 @@
                 (change)="setActiveSessions(false)"
               />
               <span>No</span>
+            </label>
+          </div>
+
+          <div class="advanced-filters__radio-group">
+            <span class="advanced-filters__radio-label">Visitantes internos:</span>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="internal"
+                [checked]="isInternal() === undefined"
+                (change)="setIsInternal(undefined)"
+              />
+              <span>Todos</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="internal"
+                [checked]="isInternal() === true"
+                (change)="setIsInternal(true)"
+              />
+              <span>Solo internos</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="internal"
+                [checked]="isInternal() === false"
+                (change)="setIsInternal(false)"
+              />
+              <span>Solo externos</span>
             </label>
           </div>
         </section>
