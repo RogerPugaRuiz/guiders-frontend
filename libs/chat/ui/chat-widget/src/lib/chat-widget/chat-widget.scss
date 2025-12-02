@@ -285,6 +285,7 @@
   // Body (área de mensajes)
   &__body {
     flex: 1;
+    min-height: 0; // Crítico para que overflow funcione en flexbox
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -294,6 +295,8 @@
 
   &__messages {
     flex: 1;
+    min-height: 0; // Crítico para que overflow funcione en flexbox
+    margin-bottom: 20px;
     padding: tokens.$spacing-md;
     padding-bottom: 80px; // Espacio para el input flotante
     overflow-y: auto;

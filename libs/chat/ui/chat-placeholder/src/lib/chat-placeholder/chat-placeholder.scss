@@ -19,6 +19,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  min-height: 0; // Crítico para que overflow funcione en flexbox
   background-color: tokens.$color-surface-primary;
   border-radius: tokens.$border-radius-md;
   box-shadow: tokens.$shadow-sm;
@@ -226,6 +227,7 @@
 
   &__conversation {
     flex: 1;
+    min-height: 0; // Crítico para que overflow funcione en flexbox
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -234,6 +236,8 @@
 
   &__messages {
     flex: 1;
+    min-height: 0; // Crítico para que overflow funcione en flexbox
+    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
     gap: tokens.$spacing-sm;
