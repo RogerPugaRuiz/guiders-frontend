@@ -9,6 +9,7 @@ interface Environment {
   api: {
     baseUrl: string;
   };
+  consoleUrl: string;
 }
 
 export const environment: Environment = {
@@ -21,5 +22,6 @@ export const environment: Environment = {
   },
   api: {
     baseUrl: 'https://guiders.es/api'
-  }
+  },
+  consoleUrl: 'https://console.guiders.es'
 };

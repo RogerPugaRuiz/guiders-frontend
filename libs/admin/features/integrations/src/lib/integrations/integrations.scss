@@ -1,0 +1,55 @@
+.integrations-page {
+  padding: 24px;
+  height: 100%;
+  overflow: auto;
+}
+
+.page-header {
+  margin-bottom: 24px;
+
+  h1 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: #212529;
+  }
+
+  p {
+    margin: 0;
+    color: #6c757d;
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid #e9ecef;
+  padding-bottom: 16px;
+
+  a {
+    padding: 8px 16px;
+    border-radius: 6px;
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+
+    &:hover {
+      background: #f8f9fa;
+      color: #212529;
+    }
+
+    &.active {
+      background: #007bff;
+      color: white;
+    }
+  }
+}
+
+.integrations-content {
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 24px;
+}

@@ -18,10 +18,16 @@ export class UserMenu {
   userEmail = input.required<string>();
   userName = input<string | null>(null);
   compact = input<boolean>(false); // Modo compacto para sidebar colapsado
-  
+
+  // App Switcher inputs
+  showAppSwitcher = input<boolean>(false);
+  appSwitcherLabel = input<string>('');
+  appSwitcherUrl = input<string>('');
+
   // Outputs
   logout = output<void>();
   configureAccount = output<void>();
+  switchApp = output<void>();
   
   // Estado local
   isDropdownOpen = signal(false);
@@ -85,6 +91,15 @@ export class UserMenu {
   onConfigureAccount(): void {
     this.closeDropdown();
     this.configureAccount.emit();
+  }
+
+  onSwitchApp(): void {
+    this.closeDropdown();
+    this.switchApp.emit();
+    const url = this.appSwitcherUrl();
+    if (url) {
+      window.location.href = url;
+    }
   }
 
   // Obtener las iniciales del usuario para el avatar

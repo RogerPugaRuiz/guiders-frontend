@@ -15,6 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@guiders-frontend/ai-config": [
+        "libs/admin/features/ai-config/src/index.ts"
+      ],
       "@guiders-frontend/analytics/features/admin-dashboard": [
         "libs/analytics/features/admin-dashboard/src/index.ts"
       ],
@@ -104,10 +107,16 @@
       "@guiders-frontend/create-chat-modal": [
         "libs/chat/ui/create-chat-modal/src/index.ts"
       ],
+      "@guiders-frontend/dashboard": [
+        "libs/admin/features/dashboard/src/index.ts"
+      ],
       "@guiders-frontend/design-tokens": [
         "libs/shared/design-tokens/src/index.ts"
       ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
+      "@guiders-frontend/integrations": [
+        "libs/admin/features/integrations/src/index.ts"
+      ],
       "@guiders-frontend/pagination": [
         "libs/shared/ui/pagination/src/index.ts"
       ],
@@ -127,6 +136,9 @@
         "libs/auth/data-access/profile-service/src/index.ts"
       ],
       "@guiders-frontend/radio": ["libs/shared/ui/radio/src/index.ts"],
+      "@guiders-frontend/redirect-confirm": [
+        "libs/auth/ui/redirect-confirm/src/index.ts"
+      ],
       "@guiders-frontend/save-filter-dialog": [
         "libs/chat/ui/save-filter-dialog/src/index.ts"
       ],
@@ -151,6 +163,7 @@
         "libs/chat/data-access/unread-messages-service/src/index.ts"
       ],
       "@guiders-frontend/user-menu": ["libs/shared/ui/user-menu/src/index.ts"],
+      "@guiders-frontend/users": ["libs/admin/features/users/src/index.ts"],
       "@guiders-frontend/visitor-card": [
         "libs/chat/ui/visitor-card/src/index.ts"
       ],

@@ -1,7 +1,7 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
-import { UserService, UserProfile } from '@guiders-frontend/auth/data-access/session';
+import { UserService, UserProfile, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { ProfileModal, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
@@ -18,11 +18,18 @@ export class App {
   private readonly router = inject(Router);
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly profileService = inject(ProfileService);
+  private readonly environment = inject(ENVIRONMENT_TOKEN);
 
   protected title = 'console';
 
   // Usuario actual desde el servicio
   readonly currentUser = this.userService.currentUser;
+
+  // App Switcher - solo visible para admins
+  readonly isAdmin = computed(() =>
+    this.currentUser()?.roles?.includes('admin') ?? false
+  );
+  readonly adminUrl = this.environment.adminUrl ?? '';
 
   // Estado del modal de perfil
   readonly isProfileModalOpen = signal<boolean>(false);

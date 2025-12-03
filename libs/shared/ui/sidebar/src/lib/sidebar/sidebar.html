@@ -137,8 +137,16 @@
   <!-- Footer with user menu -->
   <footer class="sidebar__footer">
     @if (userEmail()) {
-    <guiders-user-menu [userEmail]="userEmail()!" [userName]="userName()" [compact]="isCollapsed()"
-      (logout)="onUserLogout()" (configureAccount)="onUserConfigureAccount()" />
+    <guiders-user-menu
+      [userEmail]="userEmail()!"
+      [userName]="userName()"
+      [compact]="isCollapsed()"
+      [showAppSwitcher]="showAppSwitcher()"
+      [appSwitcherLabel]="appSwitcherLabel()"
+      [appSwitcherUrl]="appSwitcherUrl()"
+      (logout)="onUserLogout()"
+      (configureAccount)="onUserConfigureAccount()"
+      (switchApp)="onAppSwitch()" />
     }
   </footer>
 </aside>

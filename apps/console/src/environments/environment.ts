@@ -10,6 +10,7 @@ interface Environment {
     baseUrl: string;
     wsUrl?: string; // URL específica para WebSocket (opcional)
   };
+  adminUrl: string;
 }
 
 export const environment: Environment = {
@@ -23,5 +24,6 @@ export const environment: Environment = {
   api: {
     baseUrl: 'http://localhost:3000/api',
     wsUrl: 'http://localhost:3000' // URL específica para WebSocket (sin /api)
-  }
+  },
+  adminUrl: 'http://localhost:4201'
 };

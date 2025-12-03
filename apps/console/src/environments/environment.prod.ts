@@ -10,6 +10,7 @@ interface Environment {
     baseUrl: string;
     wsUrl?: string; // URL específica para WebSocket (opcional)
   };
+  adminUrl: string;
 }
 
 export const environment: Environment = {
@@ -23,5 +24,6 @@ export const environment: Environment = {
   api: {
     baseUrl: 'https://guiders.es/api',
     wsUrl: 'https://guiders.es' // WebSocket de producción (sin /api)
-  }
+  },
+  adminUrl: 'https://admin.guiders.es'
 };

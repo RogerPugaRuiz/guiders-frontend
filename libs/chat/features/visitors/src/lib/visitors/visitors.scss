@@ -418,7 +418,6 @@
     flex-direction: column;
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-sm tokens.$spacing-md;
-    border-bottom: 1px solid tokens.$color-border-subtle;
     flex-shrink: 0; // No se encoge
   }
 

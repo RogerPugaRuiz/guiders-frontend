@@ -24,7 +24,7 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npx nx serve admin --port=4201',
+    command: 'npx nx run admin:serve',
     url: 'http://localhost:4201',
     reuseExistingServer: true,
     cwd: workspaceRoot,

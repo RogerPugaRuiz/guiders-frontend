@@ -1,0 +1,46 @@
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { catchError, map, of, from, switchMap } from 'rxjs';
+import { SessionService, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
+import { RedirectConfirmService } from '@guiders-frontend/redirect-confirm';
+
+export const adminGuard: CanActivateFn = () => {
+  const sessionService = inject(SessionService);
+  const router = inject(Router);
+  const environment = inject(ENVIRONMENT_TOKEN);
+  const redirectConfirmService = inject(RedirectConfirmService);
+
+  return sessionService.ensureSession$().pipe(
+    switchMap(user => {
+      if (!user) {
+        return of(false);
+      }
+
+      // Check if user has admin role
+      if (user.roles?.includes('admin')) {
+        return of(true);
+      }
+
+      // If user has commercial role but not admin, show confirmation popup
+      if (user.roles?.includes('commercial') && environment.consoleUrl) {
+        return from(redirectConfirmService.show({
+          title: 'Acceso restringido',
+          message: 'No tienes permisos de administrador. Seras redirigido a la consola de comerciales.',
+          confirmText: 'Ir a consola',
+          cancelText: 'Cerrar sesion',
+          redirectUrl: environment.consoleUrl
+        })).pipe(
+          map(() => false)
+        );
+      }
+
+      // User has neither admin nor commercial role - deny access
+      return of(false);
+    }),
+    catchError(() => {
+      const ret = encodeURIComponent(router.url);
+      location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
+      return of(false);
+    })
+  );
+};

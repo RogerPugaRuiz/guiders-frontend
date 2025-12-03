@@ -1,0 +1,93 @@
+<div class="ai-config-page">
+  <header class="page-header">
+    <h1>Configuracion IA</h1>
+    <p>Configura el comportamiento de la inteligencia artificial</p>
+  </header>
+
+  <div class="ai-config-content">
+    <section class="config-section">
+      <h2>Configuracion General</h2>
+
+      <div class="config-group">
+        <div class="config-item">
+          <label>
+            <input type="checkbox" />
+            <span>Respuesta Automatica</span>
+          </label>
+          <p class="config-description">Permitir que la IA responda automaticamente a los visitantes</p>
+        </div>
+
+        <div class="config-item">
+          <label>
+            <input type="checkbox" />
+            <span>Sugerencias IA</span>
+          </label>
+          <p class="config-description">Mostrar sugerencias de respuesta a los comerciales</p>
+        </div>
+
+        <div class="config-item">
+          <label>
+            <input type="checkbox" />
+            <span>IA + Comercial</span>
+          </label>
+          <p class="config-description">Combinar respuestas de IA con comerciales humanos</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="config-section">
+      <h2>Modelo y Proveedor</h2>
+
+      <div class="form-group">
+        <label>Proveedor</label>
+        <select>
+          <option value="">Seleccionar proveedor...</option>
+          <option value="groq">Groq</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Modelo</label>
+        <select>
+          <option value="">Seleccionar modelo...</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="config-section">
+      <h2>Parametros Avanzados</h2>
+
+      <div class="form-group">
+        <label>Temperature (Creatividad)</label>
+        <input type="range" min="0" max="1" step="0.1" value="0.7" />
+        <span class="value">0.7</span>
+      </div>
+
+      <div class="form-group">
+        <label>Max Tokens</label>
+        <input type="number" value="1024" min="100" max="4096" />
+      </div>
+
+      <div class="form-group">
+        <label>Delay de Respuesta (ms)</label>
+        <input type="number" value="0" min="0" max="5000" />
+      </div>
+    </section>
+
+    <section class="config-section">
+      <h2>Prompt Personalizado</h2>
+
+      <div class="form-group">
+        <label>System Prompt</label>
+        <textarea rows="6" placeholder="Introduce un prompt personalizado para la IA..."></textarea>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="btn-secondary">Cancelar</button>
+      <button class="btn-primary">Guardar Cambios</button>
+    </div>
+  </div>
+</div>

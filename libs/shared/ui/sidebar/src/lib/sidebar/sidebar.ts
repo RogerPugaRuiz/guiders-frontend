@@ -30,11 +30,17 @@ export class Sidebar {
   readonly userEmail = input<string | null>(null);
   readonly userName = input<string | null>(null);
 
+  // App Switcher inputs
+  readonly showAppSwitcher = input<boolean>(false);
+  readonly appSwitcherLabel = input<string>('');
+  readonly appSwitcherUrl = input<string>('');
+
   // Outputs usando signals API
   readonly itemClick = output<SidebarItem>();
   readonly toggleSidebar = output<boolean>();
   readonly userLogout = output<void>();
   readonly userConfigureAccount = output<void>();
+  readonly appSwitch = output<void>();
 
     // Estado interno con signals
   readonly isCollapsed = signal(false);
@@ -337,5 +343,9 @@ export class Sidebar {
 
   onUserConfigureAccount(): void {
     this.userConfigureAccount.emit();
+  }
+
+  onAppSwitch(): void {
+    this.appSwitch.emit();
   }
 }

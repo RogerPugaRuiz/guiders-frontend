@@ -67,6 +67,7 @@ export class VisitorsListComponent {
   readonly currentSort = signal<VisitorSort>({ field: 'firstVisit', direction: 'desc' }); // Cambiar a firstVisit (createdAt) por defecto
   readonly internalSelectedIds = signal<Set<string>>(new Set());
   readonly showDropdown = signal<string | null>(null);
+  readonly dropdownPosition = signal<{ top: number; left: number }>({ top: 0, left: 0 });
   // Track visitors with pending operations (for optimistic UI)
   readonly processingVisitorIds = signal<Set<string>>(new Set());
 
@@ -425,12 +426,19 @@ export class VisitorsListComponent {
   toggleDropdown(visitorId: string, event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    
+
     const isCurrentlyOpen = this.showDropdown() === visitorId;
-    
+
     if (isCurrentlyOpen) {
       this.showDropdown.set(null);
     } else {
+      // Calcular posición del dropdown
+      const button = event.target as HTMLElement;
+      const rect = button.getBoundingClientRect();
+      this.dropdownPosition.set({
+        top: rect.bottom + 4,
+        left: rect.right - 160 // 160 es el min-width del dropdown
+      });
       this.showDropdown.set(visitorId);
     }
   }

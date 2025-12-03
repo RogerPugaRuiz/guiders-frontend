@@ -180,6 +180,16 @@
         color: tokens.$color-error-600;
       }
     }
+
+    // Variante para cambiar de app
+    &--switch {
+      color: tokens.$color-primary-600;
+
+      &:hover {
+        background: tokens.$color-primary-50;
+        color: tokens.$color-primary-700;
+      }
+    }
   }
 }
 

@@ -59,6 +59,16 @@
             Perfil
           </button>
         </li>
+        @if (showAppSwitcher() && appSwitcherUrl()) {
+          <li class="user-menu__dropdown-item">
+            <button
+              class="user-menu__dropdown-button user-menu__dropdown-button--switch"
+              (click)="onSwitchApp()"
+              role="menuitem">
+              {{ appSwitcherLabel() }}
+            </button>
+          </li>
+        }
         <li class="user-menu__dropdown-item user-menu__dropdown-item--divider">
           <button
             class="user-menu__dropdown-button user-menu__dropdown-button--danger"

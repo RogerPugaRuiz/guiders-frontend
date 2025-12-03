@@ -10,10 +10,31 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
-import { ENVIRONMENT_TOKEN, authRefreshInterceptor, SessionGuardianService } from '@guiders-frontend/auth/data-access/session';
+import { ENVIRONMENT_TOKEN, authRefreshInterceptor, UserService, SessionGuardianService } from '@guiders-frontend/auth/data-access/session';
+import { firstValueFrom } from 'rxjs';
+
+/**
+ * Factory para inicializar el usuario al arrancar la aplicación.
+ * Simplificado para admin - no requiere presencia comercial ni WebSocket.
+ */
+function initializeApp() {
+  const userService = inject(UserService);
+
+  return async () => {
+    console.log('[Admin AppInitializer] Cargando usuario...');
+    try {
+      const user = await firstValueFrom(userService.fetchUser());
+      console.log('[Admin AppInitializer] Usuario cargado:', user.sub);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn('[Admin AppInitializer] No se pudo cargar el usuario:', errorMessage);
+    }
+  };
+}
 
 /**
  * Factory para inicializar el SessionGuardian
+ * Protege la sesión contra expiraciones silenciosas
  */
 function initializeSessionGuardian() {
   const sessionGuardian = inject(SessionGuardianService);
@@ -34,7 +55,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
     provideHttpClient(withInterceptors([
-      authRefreshInterceptor, // Refresh automático antes que el auth interceptor  
+      authRefreshInterceptor,
       authInterceptor()
     ])),
     provideAuth({
@@ -50,9 +71,12 @@ export const appConfig: ApplicationConfig = {
         secureRoutes: environment.auth.secureRoutes,
       },
     }),
-    // Proporcionar el environment a las librerías
     { provide: ENVIRONMENT_TOKEN, useValue: environment },
-    // Inicializar SessionGuardian para protección de sesión
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeApp,
+      multi: true,
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: initializeSessionGuardian,

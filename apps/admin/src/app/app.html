@@ -2,11 +2,32 @@
   <guiders-sidebar
     [items]="sidebarItems()"
     [config]="sidebarConfig()"
+    [userEmail]="currentUser()?.email ?? null"
+    [userName]="null"
+    [showAppSwitcher]="isAdmin()"
+    [appSwitcherLabel]="'Ir a Console'"
+    [appSwitcherUrl]="consoleUrl"
     (itemClick)="onSidebarItemClick($event)"
-    (toggleSidebar)="onSidebarToggle($event)">
+    (toggleSidebar)="onSidebarToggle($event)"
+    (userLogout)="onLogout()"
+    (userConfigureAccount)="onConfigureAccount()">
   </guiders-sidebar>
-  
-  <main class="admin-content">
-    <router-outlet></router-outlet>
-  </main>
+
+  <div class="admin-main">
+    <main class="admin-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+
+  @if (userProfile()) {
+    <lib-profile-modal
+      [currentUser]="userProfile()!"
+      [isOpen]="isProfileModalOpen()"
+      [loading]="isUploadingAvatar()"
+      (modalClose)="onProfileModalClose()"
+      (avatarUpdate)="onAvatarUpdate($event)">
+    </lib-profile-modal>
+  }
+
+  <guiders-redirect-confirm></guiders-redirect-confirm>
 </div>

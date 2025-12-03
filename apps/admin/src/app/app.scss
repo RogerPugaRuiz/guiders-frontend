@@ -1,23 +1,41 @@
+@use '../../../../libs/shared/design-tokens/src/lib/tokens-vars' as tokens;
+
 .admin-app {
   display: flex;
   height: 100vh;
+  overflow: hidden;
+  background: tokens.$color-surface-primary;
+}
+
+.admin-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   overflow: hidden;
 }
 
 .admin-content {
   flex: 1;
-  overflow-y: auto;
-  background: #f8f9fa;
-  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  background: tokens.$color-surface-primary;
+  padding: 0;
 }
 
-// Responsive design for mobile
+.admin-content > * {
+  min-height: 0;
+  width: 100%;
+}
+
 @media (max-width: 768px) {
   .admin-app {
     flex-direction: column;
   }
-  
+
   .admin-content {
-    padding: 1rem;
+    padding: 0;
   }
 }

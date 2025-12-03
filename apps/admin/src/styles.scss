@@ -1,121 +1,120 @@
 /* === GUIDERS ADMIN - ESTILOS GLOBALES === */
 
-// Importar tokens de diseño
 @use '../../../libs/shared/design-tokens/src/lib/tokens-vars.scss' as tokens;
 
-/* Reset y normalización */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
-  font-size: 16px; // Base para rem calculations
+  font-size: 16px;
   line-height: 1.5;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
-  width: 100%;
+  overflow: hidden;
 }
 
 body {
   margin: 0;
   padding: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #212529;
+  background-color: #ffffff;
   height: 100%;
-  width: 100%;
-  font-family: tokens.$font-family-ui;
-  font-size: tokens.$font-size-base;
-  line-height: tokens.$line-height-relaxed;
-  color: tokens.$color-text-primary;
-  background-color: tokens.$color-surface-primary;
-  
-  // Configuración de accesibilidad
+  min-height: 100vh;
+  overflow: hidden;
   scroll-behavior: smooth;
 }
 
-// Configuración de motion para accesibilidad
+app-root, admin-root, #root, .app-root {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-  
+
   html {
     scroll-behavior: auto;
   }
 }
 
-// Base typography
 h1, h2, h3, h4, h5, h6 {
-  margin: 0 0 tokens.$spacing-md 0;
-  font-weight: tokens.$font-weight-semibold;
-  line-height: tokens.$line-height-tight;
-  color: tokens.$color-text-primary;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+  line-height: 1.25;
+  color: #212529;
 }
 
-h1 { @include tokens.typography('h1'); }
-h2 { @include tokens.typography('heading-2xl'); }
-h3 { @include tokens.typography('heading-small'); }
+h1 { font-size: 2rem; font-weight: 700; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.25rem; font-weight: 600; }
 
 p {
-  margin: 0 0 tokens.$spacing-md 0;
-  @include tokens.typography('body-medium');
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-// Enlaces
 a {
-  color: tokens.$color-primary-600;
+  color: #007bff;
   text-decoration: none;
-  transition: color tokens.$duration-fast tokens.$easing-standard;
-  
+  transition: color 0.15s ease;
+
   &:hover {
-    color: tokens.$color-primary-700;
+    color: #0056b3;
     text-decoration: underline;
   }
-  
+
   &:focus-visible {
-    outline: 2px solid tokens.$color-primary-600;
+    outline: 2px solid #007bff;
     outline-offset: 2px;
-    border-radius: tokens.$border-radius-sm;
+    border-radius: 4px;
   }
 }
 
-// Código y datos
 code, pre {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: tokens.$font-size-sm;
-  background-color: tokens.$color-surface-secondary;
-  border-radius: tokens.$border-radius-sm;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
 }
 
 code {
-  padding: tokens.$spacing-2xs tokens.$spacing-xs;
+  padding: 2px 6px;
 }
 
 pre {
-  padding: tokens.$spacing-md;
+  padding: 1rem;
   overflow-x: auto;
-  
+
   code {
     padding: 0;
     background: transparent;
   }
 }
 
-// Formularios
 button, input, textarea, select {
   font-family: inherit;
   font-size: inherit;
 }
 
-// Focus management
 *:focus-visible {
-  outline: 2px solid tokens.$color-primary-600;
+  outline: 2px solid #007bff;
   outline-offset: 2px;
 }
 
-// Utilidades globales
 .sr-only {
   position: absolute;
   width: 1px;
@@ -128,20 +127,38 @@ button, input, textarea, select {
   border: 0;
 }
 
-// Admin layout específico
-.admin-layout {
-  display: grid;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: auto 1fr;
-  grid-template-areas: 
-    "sidebar header"
-    "sidebar main";
-  min-height: 100vh;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    grid-template-areas: 
-      "header"
-      "main";
+.snackbar-success {
+  --mdc-snackbar-container-color: #4caf50 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    --mdc-text-button-label-text-color: #ffffff !important;
+  }
+}
+
+.snackbar-error {
+  --mdc-snackbar-container-color: #f44336 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    --mdc-text-button-label-text-color: #ffffff !important;
+  }
+}
+
+.snackbar-warning {
+  --mdc-snackbar-container-color: #ff9800 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    --mdc-text-button-label-text-color: #ffffff !important;
+  }
+}
+
+.snackbar-info {
+  --mdc-snackbar-container-color: #2196f3 !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    --mdc-text-button-label-text-color: #ffffff !important;
   }
 }

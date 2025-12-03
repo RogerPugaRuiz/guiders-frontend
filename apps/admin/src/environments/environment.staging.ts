@@ -9,10 +9,11 @@ interface Environment {
   api: {
     baseUrl: string;
   };
+  consoleUrl: string;
 }
 
 export const environment: Environment = {
-  production: false, // staging no es producción completa
+  production: false,
   auth: {
     authority: 'https://auth.guiders.es/realms/guiders',
     clientId: 'admin',
@@ -21,5 +22,6 @@ export const environment: Environment = {
   },
   api: {
     baseUrl: 'https://guiders.es/api'
-  }
+  },
+  consoleUrl: 'https://console.guiders.es'
 };
