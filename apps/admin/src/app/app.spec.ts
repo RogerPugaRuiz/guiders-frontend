@@ -1,20 +1,33 @@
 import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideRouter } from '@angular/router';
+import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { App } from './app';
-import { NxWelcome } from './nx-welcome';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [App, NxWelcome],
+      imports: [App],
+      providers: [
+        provideHttpClient(),
+        provideRouter([]),
+        {
+          provide: ENVIRONMENT_TOKEN,
+          useValue: {
+            production: false,
+            api: {
+              baseUrl: 'http://localhost:3000'
+            },
+            consoleUrl: 'http://localhost:4200'
+          }
+        }
+      ]
     }).compileComponents();
   });
 
-  it('should render title', () => {
+  it('should create component', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain(
-      'Welcome admin'
-    );
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });
