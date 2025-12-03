@@ -305,6 +305,7 @@ export interface VisitorSearchFilters {
   lifecycle?: VisitorLifecycleFilter[];
   connectionStatus?: VisitorConnectionStatusFilter[];
   hasAcceptedPrivacyPolicy?: boolean;
+  hasPendingChats?: boolean; // Filtrar por chats pendientes (sin asignar)
   createdFrom?: string; // ISO 8601
   createdTo?: string; // ISO 8601
   lastActivityFrom?: string; // ISO 8601

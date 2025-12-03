@@ -177,6 +177,37 @@
           </div>
 
           <div class="advanced-filters__radio-group">
+            <span class="advanced-filters__radio-label">Chats pendientes:</span>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="pendingChats"
+                [checked]="hasPendingChats() === undefined"
+                (change)="setHasPendingChats(undefined)"
+              />
+              <span>Todos</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="pendingChats"
+                [checked]="hasPendingChats() === true"
+                (change)="setHasPendingChats(true)"
+              />
+              <span>Con pendientes</span>
+            </label>
+            <label class="advanced-filters__radio">
+              <input
+                type="radio"
+                name="pendingChats"
+                [checked]="hasPendingChats() === false"
+                (change)="setHasPendingChats(false)"
+              />
+              <span>Sin pendientes</span>
+            </label>
+          </div>
+
+          <div class="advanced-filters__radio-group">
             <span class="advanced-filters__radio-label">Sesiones activas:</span>
             <label class="advanced-filters__radio">
               <input

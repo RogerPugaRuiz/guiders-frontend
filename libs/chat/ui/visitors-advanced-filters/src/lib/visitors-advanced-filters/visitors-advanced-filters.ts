@@ -48,6 +48,7 @@ export class VisitorsAdvancedFilters {
   });
 
   hasAcceptedPrivacyPolicy = signal<boolean | undefined>(undefined);
+  hasPendingChats = signal<boolean | undefined>(undefined);
   hasActiveSessions = signal<boolean | undefined>(undefined);
   isInternal = signal<boolean | undefined>(undefined);
   currentUrlContains = signal<string>('');
@@ -117,6 +118,7 @@ export class VisitorsAdvancedFilters {
 
     // Other fields
     this.hasAcceptedPrivacyPolicy.set(filters.hasAcceptedPrivacyPolicy);
+    this.hasPendingChats.set(filters.hasPendingChats);
     this.hasActiveSessions.set(filters.hasActiveSessions);
     this.isInternal.set(filters.isInternal);
     this.currentUrlContains.set(filters.currentUrlContains || '');
@@ -140,6 +142,10 @@ export class VisitorsAdvancedFilters {
     this.hasAcceptedPrivacyPolicy.set(value);
   }
 
+  setHasPendingChats(value: boolean | undefined): void {
+    this.hasPendingChats.set(value);
+  }
+
   setActiveSessions(value: boolean | undefined): void {
     this.hasActiveSessions.set(value);
   }
@@ -157,6 +163,7 @@ export class VisitorsAdvancedFilters {
     this.lifecycle.set({ ANON: false, ENGAGED: false, LEAD: false, CONVERTED: false });
     this.connectionStatus.set({ online: false, away: false, chatting: false, offline: false });
     this.hasAcceptedPrivacyPolicy.set(undefined);
+    this.hasPendingChats.set(undefined);
     this.hasActiveSessions.set(undefined);
     this.isInternal.set(undefined);
     this.currentUrlContains.set('');
@@ -206,6 +213,9 @@ export class VisitorsAdvancedFilters {
     // Boolean fields
     if (this.hasAcceptedPrivacyPolicy() !== undefined) {
       filters.hasAcceptedPrivacyPolicy = this.hasAcceptedPrivacyPolicy();
+    }
+    if (this.hasPendingChats() !== undefined) {
+      filters.hasPendingChats = this.hasPendingChats();
     }
     if (this.hasActiveSessions() !== undefined) {
       filters.hasActiveSessions = this.hasActiveSessions();

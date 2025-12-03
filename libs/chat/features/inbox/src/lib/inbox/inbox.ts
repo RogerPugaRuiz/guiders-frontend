@@ -261,6 +261,14 @@ export class Inbox implements OnInit, OnDestroy {
         // Extraer IDs de todos los chats
         const chatIds = chats.map(chat => chat.chatId);
 
+        // ✅ Registrar relaciones chat-visitor para badges en la tabla de visitantes
+        const chatsToRegister = chats.map(chat => ({
+          chatId: chat.chatId,
+          visitorId: chat.visitorId
+        }));
+        this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
+        console.log(`✅ [Inbox] Registradas ${chatsToRegister.length} relaciones chat-visitor`);
+
         // ✅ IMPORTANTE: Suscribirse a TODOS los chats vía WebSocket
         // Esto permite recibir notificaciones en tiempo real de mensajes nuevos
         // en cualquier chat, no solo el chat seleccionado

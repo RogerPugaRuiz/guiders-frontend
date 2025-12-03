@@ -15,15 +15,17 @@ import { Subject, takeUntil } from 'rxjs';
 import { ChatWidgetService, WidgetState } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
-import { Message, SendMessageRequest, Visitor, PresenceStatus, MessageListResponse } from '@guiders-frontend/shared/types';
+import { Message, SendMessageRequest, Visitor, PresenceStatus, MessageListResponse, ChatTab } from '@guiders-frontend/shared/types';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
 import { TypingIndicator } from '@guiders-frontend/typing-indicator';
 import { PresenceService } from '@guiders-frontend/presence-service';
+import { ChatWidgetTabs } from '@guiders-frontend/chat-widget-tabs';
+import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 
 @Component({
   selector: 'guiders-chat-widget',
   standalone: true,
-  imports: [CommonModule, MessageInput, TypingIndicator],
+  imports: [CommonModule, MessageInput, TypingIndicator, ChatWidgetTabs],
   templateUrl: './chat-widget.html',
   styleUrls: ['./chat-widget.scss']
 })
@@ -32,6 +34,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   private readonly chatService = inject(ChatService);
   private readonly userService = inject(UserService);
   private readonly presenceService = inject(PresenceService);
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -47,6 +50,24 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly shouldShow = signal<boolean>(true);
+
+  // Estado de pestañas
+  readonly tabs = signal<ChatTab[]>([]);
+  readonly hasTabs = computed(() => this.tabs().length > 1);
+
+  // Pestañas con contadores de no leídos sincronizados desde el servicio central
+  readonly tabsWithUnread = computed(() => {
+    const currentTabs = this.tabs();
+    const unreadMap = this.unreadMessagesService.unreadCountMap();
+
+    return currentTabs.map(tab => ({
+      ...tab,
+      unreadCount: unreadMap[tab.chatId] ?? tab.unreadCount
+    }));
+  });
+
+  // Caché de mensajes por chatId para cambio rápido de pestañas
+  private messagesCache = new Map<string, Message[]>();
   
   // Control de scroll infinito
   readonly isLoadingMore = signal<boolean>(false);
@@ -128,6 +149,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         this.widgetState.set(data.state);
         this.currentVisitor.set(data.visitor);
         this.currentChatId.set(data.chatId);
+        this.tabs.set(data.tabs || []);
 
         // ⚠️ Si estamos creando un chat, NO cargar mensajes aquí
         // La carga ya se está manejando en createChatWithFirstMessage()
@@ -284,7 +306,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       next: (result) => {
         if (result && result.chatId && result.messageId) {
           console.log('[ChatWidget] ✅ Chat creado exitosamente:', result.chatId);
-          
+
+          // ✅ MARCAR CHAT COMO ACTIVO desde el inicio
+          this.unreadMessagesService.setActiveChat(result.chatId);
+          console.log('[ChatWidget] 👁️ Nuevo chat marcado como activo:', result.chatId);
+
           this.currentChatId.set(result.chatId);
           
           // Obtener userId del UserService
@@ -344,7 +370,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
    */
   private loadMessages(chatId: string): void {
     console.log('[ChatWidget] 📥 Cargando mensajes para chat:', chatId);
-    
+
+    // ✅ MARCAR CHAT COMO ACTIVO - Esto resetea contadores y marca mensajes como leídos
+    this.unreadMessagesService.setActiveChat(chatId);
+    console.log('[ChatWidget] 👁️ Chat marcado como activo para resetear contadores:', chatId);
+
     // Limpiar mensajes anteriores antes de cargar los nuevos
     this.messages.set([]);
     this.error.set(null);
@@ -549,12 +579,16 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   onClose(): void {
     const chatId = this.currentChatId();
     console.log('[ChatWidget] 🚪 Cerrando widget - Chat:', chatId);
-    
+
     if (chatId) {
       // Salir de la sala de WebSocket
       this.chatService.webSocketService.leaveRoom(chatId);
     }
-    
+
+    // ✅ LIMPIAR CHAT ACTIVO - Ya no hay chat visible
+    this.unreadMessagesService.setActiveChat(null);
+    console.log('[ChatWidget] 👁️ Chat activo limpiado');
+
     // Limpiar completamente el estado
     this.messages.set([]);
     this.error.set(null);
@@ -571,6 +605,67 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
    */
   onToggleMinimize(): void {
     this.widgetService.toggleMinimize();
+  }
+
+  /**
+   * Manejar selección de pestaña
+   */
+  onTabSelect(chatId: string): void {
+    const currentChatId = this.currentChatId();
+
+    // Si es la misma pestaña, no hacer nada
+    if (chatId === currentChatId) return;
+
+    console.log('[ChatWidget] Cambiando a pestaña:', chatId);
+
+    // Guardar mensajes actuales en caché antes de cambiar
+    if (currentChatId) {
+      this.messagesCache.set(currentChatId, this.messages());
+    }
+
+    // Cambiar de pestaña en el servicio
+    this.widgetService.switchTab(chatId);
+
+    // Cargar mensajes de la nueva pestaña (desde caché si está disponible)
+    const cachedMessages = this.messagesCache.get(chatId);
+    if (cachedMessages && cachedMessages.length > 0) {
+      console.log('[ChatWidget] Usando mensajes en caché para:', chatId);
+      this.messages.set(cachedMessages);
+      this.shouldScrollToBottom = true;
+
+      // ✅ MARCAR CHAT COMO ACTIVO - También cuando se usan mensajes de caché
+      this.unreadMessagesService.setActiveChat(chatId);
+      console.log('[ChatWidget] 👁️ Chat de caché marcado como activo:', chatId);
+    } else {
+      // Si no hay caché, cargar desde el servidor (loadMessages ya llama setActiveChat)
+      this.loadMessages(chatId);
+    }
+  }
+
+  /**
+   * Manejar cierre de pestaña (cierra el chat)
+   */
+  onTabClose(chatId: string): void {
+    console.log('[ChatWidget] Cerrando chat de pestaña:', chatId);
+
+    // Limpiar caché de esta pestaña
+    this.messagesCache.delete(chatId);
+
+    // Salir de la sala WebSocket
+    this.chatService.webSocketService.leaveRoom(chatId);
+
+    // Cerrar el chat en el servidor
+    this.chatService.closeChat(chatId).subscribe({
+      next: () => {
+        console.log('[ChatWidget] Chat cerrado exitosamente:', chatId);
+      },
+      error: (err: unknown) => {
+        console.error('[ChatWidget] Error al cerrar chat:', err);
+      }
+    });
+
+    // Cerrar la pestaña en el servicio
+    this.widgetService.closeTab(chatId);
   }
 
   /**

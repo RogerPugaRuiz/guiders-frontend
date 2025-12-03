@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Visitor } from '@guiders-frontend/shared/types';
+import { Visitor, Chat, ChatTab } from '@guiders-frontend/shared/types';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 
@@ -10,6 +10,8 @@ export interface ChatWidgetData {
   visitor: Visitor | null;
   chatId: string | null;
   state: WidgetState;
+  tabs: ChatTab[];
+  activeTabIndex: number;
 }
 
 @Injectable({
@@ -22,7 +24,9 @@ export class ChatWidgetService {
   private readonly widgetDataSubject = new BehaviorSubject<ChatWidgetData>({
     visitor: null,
     chatId: null,
-    state: 'closed'
+    state: 'closed',
+    tabs: [],
+    activeTabIndex: 0
   });
 
   // Observables públicos
@@ -57,28 +61,32 @@ export class ChatWidgetService {
   }
 
   /**
-   * Abrir el widget con un nuevo chat para un visitante
+   * Abrir el widget con un nuevo chat para un visitante (sin pestañas)
    */
   openWidget(visitor: Visitor, chatId?: string): void {
     console.log('[ChatWidgetService] Abriendo widget para visitante:', visitor.id, 'chatId:', chatId);
-    
+
     this.widgetDataSubject.next({
       visitor,
       chatId: chatId || null,
-      state: 'open'
+      state: 'open',
+      tabs: [],
+      activeTabIndex: 0
     });
   }
 
   /**
-   * Abrir el widget con un chat existente
+   * Abrir el widget con un chat existente (sin pestañas - modo simple)
    */
   openWithChat(chatId: string, visitor: Visitor): void {
     console.log('[ChatWidgetService] Abriendo widget con chat:', chatId);
-    
+
     this.widgetDataSubject.next({
       visitor,
       chatId,
-      state: 'open'
+      state: 'open',
+      tabs: [],
+      activeTabIndex: 0
     });
   }
 
@@ -113,11 +121,13 @@ export class ChatWidgetService {
    */
   closeWidget(): void {
     console.log('[ChatWidgetService] Cerrando widget');
-    
+
     this.widgetDataSubject.next({
       visitor: null,
       chatId: null,
-      state: 'closed'
+      state: 'closed',
+      tabs: [],
+      activeTabIndex: 0
     });
   }
 
@@ -159,5 +169,140 @@ export class ChatWidgetService {
    */
   shouldShowWidget(): boolean {
     return this.shouldShowSubject.value;
+  }
+
+  /**
+   * Abrir el widget con múltiples chats como pestañas
+   */
+  openWithTabs(chats: Chat[], visitor: Visitor, activeIndex: number = 0): void {
+    console.log('[ChatWidgetService] Abriendo widget con pestañas:', chats.length, 'chats');
+
+    const tabs: ChatTab[] = chats.map((chat, index) => ({
+      chatId: chat.chatId,
+      title: chat.subject || chat.name || `Chat ${index + 1}`,
+      unreadCount: chat.unreadCount || 0,
+      isActive: index === activeIndex,
+      lastMessage: chat.lastMessage?.content,
+      createdAt: chat.createdAt
+    }));
+
+    const activeChat = chats[activeIndex];
+
+    this.widgetDataSubject.next({
+      visitor,
+      chatId: activeChat?.chatId || null,
+      state: 'open',
+      tabs,
+      activeTabIndex: activeIndex
+    });
+  }
+
+  /**
+   * Cambiar a una pestaña específica
+   */
+  switchTab(chatId: string): void {
+    const current = this.widgetDataSubject.value;
+    const tabIndex = current.tabs.findIndex(tab => tab.chatId === chatId);
+
+    if (tabIndex === -1) {
+      console.warn('[ChatWidgetService] Tab no encontrado:', chatId);
+      return;
+    }
+
+    console.log('[ChatWidgetService] Cambiando a pestaña:', chatId);
+
+    const updatedTabs = current.tabs.map((tab, index) => ({
+      ...tab,
+      isActive: index === tabIndex
+    }));
+
+    this.widgetDataSubject.next({
+      ...current,
+      chatId,
+      tabs: updatedTabs,
+      activeTabIndex: tabIndex
+    });
+  }
+
+  /**
+   * Cerrar una pestaña específica
+   * Si es la última pestaña, cierra el widget
+   */
+  closeTab(chatId: string): void {
+    const current = this.widgetDataSubject.value;
+    const tabIndex = current.tabs.findIndex(tab => tab.chatId === chatId);
+
+    if (tabIndex === -1) {
+      console.warn('[ChatWidgetService] Tab no encontrado para cerrar:', chatId);
+      return;
+    }
+
+    console.log('[ChatWidgetService] Cerrando pestaña:', chatId);
+
+    const newTabs = current.tabs.filter(tab => tab.chatId !== chatId);
+
+    // Si no quedan pestañas, cerrar el widget
+    if (newTabs.length === 0) {
+      this.closeWidget();
+      return;
+    }
+
+    // Determinar la nueva pestaña activa
+    let newActiveIndex = current.activeTabIndex;
+    const wasActive = current.tabs[tabIndex].isActive;
+
+    if (wasActive) {
+      // Si la pestaña cerrada era la activa, activar la siguiente o la anterior
+      newActiveIndex = Math.min(tabIndex, newTabs.length - 1);
+    } else if (tabIndex < current.activeTabIndex) {
+      // Si la pestaña cerrada estaba antes de la activa, ajustar el índice
+      newActiveIndex = current.activeTabIndex - 1;
+    }
+
+    // Actualizar isActive en las pestañas
+    const updatedTabs = newTabs.map((tab, index) => ({
+      ...tab,
+      isActive: index === newActiveIndex
+    }));
+
+    this.widgetDataSubject.next({
+      ...current,
+      chatId: updatedTabs[newActiveIndex]?.chatId || null,
+      tabs: updatedTabs,
+      activeTabIndex: newActiveIndex
+    });
+  }
+
+  /**
+   * Actualizar el contador de no leídos de una pestaña
+   */
+  updateTabUnreadCount(chatId: string, count: number): void {
+    const current = this.widgetDataSubject.value;
+    const tabIndex = current.tabs.findIndex(tab => tab.chatId === chatId);
+
+    if (tabIndex === -1) return;
+
+    const updatedTabs = current.tabs.map(tab =>
+      tab.chatId === chatId ? { ...tab, unreadCount: count } : tab
+    );
+
+    this.widgetDataSubject.next({
+      ...current,
+      tabs: updatedTabs
+    });
+  }
+
+  /**
+   * Obtener las pestañas actuales
+   */
+  getTabs(): ChatTab[] {
+    return this.widgetDataSubject.value.tabs;
+  }
+
+  /**
+   * Verificar si hay múltiples pestañas
+   */
+  hasMultipleTabs(): boolean {
+    return this.widgetDataSubject.value.tabs.length > 1;
   }
 }

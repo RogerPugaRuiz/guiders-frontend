@@ -1,0 +1,81 @@
+<div class="chat-tabs">
+  <div class="chat-tabs__list">
+    @for (tab of visibleTabs(); track tab.chatId) {
+      <button
+        type="button"
+        class="chat-tabs__tab"
+        [class.chat-tabs__tab--active]="tab.isActive"
+        (click)="onTabClick(tab.chatId)"
+        [title]="tab.title + (tab.lastMessage ? ': ' + tab.lastMessage : '')"
+      >
+        <span class="chat-tabs__tab-title">{{ truncateTitle(getTabDisplayTitle(tab)) }}</span>
+        <button
+          type="button"
+          class="chat-tabs__close-tab"
+          (click)="onTabClose($event, tab.chatId)"
+          aria-label="Cerrar chat"
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </button>
+    }
+
+    @if (hasOverflow()) {
+      <div class="chat-tabs__overflow-container">
+        <button
+          type="button"
+          class="chat-tabs__overflow-btn"
+          [class.chat-tabs__overflow-btn--open]="overflowOpen()"
+          (click)="toggleOverflow()"
+          [title]="overflowCount() + ' chats más'"
+        >
+          <span>+{{ overflowCount() }}</span>
+          @if (overflowUnreadCount() > 0) {
+            <span class="chat-tabs__badge chat-tabs__badge--small">{{ overflowUnreadCount() > 99 ? '99+' : overflowUnreadCount() }}</span>
+          }
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg" class="chat-tabs__overflow-arrow">
+            <path d="M2 4l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        @if (overflowOpen()) {
+          <div class="chat-tabs__dropdown" (mouseleave)="closeOverflow()">
+            @for (tab of overflowTabs(); track tab.chatId) {
+              <button
+                type="button"
+                class="chat-tabs__dropdown-item"
+                [class.chat-tabs__dropdown-item--active]="tab.isActive"
+                (click)="onTabClick(tab.chatId)"
+              >
+                <span class="chat-tabs__dropdown-title">{{ getTabDisplayTitle(tab) }}</span>
+                <button
+                  type="button"
+                  class="chat-tabs__close-tab"
+                  (click)="onTabClose($event, tab.chatId)"
+                  aria-label="Cerrar chat"
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 3L3 9M3 3l6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <button
+    type="button"
+    class="chat-tabs__close-widget"
+    (click)="onWidgetClose()"
+    aria-label="Cerrar widget"
+  >
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+</div>

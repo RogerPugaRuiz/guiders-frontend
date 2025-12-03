@@ -194,3 +194,13 @@ export interface UnreadMessagesResponse {
 export interface UnreadCountMap {
   [chatId: string]: number;
 }
+
+// Tipos para el sistema de pestañas del widget de chat
+export interface ChatTab {
+  chatId: string;
+  title: string;           // Nombre del visitante o asunto
+  unreadCount: number;     // Mensajes no leídos
+  isActive: boolean;       // Pestaña activa
+  lastMessage?: string;    // Preview del último mensaje
+  createdAt: Date;
+}

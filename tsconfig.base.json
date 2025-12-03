@@ -55,6 +55,9 @@
       "@guiders-frontend/chat-service": [
         "libs/chat/data-access/chat-service/src/index.ts"
       ],
+      "@guiders-frontend/chat-widget-tabs": [
+        "libs/chat/ui/chat-widget-tabs/src/index.ts"
+      ],
       "@guiders-frontend/chat/data-access/chat-widget-service": [
         "libs/chat/data-access/chat-widget-service/src/index.ts"
       ],

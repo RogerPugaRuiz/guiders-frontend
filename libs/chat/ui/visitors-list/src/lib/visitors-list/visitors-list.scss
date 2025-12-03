@@ -787,9 +787,33 @@
   &--chats {
     background-color: #dbeafe;
     color: #1e40af;
-    
+    position: relative;
+
     svg {
       color: tokens.$color-info-600;
+    }
+
+    .unread-dot {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 8px;
+      height: 8px;
+      background-color: tokens.$color-danger-500;
+      border-radius: 50%;
+      border: 1.5px solid tokens.$color-surface-primary;
+      animation: pulse-dot 2s infinite;
+    }
+  }
+
+  @keyframes pulse-dot {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.7;
+      transform: scale(1.15);
     }
   }
   

@@ -2,6 +2,7 @@ import { Component, input, output, computed, signal, HostListener, inject, Chang
 import { CommonModule } from '@angular/common';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
+import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import {
   Visitor,
   VisitorFilters,
@@ -58,6 +59,7 @@ export class VisitorsListComponent {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly chatWidgetService = inject(ChatWidgetService);
   private readonly chatService = inject(ChatService);
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -91,6 +93,43 @@ export class VisitorsListComponent {
         });
       }
     }, { allowSignalWrites: true });
+
+    // Register chat-visitor relationships for unread badges
+    effect(() => {
+      const visitors = this.visitors();
+      this.registerVisitorChats(visitors);
+    });
+  }
+
+  /**
+   * Registra las relaciones chat-visitor en el servicio de mensajes no leídos
+   * Esto permite que el badge rojo aparezca en los visitantes con mensajes no leídos
+   */
+  private registerVisitorChats(visitors: Visitor[]): void {
+    const chatsToRegister: Array<{ chatId: string; visitorId: string }> = [];
+
+    console.log('[VisitorsList] 🔄 Registrando chats de visitantes:', visitors.length);
+
+    for (const visitor of visitors) {
+      // Registrar lastChatId si existe
+      if (visitor.lastChatId) {
+        console.log(`[VisitorsList] 📋 Visitor ${visitor.id} tiene lastChatId: ${visitor.lastChatId}`);
+        chatsToRegister.push({ chatId: visitor.lastChatId, visitorId: visitor.id });
+      }
+      // Registrar pendingChatIds si existen
+      if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
+        console.log(`[VisitorsList] 📋 Visitor ${visitor.id} tiene pendingChatIds:`, visitor.pendingChatIds);
+        for (const chatId of visitor.pendingChatIds) {
+          chatsToRegister.push({ chatId, visitorId: visitor.id });
+        }
+      }
+    }
+
+    console.log('[VisitorsList] 📊 Total de relaciones a registrar:', chatsToRegister.length);
+
+    if (chatsToRegister.length > 0) {
+      this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
+    }
   }
 
   // Computed values
@@ -189,13 +228,21 @@ export class VisitorsListComponent {
       next: (response: { chats: Chat[]; total: number; totalVisitorChats: number; hasMore: boolean; nextCursor?: string | null }) => {
         console.log('[VisitorsList] Respuesta de chats del visitante:', response);
 
+        // Registrar relaciones chat-visitor para el servicio de no leídos
+        this.registerChatsForVisitor(response.chats, visitor.id);
+
         // Si no hay chats asignados y el visitante no tiene chats en total, crear uno nuevo
         if (response.totalVisitorChats === 0 && response.chats.length === 0) {
           console.log('[VisitorsList] No hay chats existentes, abriendo widget para crear nuevo chat');
           this.chatWidgetService.openWidget(visitor);
         }
-        // Si hay chats asignados al comercial actual, abrir el primer chat
-        else if (response.chats.length > 0) {
+        // Si hay múltiples chats asignados, abrir con pestañas
+        else if (response.chats.length > 1) {
+          console.log('[VisitorsList] Múltiples chats encontrados, abriendo con pestañas:', response.chats.length);
+          this.chatWidgetService.openWithTabs(response.chats, visitor, 0);
+        }
+        // Si hay un solo chat asignado al comercial actual, abrir ese chat
+        else if (response.chats.length === 1) {
           const firstChat = response.chats[0];
           console.log('[VisitorsList] Chat existente encontrado, abriendo chat:', firstChat.chatId);
           this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
@@ -209,6 +256,21 @@ export class VisitorsListComponent {
         console.error('[VisitorsList] Error al verificar chats del visitante:', error);
       }
     });
+  }
+
+  /**
+   * Registra las relaciones chat-visitor cuando se obtienen los chats del comercial
+   */
+  private registerChatsForVisitor(chats: Chat[], visitorId: string): void {
+    if (chats.length === 0) return;
+
+    const chatsToRegister = chats.map(chat => ({
+      chatId: chat.chatId,
+      visitorId
+    }));
+
+    console.log(`[VisitorsList] 📋 Registrando ${chatsToRegister.length} chats para visitor ${visitorId}`);
+    this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
   }
 
   onViewDetails(visitor: Visitor, event?: Event): void {
@@ -227,7 +289,16 @@ export class VisitorsListComponent {
     // Obtener el chat asignado al comercial actual para este visitante
     this.chatService.getVisitorMyChats(visitor.id).subscribe({
       next: (response: { chats: Chat[]; total: number; totalVisitorChats: number; hasMore: boolean; nextCursor?: string | null }) => {
-        if (response.chats.length > 0) {
+        // Registrar relaciones chat-visitor para el servicio de no leídos
+        this.registerChatsForVisitor(response.chats, visitor.id);
+
+        // Si hay múltiples chats asignados, abrir con pestañas
+        if (response.chats.length > 1) {
+          console.log('[VisitorsList] Múltiples chats encontrados, abriendo con pestañas:', response.chats.length);
+          this.chatWidgetService.openWithTabs(response.chats, visitor, 0);
+        }
+        // Si hay un solo chat, abrir ese chat
+        else if (response.chats.length === 1) {
           const firstChat = response.chats[0];
           console.log('[VisitorsList] Abriendo chat existente:', firstChat.chatId);
           this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
@@ -758,6 +829,19 @@ export class VisitorsListComponent {
     } catch (error) {
       console.error('Failed to open URL:', error);
     }
+  }
+
+  /**
+   * Verifica si un visitante tiene mensajes no leídos en sus chats asignados
+   */
+  hasUnreadMessages(visitorId: string): boolean {
+    const hasUnread = this.unreadMessagesService.hasUnreadForVisitor(visitorId);
+    const unreadCount = this.unreadMessagesService.getUnreadCountForVisitor(visitorId);
+    // Solo loguear si hay mensajes no leídos para evitar spam
+    if (hasUnread) {
+      console.log(`[VisitorsList] 🔴 Visitor ${visitorId} tiene ${unreadCount} mensajes no leídos`);
+    }
+    return hasUnread;
   }
 
 }

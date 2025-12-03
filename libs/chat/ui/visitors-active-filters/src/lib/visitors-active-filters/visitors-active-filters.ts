@@ -55,6 +55,14 @@ export class VisitorsActiveFilters {
       });
     }
 
+    if (filters.hasPendingChats !== undefined) {
+      chips.push({
+        key: 'hasPendingChats',
+        label: 'Chats pendientes',
+        value: filters.hasPendingChats ? 'Con pendientes' : 'Sin pendientes'
+      });
+    }
+
     if (filters.createdFrom || filters.createdTo) {
       chips.push({
         key: 'created',

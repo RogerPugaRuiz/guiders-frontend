@@ -1014,4 +1014,34 @@ export class ChatService {
   get webSocketService(): WebSocketService {
     return this.webSocket;
   }
+
+  /**
+   * Cerrar un chat (cambiar su estado a CLOSED)
+   * PUT /api/v2/chats/:chatId/close
+   * @param chatId - ID del chat a cerrar
+   * @returns Observable con el chat actualizado
+   */
+  closeChat(chatId: string): Observable<Chat | null> {
+    this.setLoading(true);
+
+    return this.http.put<ApiChatResponse>(
+      `${this.baseUrl}/chats/${chatId}/close`,
+      {},
+      this.getHttpOptions()
+    ).pipe(
+      map(response => {
+        this.setLoading(false);
+        const chat = this.transformChatFromApi(response);
+
+        // Actualizar el estado local del chat
+        this.updateChatStatus(chatId, 'CLOSED');
+
+        return chat;
+      }),
+      catchError(error => {
+        this.handleError('Error al cerrar chat', error);
+        return of(null);
+      })
+    );
+  }
 }

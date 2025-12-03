@@ -6,6 +6,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { PresenceService } from '@guiders-frontend/presence-service';
+import { ChatService } from '@guiders-frontend/chat-service';
+import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
@@ -31,7 +33,8 @@ import {
   VisitorSearchResult,
   VisitorSearchRequest,
   VisitorSortField,
-  SortDirection
+  SortDirection,
+  Chat
 } from '@guiders-frontend/shared/types';
 import { PresenceChangedEvent } from '@guiders-frontend/shared/types';
 import { getMockVisitorsResponse, getMockVisitorStats } from './visitors-mock-data';
@@ -74,6 +77,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly chatWidgetService = inject(ChatWidgetService);
   private readonly presenceService = inject(PresenceService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly chatService = inject(ChatService);
+  private readonly unreadMessagesService = inject(UnreadMessagesService);
 
   // Referencia al componente hijo de la lista de visitantes
   @ViewChild(VisitorsListComponent) visitorsListComponent?: VisitorsListComponent;
@@ -411,6 +416,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         // Cargar filtros para el nuevo sistema
         this.loadQuickFilters();
         this.loadSavedFilters();
+
+        // Cargar chats del comercial para badges de mensajes no leídos
+        this.loadCommercialChatsForBadges();
 
         // Configurar auto-refresh inicial
         this.setupAutoRefresh();
@@ -1049,6 +1057,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       case 'hasAcceptedPrivacyPolicy':
         delete updatedFilters.hasAcceptedPrivacyPolicy;
         break;
+      case 'hasPendingChats':
+        delete updatedFilters.hasPendingChats;
+        break;
       case 'created':
         delete updatedFilters.createdFrom;
         delete updatedFilters.createdTo;
@@ -1685,5 +1696,46 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           this.refreshVisitorsSilently();
         }
       });
+  }
+
+  /**
+   * Carga los chats del comercial actual y registra las relaciones chat-visitor
+   * para que el badge de mensajes no leídos funcione correctamente en la tabla.
+   * Este método se debe llamar al inicializar la página de visitantes.
+   */
+  private loadCommercialChatsForBadges(): void {
+    console.log('[Visitors] 🔄 Cargando chats del comercial para badges de mensajes no leídos...');
+
+    this.sessionService.ensureSession$().pipe(
+      switchMap(user => {
+        if (!user?.sub) {
+          console.warn('[Visitors] ⚠️ No se pudo obtener el ID del comercial actual');
+          return of([]);
+        }
+
+        console.log('[Visitors] 👤 Comercial ID:', user.sub);
+        return this.chatService.getCommercialChats(user.sub);
+      }),
+      catchError((error: Error) => {
+        console.error('[Visitors] ❌ Error al cargar chats del comercial:', error);
+        return of([]);
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((chats: Chat[]) => {
+      if (chats.length === 0) {
+        console.log('[Visitors] 📭 No hay chats para registrar');
+        return;
+      }
+
+      // Registrar las relaciones chat-visitor para el servicio de mensajes no leídos
+      const chatsToRegister = chats.map(chat => ({
+        chatId: chat.chatId,
+        visitorId: chat.visitorId
+      }));
+
+      console.log(`[Visitors] 📝 Registrando ${chatsToRegister.length} relaciones chat-visitor para badges`);
+      this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
+      console.log('[Visitors] ✅ Relaciones registradas exitosamente');
+    });
   }
 }

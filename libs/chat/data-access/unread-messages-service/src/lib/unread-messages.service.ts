@@ -69,6 +69,31 @@ export class UnreadMessagesService {
   readonly hasUnreadMessages = computed(() => this.totalUnreadCount() > 0);
 
   /**
+   * Mapa de chatId -> visitorId para agrupar contadores por visitante
+   * Se pobla cuando se registran chats con registerChatVisitor()
+   */
+  private readonly chatToVisitorMap = signal<Record<string, string>>({});
+
+  /**
+   * Mapa de contadores de mensajes no leídos por visitorId
+   * { 'visitor-uuid-1': 5, 'visitor-uuid-2': 2, ... }
+   */
+  readonly unreadCountByVisitor = computed(() => {
+    const chatVisitorMap = this.chatToVisitorMap();
+    const unreadMap = this.unreadCountMap();
+    const result: Record<string, number> = {};
+
+    for (const [chatId, count] of Object.entries(unreadMap)) {
+      const visitorId = chatVisitorMap[chatId];
+      if (visitorId && count > 0) {
+        result[visitorId] = (result[visitorId] || 0) + count;
+      }
+    }
+
+    return result;
+  });
+
+  /**
    * Estado de carga
    */
   readonly isLoading = signal<boolean>(false);
@@ -424,6 +449,48 @@ export class UnreadMessagesService {
    */
   getUnreadMessagesLocal(chatId: string): Message[] {
     return this.unreadMessagesMap()[chatId] || [];
+  }
+
+  // ===== MÉTODOS PARA BADGES POR VISITANTE =====
+
+  /**
+   * Registrar la relación entre un chat y su visitante
+   * Esto permite agrupar contadores de no leídos por visitante
+   */
+  registerChatVisitor(chatId: string, visitorId: string): void {
+    this.chatToVisitorMap.update(map => ({
+      ...map,
+      [chatId]: visitorId
+    }));
+  }
+
+  /**
+   * Registrar múltiples relaciones chat-visitante de una vez
+   * Útil al cargar la lista de chats
+   */
+  registerChatsVisitors(chats: Array<{ chatId: string; visitorId: string }>): void {
+    this.chatToVisitorMap.update(map => {
+      const newMap = { ...map };
+      chats.forEach(({ chatId, visitorId }) => {
+        newMap[chatId] = visitorId;
+      });
+      return newMap;
+    });
+  }
+
+  /**
+   * Verificar si un visitante tiene mensajes no leídos
+   * (en cualquiera de sus chats asignados al comercial)
+   */
+  hasUnreadForVisitor(visitorId: string): boolean {
+    return (this.unreadCountByVisitor()[visitorId] || 0) > 0;
+  }
+
+  /**
+   * Obtener el total de mensajes no leídos para un visitante específico
+   */
+  getUnreadCountForVisitor(visitorId: string): number {
+    return this.unreadCountByVisitor()[visitorId] || 0;
   }
 
   // ===== MÉTODOS PRIVADOS =====
