@@ -1,5 +1,5 @@
 import { Route } from '@angular/router';
-import { adminGuard } from '@guiders-frontend/auth/features/login';
+import { adminGuard } from '@guiders-frontend/redirect-confirm';
 
 export const appRoutes: Route[] = [
   { path: '', redirectTo: 'dashboard', pathMatch: 'full' },

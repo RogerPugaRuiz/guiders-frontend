@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of, from, switchMap } from 'rxjs';
 import { SessionService, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
-import { RedirectConfirmService } from '@guiders-frontend/redirect-confirm';
+import { RedirectConfirmService } from './redirect-confirm.service';
 
 export const adminGuard: CanActivateFn = () => {
   const sessionService = inject(SessionService);
