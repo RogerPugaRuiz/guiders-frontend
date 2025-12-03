@@ -1511,117 +1511,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   onTakePendingChatAutomatically(data: {visitor: Visitor, chatId: string}): void {
-    console.log('📥 Tomando chat automáticamente:', data.chatId, 'para visitante:', data.visitor.id);
+    console.log('👁️ Abriendo chat pendiente para previsualización:', data.chatId, 'visitante:', data.visitor.id);
+    console.log('📌 El chat se asignará cuando el comercial envíe su primer mensaje');
 
-    // 🔑 Pausar auto-refresh durante actualización optimista
-    this.optimisticUpdateInProgress = true;
-    console.log('⏸️ Auto-refresh pausado durante actualización optimista');
+    // 🎯 Solo abrir el widget en modo pendiente (sin asignar)
+    // El chat se asignará automáticamente cuando el comercial envíe su primer mensaje
+    this.chatWidgetService.openPendingChat(data.chatId, data.visitor);
 
-    // 🔑 PASO 1: ACTUALIZACIÓN OPTIMISTA INMEDIATA (antes de HTTP)
-    // Guardar estado original para poder revertir si falla
-    const originalVisitors = this.state().visitors;
-    
-    // Crear nuevo array con el chat eliminado INMEDIATAMENTE
-    const optimisticVisitors = originalVisitors.map(visitor => {
-      if (visitor.id === data.visitor.id) {
-        const updatedPendingChats = (visitor.pendingChatIds || []).filter(
-          chatId => chatId !== data.chatId
-        );
-        
-        console.log('✂️ Eliminando chat de pendientes:', data.chatId);
-        console.log('📋 pendingChatIds antes:', visitor.pendingChatIds);
-        console.log('📋 pendingChatIds después:', updatedPendingChats);
-        
-        // ⚠️ NO incrementar totalChats porque el chat pendiente ya estaba incluido en el total
-        return {
-          ...visitor,
-          pendingChatIds: updatedPendingChats
-          // totalChats se mantiene igual (el chat pendiente ya estaba contado)
-        };
-      }
-      return visitor;
-    });
-
-    // Actualizar el estado INMEDIATAMENTE (UI se actualiza aquí)
-    this.updateState({ visitors: optimisticVisitors });
-    
-    // Forzar detección de cambios para que el botón desaparezca YA
-    this.cdr.detectChanges();
-    
-    console.log('✅ UI actualizada optimistamente - botón debería desaparecer');
-
-    // 🔑 PASO 2: Hacer petición HTTP (en segundo plano)
-    this.sessionService.ensureSession$().pipe(
-      switchMap(user => {
-        if (!user?.sub) {
-          throw new Error('No se pudo obtener el ID del usuario actual');
-        }
-        console.log('🌐 Enviando petición HTTP para asignar chat');
-        return this.visitorsService.assignChatToCommercial(data.chatId, user.sub);
-      }),
-      catchError((error: Error) => {
-        console.error('❌ Error al tomar el chat:', error);
-
-        // 🔑 REVERTIR actualización optimista
-        console.log('⏮️ Revirtiendo actualización optimista');
-        this.updateState({ visitors: originalVisitors });
-        this.cdr.detectChanges();
-        
-        // Reactivar auto-refresh después de 5 segundos
-        setTimeout(() => {
-          this.optimisticUpdateInProgress = false;
-          console.log('▶️ Auto-refresh reactivado después de error');
-        }, 5000);
-        
-        // Limpiar estado de procesamiento
-        this.visitorsListComponent?.markAsCompleted(data.visitor.id);
-        
-        this.updateState({
-          error: 'Error al tomar el chat. Inténtalo de nuevo.'
-        });
-        return of(null);
-      })
-  ).subscribe((response: AssignChatResponse | null) => {
-      // El backend puede devolver distintos esquemas: { success: true } o el propio objeto de chat
-      const isAssigned = !!response && (
-        response.success === true ||
-        response.status === 'ASSIGNED' ||
-        !!response.assignedCommercialId ||
-        (!!response.id && response.status && response.status === 'ASSIGNED')
-      );
-
-      if (isAssigned) {
-        console.log('✅ Chat asignado exitosamente en servidor:', response);
-
-        // 🎯 Abrir el widget de chat con el chat asignado
-        console.log('🚀 Abriendo widget de chat para el chat:', data.chatId);
-        this.chatWidgetService.openWithChat(data.chatId, data.visitor);
-
-        // Reactivar auto-refresh después de 5 segundos (dar tiempo al backend para actualizar)
-        setTimeout(() => {
-          this.optimisticUpdateInProgress = false;
-          console.log('▶️ Auto-refresh reactivado - backend debería estar actualizado');
-        }, 5000);
-
-        // La UI ya está actualizada, solo limpiamos el estado de procesamiento
-        this.visitorsListComponent?.markAsCompleted(data.visitor.id);
-      } else if (response === null) {
-        // Error ya manejado en catchError
-        console.log('⚠️ No se pudo confirmar la asignación (response null)');
-      } else {
-        // Respuesta diferente, interpretada como rechazo
-        console.log('⚠️ Servidor rechazó la asignación - response:', response);
-
-        // Revertir
-        this.updateState({ visitors: originalVisitors });
-        this.cdr.detectChanges();
-        this.visitorsListComponent?.markAsCompleted(data.visitor.id);
-
-        // Reactivar auto-refresh inmediatamente (no hubo cambio real)
-        this.optimisticUpdateInProgress = false;
-        console.log('▶️ Auto-refresh reactivado (operación rechazada)');
-      }
-    });
+    // Limpiar estado de procesamiento
+    this.visitorsListComponent?.markAsCompleted(data.visitor.id);
   }
 
 

@@ -12,6 +12,8 @@ export interface ChatWidgetData {
   state: WidgetState;
   tabs: ChatTab[];
   activeTabIndex: number;
+  /** Indica si el chat es pendiente (sin asignar a un comercial) */
+  isPending: boolean;
 }
 
 @Injectable({
@@ -26,7 +28,8 @@ export class ChatWidgetService {
     chatId: null,
     state: 'closed',
     tabs: [],
-    activeTabIndex: 0
+    activeTabIndex: 0,
+    isPending: false
   });
 
   // Observables públicos
@@ -71,7 +74,8 @@ export class ChatWidgetService {
       chatId: chatId || null,
       state: 'open',
       tabs: [],
-      activeTabIndex: 0
+      activeTabIndex: 0,
+      isPending: false
     });
   }
 
@@ -86,8 +90,40 @@ export class ChatWidgetService {
       chatId,
       state: 'open',
       tabs: [],
-      activeTabIndex: 0
+      activeTabIndex: 0,
+      isPending: false
     });
+  }
+
+  /**
+   * Abrir el widget con un chat pendiente (sin asignar a comercial)
+   * El chat se asignará automáticamente cuando el comercial envíe su primer mensaje
+   */
+  openPendingChat(chatId: string, visitor: Visitor): void {
+    console.log('[ChatWidgetService] 🟠 Abriendo chat pendiente (sin asignar):', chatId);
+
+    this.widgetDataSubject.next({
+      visitor,
+      chatId,
+      state: 'open',
+      tabs: [],
+      activeTabIndex: 0,
+      isPending: true
+    });
+  }
+
+  /**
+   * Marcar el chat actual como asignado (ya no pendiente)
+   */
+  markChatAsAssigned(): void {
+    const current = this.widgetDataSubject.value;
+    if (current.isPending) {
+      console.log('[ChatWidgetService] ✅ Chat marcado como asignado:', current.chatId);
+      this.widgetDataSubject.next({
+        ...current,
+        isPending: false
+      });
+    }
   }
 
   /**
@@ -127,7 +163,8 @@ export class ChatWidgetService {
       chatId: null,
       state: 'closed',
       tabs: [],
-      activeTabIndex: 0
+      activeTabIndex: 0,
+      isPending: false
     });
   }
 
@@ -193,7 +230,8 @@ export class ChatWidgetService {
       chatId: activeChat?.chatId || null,
       state: 'open',
       tabs,
-      activeTabIndex: activeIndex
+      activeTabIndex: activeIndex,
+      isPending: false
     });
   }
 

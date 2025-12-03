@@ -21,6 +21,7 @@ import { TypingIndicator } from '@guiders-frontend/typing-indicator';
 import { PresenceService } from '@guiders-frontend/presence-service';
 import { ChatWidgetTabs } from '@guiders-frontend/chat-widget-tabs';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
+import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 
 @Component({
   selector: 'guiders-chat-widget',
@@ -35,6 +36,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   private readonly userService = inject(UserService);
   private readonly presenceService = inject(PresenceService);
   private readonly unreadMessagesService = inject(UnreadMessagesService);
+  private readonly visitorsService = inject(VisitorsDataService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly destroy$ = new Subject<void>();
 
@@ -50,6 +52,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly shouldShow = signal<boolean>(true);
+  /** Indica si el chat actual es pendiente (sin asignar a comercial) */
+  readonly isPendingChat = signal<boolean>(false);
 
   // Estado de pestañas
   readonly tabs = signal<ChatTab[]>([]);
@@ -150,6 +154,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         this.currentVisitor.set(data.visitor);
         this.currentChatId.set(data.chatId);
         this.tabs.set(data.tabs || []);
+        this.isPendingChat.set(data.isPending || false);
+
+        if (data.isPending) {
+          console.log('[ChatWidget] 🟠 Chat pendiente abierto - se asignará al enviar primer mensaje');
+        }
 
         // ⚠️ Si estamos creando un chat, NO cargar mensajes aquí
         // La carga ya se está manejando en createChatWithFirstMessage()
@@ -531,6 +540,13 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     this.shouldScrollToBottom = true;
     this.cdr.detectChanges();
 
+    // 🔑 Si el chat es pendiente, asignarlo al comercial al enviar el primer mensaje
+    const wasPending = this.isPendingChat();
+    if (wasPending) {
+      console.log('[ChatWidget] 🔄 Chat pendiente - asignando al comercial antes de enviar mensaje');
+      this.assignPendingChatToCurrentUser(chatId);
+    }
+
     // Enviar mensaje al servidor
     this.chatService.sendMessage(request).subscribe({
       next: (message) => {
@@ -541,7 +557,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
             senderType: message.senderType,
             currentUserIdSignal: this.currentUserId()
           });
-          
+
           // Reemplazar mensaje optimista con el real
           const messages = this.messages().filter(m => m.messageId !== optimisticMessage.messageId);
           this.messages.set([...messages, message]);
@@ -555,6 +571,36 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         this.messages.set(messages);
         this.error.set('No se pudo enviar el mensaje.');
         this.cdr.detectChanges();
+      }
+    });
+  }
+
+  /**
+   * Asignar chat pendiente al comercial actual
+   */
+  private assignPendingChatToCurrentUser(chatId: string): void {
+    const currentUserId = this.userService.getUserId();
+
+    if (!currentUserId) {
+      console.error('[ChatWidget] ❌ No se puede asignar chat: falta userId');
+      return;
+    }
+
+    console.log('[ChatWidget] 🚀 Asignando chat pendiente:', chatId, 'al comercial:', currentUserId);
+
+    // Marcar como asignado en el servicio (optimista)
+    this.widgetService.markChatAsAssigned();
+    this.isPendingChat.set(false);
+
+    // Llamar al backend para asignar el chat
+    this.visitorsService.assignChatToCommercial(chatId, currentUserId).subscribe({
+      next: (response) => {
+        console.log('[ChatWidget] ✅ Chat asignado exitosamente:', response);
+      },
+      error: (err) => {
+        console.error('[ChatWidget] ❌ Error al asignar chat pendiente:', err);
+        // No revertimos la UI porque el mensaje ya fue enviado
+        // El backend debería haber asignado el chat implícitamente al recibir el mensaje
       }
     });
   }
