@@ -117,6 +117,9 @@
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
       ],
+      "@guiders-frontend/llm-config-service": [
+        "libs/admin/data-access/llm-config-service/src/index.ts"
+      ],
       "@guiders-frontend/pagination": [
         "libs/shared/ui/pagination/src/index.ts"
       ],

@@ -4,90 +4,230 @@
     <p>Configura el comportamiento de la inteligencia artificial</p>
   </header>
 
-  <div class="ai-config-content">
-    <section class="config-section">
-      <h2>Configuracion General</h2>
-
-      <div class="config-group">
-        <div class="config-item">
-          <label>
-            <input type="checkbox" />
-            <span>Respuesta Automatica</span>
-          </label>
-          <p class="config-description">Permitir que la IA responda automaticamente a los visitantes</p>
-        </div>
-
-        <div class="config-item">
-          <label>
-            <input type="checkbox" />
-            <span>Sugerencias IA</span>
-          </label>
-          <p class="config-description">Mostrar sugerencias de respuesta a los comerciales</p>
-        </div>
-
-        <div class="config-item">
-          <label>
-            <input type="checkbox" />
-            <span>IA + Comercial</span>
-          </label>
-          <p class="config-description">Combinar respuestas de IA con comerciales humanos</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="config-section">
-      <h2>Modelo y Proveedor</h2>
-
-      <div class="form-group">
-        <label>Proveedor</label>
-        <select>
-          <option value="">Seleccionar proveedor...</option>
-          <option value="groq">Groq</option>
-          <option value="openai">OpenAI</option>
-          <option value="anthropic">Anthropic</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Modelo</label>
-        <select>
-          <option value="">Seleccionar modelo...</option>
-        </select>
-      </div>
-    </section>
-
-    <section class="config-section">
-      <h2>Parametros Avanzados</h2>
-
-      <div class="form-group">
-        <label>Temperature (Creatividad)</label>
-        <input type="range" min="0" max="1" step="0.1" value="0.7" />
-        <span class="value">0.7</span>
-      </div>
-
-      <div class="form-group">
-        <label>Max Tokens</label>
-        <input type="number" value="1024" min="100" max="4096" />
-      </div>
-
-      <div class="form-group">
-        <label>Delay de Respuesta (ms)</label>
-        <input type="number" value="0" min="0" max="5000" />
-      </div>
-    </section>
-
-    <section class="config-section">
-      <h2>Prompt Personalizado</h2>
-
-      <div class="form-group">
-        <label>System Prompt</label>
-        <textarea rows="6" placeholder="Introduce un prompt personalizado para la IA..."></textarea>
-      </div>
-    </section>
-
-    <div class="actions">
-      <button class="btn-secondary">Cancelar</button>
-      <button class="btn-primary">Guardar Cambios</button>
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando configuracion...</p>
     </div>
-  </div>
+  }
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <span class="alert-icon">!</span>
+      <span>{{ error() }}</span>
+      <button class="alert-close" (click)="error.set(null)">&times;</button>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span class="alert-icon">&#10003;</span>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="ai-config-content">
+      <!-- Seccion: Configuracion General -->
+      <section class="config-section">
+        <h2>Configuracion General</h2>
+
+        <div class="config-group">
+          <div class="config-item">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                [checked]="aiAutoResponseEnabled()"
+                (change)="onToggleAutoResponse($event)"
+                [disabled]="saving()" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Respuestas Automaticas</span>
+            </label>
+            <p class="config-description">
+              La IA responde automaticamente a los visitantes cuando no hay comerciales disponibles
+            </p>
+          </div>
+
+          <div class="config-item">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                [checked]="aiSuggestionsEnabled()"
+                (change)="onToggleSuggestions($event)"
+                [disabled]="saving()" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Sugerencias para Comerciales</span>
+            </label>
+            <p class="config-description">
+              Mostrar sugerencias de respuesta generadas por IA a los comerciales
+            </p>
+          </div>
+
+          <div class="config-item">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                [checked]="aiRespondWithCommercial()"
+                (change)="onToggleRespondWithCommercial($event)"
+                [disabled]="saving()" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">IA + Comercial</span>
+            </label>
+            <p class="config-description">
+              Permitir que la IA responda aunque haya un comercial asignado al chat
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seccion: Modelo y Proveedor -->
+      <section class="config-section">
+        <h2>Modelo y Proveedor</h2>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="provider">Proveedor</label>
+            <select
+              id="provider"
+              [value]="preferredProvider()"
+              (change)="onProviderChange($event)"
+              [disabled]="saving()">
+              @for (provider of providers; track provider.value) {
+                <option [value]="provider.value" [disabled]="!provider.available">
+                  {{ provider.label }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="model">Modelo</label>
+            <select
+              id="model"
+              [value]="preferredModel()"
+              (change)="onModelChange($event)"
+              [disabled]="saving()">
+              @for (model of availableModels(); track model.value) {
+                <option [value]="model.value">{{ model.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seccion: Parametros Avanzados -->
+      <section class="config-section">
+        <h2>Parametros Avanzados</h2>
+
+        <div class="form-group slider-group">
+          <div class="slider-header">
+            <label for="temperature">Creatividad (Temperature)</label>
+            <span class="slider-value">{{ temperatureDisplay() }}</span>
+          </div>
+          <input
+            type="range"
+            id="temperature"
+            min="0"
+            max="1"
+            step="0.1"
+            [value]="temperature()"
+            (input)="onTemperatureChange($event)"
+            [disabled]="saving()" />
+          <div class="slider-labels">
+            <span>Preciso</span>
+            <span>Creativo</span>
+          </div>
+        </div>
+
+        <div class="form-group slider-group">
+          <div class="slider-header">
+            <label for="delay">Delay de Respuesta</label>
+            <span class="slider-value">{{ delayDisplay() }}</span>
+          </div>
+          <input
+            type="range"
+            id="delay"
+            min="0"
+            max="5000"
+            step="100"
+            [value]="responseDelayMs()"
+            (input)="onDelayChange($event)"
+            [disabled]="saving()" />
+          <div class="slider-labels">
+            <span>Inmediato</span>
+            <span>5 segundos</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="maxTokens">Tokens Maximos de Respuesta</label>
+          <div class="input-with-hint">
+            <input
+              type="number"
+              id="maxTokens"
+              [value]="maxResponseTokens()"
+              (input)="onMaxTokensChange($event)"
+              min="50"
+              max="2000"
+              [disabled]="saving()" />
+            <span class="input-hint">Entre 50 y 2000 tokens</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seccion: Prompt Personalizado -->
+      <section class="config-section">
+        <h2>Prompt Personalizado</h2>
+        <p class="section-description">
+          Define instrucciones especificas para personalizar el comportamiento de la IA
+        </p>
+
+        <div class="form-group">
+          <label for="systemPrompt">System Prompt</label>
+          <textarea
+            id="systemPrompt"
+            rows="6"
+            [value]="customSystemPrompt()"
+            (input)="onPromptChange($event)"
+            [disabled]="saving()"
+            placeholder="Ej: Eres el asistente virtual de MiEmpresa. Responde siempre de manera profesional y amable. Ofrece ayuda con nuestros productos y servicios..."></textarea>
+          <span class="input-hint">
+            Este prompt se añade a las instrucciones base de la IA
+          </span>
+        </div>
+      </section>
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button
+          class="btn-text"
+          (click)="onResetToDefaults()"
+          [disabled]="saving()">
+          Restablecer valores
+        </button>
+        <div class="actions-right">
+          <button
+            class="btn-secondary"
+            (click)="onCancel()"
+            [disabled]="saving() || !hasChanges()">
+            Cancelar
+          </button>
+          <button
+            class="btn-primary"
+            (click)="onSave()"
+            [disabled]="saving() || !hasChanges()">
+            @if (saving()) {
+              <span class="btn-spinner"></span>
+              Guardando...
+            } @else {
+              Guardar Cambios
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

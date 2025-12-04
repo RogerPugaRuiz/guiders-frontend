@@ -20,7 +20,7 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
   background: tokens.$color-surface-primary;
   padding: 0;
 }
