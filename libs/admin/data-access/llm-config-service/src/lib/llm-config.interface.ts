@@ -34,7 +34,7 @@ export interface UpdateLlmConfigRequest {
   aiRespondWithCommercial?: boolean;
   preferredProvider?: string;
   preferredModel?: string;
-  customSystemPrompt?: string;
+  customSystemPrompt?: string | null;
   maxResponseTokens?: number;
   temperature?: number;
   responseDelayMs?: number;

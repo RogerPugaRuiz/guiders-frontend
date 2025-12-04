@@ -236,7 +236,7 @@ export class AiConfig implements OnInit, OnDestroy {
       aiRespondWithCommercial: this.aiRespondWithCommercial(),
       preferredProvider: this.preferredProvider(),
       preferredModel: this.preferredModel(),
-      customSystemPrompt: this.customSystemPrompt() || undefined,
+      customSystemPrompt: this.customSystemPrompt().trim() || null,
       maxResponseTokens: this.maxResponseTokens(),
       temperature: this.temperature(),
       responseDelayMs: this.responseDelayMs()
