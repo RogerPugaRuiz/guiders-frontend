@@ -100,8 +100,8 @@ export class AiConfig implements OnInit, OnDestroy {
       .pipe(
         takeUntil(this.destroy$),
         switchMap(companySites => {
-          // Usar el companyId como siteId
-          const siteId = companySites.companyId;
+          // Usar el siteId real del API
+          const siteId = companySites.siteId;
           this.siteId.set(siteId);
           console.log('[AiConfig] SiteId obtenido:', siteId);
 

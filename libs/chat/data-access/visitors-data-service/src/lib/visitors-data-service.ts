@@ -290,6 +290,7 @@ export class VisitorsDataService {
       domain: string;
       isActive: boolean;
     }>;
+    siteId: string;
     companyId: string;
     companyName: string;
     totalSites: number;
@@ -301,18 +302,20 @@ export class VisitorsDataService {
       id: string;
       companyName: string;
       domains: string[];
-    }>(`${this.baseUrl}/me/company`, { 
+      siteId: string;
+      siteName: string;
+    }>(`${this.baseUrl}/me/company`, {
       withCredentials: true // Requiere autenticación via cookies BFF
     }).pipe(
       switchMap(companyInfo => {
         console.log('[VisitorsDataService] Información de empresa obtenida:', companyInfo);
-        
+
         // Transformar la respuesta de /me/company al formato esperado
-        // El companyId ES el siteId válido que espera el backend
+        // Usar el siteId real del backend, no el companyId
         const sites = companyInfo.domains.map(domain => ({
-          siteId: companyInfo.id, // Usar directamente el company id como siteId (es un UUID válido)
-          companyId: companyInfo.id, // Usar el company id
-          siteName: domain,
+          siteId: companyInfo.siteId, // Usar el siteId real
+          companyId: companyInfo.id, // El id es el companyId
+          siteName: companyInfo.siteName || domain,
           domain: domain,
           isActive: true // Asumir que todos los dominios están activos
         }));
@@ -325,12 +328,14 @@ export class VisitorsDataService {
             domain: string;
             isActive: boolean;
           }>;
+          siteId: string;
           companyId: string;
           companyName: string;
           totalSites: number;
         }>(subscriber => {
           subscriber.next({
             sites: sites,
+            siteId: companyInfo.siteId,
             companyId: companyInfo.id,
             companyName: companyInfo.companyName,
             totalSites: sites.length
