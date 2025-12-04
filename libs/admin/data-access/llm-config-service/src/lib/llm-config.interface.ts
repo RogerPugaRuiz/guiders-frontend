@@ -40,6 +40,29 @@ export interface UpdateLlmConfigRequest {
   responseDelayMs?: number;
 }
 
+export interface LlmModel {
+  id: string;
+  name: string;
+  provider: string;
+  description: string;
+  maxContextTokens: number;
+  isActive: boolean;
+  isDefault?: boolean;
+}
+
+export interface LlmProvider {
+  id: string;
+  name: string;
+  isActive: boolean;
+  models: LlmModel[];
+}
+
+export interface LlmProvidersResponse {
+  providers: LlmProvider[];
+  defaultModel: string;
+  defaultProvider: string;
+}
+
 export const LLM_CONFIG_DEFAULTS: Omit<LlmConfig, 'siteId' | 'companyId'> = {
   aiAutoResponseEnabled: true,
   aiSuggestionsEnabled: true,

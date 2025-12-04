@@ -95,9 +95,9 @@
               [value]="preferredProvider()"
               (change)="onProviderChange($event)"
               [disabled]="saving()">
-              @for (provider of providers; track provider.value) {
-                <option [value]="provider.value" [disabled]="!provider.available">
-                  {{ provider.label }}
+              @for (provider of providers(); track provider.id) {
+                <option [value]="provider.id">
+                  {{ provider.name }}
                 </option>
               }
             </select>
@@ -110,8 +110,10 @@
               [value]="preferredModel()"
               (change)="onModelChange($event)"
               [disabled]="saving()">
-              @for (model of availableModels(); track model.value) {
-                <option [value]="model.value">{{ model.label }}</option>
+              @for (model of availableModels(); track model.id) {
+                <option [value]="model.id" [title]="model.description">
+                  {{ model.name }}
+                </option>
               }
             </select>
           </div>

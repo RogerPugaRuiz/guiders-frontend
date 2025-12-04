@@ -6,6 +6,7 @@ import {
   LlmConfig,
   CreateLlmConfigRequest,
   UpdateLlmConfigRequest,
+  LlmProvidersResponse,
   LLM_CONFIG_DEFAULTS
 } from './llm-config.interface';
 
@@ -174,6 +175,21 @@ export class LlmConfigService {
         console.error('Error al eliminar configuracion LLM:', error);
         this.errorSubject.next('Error al restablecer la configuracion');
         this.savingSubject.next(false);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Obtener lista de proveedores LLM con sus modelos
+   */
+  getProviders(): Observable<LlmProvidersResponse> {
+    return this.http.get<LlmProvidersResponse>(
+      `${this.baseUrl}/providers`,
+      this.getHttpOptions()
+    ).pipe(
+      catchError(error => {
+        console.error('Error al obtener proveedores LLM:', error);
         throw error;
       })
     );

@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, forkJoin } from 'rxjs';
 import {
   LlmConfigService,
   LlmConfig,
   UpdateLlmConfigRequest,
+  LlmProvider,
+  LlmProvidersResponse,
   LLM_CONFIG_DEFAULTS
 } from '@guiders-frontend/llm-config-service';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
@@ -50,22 +52,15 @@ export class AiConfig implements OnInit, OnDestroy {
   readonly temperatureDisplay = computed(() => this.temperature().toFixed(1));
   readonly delayDisplay = computed(() => `${this.responseDelayMs()}ms`);
 
-  // Proveedores y modelos disponibles
-  readonly providers = [
-    { value: 'groq', label: 'Groq', available: true }
-  ];
-
-  readonly models: Record<string, { value: string; label: string }[]> = {
-    groq: [
-      { value: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B Versatile' },
-      { value: 'llama-3.1-70b-versatile', label: 'Llama 3.1 70B Versatile' },
-      { value: 'mixtral-8x7b-32768', label: 'Mixtral 8x7B' }
-    ]
-  };
+  // Proveedores y modelos desde el API
+  readonly providers = signal<LlmProvider[]>([]);
+  readonly defaultProvider = signal<string>('');
+  readonly defaultModel = signal<string>('');
 
   readonly availableModels = computed(() => {
-    const provider = this.preferredProvider();
-    return this.models[provider] || [];
+    const providerId = this.preferredProvider();
+    const provider = this.providers().find(p => p.id === providerId);
+    return provider?.models.filter(m => m.isActive) || [];
   });
 
   // Verificar si hay cambios pendientes
@@ -100,7 +95,7 @@ export class AiConfig implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    // Primero obtener el siteId de la empresa del usuario, luego cargar la config
+    // Primero obtener el siteId de la empresa del usuario
     this.visitorsDataService.getCompanySites()
       .pipe(
         takeUntil(this.destroy$),
@@ -109,11 +104,23 @@ export class AiConfig implements OnInit, OnDestroy {
           const siteId = companySites.companyId;
           this.siteId.set(siteId);
           console.log('[AiConfig] SiteId obtenido:', siteId);
-          return this.llmConfigService.getConfig(siteId);
+
+          // Cargar proveedores y config en paralelo
+          return forkJoin({
+            providers: this.llmConfigService.getProviders(),
+            config: this.llmConfigService.getConfig(siteId)
+          });
         })
       )
       .subscribe({
-        next: (config) => {
+        next: ({ providers, config }) => {
+          // Guardar proveedores
+          this.providers.set(providers.providers.filter(p => p.isActive));
+          this.defaultProvider.set(providers.defaultProvider);
+          this.defaultModel.set(providers.defaultModel);
+          console.log('[AiConfig] Proveedores cargados:', providers);
+
+          // Guardar config
           this.config.set(config);
           this.syncFormWithConfig(config);
           this.loading.set(false);
@@ -169,10 +176,12 @@ export class AiConfig implements OnInit, OnDestroy {
   onProviderChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value;
     this.preferredProvider.set(value);
-    // Resetear modelo al cambiar proveedor
-    const models = this.models[value];
-    if (models && models.length > 0) {
-      this.preferredModel.set(models[0].value);
+    // Resetear modelo al cambiar proveedor - usar el modelo por defecto o el primero disponible
+    const provider = this.providers().find(p => p.id === value);
+    if (provider) {
+      const defaultModel = provider.models.find(m => m.isDefault && m.isActive);
+      const firstActiveModel = provider.models.find(m => m.isActive);
+      this.preferredModel.set(defaultModel?.id || firstActiveModel?.id || '');
     }
   }
 
