@@ -1,13 +1,14 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import {
   LlmConfigService,
   LlmConfig,
   UpdateLlmConfigRequest,
   LLM_CONFIG_DEFAULTS
 } from '@guiders-frontend/llm-config-service';
+import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 
 @Component({
   selector: 'admin-ai-config',
@@ -18,11 +19,12 @@ import {
 })
 export class AiConfig implements OnInit, OnDestroy {
   private readonly llmConfigService = inject(LlmConfigService);
+  private readonly visitorsDataService = inject(VisitorsDataService);
   private readonly destroy$ = new Subject<void>();
   private readonly promptUpdate$ = new Subject<string>();
 
-  // TODO: Obtener siteId dinamicamente (desde ruta o selector)
-  private readonly siteId = signal<string>('default-site');
+  // siteId obtenido dinamicamente desde la empresa del usuario
+  private readonly siteId = signal<string>('');
 
   // Estado del componente
   readonly loading = signal<boolean>(true);
@@ -98,8 +100,18 @@ export class AiConfig implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    this.llmConfigService.getConfig(this.siteId())
-      .pipe(takeUntil(this.destroy$))
+    // Primero obtener el siteId de la empresa del usuario, luego cargar la config
+    this.visitorsDataService.getCompanySites()
+      .pipe(
+        takeUntil(this.destroy$),
+        switchMap(companySites => {
+          // Usar el companyId como siteId
+          const siteId = companySites.companyId;
+          this.siteId.set(siteId);
+          console.log('[AiConfig] SiteId obtenido:', siteId);
+          return this.llmConfigService.getConfig(siteId);
+        })
+      )
       .subscribe({
         next: (config) => {
           this.config.set(config);
