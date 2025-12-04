@@ -1,5 +1,7 @@
 import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
@@ -346,13 +348,13 @@ export class VisitorsListComponent {
     if (event) {
       event.stopPropagation();
     }
-    
+
     // Verificar si ya está en proceso
     if (this.isProcessing(visitor.id)) {
       console.log('Operation already in progress for visitor:', visitor.id);
       return;
     }
-    
+
     const pendingChatIds = visitor.pendingChatIds || [];
 
     if (pendingChatIds.length === 0) {
@@ -360,21 +362,55 @@ export class VisitorsListComponent {
       return;
     }
 
-    // Tomar automáticamente el primer chat pendiente
-    const firstChatId = pendingChatIds[0];
-    
-    console.log('Taking first pending chat automatically:', firstChatId, 'for visitor:', visitor.id);
-    
+    this.closeDropdown();
+
+    // Si hay múltiples chats pendientes, abrir con pestañas
+    if (pendingChatIds.length > 1) {
+      console.log('[VisitorsList] 🟠 Múltiples chats pendientes, abriendo con pestañas:', pendingChatIds.length);
+
+      // Obtener detalles de todos los chats pendientes
+      const chatRequests = pendingChatIds.map(chatId =>
+        this.chatService.getChat(chatId).pipe(
+          filter((chat): chat is Chat => chat !== null)
+        )
+      );
+
+      forkJoin(chatRequests).subscribe({
+        next: (chats: Chat[]) => {
+          console.log('[VisitorsList] 🟠 Chats pendientes obtenidos:', chats.length);
+
+          // Registrar relaciones chat-visitor para el servicio de no leídos
+          this.registerChatsForVisitor(chats, visitor.id);
+
+          // Abrir widget con pestañas de chats pendientes
+          this.chatWidgetService.openWithPendingTabs(chats, visitor, 0);
+        },
+        error: (error: unknown) => {
+          console.error('[VisitorsList] Error al obtener chats pendientes:', error);
+          // Fallback: tomar el primer chat como antes
+          this.takeSinglePendingChat(visitor, pendingChatIds[0]);
+        }
+      });
+    } else {
+      // Solo un chat pendiente - tomar automáticamente
+      this.takeSinglePendingChat(visitor, pendingChatIds[0]);
+    }
+  }
+
+  /**
+   * Toma un único chat pendiente (comportamiento original)
+   */
+  private takeSinglePendingChat(visitor: Visitor, chatId: string): void {
+    console.log('Taking single pending chat:', chatId, 'for visitor:', visitor.id);
+
     // Marcar como en proceso INMEDIATAMENTE (programación optimista)
     this.markAsProcessing(visitor.id);
-    
-    this.closeDropdown();
 
     // Emitir evento para que el componente padre maneje la asignación del chat
     // El padre (visitors.ts) mostrará el SnackBar de éxito/error cuando complete la operación
     this.takePendingChat.emit({
       visitor,
-      chatId: firstChatId
+      chatId
     });
   }
 

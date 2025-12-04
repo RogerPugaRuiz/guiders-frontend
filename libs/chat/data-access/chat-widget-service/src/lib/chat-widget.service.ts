@@ -220,7 +220,8 @@ export class ChatWidgetService {
       unreadCount: chat.unreadCount || 0,
       isActive: index === activeIndex,
       lastMessage: chat.lastMessage?.content,
-      createdAt: chat.createdAt
+      createdAt: chat.createdAt,
+      isPending: false
     }));
 
     const activeChat = chats[activeIndex];
@@ -236,6 +237,34 @@ export class ChatWidgetService {
   }
 
   /**
+   * Abrir el widget con múltiples chats pendientes como pestañas
+   */
+  openWithPendingTabs(chats: Chat[], visitor: Visitor, activeIndex: number = 0): void {
+    console.log('[ChatWidgetService] 🟠 Abriendo widget con pestañas pendientes:', chats.length, 'chats');
+
+    const tabs: ChatTab[] = chats.map((chat, index) => ({
+      chatId: chat.chatId,
+      title: chat.subject || chat.name || `Chat pendiente ${index + 1}`,
+      unreadCount: chat.unreadCount || 0,
+      isActive: index === activeIndex,
+      lastMessage: chat.lastMessage?.content,
+      createdAt: chat.createdAt,
+      isPending: true
+    }));
+
+    const activeChat = chats[activeIndex];
+
+    this.widgetDataSubject.next({
+      visitor,
+      chatId: activeChat?.chatId || null,
+      state: 'open',
+      tabs,
+      activeTabIndex: activeIndex,
+      isPending: true
+    });
+  }
+
+  /**
    * Cambiar a una pestaña específica
    */
   switchTab(chatId: string): void {
@@ -247,7 +276,8 @@ export class ChatWidgetService {
       return;
     }
 
-    console.log('[ChatWidgetService] Cambiando a pestaña:', chatId);
+    const targetTab = current.tabs[tabIndex];
+    console.log('[ChatWidgetService] Cambiando a pestaña:', chatId, 'isPending:', targetTab.isPending);
 
     const updatedTabs = current.tabs.map((tab, index) => ({
       ...tab,
@@ -258,7 +288,8 @@ export class ChatWidgetService {
       ...current,
       chatId,
       tabs: updatedTabs,
-      activeTabIndex: tabIndex
+      activeTabIndex: tabIndex,
+      isPending: targetTab.isPending ?? false
     });
   }
 

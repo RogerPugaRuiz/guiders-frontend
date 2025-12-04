@@ -20,9 +20,6 @@ export class ChatWidgetTabs {
   /** Emite cuando se cierra una pestaña */
   tabClose = output<string>();
 
-  /** Emite cuando se cierra todo el widget */
-  widgetClose = output<void>();
-
   /** Estado del dropdown de overflow */
   overflowOpen = signal<boolean>(false);
 
@@ -59,10 +56,6 @@ export class ChatWidgetTabs {
   onTabClose(event: MouseEvent, chatId: string): void {
     event.stopPropagation();
     this.tabClose.emit(chatId);
-  }
-
-  onWidgetClose(): void {
-    this.widgetClose.emit();
   }
 
   toggleOverflow(): void {

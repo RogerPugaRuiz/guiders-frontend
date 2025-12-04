@@ -203,4 +203,5 @@ export interface ChatTab {
   isActive: boolean;       // Pestaña activa
   lastMessage?: string;    // Preview del último mensaje
   createdAt: Date;
+  isPending?: boolean;     // True si es un chat pendiente (sin asignar)
 }

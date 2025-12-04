@@ -2,18 +2,18 @@
 
 .chat-tabs {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: tokens.$spacing-xs;
-  padding: tokens.$spacing-xs tokens.$spacing-sm;
-  background: tokens.$color-surface-secondary;
-  border-bottom: 1px solid tokens.$color-border-light;
+  padding: tokens.$spacing-xs tokens.$spacing-sm 0;
+  background: tokens.$color-surface-tertiary;
   min-height: 40px;
+  position: relative;
 
   &__list {
     display: flex;
-    align-items: center;
-    gap: tokens.$spacing-xs;
+    align-items: flex-end;
+    gap: 2px;
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -26,19 +26,20 @@
     padding: tokens.$spacing-xs tokens.$spacing-sm;
     background: transparent;
     border: none;
-    border-radius: tokens.$border-radius-sm;
+    border-radius: tokens.$border-radius-sm tokens.$border-radius-sm 0 0;
     font-size: tokens.$font-size-xs;
     font-weight: 500;
-    color: tokens.$color-text-secondary;
+    color: tokens.$color-text-tertiary;
     cursor: pointer;
     transition: all 0.15s ease;
-    max-width: 140px;
+    max-width: 160px;
     min-width: 60px;
     white-space: nowrap;
+    position: relative;
 
-    &:hover {
-      background: tokens.$color-surface-hover;
-      color: tokens.$color-text-primary;
+    &:hover:not(.chat-tabs__tab--active) {
+      background: rgba(255, 255, 255, 0.5);
+      color: tokens.$color-text-secondary;
 
       .chat-tabs__close-tab {
         opacity: 1;
@@ -48,7 +49,9 @@
     &--active {
       background: tokens.$color-surface-primary;
       color: tokens.$color-text-primary;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding-bottom: calc(tokens.$spacing-xs + 1px);
+      margin-bottom: -1px;
+      z-index: 1;
 
       .chat-tabs__close-tab {
         opacity: 0.7;
@@ -109,6 +112,7 @@
   &__overflow-container {
     position: relative;
     flex-shrink: 0;
+    margin-bottom: tokens.$spacing-xs;
   }
 
   &__overflow-btn {
@@ -116,22 +120,22 @@
     align-items: center;
     gap: tokens.$spacing-xs;
     padding: tokens.$spacing-xs tokens.$spacing-sm;
-    background: tokens.$color-surface-hover;
+    background: rgba(255, 255, 255, 0.3);
     border: none;
     border-radius: tokens.$border-radius-sm;
     font-size: tokens.$font-size-xs;
     font-weight: 500;
-    color: tokens.$color-text-secondary;
+    color: tokens.$color-text-tertiary;
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover {
-      background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-primary;
+      background: rgba(255, 255, 255, 0.5);
+      color: tokens.$color-text-secondary;
     }
 
     &--open {
-      background: tokens.$color-surface-tertiary;
+      background: rgba(255, 255, 255, 0.6);
       color: tokens.$color-text-primary;
 
       .chat-tabs__overflow-arrow {
@@ -196,26 +200,6 @@
     white-space: nowrap;
   }
 
-  &__close-widget {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    background: transparent;
-    border: none;
-    border-radius: 50%;
-    color: tokens.$color-text-secondary;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    flex-shrink: 0;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.1);
-      color: tokens.$color-text-primary;
-    }
-  }
 }
 
 @keyframes fadeIn {
