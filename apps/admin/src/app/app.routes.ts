@@ -24,6 +24,11 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard]
   },
   {
+    path: 'branding',
+    loadChildren: () => import('@guiders-frontend/white-label-config').then(m => m.whiteLabelConfigRoutes),
+    canActivate: [adminGuard]
+  },
+  {
     path: 'login',
     loadChildren: () => import('@guiders-frontend/auth/features/login').then(m => m.loginRoutes)
   }

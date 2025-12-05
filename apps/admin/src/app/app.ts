@@ -78,6 +78,12 @@ export class App {
       label: 'Configuracion IA',
       icon: 'activity',
       route: '/ai'
+    },
+    {
+      id: 'branding',
+      label: 'Marca Blanca',
+      icon: 'layers',
+      route: '/branding'
     }
   ]);
 

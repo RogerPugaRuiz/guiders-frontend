@@ -190,6 +190,12 @@
       ],
       "@guiders-frontend/visitors-quick-filters": [
         "libs/chat/ui/visitors-quick-filters/src/index.ts"
+      ],
+      "@guiders-frontend/white-label-config": [
+        "libs/admin/features/white-label-config/src/index.ts"
+      ],
+      "@guiders-frontend/white-label-service": [
+        "libs/admin/data-access/white-label-service/src/index.ts"
       ]
     }
   },
