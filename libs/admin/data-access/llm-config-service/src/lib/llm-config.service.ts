@@ -7,7 +7,9 @@ import {
   CreateLlmConfigRequest,
   UpdateLlmConfigRequest,
   LlmProvidersResponse,
-  LLM_CONFIG_DEFAULTS
+  LLM_CONFIG_DEFAULTS,
+  LlmToolConfig,
+  LLM_TOOL_CONFIG_DEFAULTS
 } from './llm-config.interface';
 
 interface ApiLlmConfigResponse {
@@ -22,6 +24,7 @@ interface ApiLlmConfigResponse {
   maxResponseTokens: number;
   temperature: number;
   responseDelayMs: number;
+  toolConfig?: LlmToolConfig;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -84,7 +87,8 @@ export class LlmConfigService {
           const defaultConfig: LlmConfig = {
             siteId,
             companyId: '',
-            ...LLM_CONFIG_DEFAULTS
+            ...LLM_CONFIG_DEFAULTS,
+            toolConfig: { ...LLM_TOOL_CONFIG_DEFAULTS }
           };
           this.configSubject.next(defaultConfig);
           this.loadingSubject.next(false);
@@ -166,7 +170,8 @@ export class LlmConfigService {
         const defaultConfig: LlmConfig = {
           siteId,
           companyId: this.configSubject.value?.companyId || '',
-          ...LLM_CONFIG_DEFAULTS
+          ...LLM_CONFIG_DEFAULTS,
+          toolConfig: { ...LLM_TOOL_CONFIG_DEFAULTS }
         };
         this.configSubject.next(defaultConfig);
         this.savingSubject.next(false);
@@ -225,6 +230,7 @@ export class LlmConfigService {
       maxResponseTokens: response.maxResponseTokens,
       temperature: response.temperature,
       responseDelayMs: response.responseDelayMs,
+      toolConfig: response.toolConfig || { ...LLM_TOOL_CONFIG_DEFAULTS },
       createdAt: response.createdAt ? new Date(response.createdAt) : undefined,
       updatedAt: response.updatedAt ? new Date(response.updatedAt) : undefined
     };

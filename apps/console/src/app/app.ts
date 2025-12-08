@@ -68,27 +68,7 @@ export class App {
         id: 'visitors',
         label: 'Visitantes',
         icon: 'users',
-        children: [
-          {
-            id: 'visitors-all',
-            label: 'Todos',
-            icon: 'users',
-            route: '/visitors?filter=all'
-          },
-          {
-            id: 'visitors-mine',
-            label: 'Míos',
-            icon: 'user',
-            route: '/visitors?filter=mine'
-          },
-          {
-            id: 'visitors-unassigned',
-            label: 'No asignados',
-            icon: 'circle',
-            route: '/visitors?filter=unassigned'
-          },
-
-        ]
+        route: '/visitors'
       },
       // {
       //   id: 'contacts',

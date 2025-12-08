@@ -17,7 +17,7 @@
   cursor: pointer;
 
   &:hover {
-    background-color: tokens.$color-surface-tertiary;
+    background-color: var(--wl-color-surface-hover, tokens.$color-surface-tertiary);
   }
 
   // Modo compacto (sidebar colapsado)
@@ -58,7 +58,7 @@
     width: 12px;
     height: 12px;
     border-radius: tokens.$border-radius-circle;
-    border: 2px solid tokens.$color-surface-primary;
+    border: 2px solid var(--wl-color-surface, tokens.$color-surface-primary); // Borde para separar del avatar
     background-color: tokens.$color-neutral-500; // Estado neutral por defecto
     transition: background-color tokens.$duration-fast tokens.$easing-standard;
 
@@ -89,7 +89,7 @@
   &__name {
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
+    color: var(--wl-color-surface-text, tokens.$color-text-primary);
     line-height: tokens.$line-height-tight;
     white-space: nowrap;
     overflow: hidden;
@@ -99,7 +99,7 @@
   &__email {
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-regular;
-    color: tokens.$color-text-tertiary;
+    color: var(--wl-color-surface-text-muted, tokens.$color-text-tertiary);
     line-height: tokens.$line-height-tight;
     white-space: nowrap;
     overflow: hidden;

@@ -57,7 +57,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
       outline-offset: 2px;
     }
   }
@@ -108,8 +108,8 @@
     }
 
     &:has(input:checked) {
-      border-color: tokens.$color-primary-500;
-      background: tokens.$color-primary-50;
+      border-color: var(--wl-color-primary, tokens.$color-primary-500);
+      background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 12%, white);
     }
 
     input {
@@ -156,8 +156,8 @@
 
     &:focus {
       outline: none;
-      border-color: tokens.$color-primary-500;
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      border-color: var(--wl-color-primary, tokens.$color-primary-500);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 25%, transparent);
     }
 
     &::placeholder {
@@ -192,7 +192,7 @@
     cursor: pointer;
 
     input {
-      accent-color: tokens.$color-primary-500;
+      accent-color: var(--wl-color-primary, tokens.$color-primary-500);
     }
   }
 
@@ -219,17 +219,17 @@
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
       outline-offset: 2px;
     }
 
     &--primary {
       border: none;
-      background: tokens.$color-primary-500;
+      background: var(--wl-color-primary, tokens.$color-primary-500);
       color: tokens.$color-text-inverse;
 
       &:hover {
-        background: tokens.$color-primary-600;
+        background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
       }
     }
 
@@ -245,12 +245,12 @@
     }
 
     &--outline {
-      border: 1px solid tokens.$color-primary-500;
+      border: 1px solid var(--wl-color-primary, tokens.$color-primary-500);
       background: transparent;
-      color: tokens.$color-primary-500;
+      color: var(--wl-color-primary, tokens.$color-primary-500);
 
       &:hover {
-        background: tokens.$color-primary-50;
+        background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 10%, white);
       }
     }
   }

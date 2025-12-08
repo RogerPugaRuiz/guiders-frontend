@@ -5,8 +5,12 @@
   <header class="sidebar__header">
     @if (!isCollapsed()) {
     <div class="sidebar__logo">
-      <guiders-icon name="building" size="lg" class="sidebar__logo-icon" [config]="{ decorative: true }" />
-      <span class="sidebar__logo-text">Guiders</span>
+      @if (logoUrl()) {
+        <img [src]="logoUrl()" [alt]="brandName()" class="sidebar__logo-image" />
+      } @else {
+        <guiders-icon name="building" size="lg" class="sidebar__logo-icon" [config]="{ decorative: true }" />
+        <span class="sidebar__logo-text">{{ brandName() }}</span>
+      }
     </div>
     }
 

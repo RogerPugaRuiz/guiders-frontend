@@ -54,6 +54,8 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   readonly shouldShow = signal<boolean>(true);
   /** Indica si el chat actual es pendiente (sin asignar a comercial) */
   readonly isPendingChat = signal<boolean>(false);
+  /** ID del sitio actual (necesario para sugerencias IA) */
+  readonly siteId = signal<string | null>(null);
 
   // Estado de pestañas
   readonly tabs = signal<ChatTab[]>([]);
@@ -127,6 +129,9 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   });
 
   ngOnInit(): void {
+    // Cargar siteId para las sugerencias de IA
+    this.loadSiteId();
+
     // Suscribirse al estado del widget
     this.widgetService.widgetData$
       .pipe(takeUntil(this.destroy$))
@@ -1015,6 +1020,23 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
       scrollDiff,
       newScrollTop: element.scrollTop
     });
+  }
+
+  /**
+   * Cargar el siteId desde el servicio de visitantes
+   */
+  private loadSiteId(): void {
+    this.visitorsService.getCompanySites()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          console.log('[ChatWidget] SiteId cargado:', response.siteId);
+          this.siteId.set(response.siteId);
+        },
+        error: (err) => {
+          console.error('[ChatWidget] Error al cargar siteId:', err);
+        }
+      });
   }
 
 }

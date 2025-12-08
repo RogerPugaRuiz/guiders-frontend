@@ -180,6 +180,177 @@
         </div>
       </section>
 
+      <!-- Seccion: Acceso Web Automatico (Tool Use) -->
+      <section class="config-section">
+        <h2>Acceso Web Automatico</h2>
+        <p class="section-description">
+          Permite que la IA acceda al contenido de tu sitio web para responder preguntas sobre productos, servicios, precios, etc.
+        </p>
+
+        <div class="config-group">
+          <!-- Toggle principal -->
+          <div class="config-item">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                [checked]="fetchPageEnabled()"
+                (change)="onToggleFetchPage($event)"
+                [disabled]="saving()" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Habilitar acceso web</span>
+            </label>
+            <p class="config-description">
+              Cuando esta habilitado, la IA puede consultar paginas de tu sitio web para obtener informacion actualizada
+            </p>
+          </div>
+        </div>
+
+        <!-- Configuracion adicional (visible solo si fetchPageEnabled) -->
+        @if (fetchPageEnabled()) {
+          <div class="tool-config-details">
+            <!-- URL Base -->
+            <div class="form-group">
+              <label for="baseUrl">URL Base del Sitio</label>
+              <input
+                type="url"
+                id="baseUrl"
+                [value]="baseUrl()"
+                (input)="onBaseUrlChange($event)"
+                placeholder="https://tu-sitio.com"
+                [disabled]="saving()" />
+              <span class="input-hint">
+                URL base de tu sitio web. Si se deja vacio, se usara la URL del dominio configurado.
+              </span>
+            </div>
+
+            <!-- Rutas permitidas -->
+            <div class="form-group">
+              <label for="allowedPathInput">Rutas Permitidas</label>
+              <p class="input-hint" style="margin-top: 0; margin-bottom: 8px;">
+                Si dejas vacio, se permite acceso a todas las rutas. Agrega rutas especificas para limitar el acceso.
+              </p>
+
+              <div class="path-input-container">
+                <input
+                  type="text"
+                  id="allowedPathInput"
+                  [value]="newPathInput()"
+                  (input)="onPathInputChange($event)"
+                  (keydown)="onPathInputKeydown($event)"
+                  placeholder="/productos, /servicios, /precios"
+                  [disabled]="saving()" />
+                <button
+                  type="button"
+                  class="btn-add-path"
+                  (click)="onAddPath()"
+                  [disabled]="saving() || !newPathInput().trim()">
+                  Agregar
+                </button>
+              </div>
+
+              @if (allowedPaths().length > 0) {
+                <div class="paths-chips">
+                  @for (path of allowedPaths(); track path) {
+                    <div class="path-chip">
+                      <span class="path-chip-value">{{ path }}</span>
+                      <button
+                        type="button"
+                        class="path-chip-remove"
+                        (click)="onRemovePath(path)"
+                        [disabled]="saving()"
+                        aria-label="Eliminar ruta">
+                        &times;
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- Max Iterations Slider -->
+            <div class="form-group slider-group">
+              <div class="slider-header">
+                <label for="maxIterations">Maximo de consultas web por conversacion</label>
+                <span class="slider-value">{{ maxIterations() }}</span>
+              </div>
+              <input
+                type="range"
+                id="maxIterations"
+                min="1"
+                max="10"
+                step="1"
+                [value]="maxIterations()"
+                (input)="onMaxIterationsChange($event)"
+                [disabled]="saving()" />
+              <div class="slider-labels">
+                <span>1</span>
+                <span>10</span>
+              </div>
+            </div>
+
+            <!-- Fetch Timeout Slider -->
+            <div class="form-group slider-group">
+              <div class="slider-header">
+                <label for="fetchTimeout">Timeout de consulta web</label>
+                <span class="slider-value">{{ fetchTimeoutDisplay() }}</span>
+              </div>
+              <input
+                type="range"
+                id="fetchTimeout"
+                min="1000"
+                max="30000"
+                step="1000"
+                [value]="fetchTimeoutMs()"
+                (input)="onFetchTimeoutChange($event)"
+                [disabled]="saving()" />
+              <div class="slider-labels">
+                <span>1s</span>
+                <span>30s</span>
+              </div>
+            </div>
+
+            <!-- Cache Toggle -->
+            <div class="config-item">
+              <label class="toggle-label">
+                <input
+                  type="checkbox"
+                  [checked]="cacheEnabled()"
+                  (change)="onToggleCache($event)"
+                  [disabled]="saving()" />
+                <span class="toggle-switch"></span>
+                <span class="toggle-text">Cache habilitado</span>
+              </label>
+              <p class="config-description">
+                Cachea el contenido web para respuestas mas rapidas y reducir carga en tu servidor
+              </p>
+            </div>
+
+            <!-- Cache TTL Slider (visible solo si cache esta habilitado) -->
+            @if (cacheEnabled()) {
+              <div class="form-group slider-group">
+                <div class="slider-header">
+                  <label for="cacheTtl">Duracion del cache</label>
+                  <span class="slider-value">{{ cacheTtlDisplay() }}</span>
+                </div>
+                <input
+                  type="range"
+                  id="cacheTtl"
+                  min="60"
+                  max="86400"
+                  step="60"
+                  [value]="cacheTtlSeconds()"
+                  (input)="onCacheTtlChange($event)"
+                  [disabled]="saving()" />
+                <div class="slider-labels">
+                  <span>1 min</span>
+                  <span>24 horas</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
       <!-- Seccion: Prompt Personalizado -->
       <section class="config-section">
         <h2>Prompt Personalizado</h2>

@@ -6,6 +6,7 @@ import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Badge } from '@guiders-frontend/badge';
 import { UserMenu } from '@guiders-frontend/user-menu';
+import { ThemeService } from '@guiders-frontend/theme-service';
 
 @Component({
   selector: 'guiders-sidebar',
@@ -15,6 +16,11 @@ import { UserMenu } from '@guiders-frontend/user-menu';
 })
 export class Sidebar {
   private readonly router = inject(Router);
+  private readonly themeService = inject(ThemeService);
+
+  // Logo y branding desde ThemeService
+  readonly logoUrl = this.themeService.logoUrl;
+  readonly brandName = this.themeService.brandName;
 
   // Inputs usando signals API
   readonly items = input.required<SidebarItem[]>();

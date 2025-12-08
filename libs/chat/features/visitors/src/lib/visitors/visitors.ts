@@ -1046,6 +1046,30 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const currentFilters = this.activeSearchFilters();
     const updatedFilters = { ...currentFilters };
 
+    // Mapeo de claves de filtro a IDs de filtros rápidos que las usan
+    const filterKeyToQuickFilterIds: Record<string, string[]> = {
+      'connectionStatus': ['online'],
+      'lifecycle': ['leads', 'high_intent'],
+      'lastActivity': ['today', 'this_week'],
+      'hasActiveSessions': ['active'],
+      'maxTotalSessionsCount': ['new_visitors'],
+      'minTotalSessionsCount': ['returning'],
+      'sessionCount': ['new_visitors', 'returning']
+    };
+
+    // Si el filtro eliminado corresponde a un filtro rápido seleccionado, deseleccionarlo
+    const currentQuickFilterId = this.selectedFilterId();
+    const affectedQuickFilters = filterKeyToQuickFilterIds[filterKey] || [];
+    if (affectedQuickFilters.includes(currentQuickFilterId)) {
+      this.selectedFilterId.set('');
+    }
+
+    // Si hay un filtro guardado seleccionado, deseleccionarlo también
+    // (ya que el usuario está modificando los filtros manualmente)
+    if (this.selectedSavedFilterId()) {
+      this.selectedSavedFilterId.set(null);
+    }
+
     // Eliminar el filtro según su clave
     switch (filterKey) {
       case 'lifecycle':

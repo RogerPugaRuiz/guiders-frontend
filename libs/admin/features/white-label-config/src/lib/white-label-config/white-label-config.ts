@@ -16,6 +16,7 @@ import {
   FontStyle
 } from '@guiders-frontend/white-label-service';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
+import { ThemeService } from '@guiders-frontend/theme-service';
 
 @Component({
   selector: 'admin-white-label-config',
@@ -27,6 +28,7 @@ import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
   private readonly whiteLabelService = inject(WhiteLabelService);
   private readonly visitorsDataService = inject(VisitorsDataService);
+  private readonly themeService = inject(ThemeService);
   private readonly destroy$ = new Subject<void>();
 
   // companyId obtenido dinamicamente desde la empresa del usuario
@@ -46,6 +48,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
   // Colores
   readonly colorPrimary = signal<string>(WHITE_LABEL_DEFAULTS.colors.primary);
   readonly colorSecondary = signal<string>(WHITE_LABEL_DEFAULTS.colors.secondary);
+  readonly colorTertiary = signal<string>(WHITE_LABEL_DEFAULTS.colors.tertiary);
   readonly colorBackground = signal<string>(WHITE_LABEL_DEFAULTS.colors.background);
   readonly colorSurface = signal<string>(WHITE_LABEL_DEFAULTS.colors.surface);
   readonly colorText = signal<string>(WHITE_LABEL_DEFAULTS.colors.text);
@@ -90,6 +93,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
     return (
       current.colors.primary !== this.colorPrimary() ||
       current.colors.secondary !== this.colorSecondary() ||
+      current.colors.tertiary !== this.colorTertiary() ||
       current.colors.background !== this.colorBackground() ||
       current.colors.surface !== this.colorSurface() ||
       current.colors.text !== this.colorText() ||
@@ -146,6 +150,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
     // Colores
     this.colorPrimary.set(config.colors.primary);
     this.colorSecondary.set(config.colors.secondary);
+    this.colorTertiary.set(config.colors.tertiary);
     this.colorBackground.set(config.colors.background);
     this.colorSurface.set(config.colors.surface);
     this.colorText.set(config.colors.text);
@@ -180,6 +185,11 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
   onColorSecondaryChange(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.colorSecondary.set(value);
+  }
+
+  onColorTertiaryChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.colorTertiary.set(value);
   }
 
   onColorBackgroundChange(event: Event): void {
@@ -478,6 +488,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
       colors: {
         primary: this.colorPrimary(),
         secondary: this.colorSecondary(),
+        tertiary: this.colorTertiary(),
         background: this.colorBackground(),
         surface: this.colorSurface(),
         text: this.colorText(),
@@ -505,6 +516,9 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
           this.saving.set(false);
           this.successMessage.set('Configuracion guardada correctamente');
           setTimeout(() => this.successMessage.set(null), 3000);
+
+          // Aplicar el tema inmediatamente para actualizar el branding del sidebar
+          this.themeService.applyTheme(config);
         },
         error: (err) => {
           console.error('Error guardando configuracion:', err);
@@ -529,6 +543,9 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
           this.loadConfig();
           this.successMessage.set('Configuracion restablecida');
           setTimeout(() => this.successMessage.set(null), 3000);
+
+          // Aplicar defaults al tema
+          this.themeService.applyDefaults();
         },
         error: (err) => {
           console.error('Error restableciendo configuracion:', err);
@@ -545,6 +562,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
       colors: {
         primary: this.colorPrimary(),
         secondary: this.colorSecondary(),
+        tertiary: this.colorTertiary(),
         background: this.colorBackground(),
         surface: this.colorSurface(),
         text: this.colorText(),
@@ -599,6 +617,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
     if (config.colors) {
       if (config.colors.primary) this.colorPrimary.set(config.colors.primary);
       if (config.colors.secondary) this.colorSecondary.set(config.colors.secondary);
+      if (config.colors.tertiary) this.colorTertiary.set(config.colors.tertiary);
       if (config.colors.background) this.colorBackground.set(config.colors.background);
       if (config.colors.surface) this.colorSurface.set(config.colors.surface);
       if (config.colors.text) this.colorText.set(config.colors.text);

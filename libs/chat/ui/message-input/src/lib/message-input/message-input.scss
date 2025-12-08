@@ -7,8 +7,167 @@
 
 .message-input {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: tokens.$spacing-sm tokens.$spacing-md;
+
+  // Estilos para sugerencias de IA
+  &__suggestions {
+    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
+    border: 1px solid #e9d5ff;
+    border-radius: 12px;
+    margin-bottom: tokens.$spacing-sm;
+    overflow: hidden;
+  }
+
+  &__suggestions-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+    background: rgba(139, 92, 246, 0.08);
+    border-bottom: 1px solid #e9d5ff;
+  }
+
+  &__suggestions-title {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-xs;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7c3aed;
+  }
+
+  &__suggestions-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    color: #a78bfa;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: rgba(139, 92, 246, 0.15);
+      color: #7c3aed;
+    }
+  }
+
+  &__suggestions-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: tokens.$spacing-sm;
+    padding: tokens.$spacing-md;
+    font-size: 13px;
+    color: #7c3aed;
+  }
+
+  &__suggestions-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e9d5ff;
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+
+  &__suggestions-empty {
+    padding: tokens.$spacing-md;
+    font-size: 13px;
+    color: #a78bfa;
+    text-align: center;
+  }
+
+  &__suggestions-list {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-xs;
+    padding: tokens.$spacing-sm;
+  }
+
+  &__suggestion-chip {
+    display: block;
+    width: 100%;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #374151;
+    text-align: left;
+    background: white;
+    border: 1px solid #e9d5ff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    // Mostrar texto completo sin truncar
+    white-space: normal;
+    word-wrap: break-word;
+
+    &:hover {
+      background: #f5f3ff;
+      border-color: #c4b5fd;
+      transform: translateX(2px);
+    }
+
+    &:active {
+      transform: translateX(0);
+      background: #ede9fe;
+    }
+  }
+
+  // Botón para activar sugerencias/mejora
+  &__suggestions-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: #a78bfa;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover:not(:disabled) {
+      background: #f5f3ff;
+      color: #7c3aed;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    &--active {
+      background: #ede9fe;
+      color: #7c3aed;
+    }
+
+    &--loading {
+      cursor: wait;
+      opacity: 0.7;
+      background: #f5f3ff;
+    }
+  }
+
+  // Spinner para botón de IA
+  &__button-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #e9d5ff;
+    border-top-color: #8b5cf6;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
 
   &__input-wrapper {
     flex: 1;
@@ -117,6 +276,13 @@
   }
 }
 
+// Animación de spinner
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 // Responsive adjustments
 @media (max-width: 480px) {
   .message-input {
@@ -136,6 +302,22 @@
         width: 14px;
         height: 14px;
       }
+    }
+
+    // Ocultar botón de sugerencias en móvil para ahorrar espacio
+    &__suggestions-button {
+      width: 28px;
+      height: 28px;
+    }
+
+    &__suggestions {
+      margin-bottom: tokens.$spacing-xs;
+    }
+
+    &__suggestion-chip {
+      padding: tokens.$spacing-xs tokens.$spacing-sm;
+      font-size: 12px;
+      line-height: 1.4;
     }
   }
 }

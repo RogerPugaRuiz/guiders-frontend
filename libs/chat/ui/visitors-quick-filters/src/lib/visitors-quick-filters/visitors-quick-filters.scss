@@ -33,18 +33,18 @@
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
       outline-offset: 2px;
     }
 
     &--active {
-      background: tokens.$color-primary-500;
-      border-color: tokens.$color-primary-500;
+      background: var(--wl-color-primary, tokens.$color-primary-500);
+      border-color: var(--wl-color-primary, tokens.$color-primary-500);
       color: tokens.$color-text-inverse;
 
       &:hover {
-        background: tokens.$color-primary-600;
-        border-color: tokens.$color-primary-600;
+        background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
+        border-color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
         color: tokens.$color-text-inverse;
       }
 
@@ -106,18 +106,18 @@
   }
 
   &__chip--saved {
-    background: tokens.$color-primary-50;
+    background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 10%, white);
     border-color: tokens.$color-border-subtle;
-    color: tokens.$color-primary-700;
+    color: var(--wl-color-primary, tokens.$color-primary-700);
     position: relative;
     padding-right: tokens.$spacing-xl;
 
     .quick-filters__icon {
-      color: tokens.$color-primary-500;
+      color: var(--wl-color-primary, tokens.$color-primary-500);
     }
 
     &:hover {
-      background: tokens.$color-surface-secondary;
+      background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 15%, white);
       border-color: tokens.$color-border-default;
 
       .quick-filters__delete {
@@ -126,8 +126,8 @@
     }
 
     &.quick-filters__chip--active {
-      background: tokens.$color-primary-500;
-      border-color: tokens.$color-primary-500;
+      background: var(--wl-color-primary, tokens.$color-primary-500);
+      border-color: var(--wl-color-primary, tokens.$color-primary-500);
       color: tokens.$color-text-inverse;
 
       .quick-filters__icon {
@@ -172,7 +172,7 @@
 
     &:focus-visible {
       opacity: 1;
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
       outline-offset: 1px;
     }
   }
@@ -265,7 +265,7 @@
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
       outline-offset: 2px;
     }
   }

@@ -79,6 +79,27 @@
             <span class="color-hint">Elementos secundarios</span>
           </div>
 
+          <!-- Color Terciario -->
+          <div class="color-picker-group">
+            <label for="color-tertiary">Color Terciario</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-tertiary"
+                [value]="colorTertiary()"
+                (input)="onColorTertiaryChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorTertiary()"
+                (input)="onColorTertiaryChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Acciones positivas y confirmaciones</span>
+          </div>
+
           <!-- Color de Fondo -->
           <div class="color-picker-group">
             <label for="color-background">Color de Fondo</label>

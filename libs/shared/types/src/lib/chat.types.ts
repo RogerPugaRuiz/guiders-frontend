@@ -14,7 +14,7 @@ export interface Message {
   senderId: string;
   senderType: 'COMMERCIAL' | 'VISITOR' | 'SYSTEM'; // API usa senderType
   content: string;
-  type: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' | 'VIDEO' | 'SYSTEM'; // API usa mayúsculas
+  type: 'TEXT' | 'IMAGE' | 'FILE' | 'AUDIO' | 'VIDEO' | 'SYSTEM' | 'AI'; // API usa mayúsculas
   sentAt: Date; // API usa sentAt en lugar de timestamp
   status: 'SENT' | 'DELIVERED' | 'READ'; // API usa mayúsculas, no tiene 'sending'
   replyTo?: string; // ID del mensaje al que responde
@@ -26,6 +26,17 @@ export interface Message {
   readBy?: string | null; // ID del usuario que leyó el mensaje
   isInternal?: boolean; // Mensaje interno (solo entre comerciales)
   isFirstResponse?: boolean; // Primer mensaje de respuesta del comercial
+  // Campos para mensajes generados por IA
+  isAI?: boolean; // Indica si el mensaje fue generado por IA
+  aiMetadata?: {
+    model?: string; // Modelo de IA usado (ej: "llama-3.3-70b-versatile")
+    processingTimeMs?: number; // Tiempo de procesamiento en ms
+    context?: {
+      provider?: string; // Proveedor de IA (ej: "groq")
+      triggerMessageId?: string; // ID del mensaje que disparó la respuesta
+      tokensUsed?: number; // Tokens consumidos
+    };
+  };
   metadata?: {
     fileName?: string;
     fileSize?: number;

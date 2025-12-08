@@ -7,8 +7,8 @@ import {
   LlmConfig,
   UpdateLlmConfigRequest,
   LlmProvider,
-  LlmProvidersResponse,
-  LLM_CONFIG_DEFAULTS
+  LLM_CONFIG_DEFAULTS,
+  LLM_TOOL_CONFIG_DEFAULTS
 } from '@guiders-frontend/llm-config-service';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 
@@ -48,9 +48,33 @@ export class AiConfig implements OnInit, OnDestroy {
   readonly temperature = signal<number>(LLM_CONFIG_DEFAULTS.temperature);
   readonly responseDelayMs = signal<number>(LLM_CONFIG_DEFAULTS.responseDelayMs);
 
+  // Tool Use Config Signals
+  readonly fetchPageEnabled = signal<boolean>(LLM_TOOL_CONFIG_DEFAULTS.fetchPageEnabled);
+  readonly baseUrl = signal<string>(LLM_TOOL_CONFIG_DEFAULTS.baseUrl);
+  readonly allowedPaths = signal<string[]>([...LLM_TOOL_CONFIG_DEFAULTS.allowedPaths]);
+  readonly maxIterations = signal<number>(LLM_TOOL_CONFIG_DEFAULTS.maxIterations);
+  readonly fetchTimeoutMs = signal<number>(LLM_TOOL_CONFIG_DEFAULTS.fetchTimeoutMs);
+  readonly cacheEnabled = signal<boolean>(LLM_TOOL_CONFIG_DEFAULTS.cacheEnabled);
+  readonly cacheTtlSeconds = signal<number>(LLM_TOOL_CONFIG_DEFAULTS.cacheTtlSeconds);
+  readonly newPathInput = signal<string>('');
+
   // Computed para mostrar valores formateados
   readonly temperatureDisplay = computed(() => this.temperature().toFixed(1));
   readonly delayDisplay = computed(() => `${this.responseDelayMs()}ms`);
+
+  // Tool Use computed displays
+  readonly fetchTimeoutDisplay = computed(() => `${(this.fetchTimeoutMs() / 1000).toFixed(0)}s`);
+  readonly cacheTtlDisplay = computed(() => {
+    const seconds = this.cacheTtlSeconds();
+    if (seconds < 60) return `${seconds}s`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)} min`;
+    if (seconds < 86400) {
+      const hours = Math.round(seconds / 3600);
+      return hours === 1 ? '1 hora' : `${hours} horas`;
+    }
+    const days = Math.round(seconds / 86400);
+    return days === 1 ? '1 dia' : `${days} dias`;
+  });
 
   // Proveedores y modelos desde el API
   readonly providers = signal<LlmProvider[]>([]);
@@ -68,6 +92,8 @@ export class AiConfig implements OnInit, OnDestroy {
     const current = this.config();
     if (!current) return false;
 
+    const currentToolConfig = current.toolConfig || LLM_TOOL_CONFIG_DEFAULTS;
+
     return (
       current.aiAutoResponseEnabled !== this.aiAutoResponseEnabled() ||
       current.aiSuggestionsEnabled !== this.aiSuggestionsEnabled() ||
@@ -77,7 +103,15 @@ export class AiConfig implements OnInit, OnDestroy {
       (current.customSystemPrompt || '') !== this.customSystemPrompt() ||
       current.maxResponseTokens !== this.maxResponseTokens() ||
       current.temperature !== this.temperature() ||
-      current.responseDelayMs !== this.responseDelayMs()
+      current.responseDelayMs !== this.responseDelayMs() ||
+      // Tool Config comparisons
+      currentToolConfig.fetchPageEnabled !== this.fetchPageEnabled() ||
+      (currentToolConfig.baseUrl || '') !== this.baseUrl() ||
+      JSON.stringify(currentToolConfig.allowedPaths) !== JSON.stringify(this.allowedPaths()) ||
+      currentToolConfig.maxIterations !== this.maxIterations() ||
+      currentToolConfig.fetchTimeoutMs !== this.fetchTimeoutMs() ||
+      currentToolConfig.cacheEnabled !== this.cacheEnabled() ||
+      currentToolConfig.cacheTtlSeconds !== this.cacheTtlSeconds()
     );
   });
 
@@ -143,6 +177,17 @@ export class AiConfig implements OnInit, OnDestroy {
     this.maxResponseTokens.set(config.maxResponseTokens);
     this.temperature.set(config.temperature);
     this.responseDelayMs.set(config.responseDelayMs);
+
+    // Sincronizar Tool Config
+    const toolConfig = config.toolConfig || LLM_TOOL_CONFIG_DEFAULTS;
+    this.fetchPageEnabled.set(toolConfig.fetchPageEnabled);
+    this.baseUrl.set(toolConfig.baseUrl || '');
+    this.allowedPaths.set([...toolConfig.allowedPaths]);
+    this.maxIterations.set(toolConfig.maxIterations);
+    this.fetchTimeoutMs.set(toolConfig.fetchTimeoutMs);
+    this.cacheEnabled.set(toolConfig.cacheEnabled);
+    this.cacheTtlSeconds.set(toolConfig.cacheTtlSeconds);
+    this.newPathInput.set('');
   }
 
   private setupPromptDebounce(): void {
@@ -214,6 +259,67 @@ export class AiConfig implements OnInit, OnDestroy {
     this.promptUpdate$.next(value);
   }
 
+  // Tool Use Handlers
+  onToggleFetchPage(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.fetchPageEnabled.set(checked);
+  }
+
+  onBaseUrlChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.baseUrl.set(value);
+  }
+
+  onAddPath(): void {
+    const path = this.newPathInput().trim();
+    if (path && !this.allowedPaths().includes(path)) {
+      this.allowedPaths.update(paths => [...paths, path]);
+      this.newPathInput.set('');
+    }
+  }
+
+  onRemovePath(path: string): void {
+    this.allowedPaths.update(paths => paths.filter(p => p !== path));
+  }
+
+  onPathInputKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.onAddPath();
+    }
+  }
+
+  onPathInputChange(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.newPathInput.set(value);
+  }
+
+  onMaxIterationsChange(event: Event): void {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    if (value >= 1 && value <= 10) {
+      this.maxIterations.set(value);
+    }
+  }
+
+  onFetchTimeoutChange(event: Event): void {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    if (value >= 1000 && value <= 30000) {
+      this.fetchTimeoutMs.set(value);
+    }
+  }
+
+  onToggleCache(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.cacheEnabled.set(checked);
+  }
+
+  onCacheTtlChange(event: Event): void {
+    const value = parseInt((event.target as HTMLInputElement).value, 10);
+    if (value >= 60 && value <= 86400) {
+      this.cacheTtlSeconds.set(value);
+    }
+  }
+
   onCancel(): void {
     const current = this.config();
     if (current) {
@@ -239,7 +345,16 @@ export class AiConfig implements OnInit, OnDestroy {
       customSystemPrompt: this.customSystemPrompt().trim() || null,
       maxResponseTokens: this.maxResponseTokens(),
       temperature: this.temperature(),
-      responseDelayMs: this.responseDelayMs()
+      responseDelayMs: this.responseDelayMs(),
+      toolConfig: {
+        fetchPageEnabled: this.fetchPageEnabled(),
+        baseUrl: this.baseUrl().trim(),
+        allowedPaths: this.allowedPaths(),
+        maxIterations: this.maxIterations(),
+        fetchTimeoutMs: this.fetchTimeoutMs(),
+        cacheEnabled: this.cacheEnabled(),
+        cacheTtlSeconds: this.cacheTtlSeconds()
+      }
     };
 
     this.llmConfigService.updateConfig(this.siteId(), updates)

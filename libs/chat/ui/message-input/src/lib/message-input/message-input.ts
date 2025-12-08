@@ -9,14 +9,19 @@ import {
   ChangeDetectionStrategy,
   input,
   inject,
-  OnDestroy
+  OnDestroy,
+  effect,
+  computed
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { PresenceService } from '@guiders-frontend/presence-service';
+import { ChatService } from '@guiders-frontend/chat-service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'guiders-message-input',
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './message-input.html',
   styleUrl: './message-input.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,6 +34,12 @@ export class MessageInput implements AfterViewInit, OnDestroy {
   // Input para el chatId (puede ser null antes de crear el chat)
   readonly chatId = input<string | null>(null);
 
+  // Input para el siteId (requerido para sugerencias de IA)
+  readonly siteId = input<string | null>(null);
+
+  // Input para el último mensaje del visitante (para sugerencias contextuales)
+  readonly lastVisitorMessage = input<string | undefined>(undefined);
+
   messageText = ''; // Usar propiedad normal para mejor compatibilidad con ngModel
   readonly isSending = signal(false);
   private sendingTimestamp = 0;
@@ -36,6 +47,32 @@ export class MessageInput implements AfterViewInit, OnDestroy {
 
   // Servicio de presencia para typing indicators
   private readonly presenceService = inject(PresenceService);
+
+  // Servicio de chat para sugerencias
+  private readonly chatService = inject(ChatService);
+
+  // Estado de sugerencias
+  readonly suggestions = signal<string[]>([]);
+  readonly isLoadingSuggestions = signal(false);
+  readonly showSuggestions = signal(false);
+
+  // Estado de mejora de texto
+  readonly isImprovingText = signal(false);
+
+  // Computed para verificar si hay sugerencias disponibles
+  readonly hasSuggestions = computed(() => this.suggestions().length > 0);
+
+  constructor() {
+    // Efecto para cargar sugerencias cuando cambia el chatId
+    effect(() => {
+      const chatId = this.chatId();
+      if (chatId) {
+        // Resetear sugerencias cuando cambia el chat
+        this.suggestions.set([]);
+        this.showSuggestions.set(false);
+      }
+    });
+  }
 
   ngAfterViewInit(): void {
     this.adjustTextareaHeight();
@@ -144,9 +181,127 @@ export class MessageInput implements AfterViewInit, OnDestroy {
 
     // Reset height para calcular scrollHeight correctamente
     textarea.style.height = 'auto';
-    
+
     // Calcular altura necesaria (máximo 120px ~ 5 líneas)
     const newHeight = Math.min(textarea.scrollHeight, 120);
     textarea.style.height = `${newHeight}px`;
+  }
+
+  /**
+   * Carga sugerencias de IA para el chat actual
+   */
+  loadSuggestions(): void {
+    const chatId = this.chatId();
+    const siteId = this.siteId();
+
+    if (!chatId || !siteId || this.isLoadingSuggestions()) {
+      if (!siteId) {
+        console.warn('[MessageInput] No se puede cargar sugerencias: falta siteId');
+      }
+      return;
+    }
+
+    this.isLoadingSuggestions.set(true);
+    this.showSuggestions.set(true);
+
+    const lastMessage = this.lastVisitorMessage();
+
+    this.chatService.getSuggestions(chatId, siteId, lastMessage)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          console.log('[MessageInput] Sugerencias recibidas:', response);
+          this.suggestions.set(response.suggestions);
+          this.isLoadingSuggestions.set(false);
+        },
+        error: (error) => {
+          console.error('[MessageInput] Error al cargar sugerencias:', error);
+          this.suggestions.set([]);
+          this.isLoadingSuggestions.set(false);
+        }
+      });
+  }
+
+  /**
+   * Selecciona una sugerencia y la inserta en el textarea
+   */
+  selectSuggestion(suggestion: string): void {
+    this.messageText = suggestion;
+    this.showSuggestions.set(false);
+
+    // Ajustar altura y hacer foco después de que Angular actualice el DOM
+    setTimeout(() => {
+      this.adjustTextareaHeight();
+      this.textareaRef?.nativeElement.focus();
+    }, 0);
+
+    // Notificar typing
+    const chatId = this.chatId();
+    if (chatId) {
+      this.presenceService.startTyping(chatId);
+    }
+  }
+
+  /**
+   * Oculta las sugerencias
+   */
+  hideSuggestions(): void {
+    this.showSuggestions.set(false);
+  }
+
+  /**
+   * Toggle inteligente: sugerencias o mejora según contenido del input
+   */
+  toggleSuggestions(): void {
+    if (this.showSuggestions()) {
+      this.hideSuggestions();
+      return;
+    }
+
+    const currentText = this.messageText.trim();
+
+    if (currentText.length > 0) {
+      // Hay texto → mejorar
+      this.improveCurrentText(currentText);
+    } else {
+      // Sin texto → sugerencias
+      this.loadSuggestions();
+    }
+  }
+
+  /**
+   * Mejora el texto actual usando IA
+   */
+  private improveCurrentText(text: string): void {
+    const siteId = this.siteId();
+
+    if (!siteId || this.isImprovingText()) {
+      if (!siteId) {
+        console.warn('[MessageInput] No se puede mejorar texto: falta siteId');
+      }
+      return;
+    }
+
+    this.isImprovingText.set(true);
+
+    this.chatService.improveText(siteId, text)
+      .pipe(take(1))
+      .subscribe({
+        next: (response) => {
+          console.log('[MessageInput] Texto mejorado:', response);
+          this.messageText = response.improvedText;
+          this.isImprovingText.set(false);
+
+          // Ajustar altura del textarea y hacer foco
+          setTimeout(() => {
+            this.adjustTextareaHeight();
+            this.textareaRef?.nativeElement.focus();
+          }, 0);
+        },
+        error: (error) => {
+          console.error('[MessageInput] Error al mejorar texto:', error);
+          this.isImprovingText.set(false);
+        }
+      });
   }
 }
