@@ -2,7 +2,7 @@
   "name": "profile-modal",
   "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/auth/ui/profile-modal/src",
-  "prefix": "lib",
+  "prefix": "guiders",
   "projectType": "library",
   "tags": ["scope:auth", "type:ui"],
   "targets": {

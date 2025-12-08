@@ -7,7 +7,7 @@ export interface User {
   sub: string;
   email: string;
   roles: string[];
-  companyId: string; // ID de la empresa del usuario (requerido)
+  companyId: string; // ID of the user's company (required)
   app: string;
   session: UserSession;
 }

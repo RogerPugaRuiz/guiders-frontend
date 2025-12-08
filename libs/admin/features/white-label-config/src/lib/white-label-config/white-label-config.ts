@@ -139,8 +139,8 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
           this.loading.set(false);
         },
         error: (err) => {
-          console.error('Error cargando configuracion:', err);
-          this.error.set('Error al cargar la configuracion');
+          console.error('Error cargando configuración:', err);
+          this.error.set('Error al cargar la configuración');
           this.loading.set(false);
         }
       });
@@ -441,7 +441,7 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
   }
 
   onRemoveAllFonts(): void {
-    if (!confirm('¿Estas seguro de eliminar todas las fuentes personalizadas?')) {
+    if (!confirm('¿Estás seguro de eliminar todas las fuentes personalizadas?')) {
       return;
     }
 
@@ -521,15 +521,15 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
           this.themeService.applyTheme(config);
         },
         error: (err) => {
-          console.error('Error guardando configuracion:', err);
-          this.error.set('Error al guardar la configuracion');
+          console.error('Error guardando configuración:', err);
+          this.error.set('Error al guardar la configuración');
           this.saving.set(false);
         }
       });
   }
 
   onResetToDefaults(): void {
-    if (!confirm('¿Estas seguro de restablecer la configuracion a los valores por defecto?')) {
+    if (!confirm('¿Estás seguro de restablecer la configuración a los valores por defecto?')) {
       return;
     }
 
@@ -548,8 +548,8 @@ export class WhiteLabelConfigComponent implements OnInit, OnDestroy {
           this.themeService.applyDefaults();
         },
         error: (err) => {
-          console.error('Error restableciendo configuracion:', err);
-          this.error.set('Error al restablecer la configuracion');
+          console.error('Error restableciendo configuración:', err);
+          this.error.set('Error al restablecer la configuración');
           this.saving.set(false);
         }
       });

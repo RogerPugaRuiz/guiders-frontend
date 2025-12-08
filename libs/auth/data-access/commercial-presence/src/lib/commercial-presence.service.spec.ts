@@ -73,7 +73,7 @@ describe('CommercialPresenceService', () => {
         commercial: {
           id: 'test-user-123',
           name: 'test@example.com',
-          connectionStatus: 'CONNECTED',
+          connectionStatus: 'online',
           lastActivity: new Date().toISOString(),
           isActive: true
         }
@@ -83,7 +83,7 @@ describe('CommercialPresenceService', () => {
         service.connect().subscribe({
           next: (commercial) => {
             expect(commercial.id).toBe('test-user-123');
-            expect(commercial.connectionStatus).toBe('CONNECTED');
+            expect(commercial.connectionStatus).toBe('online');
             expect(userServiceMock.getUserId).toHaveBeenCalled();
             resolve();
           }
@@ -105,7 +105,7 @@ describe('CommercialPresenceService', () => {
       const status = service.getCurrentStatus();
       expect(status).toBeDefined();
       expect(status.isConnected).toBe(false);
-      expect(status.status).toBe('OFFLINE');
+      expect(status.status).toBe('offline');
     });
   });
 });
