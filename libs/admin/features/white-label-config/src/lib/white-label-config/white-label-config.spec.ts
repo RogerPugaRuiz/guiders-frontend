@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { WhiteLabelConfig } from './white-label-config';
+import { WhiteLabelConfigComponent } from './white-label-config';
 
-describe('WhiteLabelConfig', () => {
-  let component: WhiteLabelConfig;
-  let fixture: ComponentFixture<WhiteLabelConfig>;
+describe('WhiteLabelConfigComponent', () => {
+  let component: WhiteLabelConfigComponent;
+  let fixture: ComponentFixture<WhiteLabelConfigComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WhiteLabelConfig],
+      imports: [WhiteLabelConfigComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(WhiteLabelConfig);
+    fixture = TestBed.createComponent(WhiteLabelConfigComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -4,11 +4,11 @@ import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
 import { UserService, UserProfile, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
-import { ProfileModal, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
+import { ProfileModalComponent, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
 import { ProfileService } from '@guiders-frontend/profile-service';
 
 @Component({
-  imports: [RouterModule, Sidebar, ChatWidgetComponent, ProfileModal],
+  imports: [RouterModule, Sidebar, ChatWidgetComponent, ProfileModalComponent],
   selector: 'console-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
