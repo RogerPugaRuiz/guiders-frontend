@@ -11,6 +11,7 @@ import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
 import { ENVIRONMENT_TOKEN, authRefreshInterceptor, UserService, SessionGuardianService } from '@guiders-frontend/auth/data-access/session';
+import { ThemeService } from '@guiders-frontend/theme-service';
 import { CommercialPresenceService } from '@guiders-frontend/commercial-presence';
 import { CommercialStatusService } from '@guiders-frontend/commercial-status';
 import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-service';
@@ -19,11 +20,12 @@ import { ChatService } from '@guiders-frontend/chat-service';
 import { firstValueFrom } from 'rxjs';
 
 /**
- * Factory para inicializar el usuario y la presencia del comercial al arrancar la aplicación.
- * Primero carga el usuario, luego conecta automáticamente la presencia del comercial y el WebSocket.
+ * Factory para inicializar el usuario, tema y presencia del comercial al arrancar la aplicación.
+ * Primero carga el usuario, luego el tema, y finalmente conecta la presencia del comercial y WebSocket.
  */
 function initializeApp() {
   const userService = inject(UserService);
+  const themeService = inject(ThemeService);
   const presenceService = inject(CommercialPresenceService);
   const statusService = inject(CommercialStatusService);
   const webSocketService = inject(WebSocketService);
@@ -31,11 +33,30 @@ function initializeApp() {
   const chatService = inject(ChatService);
 
   return async () => {
+    // 0. Configurar ThemeService con la URL base
+    themeService.setBaseUrl(environment.api.baseUrl);
+
     // 1. Cargar el usuario
     console.log('[AppInitializer] 🚀 Cargando usuario...');
     try {
       const user = await firstValueFrom(userService.fetchUser());
       console.log('[AppInitializer] ✅ Usuario cargado:', user.sub);
+
+      // 1.1 Cargar tema de marca blanca después de tener el usuario
+      if (user?.companyId) {
+        console.log('[AppInitializer] 🎨 Cargando tema para company:', user.companyId);
+        try {
+          await firstValueFrom(themeService.loadAndApplyTheme(user.companyId));
+          console.log('[AppInitializer] ✅ Tema aplicado correctamente');
+        } catch (themeError: unknown) {
+          const msg = themeError instanceof Error ? themeError.message : 'Unknown error';
+          console.warn('[AppInitializer] ⚠️ Error cargando tema:', msg);
+          themeService.applyDefaults();
+        }
+      } else {
+        console.log('[AppInitializer] ℹ️ Usuario sin companyId, aplicando tema por defecto');
+        themeService.applyDefaults();
+      }
 
       // 1.1 Configurar usuario en UnreadMessagesService para filtrar mensajes propios
       console.log('[AppInitializer] 📨 Configurando UnreadMessagesService con usuario:', user.sub);
@@ -164,8 +185,11 @@ function initializeApp() {
           // No lanzar error para permitir que la app continúe
         }
       }
-    } catch (error: any) {
-      console.warn('[AppInitializer] ⚠️ No se pudo cargar el usuario:', error.message);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn('[AppInitializer] ⚠️ No se pudo cargar el usuario:', errorMessage);
+      // Aplicar tema por defecto si no hay usuario
+      themeService.applyDefaults();
       // No lanzar error para permitir que la app continúe
       // El auth guard manejará la redirección al login si es necesario
     }

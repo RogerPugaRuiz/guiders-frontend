@@ -1,3 +1,23 @@
+export interface LlmToolConfig {
+  fetchPageEnabled: boolean;
+  baseUrl: string;
+  allowedPaths: string[];
+  maxIterations: number;
+  fetchTimeoutMs: number;
+  cacheEnabled: boolean;
+  cacheTtlSeconds: number;
+}
+
+export const LLM_TOOL_CONFIG_DEFAULTS: LlmToolConfig = {
+  fetchPageEnabled: false,
+  baseUrl: '',
+  allowedPaths: [],
+  maxIterations: 3,
+  fetchTimeoutMs: 10000,
+  cacheEnabled: true,
+  cacheTtlSeconds: 3600
+};
+
 export interface LlmConfig {
   siteId: string;
   companyId: string;
@@ -10,6 +30,7 @@ export interface LlmConfig {
   maxResponseTokens: number;
   temperature: number;
   responseDelayMs: number;
+  toolConfig?: LlmToolConfig;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -38,6 +59,7 @@ export interface UpdateLlmConfigRequest {
   maxResponseTokens?: number;
   temperature?: number;
   responseDelayMs?: number;
+  toolConfig?: LlmToolConfig;
 }
 
 export interface LlmModel {

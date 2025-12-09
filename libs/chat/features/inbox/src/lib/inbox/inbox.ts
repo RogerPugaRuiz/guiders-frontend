@@ -77,6 +77,9 @@ export class Inbox implements OnInit, OnDestroy {
   // Actividad del visitante seleccionado
   readonly visitorActivity = signal<VisitorActivity | null>(null);
 
+  // ID del sitio actual (necesario para sugerencias IA)
+  readonly siteId = signal<string | null>(null);
+
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
   readonly currentUserId = computed(() => this.currentUser()?.sub || null);
@@ -246,6 +249,24 @@ export class Inbox implements OnInit, OnDestroy {
     }
 
     this.loadChats();
+    this.loadSiteId();
+  }
+
+  /**
+   * Cargar el siteId desde el servicio de visitantes
+   */
+  private loadSiteId(): void {
+    this.visitorsDataService.getCompanySites()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          console.log('[Inbox] SiteId cargado:', response.siteId);
+          this.siteId.set(response.siteId);
+        },
+        error: (err) => {
+          console.error('[Inbox] Error al cargar siteId:', err);
+        }
+      });
   }
 
   private loadChats(): void {

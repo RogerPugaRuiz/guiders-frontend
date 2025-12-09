@@ -54,13 +54,13 @@
     gap: tokens.$spacing-2xs;
     padding: tokens.$spacing-2xs tokens.$spacing-xs;
     border-radius: tokens.$border-radius-sm;
-    background: tokens.$color-info-50;
+    background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 12%, white);
     font-size: tokens.$font-size-sm;
     line-height: 1;
   }
 
   &__chip-label {
-    color: tokens.$color-text-secondary;
+    color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-700) 70%, tokens.$color-text-secondary);
     font-weight: tokens.$font-weight-medium;
   }
 
@@ -102,19 +102,19 @@
     border: none;
     border-radius: tokens.$border-radius-sm;
     background: transparent;
-    color: tokens.$color-primary-500;
+    color: var(--wl-color-primary, tokens.$color-primary-500);
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: tokens.$color-surface-secondary;
-      color: tokens.$color-primary-600;
+      background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 10%, white);
+      color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
       outline-offset: 2px;
     }
   }

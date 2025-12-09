@@ -43,6 +43,7 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   @Input() isLoading = false;
   @Input() isLoadingMore = false; // Loading para scroll infinito
   @Input() hasMoreMessages = false; // Indica si hay más mensajes antiguos
+  @Input() siteId: string | null = null; // ID del sitio para sugerencias de IA
 
   @Output() settingsClicked = new EventEmitter<void>();
   @Output() closeChat = new EventEmitter<void>();

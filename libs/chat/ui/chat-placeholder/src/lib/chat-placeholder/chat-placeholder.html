@@ -83,8 +83,10 @@
 
         @let own = isOwnMessage(message);
         @let system = isSystemMessage(message);
+        @let isAIMessage = message.isAI || message.type === 'AI';
         <div class="guiders-chat-placeholder__message-row" [class.guiders-chat-placeholder__message-row--own]="own"
-          [class.guiders-chat-placeholder__message-row--system]="system">
+          [class.guiders-chat-placeholder__message-row--system]="system"
+          [class.guiders-chat-placeholder__message-row--ai]="isAIMessage">
           @if (!system) {
           <!-- <span
                   class="guiders-chat-placeholder__message-author"
@@ -94,9 +96,22 @@
                 </span> -->
           }
           <div class="guiders-chat-placeholder__message-body" [class.guiders-chat-placeholder__message-body--own]="own"
-            [class.guiders-chat-placeholder__message-body--system]="system">
+            [class.guiders-chat-placeholder__message-body--system]="system"
+            [class.guiders-chat-placeholder__message-body--ai]="isAIMessage">
             <span class="guiders-chat-placeholder__message-content">{{ message.content }}</span>
             <span class="guiders-chat-placeholder__message-meta">
+              @if (isAIMessage) {
+                <span class="guiders-chat-placeholder__ai-indicator" title="Mensaje generado por IA">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 8V4H8"/>
+                    <rect width="16" height="12" x="4" y="8" rx="2"/>
+                    <path d="M2 14h2"/>
+                    <path d="M20 14h2"/>
+                    <path d="M15 13v2"/>
+                    <path d="M9 13v2"/>
+                  </svg>
+                </span>
+              }
               {{ formatMessageTime(message.sentAt) }}
             </span>
           </div>
@@ -128,6 +143,6 @@
   </div>
 
   @if (messages.length > 0) {
-  <guiders-message-input [chatId]="selectedChat.chatId" (messageSent)="onMessageSent($event)" />
+  <guiders-message-input [chatId]="selectedChat.chatId" [siteId]="siteId" (messageSent)="onMessageSent($event)" />
   }
 </div>

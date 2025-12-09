@@ -1015,6 +1015,67 @@ export class ChatService {
     return this.webSocket;
   }
 
+  // ===== MÉTODOS DE SUGERENCIAS IA =====
+
+  /**
+   * Obtener sugerencias de respuesta generadas por IA
+   * POST /api/v2/llm/suggestions
+   * @param chatId - ID del chat
+   * @param siteId - ID del sitio
+   * @param lastMessageContent - Contenido del último mensaje (opcional)
+   * @returns Observable con las sugerencias generadas
+   */
+  getSuggestions(chatId: string, siteId: string, lastMessageContent?: string): Observable<{
+    suggestions: string[];
+    processingTimeMs: number;
+  }> {
+    const body: { chatId: string; siteId: string; lastMessageContent?: string } = {
+      chatId,
+      siteId
+    };
+    if (lastMessageContent) {
+      body.lastMessageContent = lastMessageContent;
+    }
+
+    return this.http.post<{
+      suggestions: string[];
+      processingTimeMs: number;
+    }>(`${this.baseUrl}/llm/suggestions`, body, this.getHttpOptions())
+      .pipe(
+        catchError(error => {
+          console.error('[ChatService] Error al obtener sugerencias:', error);
+          return of({ suggestions: [], processingTimeMs: 0 });
+        })
+      );
+  }
+
+  /**
+   * Mejorar texto con IA
+   * POST /api/v2/llm/improve
+   * @param siteId - ID del sitio
+   * @param text - Texto a mejorar
+   * @returns Observable con el texto mejorado
+   */
+  improveText(siteId: string, text: string): Observable<{
+    improvedText: string;
+    processingTimeMs: number;
+  }> {
+    return this.http.post<{
+      improvedText: string;
+      processingTimeMs: number;
+    }>(`${this.baseUrl}/llm/improve`, {
+      text,
+      siteId
+    }, this.getHttpOptions())
+      .pipe(
+        catchError(error => {
+          console.error('[ChatService] Error al mejorar texto:', error);
+          // En caso de error, devolver el texto original sin cambios
+          return of({ improvedText: text, processingTimeMs: 0 });
+        })
+      );
+  }
+
   /**
    * Cerrar un chat (cambiar su estado a CLOSED)
    * PUT /api/v2/chats/:chatId/close

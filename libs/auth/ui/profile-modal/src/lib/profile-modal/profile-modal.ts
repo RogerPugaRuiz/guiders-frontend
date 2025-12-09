@@ -39,7 +39,7 @@ import {
   styleUrl: './profile-modal.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ProfileModal {
+export class ProfileModalComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly commercialFingerprintService = inject(CommercialFingerprintService);
   private readonly sessionService = inject(SessionService);

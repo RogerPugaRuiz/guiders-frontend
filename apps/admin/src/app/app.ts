@@ -2,12 +2,12 @@ import { Component, signal, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
 import { UserService, UserProfile, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
-import { ProfileModal, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
+import { ProfileModalComponent, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
 import { ProfileService } from '@guiders-frontend/profile-service';
 import { RedirectConfirm } from '@guiders-frontend/redirect-confirm';
 
 @Component({
-  imports: [RouterModule, Sidebar, ProfileModal, RedirectConfirm],
+  imports: [RouterModule, Sidebar, ProfileModalComponent, RedirectConfirm],
   selector: 'admin-root',
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -78,6 +78,12 @@ export class App {
       label: 'Configuracion IA',
       icon: 'activity',
       route: '/ai'
+    },
+    {
+      id: 'branding',
+      label: 'Marca Blanca',
+      icon: 'layers',
+      route: '/branding'
     }
   ]);
 

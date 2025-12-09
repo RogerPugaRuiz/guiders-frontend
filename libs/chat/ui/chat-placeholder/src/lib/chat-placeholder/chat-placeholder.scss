@@ -425,6 +425,33 @@
     border-radius: tokens.$border-radius-base;
   }
 
+  // Estilos para mensajes de IA
+  &__message-body--ai {
+    background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
+    border: 1px solid #ddd6fe;
+    border-bottom-left-radius: 2px;
+    position: relative;
+
+    .guiders-chat-placeholder__message-meta {
+      color: #7c3aed;
+      opacity: 0.7;
+    }
+  }
+
+  &__ai-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #8b5cf6;
+    margin-right: 4px;
+
+    svg {
+      width: 12px;
+      height: 12px;
+      stroke-width: 2;
+    }
+  }
+
   &__message-meta {
     font-size: 11px;
     color: rgba(0, 0, 0, 0.5);

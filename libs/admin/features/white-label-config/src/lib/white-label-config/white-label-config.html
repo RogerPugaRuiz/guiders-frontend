@@ -1,0 +1,454 @@
+<div class="white-label-config-page">
+  <header class="page-header">
+    <h1>Configuración de Marca Blanca</h1>
+    <p>Personaliza la apariencia del widget de chat para tu marca</p>
+  </header>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Cargando configuración...</p>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <span class="alert-icon">!</span>
+      <span>{{ error() }}</span>
+      <button class="alert-close" (click)="error.set(null)">&times;</button>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <span class="alert-icon">&#10003;</span>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="white-label-config-content">
+      <!-- Seccion: Colores de Marca -->
+      <section class="config-section">
+        <h2>Colores de Marca</h2>
+        <p class="section-description">Define los colores principales de tu marca</p>
+
+        <div class="color-grid">
+          <!-- Color Primario -->
+          <div class="color-picker-group">
+            <label for="color-primary">Color Primario</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-primary"
+                [value]="colorPrimary()"
+                (input)="onColorPrimaryChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorPrimary()"
+                (input)="onColorPrimaryChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Botones, enlaces y acentos</span>
+          </div>
+
+          <!-- Color Secundario -->
+          <div class="color-picker-group">
+            <label for="color-secondary">Color Secundario</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-secondary"
+                [value]="colorSecondary()"
+                (input)="onColorSecondaryChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorSecondary()"
+                (input)="onColorSecondaryChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Elementos secundarios</span>
+          </div>
+
+          <!-- Color Terciario -->
+          <div class="color-picker-group">
+            <label for="color-tertiary">Color Terciario</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-tertiary"
+                [value]="colorTertiary()"
+                (input)="onColorTertiaryChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorTertiary()"
+                (input)="onColorTertiaryChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Acciones positivas y confirmaciones</span>
+          </div>
+
+          <!-- Color de Fondo -->
+          <div class="color-picker-group">
+            <label for="color-background">Color de Fondo</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-background"
+                [value]="colorBackground()"
+                (input)="onColorBackgroundChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorBackground()"
+                (input)="onColorBackgroundChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Fondo general del widget</span>
+          </div>
+
+          <!-- Color de Superficie -->
+          <div class="color-picker-group">
+            <label for="color-surface">Color de Superficie</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-surface"
+                [value]="colorSurface()"
+                (input)="onColorSurfaceChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorSurface()"
+                (input)="onColorSurfaceChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Cards y elementos elevados</span>
+          </div>
+
+          <!-- Color de Texto -->
+          <div class="color-picker-group">
+            <label for="color-text">Color de Texto</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-text"
+                [value]="colorText()"
+                (input)="onColorTextChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorText()"
+                (input)="onColorTextChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Texto principal</span>
+          </div>
+
+          <!-- Color de Texto Secundario -->
+          <div class="color-picker-group">
+            <label for="color-text-muted">Color de Texto Secundario</label>
+            <div class="color-input-wrapper">
+              <input
+                type="color"
+                id="color-text-muted"
+                [value]="colorTextMuted()"
+                (input)="onColorTextMutedChange($event)"
+                [disabled]="saving()" />
+              <input
+                type="text"
+                [value]="colorTextMuted()"
+                (input)="onColorTextMutedChange($event)"
+                [disabled]="saving()"
+                class="color-hex-input"
+                maxlength="7" />
+            </div>
+            <span class="color-hint">Texto secundario y hints</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seccion: Logo y Favicon -->
+      <section class="config-section">
+        <h2>Logo y Favicon</h2>
+        <p class="section-description">Sube tu logo y favicon para personalizar el widget</p>
+
+        <div class="upload-grid">
+          <!-- Logo Upload -->
+          <div class="upload-group">
+            <label>Logo</label>
+            <div class="upload-area" [class.has-file]="logoUrl() || logoPreview()" [class.uploading]="uploadingLogo()">
+              @if (uploadingLogo()) {
+                <div class="upload-loading">
+                  <div class="loading-spinner small"></div>
+                  <span>Subiendo...</span>
+                </div>
+              } @else if (logoUrl() || logoPreview()) {
+                <img [src]="logoPreview() || logoUrl()" alt="Logo" class="upload-preview" />
+                <button class="remove-btn" (click)="onRemoveLogo()" [disabled]="saving()">
+                  <span>&times;</span>
+                </button>
+              } @else {
+                <label class="upload-placeholder">
+                  <span class="upload-icon">+</span>
+                  <span class="upload-text">PNG, SVG o JPG</span>
+                  <span class="upload-hint">Max. 2MB</span>
+                  <input
+                    type="file"
+                    accept=".png,.svg,.jpg,.jpeg,image/png,image/svg+xml,image/jpeg"
+                    (change)="onLogoFileSelected($event)"
+                    [disabled]="saving()"
+                    hidden />
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Favicon Upload -->
+          <div class="upload-group">
+            <label>Favicon</label>
+            <div class="upload-area favicon" [class.has-file]="faviconUrl() || faviconPreview()" [class.uploading]="uploadingFavicon()">
+              @if (uploadingFavicon()) {
+                <div class="upload-loading">
+                  <div class="loading-spinner small"></div>
+                  <span>Subiendo...</span>
+                </div>
+              } @else if (faviconUrl() || faviconPreview()) {
+                <img [src]="faviconPreview() || faviconUrl()" alt="Favicon" class="upload-preview favicon-preview" />
+                <button class="remove-btn" (click)="onRemoveFavicon()" [disabled]="saving()">
+                  <span>&times;</span>
+                </button>
+              } @else {
+                <label class="upload-placeholder">
+                  <span class="upload-icon">+</span>
+                  <span class="upload-text">PNG o ICO</span>
+                  <span class="upload-hint">Max. 500KB</span>
+                  <input
+                    type="file"
+                    accept=".png,.ico,image/png,image/x-icon"
+                    (change)="onFaviconFileSelected($event)"
+                    [disabled]="saving()"
+                    hidden />
+                </label>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Seccion: Nombre de Marca -->
+      <section class="config-section">
+        <h2>Nombre de Marca</h2>
+
+        <div class="form-group">
+          <label for="brand-name">Nombre mostrado en el widget</label>
+          <input
+            type="text"
+            id="brand-name"
+            [value]="brandName()"
+            (input)="onBrandNameChange($event)"
+            [disabled]="saving()"
+            placeholder="Mi Empresa"
+            maxlength="50" />
+          <span class="input-hint">Este nombre aparecera en el encabezado del widget</span>
+        </div>
+      </section>
+
+      <!-- Seccion: Tipografia -->
+      <section class="config-section">
+        <h2>Tipografia</h2>
+        <p class="section-description">Selecciona una fuente predefinida o sube tus propios archivos de fuente</p>
+
+        <div class="form-group">
+          <label for="font-family">Familia de Fuente</label>
+          <select
+            id="font-family"
+            [value]="fontFamily()"
+            (change)="onFontFamilyChange($event)"
+            [disabled]="saving()">
+            @for (option of fontFamilyOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        </div>
+
+        @if (showCustomFontInput()) {
+          <!-- Nombre de la fuente personalizada -->
+          <div class="form-group">
+            <label for="custom-font-name">Nombre de la Fuente</label>
+            <input
+              type="text"
+              id="custom-font-name"
+              [value]="customFontName()"
+              (input)="onCustomFontNameChange($event)"
+              [disabled]="saving()"
+              placeholder="Ej: Open Sans, Mi Fuente..."
+              maxlength="50" />
+            <span class="input-hint">Nombre que se usara para la fuente personalizada</span>
+          </div>
+
+          <!-- Area de upload de fuentes -->
+          <div class="form-group">
+            <label>Archivos de Fuente</label>
+            <div class="font-upload-area" [class.uploading]="uploadingFont()">
+              @if (uploadingFont()) {
+                <div class="upload-loading">
+                  <div class="loading-spinner small"></div>
+                  <span>Subiendo fuente...</span>
+                </div>
+              } @else {
+                <label class="font-upload-placeholder">
+                  <span class="upload-icon">+</span>
+                  <span class="upload-text">Arrastra o haz clic para subir</span>
+                  <span class="upload-hint">TTF, OTF, WOFF, WOFF2 - Max. 5MB por archivo</span>
+                  <input
+                    type="file"
+                    accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2"
+                    (change)="onFontFilesSelected($event)"
+                    [disabled]="saving()"
+                    multiple
+                    hidden />
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Lista de fuentes subidas -->
+          @if (customFontFiles().length > 0) {
+            <div class="uploaded-fonts-list">
+              <label>Fuentes Subidas</label>
+              <div class="fonts-grid">
+                @for (font of customFontFiles(); track font.name) {
+                  <div class="font-item">
+                    <div class="font-info">
+                      <span class="font-name">{{ font.name }}</span>
+                      <span class="font-meta">{{ getFontWeightLabel(font.weight) }} {{ font.style === 'italic' ? 'Italic' : '' }}</span>
+                    </div>
+                    <button
+                      type="button"
+                      class="font-remove-btn"
+                      (click)="onRemoveFont(font)"
+                      [disabled]="saving()"
+                      title="Eliminar fuente">
+                      &times;
+                    </button>
+                  </div>
+                }
+              </div>
+              <button
+                type="button"
+                class="btn-text btn-danger"
+                (click)="onRemoveAllFonts()"
+                [disabled]="saving()">
+                Eliminar todas las fuentes
+              </button>
+            </div>
+          }
+        }
+      </section>
+
+      <!-- Seccion: Tema -->
+      <section class="config-section">
+        <h2>Tema</h2>
+        <p class="section-description">Selecciona el modo de color del widget</p>
+
+        <div class="theme-options">
+          @for (option of themeOptions; track option.value) {
+            <button
+              type="button"
+              class="theme-option"
+              [class.selected]="theme() === option.value"
+              (click)="onThemeChange(option.value)"
+              [disabled]="saving()">
+              <span class="theme-icon">
+                @if (option.value === 'light') {
+                  &#9728;
+                } @else if (option.value === 'dark') {
+                  &#9790;
+                } @else {
+                  &#9741;
+                }
+              </span>
+              <span class="theme-label">{{ option.label }}</span>
+            </button>
+          }
+        </div>
+      </section>
+
+      <!-- Seccion: Importar / Exportar -->
+      <section class="config-section">
+        <h2>Importar / Exportar</h2>
+        <p class="section-description">Guarda o restaura tu configuración</p>
+
+        <div class="import-export-actions">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="onExportConfig()"
+            [disabled]="saving()">
+            Exportar JSON
+          </button>
+          <label class="btn-secondary import-btn" [class.disabled]="saving()">
+            Importar JSON
+            <input
+              type="file"
+              accept=".json,application/json"
+              (change)="onImportConfig($event)"
+              [disabled]="saving()"
+              hidden />
+          </label>
+        </div>
+      </section>
+
+      <!-- Acciones -->
+      <div class="actions">
+        <button
+          type="button"
+          class="btn-text"
+          (click)="onResetToDefaults()"
+          [disabled]="saving()">
+          Restablecer valores
+        </button>
+        <div class="actions-right">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="onCancel()"
+            [disabled]="saving() || !hasChanges()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="onSave()"
+            [disabled]="saving() || !hasChanges()">
+            @if (saving()) {
+              <span class="btn-spinner"></span>
+              Guardando...
+            } @else {
+              Guardar Cambios
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

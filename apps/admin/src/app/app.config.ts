@@ -11,23 +11,46 @@ import { provideAuth, authInterceptor } from 'angular-auth-oidc-client';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
 import { ENVIRONMENT_TOKEN, authRefreshInterceptor, UserService, SessionGuardianService } from '@guiders-frontend/auth/data-access/session';
+import { ThemeService } from '@guiders-frontend/theme-service';
 import { firstValueFrom } from 'rxjs';
 
 /**
- * Factory para inicializar el usuario al arrancar la aplicación.
+ * Factory para inicializar el usuario y tema al arrancar la aplicación.
  * Simplificado para admin - no requiere presencia comercial ni WebSocket.
  */
 function initializeApp() {
   const userService = inject(UserService);
+  const themeService = inject(ThemeService);
 
   return async () => {
+    // 1. Configurar ThemeService con la URL base
+    themeService.setBaseUrl(environment.api.baseUrl);
+
+    // 2. Cargar usuario
     console.log('[Admin AppInitializer] Cargando usuario...');
     try {
       const user = await firstValueFrom(userService.fetchUser());
       console.log('[Admin AppInitializer] Usuario cargado:', user.sub);
+
+      // 3. Cargar tema después de tener el usuario
+      if (user?.companyId) {
+        console.log('[Admin AppInitializer] Cargando tema para company:', user.companyId);
+        try {
+          await firstValueFrom(themeService.loadAndApplyTheme(user.companyId));
+          console.log('[Admin AppInitializer] Tema aplicado correctamente');
+        } catch (themeError: unknown) {
+          const msg = themeError instanceof Error ? themeError.message : 'Unknown error';
+          console.warn('[Admin AppInitializer] Error cargando tema:', msg);
+          themeService.applyDefaults();
+        }
+      } else {
+        console.log('[Admin AppInitializer] Usuario sin companyId, aplicando tema por defecto');
+        themeService.applyDefaults();
+      }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.warn('[Admin AppInitializer] No se pudo cargar el usuario:', errorMessage);
+      themeService.applyDefaults();
     }
   };
 }
