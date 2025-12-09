@@ -194,22 +194,18 @@
   // Mensaje propio (alineado a la derecha)
   &--own {
     flex-direction: row-reverse;
-    
+
     .message__content {
       align-items: flex-end;
     }
-    
+
     .message__bubble {
       background: var(--color-primary-default);
       color: var(--color-text-on-primary);
       margin-left: var(--spacing-2xl);
       margin-right: 0;
     }
-    
-    .message__info {
-      justify-content: flex-end;
-    }
-    
+
     .message__actions {
       left: 0;
       right: auto;
@@ -272,24 +268,57 @@
   }
 }
 
-// Contenido de texto
+// Contenido de texto - Layout estilo WhatsApp
 .message__text {
   font-size: var(--font-size-base);
   line-height: var(--line-height-relaxed);
   color: inherit;
   word-wrap: break-word;
-  margin-bottom: var(--spacing-sm);
+  word-break: break-word;
+  position: relative;
+}
+
+// El contenido del texto fluye normalmente
+.message__text-content {
+  display: inline;
+}
+
+// Spacer invisible que reserva espacio para la hora
+// Flota a la derecha y empuja el texto en la última línea
+.message__time-spacer {
+  float: right;
+  height: 1.5em; // Altura para que el texto fluya alrededor
+  padding-left: var(--spacing-md);
+  margin-left: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  visibility: hidden;
+  white-space: nowrap;
+}
+
+// Hora real posicionada en la esquina inferior derecha
+.message__time {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-mono);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  white-space: nowrap;
 }
 
 // Contenido multimedia
 .message__media {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--spacing-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-secondary);
-  padding: var(--spacing-sm);
+  padding: var(--spacing-xs) var(--spacing-sm);
   background: var(--color-background-neutral);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border-subtle);
@@ -303,29 +332,29 @@
   margin-left: var(--spacing-sm);
 }
 
-// Información del mensaje
-.message__info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-xs);
-  margin-left: var(--spacing-sm);
-}
-
-.message__time {
-  font-size: var(--font-size-xs);
-  font-family: var(--font-family-mono);
-  color: var(--color-text-tertiary);
-  font-weight: var(--font-weight-medium);
-}
-
+// Status del mensaje (dentro de la hora)
 .message__status {
   font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
+  color: inherit;
   font-family: var(--font-family-mono);
-  
+
   &.status--read {
     color: var(--color-success-default);
+  }
+}
+
+// Ajustes de hora para mensajes propios (fondo primario)
+.message--own {
+  .message__time {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .message__status {
+    color: rgba(255, 255, 255, 0.7);
+
+    &.status--read {
+      color: rgba(255, 255, 255, 0.9);
+    }
   }
 }
 
