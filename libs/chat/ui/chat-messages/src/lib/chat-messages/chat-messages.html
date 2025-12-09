@@ -109,47 +109,54 @@
                     } @else {
                       <!-- Contenido del mensaje -->
                       <div class="message__text">
-                        @switch (message.type) {
-                          @case ('TEXT') {
-                            {{ message.content }}
+                        <span class="message__text-content">
+                          @switch (message.type) {
+                            @case ('TEXT') {
+                              {{ message.content }}
+                            }
+                            @case ('IMAGE') {
+                              <span class="message__media">
+                                📷 {{ message.metadata?.fileName || 'Imagen' }}
+                              </span>
+                            }
+                            @case ('FILE') {
+                              <span class="message__media">
+                                📎 {{ message.metadata?.fileName || 'Archivo' }}
+                              </span>
+                            }
+                            @case ('AUDIO') {
+                              <span class="message__media">
+                                🎵 {{ message.metadata?.fileName || 'Audio' }}
+                              </span>
+                            }
+                            @case ('VIDEO') {
+                              <span class="message__media">
+                                🎥 {{ message.metadata?.fileName || 'Video' }}
+                              </span>
+                            }
                           }
-                          @case ('IMAGE') {
-                            <div class="message__media">
-                              📷 {{ message.metadata?.fileName || 'Imagen' }}
-                            </div>
+                          @if (message.edited) {
+                            <span class="message__edited">(editado)</span>
                           }
-                          @case ('FILE') {
-                            <div class="message__media">
-                              📎 {{ message.metadata?.fileName || 'Archivo' }}
-                            </div>
-                          }
-                          @case ('AUDIO') {
-                            <div class="message__media">
-                              🎵 {{ message.metadata?.fileName || 'Audio' }}
-                            </div>
-                          }
-                          @case ('VIDEO') {
-                            <div class="message__media">
-                              🎥 {{ message.metadata?.fileName || 'Video' }}
-                            </div>
-                          }
-                        }
-                        
-                        @if (message.edited) {
-                          <span class="message__edited">(editado)</span>
-                        }
-                      </div>
-
-                      <!-- Información del mensaje -->
-                      <div class="message__info">
-                        <span class="message__time">{{ formatMessageTime(message.sentAt) }}</span>
-                        @if (isOwnMessage(message)) {
-                          <span 
-                            class="message__status"
-                            [class.status--read]="message.status === 'READ'">
+                        </span>
+                        <!-- Spacer invisible que empuja el texto para dejar espacio a la hora -->
+                        <span class="message__time-spacer">
+                          {{ formatMessageTime(message.sentAt) }}
+                          @if (isOwnMessage(message)) {
                             {{ getMessageStatusIcon(message) }}
-                          </span>
-                        }
+                          }
+                        </span>
+                        <!-- Hora real posicionada -->
+                        <span class="message__time">
+                          {{ formatMessageTime(message.sentAt) }}
+                          @if (isOwnMessage(message)) {
+                            <span
+                              class="message__status"
+                              [class.status--read]="message.status === 'READ'">
+                              {{ getMessageStatusIcon(message) }}
+                            </span>
+                          }
+                        </span>
                       </div>
 
                       <!-- Menú de acciones (solo para mensajes propios) -->

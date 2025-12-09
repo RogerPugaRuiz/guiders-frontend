@@ -99,6 +99,12 @@
             [class.guiders-chat-placeholder__message-body--system]="system"
             [class.guiders-chat-placeholder__message-body--ai]="isAIMessage">
             <span class="guiders-chat-placeholder__message-content">{{ message.content }}</span>
+            <!-- Spacer invisible para reservar espacio de la hora -->
+            <span class="guiders-chat-placeholder__message-meta-spacer">
+              @if (isAIMessage) { AI }
+              {{ formatMessageTime(message.sentAt) }}
+            </span>
+            <!-- Hora real posicionada -->
             <span class="guiders-chat-placeholder__message-meta">
               @if (isAIMessage) {
                 <span class="guiders-chat-placeholder__ai-indicator" title="Mensaje generado por IA">

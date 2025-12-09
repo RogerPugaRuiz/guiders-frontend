@@ -145,6 +145,14 @@
                   [class.chat-widget__message-body--system]="isSystem"
                   [class.chat-widget__message-body--ai]="isAIMessage">
                   <span class="chat-widget__message-content">{{ message.content }}</span>
+                  <!-- Spacer invisible para reservar espacio de la hora -->
+                  <span class="chat-widget__message-meta-spacer">
+                    @if (isAIMessage) {
+                      <span class="chat-widget__ai-indicator">AI</span>
+                    }
+                    {{ formatMessageTime(message.sentAt) }}
+                  </span>
+                  <!-- Hora real posicionada -->
                   <span class="chat-widget__message-meta">
                     @if (isAIMessage) {
                       <span class="chat-widget__ai-indicator" title="Mensaje generado por IA">
