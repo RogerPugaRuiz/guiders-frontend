@@ -281,6 +281,42 @@ export class VisitorsDataService {
     return this.http.get<VisitorStats>(`${this.baseUrl}/tenant-visitors/${companyId}/visitors/stats`, { withCredentials: true });
   }
 
+  /**
+   * Obtener el siteId del visitante
+   * Este endpoint es más preciso que getCompanySites() porque devuelve
+   * el siteId específico del visitante con el que se está chateando.
+   *
+   * @param visitorId - ID del visitante
+   * @returns Observable con visitorId, siteId y tenantId
+   */
+  getVisitorSite(visitorId: string): Observable<{
+    visitorId: string;
+    siteId: string;
+    tenantId: string;
+  }> {
+    console.log('[VisitorsDataService] Obteniendo siteId del visitante:', visitorId);
+    return this.http.get<{
+      visitorId: string;
+      siteId: string;
+      tenantId: string;
+    }>(`${this.baseUrl}/visitors/${visitorId}/site`, {
+      withCredentials: true
+    }).pipe(
+      tap(response => {
+        console.log('[VisitorsDataService] SiteId del visitante obtenido:', response);
+      }),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error al obtener siteId del visitante:', {
+          visitorId,
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message
+        });
+        return throwError(() => error);
+      })
+    );
+  }
+
   // Obtener información de la empresa del usuario autenticado
   getCompanySites(): Observable<{
     sites: Array<{

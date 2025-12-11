@@ -249,22 +249,25 @@ export class Inbox implements OnInit, OnDestroy {
     }
 
     this.loadChats();
-    this.loadSiteId();
+    // El siteId ahora se carga cuando se selecciona un chat específico
+    // usando el visitorId del participante (ver onUserSelected)
   }
 
   /**
-   * Cargar el siteId desde el servicio de visitantes
+   * Cargar el siteId del visitante específico
+   * Usa el endpoint /api/visitors/:visitorId/site que es más preciso
    */
-  private loadSiteId(): void {
-    this.visitorsDataService.getCompanySites()
+  private loadVisitorSiteId(visitorId: string): void {
+    this.visitorsDataService.getVisitorSite(visitorId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          console.log('[Inbox] SiteId cargado:', response.siteId);
+          console.log('[Inbox] SiteId del visitante cargado:', response.siteId);
           this.siteId.set(response.siteId);
         },
         error: (err) => {
-          console.error('[Inbox] Error al cargar siteId:', err);
+          console.error('[Inbox] Error al cargar siteId del visitante:', err);
+          this.siteId.set(null);
         }
       });
   }
@@ -337,10 +340,11 @@ export class Inbox implements OnInit, OnDestroy {
     console.log('[Inbox] 📥 Cargando mensajes del chat...');
     this.loadMessages(conversation.chatId);
 
-    // Cargar URL actual del visitante
+    // Cargar datos del visitante (URL actual y siteId)
     const visitorId = conversation.participants?.[0]?.id;
     if (visitorId) {
       this.loadVisitorCurrentPage(visitorId);
+      this.loadVisitorSiteId(visitorId);
     }
   }
 

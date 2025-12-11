@@ -129,8 +129,7 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   });
 
   ngOnInit(): void {
-    // Cargar siteId para las sugerencias de IA
-    this.loadSiteId();
+    // El siteId se carga cuando hay un visitante seleccionado (ver suscripción a widgetData$)
 
     // Suscribirse al estado del widget
     this.widgetService.widgetData$
@@ -160,6 +159,11 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
         this.currentChatId.set(data.chatId);
         this.tabs.set(data.tabs || []);
         this.isPendingChat.set(data.isPending || false);
+
+        // Cargar siteId cuando hay un nuevo visitante
+        if (isNewVisitor && data.visitor) {
+          this.loadVisitorSiteId(data.visitor.id);
+        }
 
         if (data.isPending) {
           console.log('[ChatWidget] 🟠 Chat pendiente abierto - se asignará al enviar primer mensaje');
@@ -1023,18 +1027,20 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   }
 
   /**
-   * Cargar el siteId desde el servicio de visitantes
+   * Cargar el siteId del visitante específico
+   * Usa el endpoint /api/visitors/:visitorId/site que es más preciso
    */
-  private loadSiteId(): void {
-    this.visitorsService.getCompanySites()
+  private loadVisitorSiteId(visitorId: string): void {
+    this.visitorsService.getVisitorSite(visitorId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response) => {
-          console.log('[ChatWidget] SiteId cargado:', response.siteId);
+          console.log('[ChatWidget] SiteId del visitante cargado:', response.siteId);
           this.siteId.set(response.siteId);
         },
         error: (err) => {
-          console.error('[ChatWidget] Error al cargar siteId:', err);
+          console.error('[ChatWidget] Error al cargar siteId del visitante:', err);
+          this.siteId.set(null);
         }
       });
   }
