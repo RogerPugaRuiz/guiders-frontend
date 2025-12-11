@@ -64,14 +64,15 @@ export class LlmConfigService {
   }
 
   /**
-   * Obtener configuracion de IA para un sitio
+   * Obtener configuracion de IA para una empresa
+   * GET /api/llm/config/:companyId
    */
-  getConfig(siteId: string): Observable<LlmConfig> {
+  getConfig(companyId: string): Observable<LlmConfig> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.http.get<ApiLlmConfigResponse>(
-      `${this.baseUrl}/${siteId}`,
+      `${this.baseUrl}/${companyId}`,
       this.getHttpOptions()
     ).pipe(
       map(response => this.transformFromApi(response)),
@@ -85,8 +86,8 @@ export class LlmConfigService {
         // Si no existe configuracion, devolver valores por defecto
         if (error.status === 404) {
           const defaultConfig: LlmConfig = {
-            siteId,
-            companyId: '',
+            siteId: '',
+            companyId,
             ...LLM_CONFIG_DEFAULTS,
             toolConfig: { ...LLM_TOOL_CONFIG_DEFAULTS }
           };
@@ -130,13 +131,14 @@ export class LlmConfigService {
 
   /**
    * Actualizar configuracion de IA
+   * PATCH /api/llm/config/:companyId
    */
-  updateConfig(siteId: string, updates: UpdateLlmConfigRequest): Observable<LlmConfig> {
+  updateConfig(companyId: string, updates: UpdateLlmConfigRequest): Observable<LlmConfig> {
     this.savingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.http.patch<ApiLlmConfigResponse>(
-      `${this.baseUrl}/${siteId}`,
+      `${this.baseUrl}/${companyId}`,
       updates,
       this.getHttpOptions()
     ).pipe(
@@ -156,20 +158,21 @@ export class LlmConfigService {
 
   /**
    * Eliminar configuracion (vuelve a valores por defecto)
+   * DELETE /api/llm/config/:companyId
    */
-  deleteConfig(siteId: string): Observable<void> {
+  deleteConfig(companyId: string): Observable<void> {
     this.savingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.http.delete<void>(
-      `${this.baseUrl}/${siteId}`,
+      `${this.baseUrl}/${companyId}`,
       this.getHttpOptions()
     ).pipe(
       tap(() => {
         // Resetear a valores por defecto
         const defaultConfig: LlmConfig = {
-          siteId,
-          companyId: this.configSubject.value?.companyId || '',
+          siteId: this.configSubject.value?.siteId || '',
+          companyId,
           ...LLM_CONFIG_DEFAULTS,
           toolConfig: { ...LLM_TOOL_CONFIG_DEFAULTS }
         };

@@ -1021,18 +1021,20 @@ export class ChatService {
    * Obtener sugerencias de respuesta generadas por IA
    * POST /api/v2/llm/suggestions
    * @param chatId - ID del chat
-   * @param siteId - ID del sitio
+   * @param companyId - ID de la empresa (opcional)
    * @param lastMessageContent - Contenido del último mensaje (opcional)
    * @returns Observable con las sugerencias generadas
    */
-  getSuggestions(chatId: string, siteId: string, lastMessageContent?: string): Observable<{
+  getSuggestions(chatId: string, companyId?: string, lastMessageContent?: string): Observable<{
     suggestions: string[];
     processingTimeMs: number;
   }> {
-    const body: { chatId: string; siteId: string; lastMessageContent?: string } = {
-      chatId,
-      siteId
+    const body: { chatId: string; companyId?: string; lastMessageContent?: string } = {
+      chatId
     };
+    if (companyId) {
+      body.companyId = companyId;
+    }
     if (lastMessageContent) {
       body.lastMessageContent = lastMessageContent;
     }
@@ -1052,21 +1054,23 @@ export class ChatService {
   /**
    * Mejorar texto con IA
    * POST /api/v2/llm/improve
-   * @param siteId - ID del sitio
+   * @param companyId - ID de la empresa (opcional)
    * @param text - Texto a mejorar
    * @returns Observable con el texto mejorado
    */
-  improveText(siteId: string, text: string): Observable<{
+  improveText(companyId: string | undefined, text: string): Observable<{
     improvedText: string;
     processingTimeMs: number;
   }> {
+    const body: { text: string; companyId?: string } = { text };
+    if (companyId) {
+      body.companyId = companyId;
+    }
+
     return this.http.post<{
       improvedText: string;
       processingTimeMs: number;
-    }>(`${this.baseUrl}/llm/improve`, {
-      text,
-      siteId
-    }, this.getHttpOptions())
+    }>(`${this.baseUrl}/llm/improve`, body, this.getHttpOptions())
       .pipe(
         catchError(error => {
           console.error('[ChatService] Error al mejorar texto:', error);
