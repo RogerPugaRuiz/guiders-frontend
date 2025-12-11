@@ -25,8 +25,8 @@ export class AiConfig implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
   private readonly promptUpdate$ = new Subject<string>();
 
-  // siteId obtenido dinamicamente desde la empresa del usuario
-  private readonly siteId = signal<string>('');
+  // companyId obtenido dinamicamente desde la empresa del usuario
+  private readonly companyId = signal<string>('');
 
   // Estado del componente
   readonly loading = signal<boolean>(true);
@@ -129,20 +129,20 @@ export class AiConfig implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    // Primero obtener el siteId de la empresa del usuario
+    // Primero obtener el companyId de la empresa del usuario
     this.visitorsDataService.getCompanySites()
       .pipe(
         takeUntil(this.destroy$),
         switchMap(companySites => {
-          // Usar el siteId real del API
-          const siteId = companySites.siteId;
-          this.siteId.set(siteId);
-          console.log('[AiConfig] SiteId obtenido:', siteId);
+          // Usar el companyId real del API
+          const companyId = companySites.companyId;
+          this.companyId.set(companyId);
+          console.log('[AiConfig] CompanyId obtenido:', companyId);
 
           // Cargar proveedores y config en paralelo
           return forkJoin({
             providers: this.llmConfigService.getProviders(),
-            config: this.llmConfigService.getConfig(siteId)
+            config: this.llmConfigService.getConfig(companyId)
           });
         })
       )
@@ -357,7 +357,7 @@ export class AiConfig implements OnInit, OnDestroy {
       }
     };
 
-    this.llmConfigService.updateConfig(this.siteId(), updates)
+    this.llmConfigService.updateConfig(this.companyId(), updates)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (config) => {
@@ -382,7 +382,7 @@ export class AiConfig implements OnInit, OnDestroy {
     this.saving.set(true);
     this.error.set(null);
 
-    this.llmConfigService.deleteConfig(this.siteId())
+    this.llmConfigService.deleteConfig(this.companyId())
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
