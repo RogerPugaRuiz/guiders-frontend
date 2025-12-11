@@ -195,9 +195,8 @@ export class MessageInput implements AfterViewInit, OnDestroy {
     const siteId = this.siteId();
 
     if (!chatId || !siteId || this.isLoadingSuggestions()) {
-      if (!siteId) {
-        console.warn('[MessageInput] No se puede cargar sugerencias: falta siteId');
-      }
+      // No mostrar warning - siteId es opcional y puede no estar disponible
+      // si el endpoint /api/me/company falla o aún no ha cargado
       return;
     }
 

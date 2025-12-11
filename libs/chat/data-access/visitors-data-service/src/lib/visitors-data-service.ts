@@ -347,7 +347,13 @@ export class VisitorsDataService {
         console.log('[VisitorsDataService] Sitios procesados:', response);
       }),
       catchError(error => {
-        console.error('[VisitorsDataService] Error al obtener información de la empresa:', error);
+        console.error('[VisitorsDataService] Error al obtener información de la empresa:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          url: error.url
+        });
+        console.error('[VisitorsDataService] Esto puede causar que las sugerencias de IA no funcionen');
         return throwError(() => error);
       })
     );
