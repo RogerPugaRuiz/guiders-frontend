@@ -22,7 +22,9 @@ import {
   QuickFiltersResponse,
   SavedFiltersResponse,
   SaveFilterRequest,
-  SaveFilterResponse
+  SaveFilterResponse,
+  SaveContactDataRequest,
+  LeadContactData
 } from '@guiders-frontend/shared/types';
 
 export interface LeadScoreSignals {
@@ -648,6 +650,79 @@ export class VisitorsDataService {
       tap(() => console.log('[VisitorsDataService] Filter deleted')),
       catchError(error => {
         console.error('[VisitorsDataService] Error deleting filter:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // ============================================
+  // Métodos para Gestión de Datos de Contacto (Leads)
+  // ============================================
+
+  /**
+   * Guardar datos de contacto de un visitante (lead)
+   * POST /v1/leads/contact-data
+   *
+   * Permite a comerciales guardar información de contacto del visitante
+   * como nombre, email, teléfono, etc. También soporta datos adicionales
+   * personalizados según el sector (vehiculo, inmueble, etc.)
+   *
+   * @param request - Datos de contacto a guardar (visitorId requerido)
+   * @returns Observable con los datos de contacto guardados
+   */
+  saveContactData(request: SaveContactDataRequest): Observable<LeadContactData> {
+    console.log('[VisitorsDataService] Guardando datos de contacto:', request);
+
+    return this.http.post<LeadContactData>(
+      `${this.baseUrl}/v1/leads/contact-data`,
+      request,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => {
+        console.log('[VisitorsDataService] Datos de contacto guardados:', response);
+      }),
+      catchError(error => {
+        console.error('[VisitorsDataService] Error guardando datos de contacto:', {
+          visitorId: request.visitorId,
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message
+        });
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Obtener datos de contacto de un visitante
+   * GET /v1/leads/contact-data/:visitorId
+   *
+   * @param visitorId - ID del visitante
+   * @returns Observable con los datos de contacto del visitante o null si no existen
+   */
+  getContactData(visitorId: string): Observable<LeadContactData | null> {
+    console.log('[VisitorsDataService] Obteniendo datos de contacto para:', visitorId);
+
+    return this.http.get<LeadContactData>(
+      `${this.baseUrl}/v1/leads/contact-data/${visitorId}`,
+      { withCredentials: true }
+    ).pipe(
+      tap(response => {
+        console.log('[VisitorsDataService] Datos de contacto obtenidos:', response);
+      }),
+      catchError(error => {
+        if (error.status === 404) {
+          console.log('[VisitorsDataService] No hay datos de contacto para el visitante');
+          return new Observable<LeadContactData | null>(subscriber => {
+            subscriber.next(null);
+            subscriber.complete();
+          });
+        }
+        console.error('[VisitorsDataService] Error obteniendo datos de contacto:', {
+          visitorId,
+          status: error.status,
+          message: error.message
+        });
         return throwError(() => error);
       })
     );

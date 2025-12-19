@@ -2,11 +2,12 @@ import { Component, input, output, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chat, User, PresenceStatus } from '@guiders-frontend/shared/types';
 import { UnreadBadge } from '@guiders-frontend/unread-badge';
+import { Avatar } from '@guiders-frontend/avatar';
 
 @Component({
   selector: 'guiders-conversation-item',
   standalone: true,
-  imports: [CommonModule, UnreadBadge],
+  imports: [CommonModule, UnreadBadge, Avatar],
   templateUrl: './conversation-item.html',
   styleUrl: './conversation-item.scss',
 })
@@ -24,6 +25,25 @@ export class ConversationItem {
   // Computed para determinar si mostrar badge de presencia
   readonly showPresenceBadge = computed(() => {
     return this.participantPresenceStatus() !== undefined;
+  });
+
+  // Computed para obtener datos del visitante para el avatar
+  readonly visitorId = computed(() => {
+    const chat = this.conversation();
+    const visitor = chat.participants?.find((p: User) => p.role === 'visitor');
+    return visitor?.id || chat.chatId;
+  });
+
+  readonly visitorName = computed(() => {
+    const chat = this.conversation();
+    const visitor = chat.participants?.find((p: User) => p.role === 'visitor');
+    return visitor?.name;
+  });
+
+  readonly visitorEmail = computed(() => {
+    const chat = this.conversation();
+    const visitor = chat.participants?.find((p: User) => p.role === 'visitor');
+    return visitor?.email;
   });
 
   /**
@@ -76,19 +96,6 @@ export class ConversationItem {
     if (!avatar) return false;
     // Considerar que una URL contiene 'http' o empieza con '/' (ruta relativa)
     return typeof avatar === 'string' && (avatar.startsWith('http') || avatar.startsWith('/'));
-  }
-
-  /**
-   * Obtener inicial del visitante para el avatar
-   */
-  getVisitorInitial(): string {
-    const name = this.getChatDisplayName();
-
-    if (name && name.trim() && name !== 'Chat') {
-      return name.trim().charAt(0).toUpperCase();
-    }
-
-    return 'V';
   }
 
   /**
@@ -162,4 +169,5 @@ export class ConversationItem {
       return null;
     }
   }
+
 }

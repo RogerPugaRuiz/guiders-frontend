@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
-import { Chat, Message, PresenceStatus, Visitor } from '@guiders-frontend/shared/types';
+import { Chat, Message, PresenceStatus, Visitor, SaveContactDataRequest } from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { PresenceService } from '@guiders-frontend/presence-service';
 import { VisitorsDataService, VisitorActivity } from '@guiders-frontend/visitors-data-service';
+import { LeadContactService } from '@guiders-frontend/lead-contact-service';
 import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-sidebar';
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
 import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-placeholder';
@@ -49,6 +50,7 @@ export class Inbox implements OnInit, OnDestroy {
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly presenceService = inject(PresenceService);
   private readonly visitorsDataService = inject(VisitorsDataService);
+  private readonly leadContactService = inject(LeadContactService);
 
   // ===== ESTADO PRINCIPAL =====
   readonly selectedConversationId = signal<string | null>(null);
@@ -79,6 +81,9 @@ export class Inbox implements OnInit, OnDestroy {
 
   // ID del sitio actual (necesario para sugerencias IA)
   readonly siteId = signal<string | null>(null);
+
+  // Estado de guardado de datos de contacto
+  readonly savingContactData = signal<boolean>(false);
 
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
@@ -396,6 +401,33 @@ export class Inbox implements OnInit, OnDestroy {
    */
   onCloseVisitorPanel(): void {
     this.showVisitorPanel.set(false);
+  }
+
+  /**
+   * Manejar guardado de datos de contacto
+   */
+  onSaveContactData(request: SaveContactDataRequest): void {
+    const visitorId = this.selectedVisitor()?.id;
+    if (!visitorId) {
+      console.error('No hay ID de visitante disponible');
+      return;
+    }
+
+    this.savingContactData.set(true);
+    this.leadContactService.saveContactData(visitorId, request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (contactData) => {
+          console.log('Datos de contacto guardados:', contactData);
+          this.savingContactData.set(false);
+          // TODO: Mostrar notificación de éxito
+        },
+        error: (error) => {
+          console.error('Error al guardar datos de contacto:', error);
+          this.savingContactData.set(false);
+          // TODO: Mostrar notificación de error
+        }
+      });
   }
 
   /**

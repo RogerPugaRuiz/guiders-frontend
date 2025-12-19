@@ -4,13 +4,13 @@
         [attr.aria-label]="'Seleccionar conversación con ' + getChatDisplayName()"
         type="button">
   <!-- Avatar con inicial y badge de presencia -->
-  <div class="conversation-item__avatar">
-    <span class="conversation-item__avatar-text">{{ getVisitorInitial() }}</span>
-    @if (showPresenceBadge()) {
-      <span class="conversation-item__presence-indicator"
-            [attr.data-status]="participantPresenceStatus()"></span>
-    }
-  </div>
+  <guiders-avatar
+    [userId]="visitorId()"
+    [name]="visitorName()"
+    [email]="visitorEmail()"
+    [presenceStatus]="participantPresenceStatus()"
+    size="medium"
+  />
   <div class="conversation-item__content">
     <div class="conversation-item__header">
       <h3 class="conversation-item__name">{{ getChatDisplayName() }}</h3>

@@ -12,12 +12,13 @@ import {
   signal
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Visitor } from '@guiders-frontend/shared/types';
+import { Visitor, LeadContactData, SaveContactDataRequest } from '@guiders-frontend/shared/types';
 import { LeadScore } from '@guiders-frontend/visitors-data-service';
+import { ContactDataForm } from '@guiders-frontend/contact-data-form';
 
 @Component({
   selector: 'guiders-visitor-detail-panel',
-  imports: [CommonModule],
+  imports: [CommonModule, ContactDataForm],
   templateUrl: './visitor-detail-panel.html',
   styleUrl: './visitor-detail-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,12 +29,27 @@ export class VisitorDetailPanel {
   readonly isOpen = input<boolean>(true);
   readonly leadScore = input<LeadScore | null>(null);
 
+  /** Datos de contacto del lead */
+  readonly contactData = input<LeadContactData | null>(null);
+
+  /** Indica si se está guardando los datos de contacto */
+  readonly savingContactData = input<boolean>(false);
+
+  /** ID del chat actual (para extraer contexto) */
+  readonly chatId = input<string | undefined>(undefined);
+
   // === OUTPUTS ===
-  readonly close = output<void>();
+  readonly closePanel = output<void>();
   readonly openUrl = output<string>();
+
+  /** Emite cuando se guardan los datos de contacto */
+  readonly saveContactData = output<SaveContactDataRequest>();
 
   // === STATE ===
   readonly urlCopied = signal<boolean>(false);
+
+  /** Controla si el formulario de contacto está en modo edición */
+  readonly isEditingContact = signal<boolean>(false);
 
   // === COMPUTED ===
   readonly visitorInitials = computed(() => {
@@ -150,7 +166,7 @@ export class VisitorDetailPanel {
 
   // === EVENT HANDLERS ===
   onClose(): void {
-    this.close.emit();
+    this.closePanel.emit();
   }
 
   onOpenUrl(): void {
@@ -168,6 +184,20 @@ export class VisitorDetailPanel {
       this.urlCopied.set(true);
       setTimeout(() => this.urlCopied.set(false), 2000);
     }
+  }
+
+  onToggleEditContact(): void {
+    this.isEditingContact.update(v => !v);
+  }
+
+  onCancelContactEdit(): void {
+    this.isEditingContact.set(false);
+  }
+
+  onSaveContactData(request: SaveContactDataRequest): void {
+    this.saveContactData.emit(request);
+    // Cerrar edición después de emitir (el padre manejará el estado de guardado)
+    this.isEditingContact.set(false);
   }
 
   // === PRIVATE METHODS ===

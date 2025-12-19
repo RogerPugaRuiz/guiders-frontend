@@ -49,7 +49,9 @@
 				[visitor]="selectedVisitor()!"
 				[isOpen]="showVisitorPanel()"
 				[leadScore]="visitorActivity()?.leadScore ?? null"
-				(close)="onCloseVisitorPanel()"
+				[savingContactData]="savingContactData()"
+				(closePanel)="onCloseVisitorPanel()"
+				(saveContactData)="onSaveContactData($event)"
 			/>
 		</div>
 	}

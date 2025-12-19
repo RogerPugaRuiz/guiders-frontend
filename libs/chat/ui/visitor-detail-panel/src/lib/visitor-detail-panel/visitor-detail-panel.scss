@@ -144,6 +144,13 @@
   border-bottom: 1px solid tokens.$color-border-subtle;
 }
 
+.visitor-detail-panel__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: tokens.$spacing-sm;
+}
+
 .visitor-detail-panel__section-title {
   font-family: tokens.$font-family-ui;
   font-size: tokens.$font-size-xs;
@@ -151,7 +158,32 @@
   color: tokens.$color-text-tertiary;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 tokens.$spacing-sm;
+  margin: 0;
+}
+
+.visitor-detail-panel__edit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: tokens.$border-radius-sm;
+  color: tokens.$color-text-tertiary;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: tokens.$color-surface-secondary;
+    color: tokens.$color-primary-500;
+  }
+
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: 2px;
+  }
 }
 
 // === URL CARD ===
@@ -256,6 +288,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+// === EMPTY CONTACT STATE ===
+
+.visitor-detail-panel__empty-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-lg tokens.$spacing-md;
+  background: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-md;
+  text-align: center;
+
+  span {
+    font-family: tokens.$font-family-ui;
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-tertiary;
+  }
+}
+
+.visitor-detail-panel__add-contact-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+  padding: tokens.$spacing-xs tokens.$spacing-md;
+  font-family: tokens.$font-family-ui;
+  font-size: tokens.$font-size-sm;
+  font-weight: 500;
+  color: tokens.$color-primary-500;
+  background: transparent;
+  border: 1px solid tokens.$color-primary-500;
+  border-radius: tokens.$border-radius-md;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(tokens.$color-primary-500, 0.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid tokens.$color-primary-500;
+    outline-offset: 2px;
+  }
 }
 
 // === STATS ===

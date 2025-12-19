@@ -1,13 +1,14 @@
 <div class="guiders-chat-placeholder">
   <div class="guiders-chat-placeholder__header">
     <div class="guiders-chat-placeholder__header-content">
-      <!-- Avatar con inicial -->
-      <div class="guiders-chat-placeholder__avatar">
-        <span class="guiders-chat-placeholder__avatar-text">{{ getVisitorInitial() }}</span>
-        @if (getParticipantPresenceStatus(); as presenceStatus) {
-        <span class="guiders-chat-placeholder__presence-indicator" [attr.data-status]="presenceStatus"></span>
-        }
-      </div>
+      <!-- Avatar unificado -->
+      <guiders-avatar
+        [userId]="visitorId()"
+        [name]="visitorName()"
+        [email]="visitorEmail()"
+        [presenceStatus]="getParticipantPresenceStatus()"
+        size="medium"
+      />
 
       <!-- Información del visitante -->
       <div class="guiders-chat-placeholder__info">

@@ -22,11 +22,12 @@ import { PresenceService } from '@guiders-frontend/presence-service';
 import { ChatWidgetTabs } from '@guiders-frontend/chat-widget-tabs';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
+import { Avatar } from '@guiders-frontend/avatar';
 
 @Component({
   selector: 'guiders-chat-widget',
   standalone: true,
-  imports: [CommonModule, MessageInput, TypingIndicator, ChatWidgetTabs],
+  imports: [CommonModule, MessageInput, TypingIndicator, ChatWidgetTabs, Avatar],
   templateUrl: './chat-widget.html',
   styleUrls: ['./chat-widget.scss']
 })
@@ -99,6 +100,22 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
   readonly visitorName = computed(() => {
     const visitor = this.currentVisitor();
     return visitor?.name || visitor?.email || 'Visitante anónimo';
+  });
+
+  // Computed properties for Avatar component
+  readonly visitorId = computed(() => {
+    const visitor = this.currentVisitor();
+    return visitor?.id || 'anonymous';
+  });
+
+  readonly visitorDisplayName = computed(() => {
+    const visitor = this.currentVisitor();
+    return visitor?.name;
+  });
+
+  readonly visitorEmail = computed(() => {
+    const visitor = this.currentVisitor();
+    return visitor?.email;
   });
 
   // Typing indicator
@@ -795,28 +812,6 @@ export class ChatWidgetComponent implements OnInit, OnDestroy, AfterViewChecked 
     return 'Visitante anónimo';
   }
 
-  /**
-   * Obtener inicial del visitante para el avatar
-   */
-  getVisitorInitial(): string {
-    const visitor = this.currentVisitor();
-    if (!visitor) return 'V';
-
-    // Intentar obtener inicial del nombre
-    if (visitor.name && visitor.name.trim()) {
-      const firstLetter = visitor.name.trim().charAt(0).toUpperCase();
-      return firstLetter;
-    }
-
-    // Si no hay nombre, usar inicial del email
-    if (visitor.email && visitor.email.trim()) {
-      const firstLetter = visitor.email.trim().charAt(0).toUpperCase();
-      return firstLetter;
-    }
-
-    // Por defecto, usar 'V' de Visitante
-    return 'V';
-  }
 
   /**
    * Obtener información del estado del chat para el header

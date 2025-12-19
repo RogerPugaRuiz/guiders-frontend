@@ -30,6 +30,7 @@
       "@guiders-frontend/auth/ui/login-form": [
         "libs/auth/ui/login-form/src/index.ts"
       ],
+      "@guiders-frontend/avatar": ["libs/shared/ui/avatar/src/index.ts"],
       "@guiders-frontend/avatar-colors": [
         "libs/shared/utils/avatar-colors/src/index.ts"
       ],
@@ -101,6 +102,9 @@
       "@guiders-frontend/commercial-status": [
         "libs/auth/data-access/commercial-status/src/index.ts"
       ],
+      "@guiders-frontend/contact-data-form": [
+        "libs/chat/ui/contact-data-form/src/index.ts"
+      ],
       "@guiders-frontend/contacts": [
         "libs/chat/features/contacts/src/index.ts"
       ],
@@ -116,6 +120,12 @@
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
+      ],
+      "@guiders-frontend/lead-contact-service": [
+        "libs/chat/data-access/lead-contact-service/src/index.ts"
+      ],
+      "@guiders-frontend/leads-service": [
+        "libs/admin/data-access/leads-service/src/index.ts"
       ],
       "@guiders-frontend/llm-config-service": [
         "libs/admin/data-access/llm-config-service/src/index.ts"
@@ -170,9 +180,6 @@
       ],
       "@guiders-frontend/user-menu": ["libs/shared/ui/user-menu/src/index.ts"],
       "@guiders-frontend/users": ["libs/admin/features/users/src/index.ts"],
-      "@guiders-frontend/visitor-card": [
-        "libs/chat/ui/visitor-card/src/index.ts"
-      ],
       "@guiders-frontend/visitor-detail-panel": [
         "libs/chat/ui/visitor-detail-panel/src/index.ts"
       ],

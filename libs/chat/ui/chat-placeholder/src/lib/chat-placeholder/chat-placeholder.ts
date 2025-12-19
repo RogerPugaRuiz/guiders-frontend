@@ -21,11 +21,12 @@ import { IconComponent } from '@guiders-frontend/icon';
 import { Message } from '@guiders-frontend/shared/types';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
 import { PresenceService } from '@guiders-frontend/presence-service';
+import { Avatar } from '@guiders-frontend/avatar';
 
 @Component({
   selector: 'guiders-chat-placeholder',
   standalone: true,
-  imports: [CommonModule, IconComponent, MessageInput],
+  imports: [CommonModule, Avatar, IconComponent, MessageInput],
   templateUrl: './chat-placeholder.html',
   styleUrl: './chat-placeholder.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +58,24 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
   private shouldScrollToBottom = true;
   private previousScrollHeight = 0;
   private isHandlingIntersection = false; // Flag para evitar llamadas duplicadas
+
+  /**
+   * Computed properties para el Avatar component
+   */
+  readonly visitorId = computed(() => {
+    const visitor = this.selectedChat.participants?.find((p: User) => p.role === 'visitor');
+    return visitor?.id || this.selectedChat.chatId || 'anonymous';
+  });
+
+  readonly visitorName = computed(() => {
+    const visitor = this.selectedChat.participants?.find((p: User) => p.role === 'visitor');
+    return visitor?.name;
+  });
+
+  readonly visitorEmail = computed(() => {
+    const visitor = this.selectedChat.participants?.find((p: User) => p.role === 'visitor');
+    return visitor?.email;
+  });
 
   /**
    * Obtener nombre para mostrar del chat
@@ -133,19 +152,6 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
     };
 
     return labels[status];
-  }
-
-  /**
-   * Obtener inicial del visitante para el avatar
-   */
-  getVisitorInitial(): string {
-    const name = this.getChatDisplayName();
-
-    if (name && name.trim() && name !== 'Chat') {
-      return name.trim().charAt(0).toUpperCase();
-    }
-
-    return 'V';
   }
 
   /**

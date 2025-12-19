@@ -22,15 +22,16 @@
   font-family: tokens.$font-family-ui;
   overflow: hidden;
   position: relative;
+  background: tokens.$color-surface-primary;
 
   &__sidebar {
-    flex: 0 0 320px;
-    min-width: 280px;
+    flex: 0 0 360px;
+    min-width: 320px;
     max-width: 400px;
     height: 100%;
     overflow: hidden;
     background: tokens.$color-surface-primary;
-    border-right: 1px solid tokens.$color-border-default;
+    border-right: 1px solid tokens.$color-border-subtle;
   }
 
   &__main {
@@ -39,18 +40,18 @@
     overflow: hidden;
     min-width: 0; // Permite que el contenido se contraiga
     min-height: 0; // Crítico para que overflow funcione en flexbox
-    background: tokens.$color-surface-secondary;
+    background: tokens.$color-surface-primary;
     transition: background-color tokens.$duration-normal tokens.$easing-standard;
   }
 
   &__detail-panel {
-    flex: 0 0 320px;
+    flex: 0 0 360px;
     height: 100%;
     overflow: hidden;
     animation: slideInRight 0.25s ease-out;
     background: tokens.$color-surface-primary;
-    border-left: 1px solid tokens.$color-border-default;
-    box-shadow: tokens.$shadow-lg;
+    border-left: 1px solid tokens.$color-border-subtle;
+    box-shadow: tokens.$shadow-md;
   }
 
   // Estado cuando el panel está abierto

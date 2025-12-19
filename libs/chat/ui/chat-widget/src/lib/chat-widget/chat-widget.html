@@ -35,11 +35,14 @@
       <!-- Header -->
       <div class="chat-widget__header">
         <div class="chat-widget__header-content">
-          <!-- Avatar inicial -->
-          <div class="chat-widget__avatar">
-            <span class="chat-widget__avatar-text">{{ getVisitorInitial() }}</span>
-            <span class="chat-widget__presence-indicator" [attr.data-status]="getChatStatusInfo().color"></span>
-          </div>
+          <!-- Avatar con componente unificado -->
+          <guiders-avatar
+            [userId]="visitorId()"
+            [name]="visitorDisplayName()"
+            [email]="visitorEmail()"
+            [presenceStatus]="visitorPresenceStatus()"
+            size="medium"
+          />
 
           <!-- Información del visitante -->
           <div class="chat-widget__info">
