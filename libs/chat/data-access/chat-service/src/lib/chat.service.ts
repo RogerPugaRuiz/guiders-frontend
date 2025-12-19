@@ -49,6 +49,8 @@ interface ApiChatResponse {
   queuePosition?: number;
   estimatedWaitTime?: number;
   lastMessage?: ApiMessageResponse;
+  lastMessagePreview?: string; // Preview del último mensaje (nuevo formato)
+  lastMessageDate?: string; // Fecha del último mensaje (nuevo formato)
   unreadCount?: number;
   unreadMessagesCount?: number; // Nuevo formato
   totalMessages?: number; // Nuevo formato
@@ -827,6 +829,27 @@ export class ChatService {
       status = 'ACTIVE'; // Mapear ASSIGNED a ACTIVE para consistencia
     }
 
+    // Manejar lastMessage
+    let lastMessage: Message | undefined;
+    if (apiChat.lastMessage) {
+      // Si tenemos el objeto completo lastMessage, usarlo
+      lastMessage = this.transformMessageFromApi(apiChat.lastMessage);
+    } else if (apiChat.lastMessagePreview && apiChat.lastMessageDate) {
+      // Si tenemos preview y fecha separados, crear un objeto Message sintético
+      lastMessage = {
+        messageId: 'preview', // ID sintético ya que no tenemos el real
+        chatId: chatId,
+        senderId: 'unknown', // No sabemos quién envió
+        senderType: 'VISITOR', // Asumimos visitante por defecto
+        content: apiChat.lastMessagePreview,
+        type: 'TEXT',
+        sentAt: new Date(apiChat.lastMessageDate),
+        status: 'SENT',
+        edited: false,
+        metadata: {}
+      };
+    }
+
     return {
       chatId,
       status: status as 'PENDING' | 'ACTIVE' | 'CLOSED' | 'TRANSFERRED',
@@ -837,7 +860,7 @@ export class ChatService {
       commercialId,
       queuePosition: apiChat.queuePosition,
       estimatedWaitTime: apiChat.estimatedWaitTime,
-      lastMessage: apiChat.lastMessage ? this.transformMessageFromApi(apiChat.lastMessage) : undefined,
+      lastMessage,
       unreadCount,
       isTyping: false,
       typingUsers: [],
