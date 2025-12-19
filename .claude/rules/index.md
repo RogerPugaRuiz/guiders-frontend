@@ -99,6 +99,9 @@ import { SessionService } from '@guiders-frontend/auth/data-access/session';
 - [Generators](./nx/generators.md) - Creating libs and components
 - [Commands](./nx/commands.md) - build, test, serve
 
+### Features (`features/`)
+- [Inbox Structure](./features/inbox-structure.md) - **⚠️ CRITICAL: Consult when debugging /inbox**
+
 ## Global Anti-patterns
 
 - Using NgModules (everything must be standalone)

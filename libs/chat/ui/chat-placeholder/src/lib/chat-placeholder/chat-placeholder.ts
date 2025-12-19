@@ -22,6 +22,7 @@ import { Message } from '@guiders-frontend/shared/types';
 import { MessageInput } from '@guiders-frontend/chat/ui/message-input';
 import { PresenceService } from '@guiders-frontend/presence-service';
 import { Avatar } from '@guiders-frontend/avatar';
+import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
 
 @Component({
   selector: 'guiders-chat-placeholder',
@@ -82,20 +83,20 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
    */
   getChatDisplayName(): string {
     const chat = this.selectedChat;
+    // Si el chat tiene un nombre personalizado válido, usarlo
     if (chat.name && chat.name !== 'Chat sin título' && chat.name !== 'Visitante') {
       return chat.name;
     }
 
+    // Obtener el visitante del chat
     const visitor = chat.participants?.find((p: User) => p.role === 'visitor');
-    if (visitor?.name && visitor.name.trim()) {
-      return visitor.name;
-    }
 
-    if (visitor?.email && visitor.email.trim()) {
-      return visitor.email;
-    }
-
-    return 'Visitante';
+    // Usar función centralizada para obtener el nombre de visualización
+    return getVisitorDisplayName({
+      id: visitor?.id,
+      name: visitor?.name,
+      email: visitor?.email,
+    });
   }
 
   /**
@@ -391,17 +392,22 @@ export class GuidersChatPlaceholderComponent implements OnChanges, AfterViewInit
       return 'Tú';
     }
 
+    // Buscar el participante que envió el mensaje
     const participant = this.selectedChat.participants?.find((p: User) => p.id === message.senderId);
-    if (participant?.name) {
-      return participant.name;
-    }
-    if (participant?.email) {
-      return participant.email;
+
+    // Si encontramos el participante, usar función centralizada
+    if (participant) {
+      return getVisitorDisplayName({
+        id: participant.id,
+        name: participant.name,
+        email: participant.email,
+      });
     }
 
+    // Fallback por tipo de remitente si no se encuentra el participante
     switch (message.senderType) {
       case 'VISITOR':
-        return 'Visitante';
+        return 'Visitante anónimo';
       case 'COMMERCIAL':
         return 'Agente';
       default:

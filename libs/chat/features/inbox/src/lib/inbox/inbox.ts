@@ -13,6 +13,7 @@ import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-si
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
 import { GuidersChatPlaceholderComponent } from '@guiders-frontend/chat/ui/chat-placeholder';
 import { VisitorDetailPanel } from '@guiders-frontend/visitor-detail-panel';
+import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
 
 /**
  * Inbox - Coordinador principal del chat
@@ -141,11 +142,18 @@ export class Inbox implements OnInit, OnDestroy {
     const activity = this.visitorActivity();
 
     // Convertir el participante a Visitor con datos reales de activity
+    // Usar función centralizada para obtener el nombre de visualización
+    const displayName = getVisitorDisplayName({
+      id: participant.id,
+      name: participant.name,
+      email: participant.email,
+    });
+
     return {
       id: participant.id || '',
       siteId: 'site-001',
       companyId: 'company-001',
-      name: participant.name || 'Visitante anónimo',
+      name: displayName,
       email: participant.email || 'visitante@ejemplo.com',
       phone: '+34 612 345 678',
       domain: domain,
