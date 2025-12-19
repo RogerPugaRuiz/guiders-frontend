@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Chat, User, PresenceStatus } from '@guiders-frontend/shared/types';
 import { UnreadBadge } from '@guiders-frontend/unread-badge';
 import { Avatar } from '@guiders-frontend/avatar';
+import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
 
 @Component({
   selector: 'guiders-conversation-item',
@@ -58,20 +59,20 @@ export class ConversationItem {
    */
   getChatDisplayName(): string {
     const chat = this.conversation();
+    // Si el chat tiene un nombre personalizado válido, usarlo
     if (chat.name && chat.name !== 'Chat sin título' && chat.name !== 'Visitante') {
       return chat.name;
     }
 
-  const visitor = chat.participants?.find((p: User) => p.role === 'visitor');
-    if (visitor?.name && visitor.name.trim()) {
-      return visitor.name;
-    }
+    // Obtener el visitante del chat
+    const visitor = chat.participants?.find((p: User) => p.role === 'visitor');
 
-    if (visitor?.email && visitor.email.trim()) {
-      return visitor.email;
-    }
-
-    return 'Visitante';
+    // Usar función centralizada para obtener el nombre de visualización
+    return getVisitorDisplayName({
+      id: visitor?.id,
+      name: visitor?.name,
+      email: visitor?.email,
+    });
   }
 
   /**
@@ -126,6 +127,9 @@ export class ConversationItem {
 
   /**
    * Formatear tiempo del chat
+   * - Hoy: Solo hora → "11:37"
+   * - Esta semana: Día de la semana → "lunes", "martes", etc.
+   * - Más antiguo: Fecha completa → "7/12/2025"
    */
   formatChatTime(): string {
     const chat = this.conversation();
@@ -136,19 +140,36 @@ export class ConversationItem {
       if (isNaN(date.getTime())) return '';
 
       const now = new Date();
-      const diff = now.getTime() - date.getTime();
-      const minutes = Math.floor(diff / 60000);
-      const hours = Math.floor(diff / 3600000);
-      const days = Math.floor(diff / 86400000);
 
-      if (minutes < 1) return 'Ahora';
-      if (minutes < 60) return `${minutes}m`;
-      if (hours < 24) return `${hours}h`;
-      if (days < 7) return `${days}d`;
+      // Verificar si es hoy
+      const isToday = date.toDateString() === now.toDateString();
+      if (isToday) {
+        // Mostrar solo hora: "11:37"
+        return date.toLocaleTimeString('es-ES', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      }
 
+      // Verificar si es esta semana (últimos 7 días pero no hoy)
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay()); // Domingo de esta semana
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor((now.getTime() - date.getTime()) / 86400000);
+      if (diffDays < 7 && date >= startOfWeek) {
+        // Mostrar día de la semana: "lunes", "martes", etc.
+        return date.toLocaleDateString('es-ES', {
+          weekday: 'long'
+        });
+      }
+
+      // Más de una semana: fecha completa "7/12/2025"
       return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: '2-digit'
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
       });
     } catch (error) {
       console.warn('Error al formatear fecha:', chat.lastMessage.sentAt, error);
