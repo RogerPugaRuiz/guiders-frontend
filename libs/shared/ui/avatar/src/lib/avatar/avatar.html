@@ -1,0 +1,14 @@
+<div
+  [ngClass]="avatarClasses()"
+  [style.background-color]="avatarColor()"
+  [attr.aria-label]="'Avatar for ' + (name() || email() || 'visitor')"
+>
+  <span class="guiders-avatar__text">{{ initial() }}</span>
+  @if (showPresenceBadge()) {
+    <span
+      class="guiders-avatar__presence-indicator"
+      [attr.data-status]="presenceStatus()"
+      [attr.aria-label]="'Presence: ' + presenceStatus()"
+    ></span>
+  }
+</div>
