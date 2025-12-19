@@ -1,17 +1,17 @@
 <div class="guiders-chat-welcome-state">
   <div class="guiders-chat-welcome-state__content">
-    <guiders-icon 
-      name="message-circle" 
-      size="xl" 
-      class="guiders-chat-welcome-state__icon"
-      [config]="{ decorative: true }" />
-    
+    <img
+      src="/images/chat-welcome.png"
+      alt="Ilustración de dos personas sosteniendo burbujas de conversación"
+      class="guiders-chat-welcome-state__illustration"
+    />
+
     <h3 class="guiders-chat-welcome-state__title">{{ title }}</h3>
-    
+
     <p class="guiders-chat-welcome-state__description">
       {{ description }}
     </p>
-    
+
     @if (showNewChatButton) {
       <guiders-button
         variant="primary"

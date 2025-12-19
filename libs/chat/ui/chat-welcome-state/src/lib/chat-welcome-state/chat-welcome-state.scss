@@ -32,13 +32,11 @@
     width: 100%;
   }
 
-  &__icon {
+  &__illustration {
     margin-bottom: tokens.$spacing-lg;
-    color: tokens.$color-text-secondary;
-    opacity: 0.7;
-    
-    // Animación sutil para hacer el estado más atractivo
-    animation: gentle-pulse 3s ease-in-out infinite;
+    max-width: 500px;
+    width: 100%;
+    height: auto;
   }
 
   &__title {
@@ -76,17 +74,6 @@
   }
 }
 
-// Animación sutil para el ícono
-@keyframes gentle-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-}
 
 // Responsive adjustments
 @media (max-width: tokens.$breakpoint-md) {
@@ -107,9 +94,3 @@
   }
 }
 
-// Soporte para modo reducido de movimiento
-@media (prefers-reduced-motion: reduce) {
-  .guiders-chat-welcome-state__icon {
-    animation: none;
-  }
-}
