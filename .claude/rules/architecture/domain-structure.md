@@ -1,50 +1,50 @@
-# Estructura de Dominios
+# Domain Structure
 
-## Descripción
+## Description
 
-Organización del código siguiendo Domain-Driven Design con dominios de negocio separados.
+Code organization following Domain-Driven Design with separated business domains.
 
-## Dominios del Proyecto
+## Project Domains
 
 ```
 libs/
-├── auth/           # Autenticación y sesión
-├── chat/           # Conversaciones y mensajes
-├── analytics/      # Métricas y reportes
-├── admin/          # Administración del sistema
-└── shared/         # Recursos compartidos
+├── auth/           # Authentication and session
+├── chat/           # Conversations and messages
+├── analytics/      # Metrics and reports
+├── admin/          # System administration
+└── shared/         # Shared resources
 ```
 
-## Estructura por Dominio
+## Structure per Domain
 
 ```
 libs/{domain}/
-├── features/           # Smart components con rutas
+├── features/           # Smart components with routes
 │   ├── {feature-1}/
 │   └── {feature-2}/
-├── ui/                 # Componentes presentacionales
+├── ui/                 # Presentational components
 │   ├── {component-1}/
 │   └── {component-2}/
-└── data-access/        # Servicios de datos
+└── data-access/        # Data services
     ├── {service-1}/
     └── {service-2}/
 ```
 
-## Dominio: Auth
+## Domain: Auth
 
-Gestión de autenticación, sesiones y usuarios.
+Authentication, sessions and users management.
 
 ```
 libs/auth/
 ├── features/
-│   └── login/              # Componente de login y guard
+│   └── login/              # Login component and guard
 │       ├── src/lib/
 │       │   ├── login.ts
 │       │   ├── login.routes.ts
 │       │   └── auth.guard.ts
 │       └── src/index.ts
 ├── ui/
-│   └── user-avatar/        # Avatar del usuario
+│   └── user-avatar/        # User avatar
 └── data-access/
     └── session/            # SessionService, UserService
         ├── src/lib/
@@ -55,7 +55,7 @@ libs/auth/
         └── src/index.ts
 ```
 
-**Exports típicos:**
+**Typical exports:**
 ```typescript
 // @guiders-frontend/auth/features/login
 export { routes } from './lib/login.routes';
@@ -66,27 +66,27 @@ export { SessionService } from './lib/session.service';
 export { ENVIRONMENT_TOKEN } from './lib/environment.token';
 ```
 
-## Dominio: Chat
+## Domain: Chat
 
-Gestión de conversaciones, visitantes y mensajes.
+Conversations, visitors and messages management.
 
 ```
 libs/chat/
 ├── features/
-│   ├── inbox/              # Lista de conversaciones
-│   ├── conversation/       # Detalle de conversación
-│   └── visitors/           # Gestión de visitantes
+│   ├── inbox/              # Conversations list
+│   ├── conversation/       # Conversation detail
+│   └── visitors/           # Visitors management
 ├── ui/
-│   ├── visitor-card/       # Tarjeta de visitante
-│   ├── message-bubble/     # Burbuja de mensaje
-│   └── chat-input/         # Input de mensajes
+│   ├── visitor-card/       # Visitor card
+│   ├── message-bubble/     # Message bubble
+│   └── chat-input/         # Messages input
 └── data-access/
     ├── visitors-data-service/
     ├── messages-service/
     └── websocket-service/
 ```
 
-**Exports típicos:**
+**Typical exports:**
 ```typescript
 // @guiders-frontend/chat/features/inbox
 export { routes } from './lib/inbox.routes';
@@ -99,75 +99,75 @@ export { VisitorsDataService } from './lib/visitors-data.service';
 export { Visitor, VisitorFilters } from './lib/visitor.interface';
 ```
 
-## Dominio: Analytics
+## Domain: Analytics
 
-Métricas, dashboards y reportes.
+Metrics, dashboards and reports.
 
 ```
 libs/analytics/
 ├── features/
-│   ├── dashboard/          # Dashboard principal
-│   └── reports/            # Generación de reportes
+│   ├── dashboard/          # Main dashboard
+│   └── reports/            # Reports generation
 ├── ui/
-│   ├── chart-card/         # Tarjeta con gráfico
-│   └── metric-widget/      # Widget de métrica
+│   ├── chart-card/         # Chart card
+│   └── metric-widget/      # Metric widget
 └── data-access/
-    └── metrics-service/    # Servicio de métricas
+    └── metrics-service/    # Metrics service
 ```
 
-## Dominio: Admin
+## Domain: Admin
 
-Configuración y administración del sistema.
+System configuration and administration.
 
 ```
 libs/admin/
 ├── features/
-│   ├── settings/           # Configuración general
-│   ├── users/              # Gestión de usuarios
-│   └── integrations/       # Integraciones externas
+│   ├── settings/           # General configuration
+│   ├── users/              # Users management
+│   └── integrations/       # External integrations
 ├── ui/
-│   └── settings-form/      # Formularios de config
+│   └── settings-form/      # Config forms
 └── data-access/
-    └── admin-service/      # Servicios de admin
+    └── admin-service/      # Admin services
 ```
 
-## Dominio: Shared
+## Domain: Shared
 
-Recursos compartidos entre todos los dominios.
+Resources shared between all domains.
 
 ```
 libs/shared/
-├── types/                  # Interfaces y tipos
+├── types/                  # Interfaces and types
 │   └── src/lib/
 │       ├── environment.interface.ts
 │       ├── visitor.interface.ts
 │       └── index.ts
-├── design-tokens/          # Variables SCSS
+├── design-tokens/          # SCSS Variables
 │   └── src/lib/
 │       ├── tokens-vars.scss
 │       └── mixins/
-├── ui/                     # Componentes UI compartidos
+├── ui/                     # Shared UI components
 │   ├── badge/
 │   ├── button/
 │   ├── modal/
 │   ├── spinner/
 │   └── toast/
-└── util/                   # Utilidades
+└── util/                   # Utilities
     └── src/lib/
         ├── date.utils.ts
         └── string.utils.ts
 ```
 
-## Comunicación entre Dominios
+## Communication between Domains
 
 ```
 ┌─────────────┐     ┌─────────────┐
-│    auth     │────▶│    chat     │  (chat usa authGuard)
+│    auth     │────▶│    chat     │  (chat uses authGuard)
 └─────────────┘     └─────────────┘
        │                   │
        ▼                   ▼
 ┌─────────────────────────────────┐
-│            shared               │  (todos usan shared)
+│            shared               │  (all use shared)
 └─────────────────────────────────┘
        ▲                   ▲
        │                   │
@@ -176,42 +176,42 @@ libs/shared/
 └─────────────┘     └─────────────┘
 ```
 
-**Reglas:**
-- `shared` puede ser importado por cualquier dominio
-- `auth` puede ser importado por otros dominios (guards, session)
-- Otros dominios NO deben importar entre sí directamente
+**Rules:**
+- `shared` can be imported by any domain
+- `auth` can be imported by other domains (guards, session)
+- Other domains should NOT import from each other directly
 
-## Imports por Dominio
+## Imports by Domain
 
 ```typescript
-// Componente en libs/chat/features/inbox
+// Component in libs/chat/features/inbox
 import { SessionService } from '@guiders-frontend/auth/data-access/session';  // ✓ Auth
 import { Badge } from '@guiders-frontend/shared/ui/badge';                     // ✓ Shared
-import { VisitorCard } from '@guiders-frontend/chat/ui/visitor-card';          // ✓ Mismo dominio
-import { Dashboard } from '@guiders-frontend/analytics/features/dashboard';    // ✗ Otro dominio
+import { VisitorCard } from '@guiders-frontend/chat/ui/visitor-card';          // ✓ Same domain
+import { Dashboard } from '@guiders-frontend/analytics/features/dashboard';    // ✗ Other domain
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |----------|--------|---------|
-| Dominio | singular, lowercase | `auth`, `chat`, `analytics` |
-| Feature | lowercase con guiones | `inbox`, `user-settings` |
-| UI Component | lowercase con guiones | `visitor-card`, `message-bubble` |
-| Data Access | `{entity}-service` o `{entity}-data-service` | `visitors-data-service` |
+| Domain | singular, lowercase | `auth`, `chat`, `analytics` |
+| Feature | lowercase with hyphens | `inbox`, `user-settings` |
+| UI Component | lowercase with hyphens | `visitor-card`, `message-bubble` |
+| Data Access | `{entity}-service` or `{entity}-data-service` | `visitors-data-service` |
 
-## Checklist al Crear Dominio
+## Checklist when Creating Domain
 
-- [ ] Crear estructura `features/`, `ui/`, `data-access/`
-- [ ] Definir interfaces en `shared/types` si son compartidas
-- [ ] Configurar tags de Nx: `scope:{domain}`
-- [ ] Documentar exports públicos en README
-- [ ] Crear barrel exports en `src/index.ts`
+- [ ] Create structure `features/`, `ui/`, `data-access/`
+- [ ] Define interfaces in `shared/types` if they are shared
+- [ ] Configure Nx tags: `scope:{domain}`
+- [ ] Document public exports in README
+- [ ] Create barrel exports in `src/index.ts`
 
-## Anti-patrones
+## Anti-patterns
 
-- Importar features de otros dominios
-- Lógica de dominio en `shared`
-- Componentes UI con dependencias de dominio específico
-- Servicios que mezclan responsabilidades de dominios
-- Circular dependencies entre dominios
+- Import features from other domains
+- Domain logic in `shared`
+- UI components with specific domain dependencies
+- Services that mix domain responsibilities
+- Circular dependencies between domains

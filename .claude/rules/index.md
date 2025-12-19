@@ -1,93 +1,93 @@
-# Reglas de Arquitectura - guiders-frontend
+# Architecture Rules - guiders-frontend
 
-## Visión General
+## Overview
 
-Frontend **Angular 20** con **Nx 21.4.1**, arquitectura **DDD por dominios**, componentes standalone y signals.
+**Angular 20** frontend with **Nx 21.4.1**, **DDD architecture by domains**, standalone components and signals.
 
-## Stack Técnico
+## Technical Stack
 
 - **Framework**: Angular 20 (standalone components)
 - **Monorepo**: Nx 21.4.1
 - **Build**: Vite 6
 - **Testing**: Vitest 3 + Playwright
-- **Estilos**: SCSS + Design Tokens
+- **Styles**: SCSS + Design Tokens
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 ├── apps/
-│   ├── admin/          # Dashboard de administración (puerto 4201)
-│   └── console/        # Operaciones de chat (puerto 4200)
+│   ├── admin/          # Administration dashboard (port 4201)
+│   └── console/        # Chat operations (port 4200)
 └── libs/
     ├── {domain}/       # auth, chat, analytics, admin
-    │   ├── features/   # Smart components con routing
-    │   ├── ui/         # Componentes presentacionales
-    │   └── data-access/# Servicios HTTP
-    └── shared/         # Utilidades cross-domain
+    │   ├── features/   # Smart components with routing
+    │   ├── ui/         # Presentational components
+    │   └── data-access/# HTTP Services
+    └── shared/         # Cross-domain utilities
         ├── types/
         ├── design-tokens/
         └── ui/
 ```
 
-## Principios Fundamentales
+## Fundamental Principles
 
 ### 1. Standalone Components
-Todo componente debe ser standalone (sin NgModules):
+All components must be standalone (no NgModules):
 ```typescript
 @Component({
   selector: 'guiders-badge',
-  imports: [CommonModule],  // Imports directos
+  imports: [CommonModule],  // Direct imports
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Badge { }
 ```
 
 ### 2. Signal Inputs
-Usar `input()` y `computed()` en lugar de `@Input()`:
+Use `input()` and `computed()` instead of `@Input()`:
 ```typescript
 readonly variant = input<BadgeVariant>('default');
 readonly isActive = computed(() => this.variant() === 'primary');
 ```
 
 ### 3. Function Injection
-Usar `inject()` en lugar de constructor injection:
+Use `inject()` instead of constructor injection:
 ```typescript
-// Correcto
+// Correct
 private readonly http = inject(HttpClient);
 
-// Evitar
+// Avoid
 constructor(private http: HttpClient) { }
 ```
 
 ### 4. Path Aliases
-Todos los imports usan `@guiders-frontend/*`:
+All imports use `@guiders-frontend/*`:
 ```typescript
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 ```
 
-## Navegación
+## Navigation
 
 ### Angular (`angular/`)
-- [Components](./angular/components.md) - Componentes standalone con signals
-- [Services](./angular/services.md) - Servicios inyectables
-- [Guards e Interceptors](./angular/guards-interceptors.md) - Auth y HTTP
-- [Directivas y Pipes](./angular/directives-pipes.md)
+- [Components](./angular/components.md) - Standalone components with signals
+- [Services](./angular/services.md) - Injectable services
+- [Guards and Interceptors](./angular/guards-interceptors.md) - Auth and HTTP
+- [Directives and Pipes](./angular/directives-pipes.md)
 
-### Arquitectura (`architecture/`)
-- [Tipos de Librería](./architecture/library-types.md) - features, ui, data-access
-- [Estructura de Dominios](./architecture/domain-structure.md) - DDD
-- [Reglas de Dependencias](./architecture/dependency-rules.md) - Tags Nx
-- [Resolución de Módulos](./architecture/module-resolution.md) - Paths
+### Architecture (`architecture/`)
+- [Library Types](./architecture/library-types.md) - features, ui, data-access
+- [Domain Structure](./architecture/domain-structure.md) - DDD
+- [Dependency Rules](./architecture/dependency-rules.md) - Nx Tags
+- [Module Resolution](./architecture/module-resolution.md) - Paths
 
 ### State Management (`state-management/`)
 - [BehaviorSubject Pattern](./state-management/behavior-subject-pattern.md)
-- [Servicios HTTP](./state-management/http-services.md)
+- [HTTP Services](./state-management/http-services.md)
 - [WebSocket Integration](./state-management/websocket-integration.md)
 
 ### Design System (`design-system/`)
-- [Design Tokens](./design-system/design-tokens.md) - Variables SCSS
-- [Estándares de Componentes](./design-system/component-standards.md)
-- [Patrones UI](./design-system/ui-patterns.md)
+- [Design Tokens](./design-system/design-tokens.md) - SCSS Variables
+- [Component Standards](./design-system/component-standards.md)
+- [UI Patterns](./design-system/ui-patterns.md)
 
 ### Testing (`testing/`)
 - [Vitest Patterns](./testing/vitest-patterns.md) - Unit testing
@@ -95,15 +95,15 @@ import { SessionService } from '@guiders-frontend/auth/data-access/session';
 - [Playwright E2E](./testing/playwright-e2e.md) - E2E testing
 
 ### Nx (`nx/`)
-- [Estructura del Workspace](./nx/workspace-structure.md)
-- [Generadores](./nx/generators.md) - Crear libs y componentes
-- [Comandos](./nx/commands.md) - build, test, serve
+- [Workspace Structure](./nx/workspace-structure.md)
+- [Generators](./nx/generators.md) - Creating libs and components
+- [Commands](./nx/commands.md) - build, test, serve
 
-## Anti-patrones Globales
+## Global Anti-patterns
 
-- Usar NgModules (todo debe ser standalone)
-- Constructor injection (usar `inject()`)
-- `@Input()` decorators (usar `input()` signals)
-- Imports relativos entre libs (usar `@guiders-frontend/*`)
-- `ChangeDetectionStrategy.Default` (usar `OnPush`)
-- Lógica de negocio en componentes UI
+- Using NgModules (everything must be standalone)
+- Constructor injection (use `inject()`)
+- `@Input()` decorators (use `input()` signals)
+- Relative imports between libs (use `@guiders-frontend/*`)
+- `ChangeDetectionStrategy.Default` (use `OnPush`)
+- Business logic in UI components

@@ -1,13 +1,13 @@
-# Componentes Angular
+# Angular Components
 
-## Descripción
+## Description
 
-Componentes standalone con signals, OnPush change detection y function injection.
+Standalone components with signals, OnPush change detection and function injection.
 
-## Referencia
+## Reference
 `libs/shared/ui/badge/src/lib/badge/badge.ts`
 
-## Estructura Base
+## Base Structure
 
 ```typescript
 import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
@@ -50,40 +50,40 @@ export class Badge {
 ## Signal Inputs
 
 ```typescript
-// Input requerido
+// Required input
 readonly userId = input.required<string>();
 
-// Input con valor por defecto
+// Input with default value
 readonly variant = input<BadgeVariant>('default');
 
-// Input opcional (undefined si no se proporciona)
+// Optional input (undefined if not provided)
 readonly label = input<string>();
 
-// Input con alias
+// Input with alias
 readonly size = input<Size>('medium', { alias: 'badgeSize' });
 
-// Input con transform
+// Input with transform
 readonly count = input(0, { transform: numberAttribute });
 ```
 
 ## Computed Values
 
 ```typescript
-// Derivar valores de inputs
+// Derive values from inputs
 readonly displayText = computed(() => {
   const count = this.count();
   const max = this.maxCount();
   return count > max ? `${max}+` : count.toString();
 });
 
-// Clases CSS dinámicas
+// Dynamic CSS classes
 readonly hostClasses = computed(() => ({
   'is-active': this.isActive(),
   'is-disabled': this.disabled(),
   [`size-${this.size()}`]: true,
 }));
 
-// Combinar múltiples signals
+// Combine multiple signals
 readonly isValid = computed(() =>
   this.value().length > 0 && !this.hasError()
 );
@@ -92,39 +92,39 @@ readonly isValid = computed(() =>
 ## Outputs
 
 ```typescript
-// Output simple
+// Simple output
 readonly clicked = output<void>();
 
-// Output con datos
+// Output with data
 readonly valueChange = output<string>();
 readonly itemSelected = output<Item>();
 
-// Emitir eventos
+// Emit events
 this.clicked.emit();
 this.valueChange.emit(newValue);
 ```
 
-## Inyección de Dependencias
+## Dependency Injection
 
 ```typescript
 @Component({ /* ... */ })
 export class MyComponent {
-  // Servicios
+  // Services
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
-  // Tokens de inyección
+  // Injection tokens
   private readonly environment = inject(ENVIRONMENT_TOKEN);
 
-  // Opcional
+  // Optional
   private readonly optional = inject(OptionalService, { optional: true });
 
-  // DestroyRef para cleanup
+  // DestroyRef for cleanup
   private readonly destroyRef = inject(DestroyRef);
 }
 ```
 
-## Lifecycle con Signals
+## Lifecycle with Signals
 
 ```typescript
 @Component({ /* ... */ })
@@ -132,12 +132,12 @@ export class MyComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   constructor() {
-    // Effect para reaccionar a cambios
+    // Effect to react to changes
     effect(() => {
       console.log('Variant changed:', this.variant());
     });
 
-    // Cleanup con takeUntilDestroyed
+    // Cleanup with takeUntilDestroyed
     someObservable$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(value => this.handleValue(value));
@@ -145,15 +145,15 @@ export class MyComponent {
 }
 ```
 
-## Template con Signals
+## Template with Signals
 
 ```html
-<!-- Llamar signals como funciones -->
+<!-- Call signals as functions -->
 <div [ngClass]="badgeClasses()">
   {{ displayText() }}
 </div>
 
-<!-- Condicionales -->
+<!-- Conditionals -->
 @if (isVisible()) {
   <span>{{ text() }}</span>
 }
@@ -164,33 +164,33 @@ export class MyComponent {
 }
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
-|----------|--------|---------|
+| Element | Pattern | Example |
+|---------|---------|---------|
 | UI Component | `guiders-{name}` | `guiders-badge`, `guiders-button` |
 | Feature Component | `lib-{name}` | `lib-inbox`, `lib-login` |
-| Clase | PascalCase sin sufijo | `Badge`, `VisitorCard` |
-| Archivo | `{name}.ts` | `badge.ts`, `visitor-card.ts` |
+| Class | PascalCase without suffix | `Badge`, `VisitorCard` |
+| File | `{name}.ts` | `badge.ts`, `visitor-card.ts` |
 | Template | `{name}.html` | `badge.html` |
-| Estilos | `{name}.scss` | `badge.scss` |
+| Styles | `{name}.scss` | `badge.scss` |
 
 ## Checklist
 
 - [ ] `changeDetection: ChangeDetectionStrategy.OnPush`
-- [ ] Imports standalone (no NgModules)
-- [ ] Inputs con `input()` signals
-- [ ] Computed para valores derivados
-- [ ] `inject()` para dependencias
-- [ ] Selector con prefijo correcto
-- [ ] Template usando sintaxis `@if`, `@for`
+- [ ] Standalone imports (no NgModules)
+- [ ] Inputs with `input()` signals
+- [ ] Computed for derived values
+- [ ] `inject()` for dependencies
+- [ ] Selector with correct prefix
+- [ ] Template using `@if`, `@for` syntax
 
-## Anti-patrones
+## Anti-patterns
 
-- `@Input()` decorator (usar `input()` signal)
-- `@Output()` decorator (usar `output()`)
-- Constructor injection (usar `inject()`)
+- `@Input()` decorator (use `input()` signal)
+- `@Output()` decorator (use `output()`)
+- Constructor injection (use `inject()`)
 - `ChangeDetectionStrategy.Default`
 - NgModules
-- Lógica compleja en templates (usar computed)
-- `ngOnInit` para inicialización (usar constructor o effect)
+- Complex logic in templates (use computed)
+- `ngOnInit` for initialization (use constructor or effect)

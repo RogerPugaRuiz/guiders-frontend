@@ -1,8 +1,8 @@
-# Resolución de Módulos
+# Module Resolution
 
-## Descripción
+## Description
 
-Sistema de path mappings y barrel exports para imports limpios y consistentes.
+Path mappings and barrel exports system for clean and consistent imports.
 
 ## Path Mappings
 
@@ -42,18 +42,18 @@ Sistema de path mappings y barrel exports para imports limpios y consistentes.
 }
 ```
 
-## Patrón de Path
+## Path Pattern
 
 ```
 @guiders-frontend/{domain}/{type}/{name}
 
-Donde:
+Where:
 - domain: auth, chat, analytics, admin, shared
 - type: features, ui, data-access, util, types
-- name: nombre específico de la librería
+- name: specific library name
 ```
 
-### Ejemplos
+### Examples
 
 ```typescript
 // Features
@@ -78,7 +78,7 @@ import { Visitor } from '@guiders-frontend/chat/data-access/visitors-data-servic
 
 ## Barrel Exports (index.ts)
 
-### Componente UI
+### UI Component
 
 ```typescript
 // libs/shared/ui/badge/src/index.ts
@@ -91,7 +91,7 @@ export type { BadgeVariant, BadgeSize, BadgeShape } from './lib/badge/badge';
 ```typescript
 // libs/chat/features/inbox/src/index.ts
 export { routes } from './lib/inbox.routes';
-// No exportar componentes internos
+// Don't export internal components
 ```
 
 ### Data Access
@@ -115,35 +115,35 @@ export type { PaginatedResponse } from './lib/pagination.interface';
 export { ENVIRONMENT_TOKEN } from './lib/tokens';
 ```
 
-## Imports Correctos vs Incorrectos
+## Correct vs Incorrect Imports
 
-### Correcto
+### Correct
 
 ```typescript
-// Usar path mapping
+// Use path mapping
 import { Badge } from '@guiders-frontend/shared/ui/badge';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 ```
 
-### Incorrecto
+### Incorrect
 
 ```typescript
-// NO usar paths relativos entre libs
+// DON'T use relative paths between libs
 import { Badge } from '../../../shared/ui/badge/src/lib/badge/badge';
 
-// NO importar archivos internos directamente
+// DON'T import internal files directly
 import { Badge } from '@guiders-frontend/shared/ui/badge/src/lib/badge/badge';
 
-// NO usar index.ts explícito
+// DON'T use explicit index.ts
 import { Badge } from '@guiders-frontend/shared/ui/badge/src/index';
 ```
 
 ## SCSS Imports
 
-### Path para Design Tokens
+### Path for Design Tokens
 
 ```scss
-// Correcto
+// Correct
 @use '@guiders-frontend/shared/design-tokens' as tokens;
 
 .my-component {
@@ -152,7 +152,7 @@ import { Badge } from '@guiders-frontend/shared/ui/badge/src/index';
 }
 ```
 
-### Configuración en angular.json/project.json
+### Configuration in angular.json/project.json
 
 ```json
 {
@@ -168,15 +168,15 @@ import { Badge } from '@guiders-frontend/shared/ui/badge/src/index';
 }
 ```
 
-## Generación Automática de Paths
+## Automatic Path Generation
 
-Al crear una librería con Nx, el path mapping se agrega automáticamente:
+When creating a library with Nx, the path mapping is automatically added:
 
 ```bash
 nx g @nx/angular:lib my-lib --directory=libs/chat/features/my-lib
 ```
 
-Resultado en tsconfig.base.json:
+Result in tsconfig.base.json:
 
 ```json
 {
@@ -192,52 +192,52 @@ Resultado en tsconfig.base.json:
 
 ### Error: Cannot find module
 
-1. Verificar que el path existe en `tsconfig.base.json`
-2. Verificar que `src/index.ts` exporta el módulo
-3. Reiniciar el servidor de desarrollo
+1. Verify that the path exists in `tsconfig.base.json`
+2. Verify that `src/index.ts` exports the module
+3. Restart the development server
 
 ### Error: Import cycle detected
 
-1. Verificar dependencias circulares con `nx graph`
-2. Extraer código compartido a una lib común
-3. Usar lazy imports si es necesario
+1. Verify circular dependencies with `nx graph`
+2. Extract shared code to a common lib
+3. Use lazy imports if necessary
 
 ### SCSS not found
 
-1. Verificar `stylePreprocessorOptions` en project.json
-2. Verificar que el path en `@use` es correcto
-3. Usar path relativo si es dentro de la misma lib
+1. Verify `stylePreprocessorOptions` in project.json
+2. Verify that the path in `@use` is correct
+3. Use relative path if within the same lib
 
-## Reglas de Export
+## Export Rules
 
-### Exportar
+### Export
 
-- Componentes públicos
-- Servicios públicos
-- Interfaces/Types públicos
-- Tokens de inyección
-- Routes (solo en features)
-- Directivas y Pipes públicos
+- Public components
+- Public services
+- Public interfaces/types
+- Injection tokens
+- Routes (only in features)
+- Public directives and pipes
 
-### NO Exportar
+### DO NOT Export
 
-- Componentes internos
-- Helpers/utils internos
-- Constantes internas
-- Implementaciones privadas
+- Internal components
+- Internal helpers/utils
+- Internal constants
+- Private implementations
 
 ## Checklist
 
-- [ ] Path mapping en `tsconfig.base.json`
-- [ ] Barrel export en `src/index.ts`
-- [ ] Solo exports públicos en barrel
-- [ ] Imports usando `@guiders-frontend/*`
-- [ ] SCSS usando `@use` con path correcto
+- [ ] Path mapping in `tsconfig.base.json`
+- [ ] Barrel export in `src/index.ts`
+- [ ] Only public exports in barrel
+- [ ] Imports using `@guiders-frontend/*`
+- [ ] SCSS using `@use` with correct path
 
-## Anti-patrones
+## Anti-patterns
 
-- Imports relativos entre librerías
-- Imports directos a archivos internos
-- Barrel exports con todo el contenido
-- Circular dependencies entre libs
-- Modificar manualmente tsconfig.base.json (usar generadores)
+- Relative imports between libraries
+- Direct imports to internal files
+- Barrel exports with all content
+- Circular dependencies between libs
+- Manually modifying tsconfig.base.json (use generators)

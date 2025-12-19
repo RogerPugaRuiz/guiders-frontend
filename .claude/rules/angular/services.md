@@ -1,13 +1,13 @@
-# Servicios Angular
+# Angular Services
 
-## Descripción
+## Description
 
-Servicios inyectables con `providedIn: 'root'`, function injection y patrones reactivos.
+Injectable services with `providedIn: 'root'`, function injection and reactive patterns.
 
-## Referencia
+## Reference
 `libs/auth/data-access/session/src/lib/session.service.ts`
 
-## Estructura Base
+## Base Structure
 
 ```typescript
 import { Injectable, inject } from '@angular/core';
@@ -45,22 +45,22 @@ export class SessionService {
 }
 ```
 
-## Patrón BehaviorSubject + Observable
+## BehaviorSubject + Observable Pattern
 
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class ChatStateService {
-  // Estado privado mutable
+  // Private mutable state
   private readonly _chats = new BehaviorSubject<Chat[]>([]);
   private readonly _loading = new BehaviorSubject<boolean>(false);
   private readonly _error = new BehaviorSubject<string | null>(null);
 
-  // Exposición pública inmutable
+  // Public immutable exposure
   readonly chats$ = this._chats.asObservable();
   readonly loading$ = this._loading.asObservable();
   readonly error$ = this._error.asObservable();
 
-  // Métodos para modificar estado
+  // Methods to modify state
   setChats(chats: Chat[]): void {
     this._chats.next(chats);
   }
@@ -73,7 +73,7 @@ export class ChatStateService {
     this._error.next(error);
   }
 
-  // Selector derivado
+  // Derived selector
   readonly activeChats$ = this.chats$.pipe(
     map(chats => chats.filter(c => c.status === 'active')),
     distinctUntilChanged()
@@ -81,7 +81,7 @@ export class ChatStateService {
 }
 ```
 
-## Servicio HTTP con Cache
+## HTTP Service with Cache
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -119,20 +119,20 @@ export class VisitorsDataService {
 }
 ```
 
-## Servicio con Signal State
+## Service with Signal State
 
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  // Signal para estado sincrónico
+  // Signal for synchronous state
   private readonly _currentUser = signal<User | null>(null);
 
-  // Exposición como readonly
+  // Exposure as readonly
   readonly currentUser = this._currentUser.asReadonly();
 
-  // Computed derivado
+  // Derived computed
   readonly isAuthenticated = computed(() => this._currentUser() !== null);
-  readonly userName = computed(() => this._currentUser()?.name ?? 'Anónimo');
+  readonly userName = computed(() => this._currentUser()?.name ?? 'Anonymous');
 
   setUser(user: User | null): void {
     this._currentUser.set(user);
@@ -144,30 +144,30 @@ export class UserService {
 }
 ```
 
-## Inyección de Dependencias
+## Dependency Injection
 
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class MyService {
-  // Servicios Angular
+  // Angular services
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
-  // Servicios propios
+  // Own services
   private readonly sessionService = inject(SessionService);
 
-  // Tokens de inyección
+  // Injection tokens
   private readonly environment = inject(ENVIRONMENT_TOKEN);
 
-  // DestroyRef para cleanup
+  // DestroyRef for cleanup
   private readonly destroyRef = inject(DestroyRef);
 
-  // Servicio opcional
+  // Optional service
   private readonly analytics = inject(AnalyticsService, { optional: true });
 }
 ```
 
-## Cleanup y Lifecycle
+## Cleanup and Lifecycle
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -176,7 +176,7 @@ export class WebSocketService {
   private connection?: WebSocket;
 
   constructor() {
-    // Cleanup automático al destruir
+    // Automatic cleanup on destroy
     this.destroyRef.onDestroy(() => {
       this.disconnect();
     });
@@ -193,19 +193,19 @@ export class WebSocketService {
 }
 ```
 
-## Operadores RxJS Comunes
+## Common RxJS Operators
 
 ```typescript
-// Cache con shareReplay
+// Cache with shareReplay
 .pipe(shareReplay({ bufferSize: 1, refCount: true }))
 
-// Evitar duplicados
+// Avoid duplicates
 .pipe(distinctUntilChanged())
 
-// Cleanup automático
+// Automatic cleanup
 .pipe(takeUntilDestroyed(this.destroyRef))
 
-// Manejo de errores
+// Error handling
 .pipe(
   catchError(error => {
     console.error('Error:', error);
@@ -213,35 +213,35 @@ export class WebSocketService {
   })
 )
 
-// Retry con backoff
+// Retry with backoff
 .pipe(
   retry({ count: 3, delay: 1000 })
 )
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
-|----------|--------|---------|
-| Servicio | `{Name}Service` | `SessionService`, `ChatService` |
+| Element | Pattern | Example |
+|---------|---------|---------|
+| Service | `{Name}Service` | `SessionService`, `ChatService` |
 | Data Service | `{Entity}DataService` | `VisitorsDataService` |
 | State Service | `{Domain}StateService` | `ChatStateService` |
-| Archivo | `{name}.service.ts` | `session.service.ts` |
+| File | `{name}.service.ts` | `session.service.ts` |
 
 ## Checklist
 
 - [ ] `@Injectable({ providedIn: 'root' })`
-- [ ] `inject()` para dependencias
-- [ ] BehaviorSubject privado, Observable público
-- [ ] `shareReplay` para cache de HTTP
-- [ ] `takeUntilDestroyed` para cleanup
-- [ ] Métodos claros para modificar estado
+- [ ] `inject()` for dependencies
+- [ ] Private BehaviorSubject, public Observable
+- [ ] `shareReplay` for HTTP cache
+- [ ] `takeUntilDestroyed` for cleanup
+- [ ] Clear methods to modify state
 
-## Anti-patrones
+## Anti-patterns
 
 - Constructor injection
-- BehaviorSubject público (exponer solo Observable)
-- Olvidar `withCredentials: true` en HTTP
-- Subscripciones sin cleanup
-- Estado mutable expuesto directamente
-- Lógica de UI en servicios
+- Public BehaviorSubject (expose only Observable)
+- Forgetting `withCredentials: true` in HTTP
+- Subscriptions without cleanup
+- Mutable state exposed directly
+- UI logic in services

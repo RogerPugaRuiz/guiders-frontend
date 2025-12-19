@@ -1,15 +1,15 @@
-# Estructura del Workspace Nx
+# Nx Workspace Structure
 
-## Descripción
+## Description
 
-Organización del monorepo Nx con aplicaciones y librerías.
+Organization of the Nx monorepo with applications and libraries.
 
-## Estructura General
+## General Structure
 
 ```
 guiders-frontend/
-├── apps/                           # Aplicaciones
-│   ├── admin/                      # Dashboard administración
+├── apps/                           # Applications
+│   ├── admin/                      # Administration dashboard
 │   │   ├── src/
 │   │   │   ├── app/
 │   │   │   │   ├── app.config.ts
@@ -17,32 +17,32 @@ guiders-frontend/
 │   │   │   │   └── app.ts
 │   │   │   └── main.ts
 │   │   └── project.json
-│   ├── admin-e2e/                  # E2E tests para admin
-│   ├── console/                    # Consola de operadores
+│   ├── admin-e2e/                  # E2E tests for admin
+│   ├── console/                    # Operator console
 │   │   └── ...
-│   └── console-e2e/                # E2E tests para console
-├── libs/                           # Librerías compartidas
+│   └── console-e2e/                # E2E tests for console
+├── libs/                           # Shared libraries
 │   ├── auth/
 │   ├── chat/
 │   ├── analytics/
 │   ├── admin/
 │   └── shared/
-├── nx.json                         # Configuración Nx
+├── nx.json                         # Nx configuration
 ├── tsconfig.base.json              # Path mappings
 └── package.json
 ```
 
-## Aplicaciones (apps/)
+## Applications (apps/)
 
-### Console (Puerto 4200)
+### Console (Port 4200)
 
 ```
 apps/console/
 ├── src/
 │   ├── app/
-│   │   ├── app.config.ts      # ApplicationConfig con providers
-│   │   ├── app.routes.ts      # Rutas principales
-│   │   └── app.ts             # Componente raíz
+│   │   ├── app.config.ts      # ApplicationConfig with providers
+│   │   ├── app.routes.ts      # Main routes
+│   │   └── app.ts             # Root component
 │   ├── environments/
 │   │   ├── environment.ts
 │   │   └── environment.prod.ts
@@ -53,7 +53,7 @@ apps/console/
 └── tsconfig.app.json
 ```
 
-### Admin (Puerto 4201)
+### Admin (Port 4201)
 
 ```
 apps/admin/
@@ -66,7 +66,7 @@ apps/admin/
 └── project.json
 ```
 
-## Configuración de Aplicación
+## Application Configuration
 
 ```typescript
 // apps/console/src/app/app.config.ts
@@ -156,7 +156,7 @@ export const appConfig: ApplicationConfig = {
 }
 ```
 
-## Librerías (libs/)
+## Libraries (libs/)
 
 ```json
 // libs/chat/features/inbox/project.json
@@ -244,37 +244,37 @@ export const appConfig: ApplicationConfig = {
 }
 ```
 
-## Cache y Affected
+## Cache and Affected
 
 ```bash
-# Cache local (por defecto)
-# Los builds/tests se cachean automáticamente
+# Local cache (default)
+# Builds/tests are cached automatically
 
-# Ver qué proyectos están afectados
+# See which projects are affected
 nx affected:graph
 
-# Build solo afectados
+# Build only affected
 nx affected -t build
 
-# Test solo afectados
+# Test only affected
 nx affected -t test
 
-# Limpiar cache
+# Clean cache
 nx reset
 ```
 
 ## Checklist
 
-- [ ] Cada app tiene `project.json` configurado
-- [ ] Tags de scope y type en todas las libs
-- [ ] Path mappings en `tsconfig.base.json`
-- [ ] Configuración de generators en `nx.json`
-- [ ] Cache habilitado para build/test/lint
+- [ ] Each app has `project.json` configured
+- [ ] Scope and type tags on all libs
+- [ ] Path mappings in `tsconfig.base.json`
+- [ ] Generator configuration in `nx.json`
+- [ ] Cache enabled for build/test/lint
 
-## Anti-patrones
+## Anti-patterns
 
-- Apps sin `project.json`
-- Librerías sin tags
-- Path mappings manuales (usar generadores)
-- Ignorar affected para CI
-- No usar cache de Nx
+- Apps without `project.json`
+- Libraries without tags
+- Manual path mappings (use generators)
+- Ignoring affected for CI
+- Not using Nx cache

@@ -1,14 +1,14 @@
 # Design Tokens
 
-## Descripción
+## Description
 
-Sistema de variables SCSS para mantener consistencia visual en colores, espaciado, tipografía y más.
+SCSS variable system to maintain visual consistency in colors, spacing, typography, and more.
 
-## Referencia
+## Reference
 
 `libs/shared/design-tokens/src/lib/tokens-vars.scss`
 
-## Uso Básico
+## Basic Usage
 
 ```scss
 @use '@guiders-frontend/shared/design-tokens' as tokens;
@@ -21,47 +21,47 @@ Sistema de variables SCSS para mantener consistencia visual en colores, espaciad
 }
 ```
 
-## Colores
+## Colors
 
-### Surface (Fondos)
+### Surface (Backgrounds)
 
 ```scss
-$color-surface-primary: #ffffff;    // Fondo principal
-$color-surface-secondary: #f8f9fa;  // Fondo secundario
-$color-surface-tertiary: #f1f3f4;   // Fondo terciario
-$color-surface-hover: #f1f3f4;      // Estado hover
-$color-surface-selected: #e7f3ff;   // Estado seleccionado
-$color-surface-disabled: #f1f3f4;   // Estado disabled
-$color-surface-elevated: #ffffff;   // Cards/modales
+$color-surface-primary: #ffffff;    // Primary background
+$color-surface-secondary: #f8f9fa;  // Secondary background
+$color-surface-tertiary: #f1f3f4;   // Tertiary background
+$color-surface-hover: #f1f3f4;      // Hover state
+$color-surface-selected: #e7f3ff;   // Selected state
+$color-surface-disabled: #f1f3f4;   // Disabled state
+$color-surface-elevated: #ffffff;   // Cards/modals
 ```
 
-### Texto
+### Text
 
 ```scss
-$color-text-primary: #212529;    // Texto principal
-$color-text-secondary: #495057;  // Texto secundario
-$color-text-tertiary: #6c757d;   // Texto terciario
-$color-text-disabled: #ced4da;   // Texto disabled
-$color-text-inverse: #ffffff;    // Texto sobre fondos oscuros
+$color-text-primary: #212529;    // Primary text
+$color-text-secondary: #495057;  // Secondary text
+$color-text-tertiary: #6c757d;   // Tertiary text
+$color-text-disabled: #ced4da;   // Disabled text
+$color-text-inverse: #ffffff;    // Text on dark backgrounds
 ```
 
-### Brand/Semánticos
+### Brand/Semantic
 
 ```scss
-// Primary (azul)
+// Primary (blue)
 $color-primary-500: #007bff;
 $color-primary-600: #0066cc;
 $color-primary-700: #004d99;
 
-// Success (verde)
+// Success (green)
 $color-success-500: #28a745;
 $color-success-600: #10b981;
 
-// Warning (amarillo)
+// Warning (yellow)
 $color-warning-500: #ffc107;
 $color-warning-600: #f59e0b;
 
-// Danger/Error (rojo)
+// Danger/Error (red)
 $color-danger-500: #dc3545;
 $color-danger-600: #b02a37;
 
@@ -70,29 +70,29 @@ $color-info-500: #17a2b8;
 $color-info-600: #3b82f6;
 ```
 
-### Bordes
+### Borders
 
 ```scss
-$color-border-light: #f1f3f5;     // Divisiones sutiles
-$color-border-subtle: #dee2e6;    // Bordes sutiles
-$color-border-default: #ced4da;   // Bordes por defecto
-$color-border-primary: #007bff;   // Bordes de acento
-$color-border-strong: #6c757d;    // Bordes fuertes
+$color-border-light: #f1f3f5;     // Subtle divisions
+$color-border-subtle: #dee2e6;    // Subtle borders
+$color-border-default: #ced4da;   // Default borders
+$color-border-primary: #007bff;   // Accent borders
+$color-border-strong: #6c757d;    // Strong borders
 ```
 
-## Espaciado (Escala 4px)
+## Spacing (4px Scale)
 
 ```scss
-$spacing-2xs: 2px;   // Mínimo
-$spacing-xs: 4px;    // Extra pequeño
-$spacing-sm: 8px;    // Pequeño
-$spacing-md: 16px;   // Medio (base)
-$spacing-lg: 24px;   // Grande
-$spacing-xl: 32px;   // Extra grande
-$spacing-2xl: 48px;  // 2x extra grande
-$spacing-3xl: 64px;  // 3x extra grande
+$spacing-2xs: 2px;   // Minimum
+$spacing-xs: 4px;    // Extra small
+$spacing-sm: 8px;    // Small
+$spacing-md: 16px;   // Medium (base)
+$spacing-lg: 24px;   // Large
+$spacing-xl: 32px;   // Extra large
+$spacing-2xl: 48px;  // 2x extra large
+$spacing-3xl: 64px;  // 3x extra large
 
-// Alternativa numérica
+// Alternative numeric
 $spacing-1: 4px;
 $spacing-2: 8px;
 $spacing-3: 12px;
@@ -101,27 +101,27 @@ $spacing-6: 24px;
 $spacing-8: 32px;
 ```
 
-## Tipografía
+## Typography
 
-### Familias
+### Families
 
 ```scss
 $font-family-ui: Inter, system-ui, -apple-system, sans-serif;
 $font-family-mono: 'Monaco', 'Menlo', monospace;
 ```
 
-### Tamaños
+### Sizes
 
 ```scss
 $font-size-xs: 10px;    // Captions
-$font-size-sm: 12px;    // Labels pequeños
-$font-size-base: 13px;  // Texto base
-$font-size-lg: 18px;    // Subtítulos
-$font-size-xl: 20px;    // Títulos
-$font-size-2xl: 24px;   // Títulos grandes
+$font-size-sm: 12px;    // Small labels
+$font-size-base: 13px;  // Base text
+$font-size-lg: 18px;    // Subtitles
+$font-size-xl: 20px;    // Titles
+$font-size-2xl: 24px;   // Large titles
 ```
 
-### Pesos
+### Weights
 
 ```scss
 $font-weight-regular: 400;
@@ -133,9 +133,9 @@ $font-weight-bold: 700;
 ### Line Heights
 
 ```scss
-$line-height-tight: 1.25;    // Títulos
-$line-height-normal: 1.5;    // Texto normal
-$line-height-relaxed: 1.625; // Texto espaciado
+$line-height-tight: 1.25;    // Titles
+$line-height-normal: 1.5;    // Normal text
+$line-height-relaxed: 1.625; // Spaced text
 ```
 
 ## Border Radius
@@ -148,10 +148,10 @@ $border-radius-md: 8px;
 $border-radius-lg: 12px;
 $border-radius-xl: 16px;
 $border-radius-full: 9999px;  // Pill
-$border-radius-circle: 50%;   // Círculo
+$border-radius-circle: 50%;   // Circle
 ```
 
-## Sombras
+## Shadows
 
 ```scss
 $shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -160,7 +160,7 @@ $shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 $shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 ```
 
-## Transiciones
+## Transitions
 
 ```scss
 $duration-fast: 100ms;
@@ -190,17 +190,17 @@ $breakpoint-xl: 1280px;
 $breakpoint-2xl: 1440px;
 ```
 
-## Mixins Disponibles
+## Available Mixins
 
 ### Typography
 
 ```scss
-@include tokens.typography('heading-3xl');  // Título grande
-@include tokens.typography('heading-2xl');  // Título
-@include tokens.typography('label-large');  // Label grande
-@include tokens.typography('label-medium'); // Label medio
-@include tokens.typography('body-medium');  // Cuerpo medio
-@include tokens.typography('body-small');   // Cuerpo pequeño
+@include tokens.typography('heading-3xl');  // Large title
+@include tokens.typography('heading-2xl');  // Title
+@include tokens.typography('label-large');  // Large label
+@include tokens.typography('label-medium'); // Medium label
+@include tokens.typography('body-medium');  // Medium body
+@include tokens.typography('body-small');   // Small body
 @include tokens.typography('caption');      // Caption
 ```
 
@@ -209,7 +209,7 @@ $breakpoint-2xl: 1440px;
 ```scss
 .my-button {
   @include tokens.button-base;
-  // Incluye: display, padding, border, radius, font, hover, focus, disabled
+  // Includes: display, padding, border, radius, font, hover, focus, disabled
 }
 ```
 
@@ -227,7 +227,7 @@ $breakpoint-2xl: 1440px;
 ```scss
 .spinner {
   @include tokens.loading-spinner;
-  // Spinner animado de 20px
+  // 20px animated spinner
 }
 ```
 
@@ -236,11 +236,11 @@ $breakpoint-2xl: 1440px;
 ```scss
 .icon-button {
   @include tokens.button-reset;
-  // Elimina estilos por defecto de button
+  // Removes default button styles
 }
 ```
 
-## Ejemplo Completo
+## Complete Example
 
 ```scss
 @use '@guiders-frontend/shared/design-tokens' as tokens;
@@ -281,10 +281,10 @@ $breakpoint-2xl: 1440px;
 }
 ```
 
-## Anti-patrones
+## Anti-patterns
 
-- Hardcodear colores (`#007bff` en lugar de `$color-primary-500`)
-- Hardcodear espaciados (`16px` en lugar de `$spacing-md`)
-- Usar `px` arbitrarios que no sigan la escala de 4px
-- No usar mixins para patrones repetitivos
-- Importar tokens sin namespace (`@use` sin `as`)
+- Hardcoding colors (`#007bff` instead of `$color-primary-500`)
+- Hardcoding spacing (`16px` instead of `$spacing-md`)
+- Using arbitrary `px` values that don't follow the 4px scale
+- Not using mixins for repetitive patterns
+- Importing tokens without namespace (`@use` without `as`)

@@ -1,15 +1,15 @@
-# Guards e Interceptors
+# Guards and Interceptors
 
-## Descripción
+## Description
 
-Guards funcionales para proteger rutas e interceptors funcionales para modificar peticiones HTTP.
+Functional guards to protect routes and functional interceptors to modify HTTP requests.
 
-## Referencia
+## Reference
 
 - Guard: `libs/auth/features/login/src/lib/auth-guard.ts`
 - Interceptor: `libs/auth/data-access/session/src/lib/auth-refresh.interceptor.ts`
 
-## Guard Funcional
+## Functional Guard
 
 ```typescript
 import { inject } from '@angular/core';
@@ -25,7 +25,7 @@ export const authGuard: CanActivateFn = () => {
   return sessionService.ensureSession$().pipe(
     map(user => !!user),
     catchError(() => {
-      // Redirect a login externo
+      // Redirect to external login
       const returnUrl = encodeURIComponent(router.url);
       location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${returnUrl}`);
       return of(false);
@@ -34,7 +34,7 @@ export const authGuard: CanActivateFn = () => {
 };
 ```
 
-## Guard con Roles
+## Guard with Roles
 
 ```typescript
 import { inject } from '@angular/core';
@@ -60,7 +60,7 @@ export const roleGuard = (allowedRoles: string[]): CanActivateFn => {
   };
 };
 
-// Uso en rutas
+// Usage in routes
 export const routes: Route[] = [
   {
     path: 'admin',
@@ -70,7 +70,7 @@ export const routes: Route[] = [
 ];
 ```
 
-## Guard de Deactivation
+## Deactivation Guard
 
 ```typescript
 import { CanDeactivateFn } from '@angular/router';
@@ -81,12 +81,12 @@ export interface CanComponentDeactivate {
 
 export const unsavedChangesGuard: CanDeactivateFn<CanComponentDeactivate> = (component) => {
   if (component.canDeactivate && !component.canDeactivate()) {
-    return confirm('Tienes cambios sin guardar. ¿Deseas salir?');
+    return confirm('You have unsaved changes. Do you want to leave?');
   }
   return true;
 };
 
-// Implementación en componente
+// Implementation in component
 @Component({ /* ... */ })
 export class EditForm implements CanComponentDeactivate {
   hasUnsavedChanges = false;
@@ -97,7 +97,7 @@ export class EditForm implements CanComponentDeactivate {
 }
 ```
 
-## Interceptor Funcional
+## Functional Interceptor
 
 ```typescript
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
@@ -110,16 +110,16 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Solo manejar 401
+      // Only handle 401
       if (error.status !== 401) {
         return throwError(() => error);
       }
 
-      // Intentar refresh
+      // Attempt refresh
       return authRefreshService.refreshSession().pipe(
-        switchMap(() => next(req)), // Reintentar request original
+        switchMap(() => next(req)), // Retry original request
         catchError(refreshError => {
-          // Refresh falló, redirigir a login
+          // Refresh failed, redirect to login
           authRefreshService.redirectToLogin();
           return throwError(() => refreshError);
         })
@@ -129,7 +129,7 @@ export const authRefreshInterceptor: HttpInterceptorFn = (req, next) => {
 };
 ```
 
-## Interceptor de Logging
+## Logging Interceptor
 
 ```typescript
 import { HttpInterceptorFn } from '@angular/common/http';
@@ -155,7 +155,7 @@ export const loggingInterceptor: HttpInterceptorFn = (req, next) => {
 };
 ```
 
-## Interceptor de Headers
+## Headers Interceptor
 
 ```typescript
 import { HttpInterceptorFn } from '@angular/common/http';
@@ -165,7 +165,7 @@ import { ENVIRONMENT_TOKEN } from '@guiders-frontend/shared/types';
 export const apiHeadersInterceptor: HttpInterceptorFn = (req, next) => {
   const environment = inject(ENVIRONMENT_TOKEN);
 
-  // Solo añadir headers a peticiones de nuestra API
+  // Only add headers to our API requests
   if (!req.url.startsWith(environment.api.baseUrl)) {
     return next(req);
   }
@@ -181,7 +181,7 @@ export const apiHeadersInterceptor: HttpInterceptorFn = (req, next) => {
 };
 ```
 
-## Registro en App Config
+## Registration in App Config
 
 ```typescript
 // apps/console/src/app/app.config.ts
@@ -203,7 +203,7 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-## Uso de Guards en Rutas
+## Using Guards in Routes
 
 ```typescript
 // app.routes.ts
@@ -231,35 +231,35 @@ export const routes: Route[] = [
 ];
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |----------|--------|---------|
 | Guard | `{name}Guard` (camelCase) | `authGuard`, `roleGuard` |
 | Interceptor | `{name}Interceptor` | `authRefreshInterceptor` |
-| Archivo Guard | `{name}.guard.ts` | `auth.guard.ts` |
-| Archivo Interceptor | `{name}.interceptor.ts` | `auth-refresh.interceptor.ts` |
+| Guard File | `{name}.guard.ts` | `auth.guard.ts` |
+| Interceptor File | `{name}.interceptor.ts` | `auth-refresh.interceptor.ts` |
 
-## Checklist Guards
+## Guards Checklist
 
-- [ ] Función `CanActivateFn` (no clase)
-- [ ] `inject()` para dependencias
-- [ ] Retornar `Observable<boolean>` o `boolean`
-- [ ] Manejar errores con `catchError`
-- [ ] Redirect apropiado en caso de fallo
+- [ ] `CanActivateFn` function (not class)
+- [ ] `inject()` for dependencies
+- [ ] Return `Observable<boolean>` or `boolean`
+- [ ] Handle errors with `catchError`
+- [ ] Appropriate redirect on failure
 
-## Checklist Interceptors
+## Interceptors Checklist
 
-- [ ] Función `HttpInterceptorFn` (no clase)
-- [ ] `inject()` para dependencias
-- [ ] Llamar `next(req)` para continuar la cadena
-- [ ] Registrar en `provideHttpClient(withInterceptors([...]))`
-- [ ] Orden correcto (logging primero, auth último)
+- [ ] `HttpInterceptorFn` function (not class)
+- [ ] `inject()` for dependencies
+- [ ] Call `next(req)` to continue the chain
+- [ ] Register in `provideHttpClient(withInterceptors([...]))`
+- [ ] Correct order (logging first, auth last)
 
-## Anti-patrones
+## Anti-patterns
 
-- Guards basados en clases (usar funciones)
-- Interceptors basados en clases (usar funciones)
-- No manejar errores en guards
-- Interceptors que bloquean requests sin reintentar
-- Guards síncronos cuando se necesita async
+- Class-based guards (use functions)
+- Class-based interceptors (use functions)
+- Not handling errors in guards
+- Interceptors that block requests without retrying
+- Synchronous guards when async is needed

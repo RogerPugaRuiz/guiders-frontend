@@ -1,31 +1,31 @@
-# Reglas de Dependencias
+# Dependency Rules
 
-## Descripción
+## Description
 
-Sistema de tags de Nx para controlar las dependencias entre librerías y prevenir imports incorrectos.
+Nx tags system to control dependencies between libraries and prevent incorrect imports.
 
-## Tags del Sistema
+## System Tags
 
-### Por Scope (Dominio)
-
-```
-scope:auth       # Autenticación
-scope:chat       # Conversaciones
-scope:analytics  # Métricas
-scope:admin      # Administración
-scope:shared     # Compartido
-```
-
-### Por Type (Tipo de Librería)
+### By Scope (Domain)
 
 ```
-type:feature     # Smart components con routing
-type:ui          # Componentes presentacionales
-type:data-access # Servicios HTTP
-type:util        # Utilidades
+scope:auth       # Authentication
+scope:chat       # Conversations
+scope:analytics  # Metrics
+scope:admin      # Administration
+scope:shared     # Shared
 ```
 
-## Configuración en project.json
+### By Type (Library Type)
+
+```
+type:feature     # Smart components with routing
+type:ui          # Presentational components
+type:data-access # HTTP Services
+type:util        # Utilities
+```
+
+## Configuration in project.json
 
 ```json
 // libs/chat/features/inbox/project.json
@@ -47,7 +47,7 @@ type:util        # Utilidades
 }
 ```
 
-## Reglas de Dependencia en .eslintrc.json
+## Dependency Rules in .eslintrc.json
 
 ```json
 {
@@ -109,9 +109,9 @@ type:util        # Utilidades
 }
 ```
 
-## Matriz de Dependencias
+## Dependency Matrix
 
-### Por Type
+### By Type
 
 | Source ↓ / Target → | feature | ui | data-access | util |
 |---------------------|---------|----|-----------  |------|
@@ -120,7 +120,7 @@ type:util        # Utilidades
 | **data-access**     | ✗       | ✗  | ✓           | ✓    |
 | **util**            | ✗       | ✗  | ✗           | ✓    |
 
-### Por Scope
+### By Scope
 
 | Source ↓ / Target → | auth | chat | analytics | admin | shared |
 |---------------------|------|------|-----------|-------|--------|
@@ -130,106 +130,106 @@ type:util        # Utilidades
 | **admin**           | ✓    | ✗    | ✗         | ✓     | ✓      |
 | **shared**          | ✗    | ✗    | ✗         | ✗     | ✓      |
 
-## Ejemplos de Imports Válidos
+## Valid Import Examples
 
 ```typescript
 // libs/chat/features/inbox/src/lib/inbox.ts
-// ✓ Mismo dominio, type:ui
+// ✓ Same domain, type:ui
 import { VisitorCard } from '@guiders-frontend/chat/ui/visitor-card';
 
-// ✓ Mismo dominio, type:data-access
+// ✓ Same domain, type:data-access
 import { VisitorsDataService } from '@guiders-frontend/chat/data-access/visitors-data-service';
 
 // ✓ scope:shared
 import { Badge } from '@guiders-frontend/shared/ui/badge';
 
-// ✓ scope:auth (permitido para todos)
+// ✓ scope:auth (allowed for all)
 import { authGuard } from '@guiders-frontend/auth/features/login';
 ```
 
-## Ejemplos de Imports Inválidos
+## Invalid Import Examples
 
 ```typescript
 // libs/chat/ui/visitor-card/src/lib/visitor-card.ts
 
-// ✗ ui no puede importar data-access
+// ✗ ui cannot import data-access
 import { VisitorsDataService } from '@guiders-frontend/chat/data-access/visitors-data-service';
 
-// ✗ ui no puede importar feature
+// ✗ ui cannot import feature
 import { Inbox } from '@guiders-frontend/chat/features/inbox';
 ```
 
 ```typescript
 // libs/shared/ui/badge/src/lib/badge.ts
 
-// ✗ shared no puede importar de otros dominios
+// ✗ shared cannot import from other domains
 import { VisitorCard } from '@guiders-frontend/chat/ui/visitor-card';
 ```
 
-## Visualización con nx graph
+## Visualization with nx graph
 
 ```bash
-# Ver grafo completo de dependencias
+# View complete dependency graph
 nx graph
 
-# Ver dependencias de un proyecto específico
+# View dependencies of a specific project
 nx graph --focus=chat-features-inbox
 
-# Ver proyectos afectados por cambios
+# View projects affected by changes
 nx affected:graph
 ```
 
-## Agregar Tags al Crear Librería
+## Add Tags when Creating Library
 
 ```bash
-# Feature con tags
+# Feature with tags
 nx g @nx/angular:lib inbox \
   --directory=libs/chat/features/inbox \
   --tags=scope:chat,type:feature
 
-# UI con tags
+# UI with tags
 nx g @nx/angular:lib visitor-card \
   --directory=libs/chat/ui/visitor-card \
   --tags=scope:chat,type:ui
 
-# Data access con tags
+# Data access with tags
 nx g @nx/angular:lib visitors-data-service \
   --directory=libs/chat/data-access/visitors-data-service \
   --tags=scope:chat,type:data-access
 ```
 
-## Verificar Violaciones
+## Verify Violations
 
 ```bash
-# Lint para detectar violaciones de boundaries
+# Lint to detect boundary violations
 nx lint
 
-# Lint solo un proyecto
+# Lint only one project
 nx lint chat-features-inbox
 
-# Lint todos los proyectos afectados
+# Lint all affected projects
 nx affected -t lint
 ```
 
-## Reglas de Naming para Tags
+## Naming Rules for Tags
 
-| Tag Type | Formato | Ejemplos |
+| Tag Type | Format | Examples |
 |----------|---------|----------|
 | Scope | `scope:{domain}` | `scope:chat`, `scope:auth` |
 | Type | `type:{libraryType}` | `type:feature`, `type:ui` |
 
 ## Checklist
 
-- [ ] Todos los proyectos tienen `tags` en `project.json`
-- [ ] Incluir al menos un tag de `scope` y uno de `type`
-- [ ] Reglas de boundaries en `.eslintrc.json`
-- [ ] Ejecutar `nx lint` antes de commit
-- [ ] Revisar `nx graph` periódicamente
+- [ ] All projects have `tags` in `project.json`
+- [ ] Include at least one `scope` tag and one `type` tag
+- [ ] Boundary rules in `.eslintrc.json`
+- [ ] Run `nx lint` before commit
+- [ ] Review `nx graph` periodically
 
-## Anti-patrones
+## Anti-patterns
 
-- Librerías sin tags
-- Tags genéricos o inconsistentes
-- Ignorar warnings de module boundaries
+- Libraries without tags
+- Generic or inconsistent tags
+- Ignoring module boundary warnings
 - Circular dependencies
-- Features importando otras features de otros dominios
+- Features importing other features from other domains

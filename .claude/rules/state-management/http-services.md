@@ -1,14 +1,14 @@
-# Servicios HTTP
+# HTTP Services
 
-## Descripción
+## Description
 
-Patrones para servicios que realizan peticiones HTTP con HttpClient, autenticación y manejo de errores.
+Patterns for services that make HTTP requests with HttpClient, authentication and error handling.
 
-## Referencia
+## Reference
 
 `libs/chat/data-access/visitors-data-service/src/lib/visitors-data.service.ts`
 
-## Estructura Base
+## Base Structure
 
 ```typescript
 import { Injectable, inject } from '@angular/core';
@@ -26,35 +26,35 @@ export class VisitorsDataService {
     return `${this.environment.api.baseUrl}/visitors`;
   }
 
-  // GET lista
+  // GET list
   getVisitors(): Observable<Visitor[]> {
     return this.http.get<Visitor[]>(this.baseUrl, {
       withCredentials: true,
     });
   }
 
-  // GET por ID
+  // GET by ID
   getVisitorById(id: string): Observable<Visitor> {
     return this.http.get<Visitor>(`${this.baseUrl}/${id}`, {
       withCredentials: true,
     });
   }
 
-  // POST crear
+  // POST create
   createVisitor(data: CreateVisitorDto): Observable<Visitor> {
     return this.http.post<Visitor>(this.baseUrl, data, {
       withCredentials: true,
     });
   }
 
-  // PUT actualizar
+  // PUT update
   updateVisitor(id: string, data: UpdateVisitorDto): Observable<Visitor> {
     return this.http.put<Visitor>(`${this.baseUrl}/${id}`, data, {
       withCredentials: true,
     });
   }
 
-  // DELETE eliminar
+  // DELETE delete
   deleteVisitor(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${id}`, {
       withCredentials: true,
@@ -63,7 +63,7 @@ export class VisitorsDataService {
 }
 ```
 
-## Cache con shareReplay
+## Cache with shareReplay
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -81,7 +81,7 @@ export class VisitorsDataService {
     return this.visitorsCache$;
   }
 
-  // Invalidar cache después de mutaciones
+  // Invalidate cache after mutations
   invalidateCache(): void {
     this.visitorsCache$ = undefined;
   }
@@ -124,7 +124,7 @@ export class VisitorsDataService {
   }
 }
 
-// Alternativa con HttpParamsOptions
+// Alternative with HttpParamsOptions
 getVisitors(filters?: VisitorFilters): Observable<Visitor[]> {
   const params = new HttpParams({
     fromObject: {
@@ -141,7 +141,7 @@ getVisitors(filters?: VisitorFilters): Observable<Visitor[]> {
 }
 ```
 
-## Manejo de Errores
+## Error Handling
 
 ```typescript
 import { throwError, of, retry } from 'rxjs';
@@ -157,11 +157,11 @@ export class VisitorsDataService {
       catchError(error => {
         console.error('Error fetching visitors:', error);
 
-        // Retornar array vacío como fallback
+        // Return empty array as fallback
         return of([]);
 
-        // O propagar el error
-        // return throwError(() => new Error('No se pudieron cargar los visitantes'));
+        // Or propagate the error
+        // return throwError(() => new Error('Could not load visitors'));
       })
     );
   }
@@ -196,7 +196,7 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-## Headers Personalizados
+## Custom Headers
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -215,10 +215,10 @@ export class ApiService {
 }
 ```
 
-## Tipado de Respuestas
+## Response Typing
 
 ```typescript
-// Interfaces de respuesta
+// Response interfaces
 interface PaginatedResponse<T> {
   data: T[];
   total: number;
@@ -233,7 +233,7 @@ interface ApiResponse<T> {
   message?: string;
 }
 
-// Uso en servicio
+// Service usage
 @Injectable({ providedIn: 'root' })
 export class VisitorsDataService {
   getVisitorsPaginated(page: number, limit: number): Observable<PaginatedResponse<Visitor>> {
@@ -249,31 +249,31 @@ export class VisitorsDataService {
 }
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |----------|--------|---------|
 | Data Service | `{Entity}DataService` | `VisitorsDataService` |
 | DTO Create | `Create{Entity}Dto` | `CreateVisitorDto` |
 | DTO Update | `Update{Entity}Dto` | `UpdateVisitorDto` |
 | Filters | `{Entity}Filters` | `VisitorFilters` |
-| Archivo | `{entity}-data.service.ts` | `visitors-data.service.ts` |
+| File | `{entity}-data.service.ts` | `visitors-data.service.ts` |
 
 ## Checklist
 
 - [ ] `@Injectable({ providedIn: 'root' })`
-- [ ] `inject(HttpClient)` y `inject(ENVIRONMENT_TOKEN)`
-- [ ] `withCredentials: true` en todas las peticiones
-- [ ] Cache con `shareReplay` cuando aplique
-- [ ] `invalidateCache()` después de mutaciones
-- [ ] Tipado de requests y responses
-- [ ] Manejo de errores con `catchError`
+- [ ] `inject(HttpClient)` and `inject(ENVIRONMENT_TOKEN)`
+- [ ] `withCredentials: true` in all requests
+- [ ] Cache with `shareReplay` when applicable
+- [ ] `invalidateCache()` after mutations
+- [ ] Typing of requests and responses
+- [ ] Error handling with `catchError`
 
-## Anti-patrones
+## Anti-patterns
 
-- Hardcodear URLs (usar ENVIRONMENT_TOKEN)
-- Olvidar `withCredentials: true`
-- Cache sin invalidación
-- Peticiones sin tipado
-- Errores sin manejo
-- Subscripciones en el servicio (retornar Observable)
+- Hardcode URLs (use ENVIRONMENT_TOKEN)
+- Forget `withCredentials: true`
+- Cache without invalidation
+- Requests without typing
+- Errors without handling
+- Subscriptions in the service (return Observable)

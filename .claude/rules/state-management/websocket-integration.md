@@ -1,14 +1,14 @@
 # WebSocket Integration
 
-## Descripción
+## Description
 
-Patrones para integrar WebSocket (Socket.IO) en aplicaciones Angular para comunicación en tiempo real.
+Patterns for integrating WebSocket (Socket.IO) in Angular applications for real-time communication.
 
-## Referencia
+## Reference
 
 `libs/chat/data-access/websocket-service/`
 
-## Servicio WebSocket Base
+## Base WebSocket Service
 
 ```typescript
 import { Injectable, inject, OnDestroy } from '@angular/core';
@@ -97,7 +97,7 @@ export class WebSocketService implements OnDestroy {
 }
 ```
 
-## Servicio de Chat con WebSocket
+## Chat Service with WebSocket
 
 ```typescript
 import { Injectable, inject, DestroyRef } from '@angular/core';
@@ -164,7 +164,7 @@ export class ChatWebSocketService {
 }
 ```
 
-## Uso en Componentes
+## Component Usage
 
 ```typescript
 @Component({
@@ -172,10 +172,10 @@ export class ChatWebSocketService {
   template: `
     <div class="chat-status">
       @switch (connectionStatus()) {
-        @case ('connecting') { <guiders-spinner /> Conectando... }
-        @case ('connected') { <span class="online">En línea</span> }
-        @case ('disconnected') { <span class="offline">Desconectado</span> }
-        @case ('error') { <span class="error">Error de conexión</span> }
+        @case ('connecting') { <guiders-spinner /> Connecting... }
+        @case ('connected') { <span class="online">Online</span> }
+        @case ('disconnected') { <span class="offline">Disconnected</span> }
+        @case ('error') { <span class="error">Connection error</span> }
       }
     </div>
 
@@ -186,9 +186,9 @@ export class ChatWebSocketService {
     </div>
 
     <form (submit)="onSend($event)">
-      <input [(ngModel)]="newMessage" placeholder="Escribe un mensaje..." />
+      <input [(ngModel)]="newMessage" placeholder="Type a message..." />
       <button type="submit" [disabled]="connectionStatus() !== 'connected'">
-        Enviar
+        Send
       </button>
     </form>
   `,
@@ -223,7 +223,7 @@ export class ChatRoom implements OnInit, OnDestroy {
 }
 ```
 
-## Reconexión Automática
+## Automatic Reconnection
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -234,13 +234,13 @@ export class WebSocketService {
   private setupListeners(): void {
     this.socket?.on('disconnect', (reason) => {
       if (reason === 'io server disconnect') {
-        // Servidor desconectó, intentar reconectar
+        // Server disconnected, attempt reconnect
         this.attemptReconnect();
       }
     });
 
     this.socket?.on('connect', () => {
-      this.reconnectAttempts = 0; // Reset al conectar
+      this.reconnectAttempts = 0; // Reset on connect
     });
   }
 
@@ -263,51 +263,51 @@ export class WebSocketService {
 }
 ```
 
-## Eventos Típicos
+## Typical Events
 
-### Cliente → Servidor
+### Client → Server
 
 ```typescript
-// Unirse a sala
+// Join room
 this.ws.emit('chat:join', { chatId: '123' });
 
-// Enviar mensaje
+// Send message
 this.ws.emit('chat:send-message', {
   chatId: '123',
   content: 'Hola!',
 });
 
-// Indicador de escritura
+// Typing indicator
 this.ws.emit('chat:typing', { chatId: '123', isTyping: true });
 
-// Marcar como leído
+// Mark as read
 this.ws.emit('chat:mark-read', { chatId: '123', messageId: 'msg-456' });
 ```
 
-### Servidor → Cliente
+### Server → Client
 
 ```typescript
-// Nuevo mensaje
+// New message
 this.ws.on<ChatMessage>('message:new').subscribe(msg => { ... });
 
-// Usuario escribiendo
+// User typing
 this.ws.on<TypingEvent>('chat:typing').subscribe(event => { ... });
 
-// Estado de presencia
+// Presence status
 this.ws.on<PresenceEvent>('user:presence').subscribe(event => { ... });
 
-// Actualización de chat
+// Chat update
 this.ws.on<ChatUpdate>('chat:updated').subscribe(update => { ... });
 ```
 
-## Integración con NgRx/Signals
+## Integration with NgRx/Signals
 
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class ChatFacade {
   private readonly ws = inject(WebSocketService);
 
-  // State con signals
+  // State with signals
   private readonly _messages = signal<Message[]>([]);
   private readonly _typing = signal<string[]>([]);
 
@@ -315,7 +315,7 @@ export class ChatFacade {
   readonly typing = this._typing.asReadonly();
 
   constructor() {
-    // Escuchar eventos WebSocket
+    // Listen to WebSocket events
     this.ws.on<Message>('message:new')
       .pipe(takeUntilDestroyed())
       .subscribe(msg => {
@@ -335,28 +335,28 @@ export class ChatFacade {
 }
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |----------|--------|---------|
-| Servicio base | `WebSocketService` | - |
-| Servicio específico | `{Domain}WebSocketService` | `ChatWebSocketService` |
-| Evento cliente→servidor | `{domain}:{action}` | `chat:send-message` |
-| Evento servidor→cliente | `{domain}:{event}` | `message:new` |
+| Base service | `WebSocketService` | - |
+| Specific service | `{Domain}WebSocketService` | `ChatWebSocketService` |
+| Client→Server event | `{domain}:{action}` | `chat:send-message` |
+| Server→Client event | `{domain}:{event}` | `message:new` |
 
 ## Checklist
 
-- [ ] Manejo de reconexión automática
-- [ ] Estado de conexión observable
-- [ ] Cleanup en `ngOnDestroy`
-- [ ] `takeUntilDestroyed` en subscripciones
-- [ ] Manejo de errores de conexión
-- [ ] Logs para debugging
+- [ ] Automatic reconnection handling
+- [ ] Observable connection status
+- [ ] Cleanup in `ngOnDestroy`
+- [ ] `takeUntilDestroyed` in subscriptions
+- [ ] Connection error handling
+- [ ] Logs for debugging
 
-## Anti-patrones
+## Anti-patterns
 
-- Subscripciones sin cleanup
-- No manejar desconexiones
-- Hardcodear URL de WebSocket
-- Emitir sin verificar conexión
-- No usar rooms/salas para segmentar
+- Subscriptions without cleanup
+- Not handling disconnections
+- Hardcoding WebSocket URL
+- Emitting without verifying connection
+- Not using rooms for segmentation

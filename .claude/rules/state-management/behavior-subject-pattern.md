@@ -1,14 +1,14 @@
 # BehaviorSubject Pattern
 
-## Descripción
+## Description
 
-Patrón de estado reactivo usando BehaviorSubject privado con Observable público para gestionar estado en servicios.
+Reactive state pattern using private BehaviorSubject with public Observable to manage state in services.
 
-## Referencia
+## Reference
 
 `libs/auth/data-access/session/src/lib/user.service.ts`
 
-## Estructura Base
+## Base Structure
 
 ```typescript
 import { Injectable } from '@angular/core';
@@ -31,13 +31,13 @@ const initialState: ChatState = {
 
 @Injectable({ providedIn: 'root' })
 export class ChatStateService {
-  // Estado privado mutable
+  // Private mutable state
   private readonly _state = new BehaviorSubject<ChatState>(initialState);
 
-  // Observable público inmutable
+  // Public immutable Observable
   readonly state$ = this._state.asObservable();
 
-  // Selectores derivados
+  // Derived selectors
   readonly chats$ = this.select(state => state.chats);
   readonly loading$ = this.select(state => state.loading);
   readonly error$ = this.select(state => state.error);
@@ -45,7 +45,7 @@ export class ChatStateService {
     state.chats.find(c => c.id === state.selectedChatId) ?? null
   );
 
-  // Helper para crear selectores
+  // Helper to create selectors
   private select<T>(selector: (state: ChatState) => T): Observable<T> {
     return this.state$.pipe(
       map(selector),
@@ -53,7 +53,7 @@ export class ChatStateService {
     );
   }
 
-  // Métodos para modificar estado
+  // Methods to modify state
   setChats(chats: Chat[]): void {
     this.updateState({ chats });
   }
@@ -70,7 +70,7 @@ export class ChatStateService {
     this.updateState({ selectedChatId: chatId });
   }
 
-  // Helper para actualizar estado parcialmente
+  // Helper to partially update state
   private updateState(partial: Partial<ChatState>): void {
     this._state.next({
       ...this._state.getValue(),
@@ -78,29 +78,29 @@ export class ChatStateService {
     });
   }
 
-  // Reset al estado inicial
+  // Reset to initial state
   reset(): void {
     this._state.next(initialState);
   }
 }
 ```
 
-## Selectores Avanzados
+## Advanced Selectors
 
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class ChatStateService {
-  // Selector con filtro
+  // Selector with filter
   readonly activeChats$ = this.chats$.pipe(
     map(chats => chats.filter(c => c.status === 'active'))
   );
 
-  // Selector con contador
+  // Selector with counter
   readonly unreadCount$ = this.chats$.pipe(
     map(chats => chats.reduce((sum, c) => sum + c.unreadCount, 0))
   );
 
-  // Selector combinado
+  // Combined selector
   readonly chatSummary$ = combineLatest([
     this.chats$,
     this.loading$,
@@ -114,7 +114,7 @@ export class ChatStateService {
     }))
   );
 
-  // Selector por ID (función que retorna Observable)
+  // Selector by ID (function that returns Observable)
   getChatById$(id: string): Observable<Chat | undefined> {
     return this.chats$.pipe(
       map(chats => chats.find(c => c.id === id))
@@ -123,7 +123,7 @@ export class ChatStateService {
 }
 ```
 
-## Integración con HTTP
+## HTTP Integration
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -152,7 +152,7 @@ export class ChatFacadeService {
     );
   }
 
-  // Métodos delegados
+  // Delegated methods
   get chats$() { return this.state.chats$; }
   get loading$() { return this.state.loading$; }
 }
@@ -161,10 +161,10 @@ export class ChatFacadeService {
 ## Signal vs BehaviorSubject
 
 ```typescript
-// Usar Signal para:
-// - Estado sincrónico simple
+// Use Signal for:
+// - Simple synchronous state
 // - Computed values
-// - Integración con templates
+// - Template integration
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -177,10 +177,10 @@ export class UserService {
   }
 }
 
-// Usar BehaviorSubject para:
-// - Estado que se consume como Observable
-// - Integración con RxJS pipes
-// - Operaciones asíncronas complejas
+// Use BehaviorSubject for:
+// - State consumed as Observable
+// - RxJS pipes integration
+// - Complex async operations
 
 @Injectable({ providedIn: 'root' })
 export class ChatService {
@@ -194,7 +194,7 @@ export class ChatService {
 }
 ```
 
-## Uso en Componentes
+## Component Usage
 
 ```typescript
 @Component({
@@ -228,9 +228,9 @@ export class ChatList {
 }
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |----------|--------|---------|
 | State Service | `{Domain}StateService` | `ChatStateService` |
 | Facade Service | `{Domain}FacadeService` | `ChatFacadeService` |
@@ -239,18 +239,18 @@ export class ChatList {
 
 ## Checklist
 
-- [ ] BehaviorSubject privado (`_state`)
-- [ ] Observable público (`.asObservable()`)
-- [ ] Estado inicial definido
-- [ ] Selectores con `distinctUntilChanged()`
-- [ ] Métodos de update inmutables
-- [ ] Método `reset()` para limpiar estado
+- [ ] Private BehaviorSubject (`_state`)
+- [ ] Public Observable (`.asObservable()`)
+- [ ] Initial state defined
+- [ ] Selectors with `distinctUntilChanged()`
+- [ ] Immutable update methods
+- [ ] `reset()` method to clear state
 
-## Anti-patrones
+## Anti-patterns
 
-- Exponer BehaviorSubject directamente
-- Mutar el estado en lugar de crear nuevo objeto
-- Selectores sin `distinctUntilChanged()`
-- Estado sin tipado (usar interfaces)
-- Lógica de negocio en componentes
-- Subscripciones sin cleanup
+- Expose BehaviorSubject directly
+- Mutate state instead of creating new object
+- Selectors without `distinctUntilChanged()`
+- Untyped state (use interfaces)
+- Business logic in components
+- Subscriptions without cleanup

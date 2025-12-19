@@ -1,19 +1,19 @@
-# Tipos de Librerías
+# Library Types
 
-## Descripción
+## Description
 
-Organización de código en librerías Nx según su responsabilidad: features, ui, data-access, shared.
+Code organization in Nx libraries by responsibility: features, ui, data-access, shared.
 
-## Estructura General
+## General Structure
 
 ```
 libs/
 ├── {domain}/                    # auth, chat, analytics, admin
 │   ├── features/               # Smart components
 │   │   └── {feature-name}/
-│   ├── ui/                     # Componentes presentacionales
+│   ├── ui/                     # Presentational components
 │   │   └── {component-name}/
-│   └── data-access/            # Servicios HTTP
+│   └── data-access/            # HTTP Services
 │       └── {service-name}/
 └── shared/                     # Cross-domain
     ├── types/
@@ -23,26 +23,26 @@ libs/
 
 ## Features
 
-**Responsabilidad**: Smart components con routing, lógica de negocio y orquestación.
+**Responsibility**: Smart components with routing, business logic and orchestration.
 
 ```
 libs/chat/features/inbox/
 ├── src/
 │   ├── lib/
-│   │   ├── inbox.ts            # Componente principal
+│   │   ├── inbox.ts            # Main component
 │   │   ├── inbox.html
 │   │   ├── inbox.scss
-│   │   └── inbox.routes.ts     # Rutas del feature
+│   │   └── inbox.routes.ts     # Feature routes
 │   └── index.ts                # Barrel export
 ├── project.json
 └── tsconfig.json
 ```
 
-**Características**:
-- Contienen rutas (`routes: Route[]`)
-- Inyectan servicios de data-access
-- Manejan estado local del feature
-- Componen componentes UI
+**Characteristics**:
+- Contains routes (`routes: Route[]`)
+- Injects data-access services
+- Handles local feature state
+- Composes UI components
 - Selector: `lib-{feature-name}`
 
 ```typescript
@@ -69,7 +69,7 @@ export class Inbox {
 
 ## UI
 
-**Responsabilidad**: Componentes presentacionales reutilizables sin lógica de negocio.
+**Responsibility**: Reusable presentational components without business logic.
 
 ```
 libs/shared/ui/badge/
@@ -85,12 +85,12 @@ libs/shared/ui/badge/
 └── tsconfig.json
 ```
 
-**Características**:
-- Solo inputs/outputs (sin inyección de servicios de datos)
+**Characteristics**:
+- Only inputs/outputs (no data service injection)
 - Selector: `guiders-{component-name}`
-- Estilos basados en design tokens
-- 100% presentacionales
-- Tests unitarios
+- Styles based on design tokens
+- 100% presentational
+- Unit tests
 
 ```typescript
 @Component({
@@ -107,7 +107,7 @@ export class Badge {
 
 ## Data Access
 
-**Responsabilidad**: Servicios HTTP y gestión de datos externos.
+**Responsibility**: HTTP services and external data management.
 
 ```
 libs/chat/data-access/visitors-data-service/
@@ -121,12 +121,12 @@ libs/chat/data-access/visitors-data-service/
 └── tsconfig.json
 ```
 
-**Características**:
-- Servicios `@Injectable({ providedIn: 'root' })`
-- HttpClient con `withCredentials: true`
-- Cache con `shareReplay`
-- Interfaces de datos
-- Sin dependencias de UI
+**Characteristics**:
+- Services `@Injectable({ providedIn: 'root' })`
+- HttpClient with `withCredentials: true`
+- Cache with `shareReplay`
+- Data interfaces
+- No UI dependencies
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -145,34 +145,34 @@ export class VisitorsDataService {
 
 ## Shared
 
-**Responsabilidad**: Utilidades y recursos compartidos entre dominios.
+**Responsibility**: Utilities and resources shared between domains.
 
 ```
 libs/shared/
-├── types/                      # Interfaces compartidas
+├── types/                      # Shared interfaces
 │   └── src/lib/
 │       ├── visitor.interface.ts
 │       └── environment.interface.ts
-├── design-tokens/              # Variables SCSS
+├── design-tokens/              # SCSS Variables
 │   └── src/lib/
 │       ├── tokens-vars.scss
 │       └── mixins/
-└── ui/                         # Componentes UI compartidos
+└── ui/                         # Shared UI components
     ├── badge/
     ├── button/
     └── modal/
 ```
 
-## Tabla Resumen
+## Summary Table
 
-| Tipo | Selector | Responsabilidad | Puede importar |
-|------|----------|-----------------|----------------|
-| **features** | `lib-*` | Routing, lógica de negocio | ui, data-access, shared |
-| **ui** | `guiders-*` | Presentación | shared/ui, shared/types |
-| **data-access** | N/A | HTTP, datos | shared/types |
-| **shared** | `guiders-*` | Utilidades cross-domain | Otros shared |
+| Type | Selector | Responsibility | Can import |
+|------|----------|----------------|------------|
+| **features** | `lib-*` | Routing, business logic | ui, data-access, shared |
+| **ui** | `guiders-*` | Presentation | shared/ui, shared/types |
+| **data-access** | N/A | HTTP, data | shared/types |
+| **shared** | `guiders-*` | Cross-domain utilities | Other shared |
 
-## Generación con Nx
+## Generation with Nx
 
 ```bash
 # Feature
@@ -193,7 +193,7 @@ nx g @nx/angular:lib visitors-data-service \
 
 ## Barrel Exports
 
-Cada librería debe tener un `src/index.ts` con exports públicos:
+Each library should have a `src/index.ts` with public exports:
 
 ```typescript
 // libs/shared/ui/badge/src/index.ts
@@ -203,10 +203,10 @@ export { Badge, BadgeVariant, BadgeSize } from './lib/badge/badge';
 export { routes } from './lib/inbox.routes';
 ```
 
-## Anti-patrones
+## Anti-patterns
 
-- Features con lógica HTTP directa (usar data-access)
-- UI components con inyección de servicios de datos
-- Data-access con lógica de presentación
-- Imports circulares entre features
-- Shared con dependencias de dominios específicos
+- Features with direct HTTP logic (use data-access)
+- UI components with data service injection
+- Data-access with presentation logic
+- Circular imports between features
+- Shared with specific domain dependencies

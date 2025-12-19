@@ -1,14 +1,14 @@
-# Patrones Vitest
+# Vitest Patterns
 
-## Descripción
+## Description
 
-Patrones de testing unitario con Vitest para componentes Angular standalone.
+Unit testing patterns with Vitest for Angular standalone components.
 
-## Referencia
+## Reference
 
 `libs/shared/ui/badge/src/lib/badge/badge.spec.ts`
 
-## Estructura de Test
+## Test Structure
 
 ```typescript
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -20,7 +20,7 @@ describe('Badge', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Badge], // Componente standalone
+      imports: [Badge], // Standalone component
     }).compileComponents();
 
     fixture = TestBed.createComponent(Badge);
@@ -77,18 +77,18 @@ describe('Badge', () => {
 });
 ```
 
-## Testing con Signal Inputs
+## Testing with Signal Inputs
 
 ```typescript
 describe('Component with signal inputs', () => {
   it('should update when input changes', () => {
-    // Establecer input
+    // Set input
     fixture.componentRef.setInput('count', 5);
     fixture.detectChanges();
 
     expect(component.count()).toBe(5);
 
-    // Cambiar input
+    // Change input
     fixture.componentRef.setInput('count', 10);
     fixture.detectChanges();
 
@@ -105,17 +105,17 @@ describe('Component with signal inputs', () => {
 });
 ```
 
-## Testing de Outputs
+## Testing Outputs
 
 ```typescript
 describe('outputs', () => {
   it('should emit clicked event', () => {
     const clickedSpy = vi.fn();
 
-    // Subscribirse al output
+    // Subscribe to output
     component.clicked.subscribe(clickedSpy);
 
-    // Simular click
+    // Simulate click
     const button = fixture.nativeElement.querySelector('button');
     button.click();
 
@@ -150,7 +150,7 @@ describe('outputs', () => {
 });
 ```
 
-## Mock de Dependencias
+## Dependency Mocking
 
 ```typescript
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/shared/types';
@@ -172,7 +172,7 @@ describe('ComponentWithDeps', () => {
 });
 ```
 
-## Testing Async
+## Async Testing
 
 ```typescript
 import { fakeAsync, tick, flush } from '@angular/core/testing';
@@ -181,7 +181,7 @@ describe('async operations', () => {
   it('should handle async with fakeAsync', fakeAsync(() => {
     component.loadData();
 
-    tick(1000); // Avanzar tiempo simulado
+    tick(1000); // Advance simulated time
     fixture.detectChanges();
 
     expect(component.loading()).toBe(false);
@@ -197,7 +197,7 @@ describe('async operations', () => {
 });
 ```
 
-## Testing de Template
+## Template Testing
 
 ```typescript
 describe('template rendering', () => {
@@ -233,7 +233,7 @@ describe('template rendering', () => {
 ## Vitest Matchers
 
 ```typescript
-// Básicos
+// Basic
 expect(value).toBe(expected);
 expect(value).toEqual(expected);
 expect(value).toBeTruthy();
@@ -263,36 +263,36 @@ await expect(promise).resolves.toBe(value);
 await expect(promise).rejects.toThrow('error');
 ```
 
-## Spies y Mocks
+## Spies and Mocks
 
 ```typescript
 import { vi } from 'vitest';
 
-// Spy en método
+// Spy on method
 const spy = vi.spyOn(service, 'method');
 expect(spy).toHaveBeenCalled();
 
-// Mock de función
+// Mock function
 const mock = vi.fn().mockReturnValue('value');
 const mockAsync = vi.fn().mockResolvedValue('async value');
 
-// Mock de módulo
+// Mock module
 vi.mock('@angular/router', () => ({
   Router: vi.fn(() => ({
     navigate: vi.fn(),
   })),
 }));
 
-// Limpiar mocks
+// Clear mocks
 afterEach(() => {
   vi.clearAllMocks();
 });
 ```
 
-## Configuración de Test
+## Test Configuration
 
 ```typescript
-// vite.config.ts (parcial)
+// vite.config.ts (partial)
 export default defineConfig({
   test: {
     globals: true,
@@ -306,27 +306,27 @@ export default defineConfig({
 import '@analogjs/vite-plugin-angular/setup-vitest';
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
-|----------|--------|---------|
-| Archivo | `{name}.spec.ts` | `badge.spec.ts` |
-| describe | Nombre del componente/servicio | `describe('Badge', ...)` |
-| it | Comportamiento esperado | `it('should render text', ...)` |
+| Element | Pattern | Example |
+|---------|---------|---------|
+| File | `{name}.spec.ts` | `badge.spec.ts` |
+| describe | Component/service name | `describe('Badge', ...)` |
+| it | Expected behavior | `it('should render text', ...)` |
 
 ## Checklist
 
-- [ ] Importar componente en `imports` (standalone)
-- [ ] `fixture.detectChanges()` después de cambiar inputs
-- [ ] `fixture.componentRef.setInput()` para signals
-- [ ] Cleanup de subscripciones
-- [ ] Mock de dependencias externas
-- [ ] Tests para estados edge-case
+- [ ] Import component in `imports` (standalone)
+- [ ] `fixture.detectChanges()` after changing inputs
+- [ ] `fixture.componentRef.setInput()` for signals
+- [ ] Cleanup subscriptions
+- [ ] Mock external dependencies
+- [ ] Tests for edge-case states
 
-## Anti-patrones
+## Anti-patterns
 
-- No llamar `detectChanges()` después de cambios
-- Tests que dependen del orden de ejecución
-- Mocks globales que afectan otros tests
-- Tests sin assertions
-- Ignorar estados de error y edge-cases
+- Not calling `detectChanges()` after changes
+- Tests that depend on execution order
+- Global mocks that affect other tests
+- Tests without assertions
+- Ignoring error states and edge-cases

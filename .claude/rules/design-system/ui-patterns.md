@@ -1,12 +1,12 @@
-# Patrones UI
+# UI Patterns
 
-## Descripción
+## Description
 
-Patrones comunes de interfaz de usuario: formularios, modales, listas, estados de carga y manejo de errores.
+Common user interface patterns: forms, modals, lists, loading states, and error handling.
 
-## Formularios con Reactive Forms
+## Forms with Reactive Forms
 
-### Estructura Básica
+### Basic Structure
 
 ```typescript
 import { Component, inject } from '@angular/core';
@@ -39,25 +39,25 @@ export class VisitorForm {
     // ... submit logic
   }
 
-  // Helper para errores
+  // Helper for errors
   getError(field: string): string | null {
     const control = this.form.get(field);
     if (!control?.touched || !control.errors) return null;
 
-    if (control.errors['required']) return 'Este campo es obligatorio';
-    if (control.errors['email']) return 'Email inválido';
-    if (control.errors['minlength']) return `Mínimo ${control.errors['minlength'].requiredLength} caracteres`;
+    if (control.errors['required']) return 'This field is required';
+    if (control.errors['email']) return 'Invalid email';
+    if (control.errors['minlength']) return `Minimum ${control.errors['minlength'].requiredLength} characters`;
     return null;
   }
 }
 ```
 
-### Template de Formulario
+### Form Template
 
 ```html
 <form [formGroup]="form" (ngSubmit)="onSubmit()">
   <div class="form-field">
-    <label for="name">Nombre *</label>
+    <label for="name">Name *</label>
     <input
       id="name"
       formControlName="name"
@@ -72,21 +72,21 @@ export class VisitorForm {
   </div>
 
   <div class="form-actions">
-    <button type="button" (click)="onCancel()">Cancelar</button>
+    <button type="button" (click)="onCancel()">Cancel</button>
     <button type="submit" [disabled]="isSubmitting()">
       @if (isSubmitting()) {
         <guiders-spinner size="small" />
       } @else {
-        Guardar
+        Save
       }
     </button>
   </div>
 </form>
 ```
 
-## Modales/Dialogs
+## Modals/Dialogs
 
-### Componente Modal
+### Modal Component
 
 ```typescript
 @Component({
@@ -107,7 +107,7 @@ export class VisitorForm {
             <button
               type="button"
               class="guiders-modal__close"
-              aria-label="Cerrar"
+              aria-label="Close"
               (click)="close.emit()"
             >
               ×
@@ -140,49 +140,49 @@ export class Modal {
 }
 ```
 
-### Uso del Modal
+### Modal Usage
 
 ```html
 <guiders-modal
   [isOpen]="showModal()"
-  title="Confirmar acción"
+  title="Confirm action"
   (close)="showModal.set(false)"
 >
-  <p>¿Estás seguro de que deseas continuar?</p>
+  <p>Are you sure you want to continue?</p>
 
   <div footer>
-    <button (click)="showModal.set(false)">Cancelar</button>
-    <button (click)="onConfirm()">Confirmar</button>
+    <button (click)="showModal.set(false)">Cancel</button>
+    <button (click)="onConfirm()">Confirm</button>
   </div>
 </guiders-modal>
 ```
 
-## Listas con Paginación
+## Lists with Pagination
 
-### Componente Lista
+### List Component
 
 ```typescript
 @Component({
   selector: 'lib-visitor-list',
   template: `
-    <!-- Estado de carga -->
+    <!-- Loading state -->
     @if (loading()) {
       <div class="list-loading">
         <guiders-spinner />
-        <span>Cargando visitantes...</span>
+        <span>Loading visitors...</span>
       </div>
     }
 
-    <!-- Estado vacío -->
+    <!-- Empty state -->
     @else if (visitors().length === 0) {
       <div class="list-empty">
         <span class="list-empty__icon">👥</span>
-        <p>No hay visitantes</p>
-        <button (click)="refresh.emit()">Recargar</button>
+        <p>No visitors</p>
+        <button (click)="refresh.emit()">Reload</button>
       </div>
     }
 
-    <!-- Lista -->
+    <!-- List -->
     @else {
       <ul class="visitor-list" role="list">
         @for (visitor of visitors(); track visitor.id) {
@@ -196,7 +196,7 @@ export class Modal {
         }
       </ul>
 
-      <!-- Paginación -->
+      <!-- Pagination -->
       @if (hasMore()) {
         <button
           class="list-load-more"
@@ -204,9 +204,9 @@ export class Modal {
           (click)="loadMore.emit()"
         >
           @if (loadingMore()) {
-            Cargando...
+            Loading...
           } @else {
-            Cargar más
+            Load more
           }
         </button>
       }
@@ -226,7 +226,7 @@ export class VisitorList {
 }
 ```
 
-## Estados de Carga
+## Loading States
 
 ### Skeleton Loader
 
@@ -266,7 +266,7 @@ export class Skeleton {
 }
 ```
 
-### Uso de Skeleton
+### Skeleton Usage
 
 ```html
 @if (loading()) {
@@ -282,7 +282,7 @@ export class Skeleton {
 }
 ```
 
-## Manejo de Errores
+## Error Handling
 
 ### Error Boundary Component
 
@@ -299,21 +299,21 @@ export class Skeleton {
           class="guiders-error__retry"
           (click)="retry.emit()"
         >
-          Reintentar
+          Retry
         </button>
       }
     </div>
   `,
 })
 export class ErrorState {
-  readonly title = input<string>('Ha ocurrido un error');
-  readonly message = input<string>('Por favor, intenta de nuevo más tarde.');
+  readonly title = input<string>('An error occurred');
+  readonly message = input<string>('Please try again later.');
   readonly showRetry = input<boolean>(true);
   readonly retry = output<void>();
 }
 ```
 
-### Patrón Try-Catch en Servicios
+### Try-Catch Pattern in Services
 
 ```typescript
 loadVisitors(): void {
@@ -329,7 +329,7 @@ loadVisitors(): void {
     },
     error: (error) => {
       console.error('Error loading visitors:', error);
-      this.error.set('No se pudieron cargar los visitantes');
+      this.error.set('Could not load visitors');
     },
   });
 }
@@ -337,7 +337,7 @@ loadVisitors(): void {
 
 ## Toast Notifications
 
-### Servicio de Toast
+### Toast Service
 
 ```typescript
 @Injectable({ providedIn: 'root' })
@@ -354,7 +354,7 @@ export class ToastService {
 
     this._toasts.next([...this._toasts.getValue(), toast]);
 
-    // Auto-dismiss después de 5 segundos
+    // Auto-dismiss after 5 seconds
     setTimeout(() => this.dismiss(toast.id), 5000);
   }
 
@@ -374,25 +374,25 @@ export class ToastService {
 }
 ```
 
-### Uso
+### Usage
 
 ```typescript
 private readonly toast = inject(ToastService);
 
 onSave(): void {
   this.service.save(data).subscribe({
-    next: () => this.toast.success('Guardado correctamente'),
-    error: () => this.toast.error('Error al guardar'),
+    next: () => this.toast.success('Saved successfully'),
+    error: () => this.toast.error('Error saving'),
   });
 }
 ```
 
-## Anti-patrones
+## Anti-patterns
 
-- Formularios sin validación visual
-- Modales sin trap de foco
-- Listas sin estados vacíos
-- Estados de carga sin feedback visual
-- Errores sin opción de retry
-- Toast sin auto-dismiss
-- Componentes sin roles ARIA apropiados
+- Forms without visual validation
+- Modals without focus trap
+- Lists without empty states
+- Loading states without visual feedback
+- Errors without retry option
+- Toast without auto-dismiss
+- Components without proper ARIA roles

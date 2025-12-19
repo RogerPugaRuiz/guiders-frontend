@@ -1,12 +1,12 @@
-# Directivas y Pipes
+# Directives and Pipes
 
-## Descripción
+## Description
 
-Patrones para crear directivas y pipes standalone reutilizables.
+Patterns for creating reusable standalone directives and pipes.
 
-## Directivas Standalone
+## Standalone Directives
 
-### Directiva de Atributo
+### Attribute Directive
 
 ```typescript
 import { Directive, ElementRef, input, effect, inject } from '@angular/core';
@@ -27,12 +27,12 @@ export class HighlightDirective {
   }
 }
 
-// Uso
-// <span guidersHighlight="blue">Texto resaltado</span>
-// <span guidersHighlight>Texto con color por defecto</span>
+// Usage
+// <span guidersHighlight="blue">Highlighted text</span>
+// <span guidersHighlight>Text with default color</span>
 ```
 
-### Directiva Estructural
+### Structural Directive
 
 ```typescript
 import { Directive, TemplateRef, ViewContainerRef, input, effect, inject } from '@angular/core';
@@ -58,11 +58,11 @@ export class IfDirective {
   }
 }
 
-// Uso
-// <div *guidersIf="isVisible">Contenido condicional</div>
+// Usage
+// <div *guidersIf="isVisible">Conditional content</div>
 ```
 
-### Directiva de Host Listener
+### Host Listener Directive
 
 ```typescript
 import { Directive, HostListener, output } from '@angular/core';
@@ -76,16 +76,16 @@ export class ClickOutsideDirective {
 
   @HostListener('document:click', ['$event'])
   onClick(event: MouseEvent): void {
-    // Lógica para detectar click fuera
+    // Logic to detect click outside
     this.clickOutside.emit();
   }
 }
 
-// Uso
+// Usage
 // <div guidersClickOutside (clickOutside)="onClose()">...</div>
 ```
 
-### Directiva con Host Binding
+### Directive with Host Binding
 
 ```typescript
 import { Directive, HostBinding, input, computed } from '@angular/core';
@@ -114,13 +114,13 @@ export class TooltipDirective {
   }
 }
 
-// Uso
-// <button guidersTooltip="Ayuda" position="bottom">?</button>
+// Usage
+// <button guidersTooltip="Help" position="bottom">?</button>
 ```
 
-## Pipes Standalone
+## Standalone Pipes
 
-### Pipe Puro (Stateless)
+### Pure Pipe (Stateless)
 
 ```typescript
 import { Pipe, PipeTransform } from '@angular/core';
@@ -128,7 +128,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 @Pipe({
   name: 'truncate',
   standalone: true,
-  pure: true, // Default, optimizado para rendimiento
+  pure: true, // Default, optimized for performance
 })
 export class TruncatePipe implements PipeTransform {
   transform(value: string, maxLength: number = 50, suffix: string = '...'): string {
@@ -138,11 +138,11 @@ export class TruncatePipe implements PipeTransform {
   }
 }
 
-// Uso
+// Usage
 // {{ longText | truncate:30:'...' }}
 ```
 
-### Pipe de Fecha Relativa
+### Relative Time Pipe
 
 ```typescript
 import { Pipe, PipeTransform } from '@angular/core';
@@ -161,20 +161,20 @@ export class RelativeTimePipe implements PipeTransform {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Ahora mismo';
-    if (diffMins < 60) return `Hace ${diffMins} min`;
-    if (diffHours < 24) return `Hace ${diffHours}h`;
-    if (diffDays < 7) return `Hace ${diffDays} días`;
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays} days ago`;
 
-    return date.toLocaleDateString('es-ES');
+    return date.toLocaleDateString('en-US');
   }
 }
 
-// Uso
+// Usage
 // {{ message.sentAt | relativeTime }}
 ```
 
-### Pipe de Formateo de Número
+### Number Formatting Pipe
 
 ```typescript
 import { Pipe, PipeTransform } from '@angular/core';
@@ -191,11 +191,11 @@ export class CompactNumberPipe implements PipeTransform {
   }
 }
 
-// Uso
+// Usage
 // {{ followers | compactNumber }} → "1.5K"
 ```
 
-### Pipe con Inyección
+### Pipe with Injection
 
 ```typescript
 import { Pipe, PipeTransform, inject } from '@angular/core';
@@ -213,11 +213,11 @@ export class TranslatePipe implements PipeTransform {
   }
 }
 
-// Uso
+// Usage
 // {{ 'common.welcome' | translate:{ name: userName } }}
 ```
 
-### Pipe Impuro (para datos cambiantes)
+### Impure Pipe (for changing data)
 
 ```typescript
 import { Pipe, PipeTransform } from '@angular/core';
@@ -225,7 +225,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 @Pipe({
   name: 'filterBy',
   standalone: true,
-  pure: false, // Se ejecuta en cada change detection
+  pure: false, // Runs on every change detection
 })
 export class FilterByPipe implements PipeTransform {
   transform<T>(items: T[], field: keyof T, value: unknown): T[] {
@@ -234,11 +234,11 @@ export class FilterByPipe implements PipeTransform {
   }
 }
 
-// Uso (con precaución - impacto en rendimiento)
+// Usage (use with caution - performance impact)
 // {{ items | filterBy:'status':'active' }}
 ```
 
-## Uso en Componentes
+## Usage in Components
 
 ```typescript
 @Component({
@@ -262,7 +262,7 @@ export class ChatMessage {
 }
 ```
 
-## Estructura de Archivos
+## File Structure
 
 ```
 libs/shared/util/pipes/
@@ -285,38 +285,38 @@ libs/shared/util/directives/
 └── project.json
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
+| Element | Pattern | Example |
 |----------|--------|---------|
-| Directiva | `{Name}Directive` | `HighlightDirective` |
-| Selector directiva | `guiders{Name}` | `guidersHighlight` |
+| Directive | `{Name}Directive` | `HighlightDirective` |
+| Directive selector | `guiders{Name}` | `guidersHighlight` |
 | Pipe | `{Name}Pipe` | `TruncatePipe` |
-| Nombre pipe | camelCase | `truncate`, `relativeTime` |
-| Archivo | `{name}.directive.ts` / `{name}.pipe.ts` | `highlight.directive.ts` |
+| Pipe name | camelCase | `truncate`, `relativeTime` |
+| File | `{name}.directive.ts` / `{name}.pipe.ts` | `highlight.directive.ts` |
 
 ## Checklist
 
-### Directivas
+### Directives
 
 - [ ] `standalone: true`
-- [ ] Selector con prefijo `guiders`
-- [ ] `inject()` para dependencias
-- [ ] `input()` signals para propiedades
-- [ ] Tests unitarios
+- [ ] Selector with `guiders` prefix
+- [ ] `inject()` for dependencies
+- [ ] `input()` signals for properties
+- [ ] Unit tests
 
 ### Pipes
 
 - [ ] `standalone: true`
-- [ ] `pure: true` por defecto (cambiar solo si necesario)
-- [ ] Nombre en camelCase
-- [ ] Manejar valores null/undefined
-- [ ] Tests unitarios
+- [ ] `pure: true` by default (change only if necessary)
+- [ ] Name in camelCase
+- [ ] Handle null/undefined values
+- [ ] Unit tests
 
-## Anti-patrones
+## Anti-patterns
 
-- Directivas/pipes sin standalone
-- Pipes impuros sin necesidad (afecta rendimiento)
-- Lógica de negocio en pipes
-- Directivas con demasiadas responsabilidades
-- No manejar casos edge (null, undefined)
+- Directives/pipes without standalone
+- Impure pipes without necessity (affects performance)
+- Business logic in pipes
+- Directives with too many responsibilities
+- Not handling edge cases (null, undefined)

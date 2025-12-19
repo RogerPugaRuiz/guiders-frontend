@@ -1,200 +1,200 @@
-# Comandos Nx
+# Nx Commands
 
-## Descripción
+## Description
 
-Comandos frecuentes para desarrollo, build, testing y análisis del workspace.
+Common commands for development, build, testing and workspace analysis.
 
-## Serve (Desarrollo)
+## Serve (Development)
 
 ```bash
-# Console (puerto 4200)
+# Console (port 4200)
 nx serve console
 npm run serve        # alias
 
-# Admin (puerto 4201)
+# Admin (port 4201)
 nx serve admin
 npm run serve:admin  # alias
 
-# Con configuración específica
+# With specific configuration
 nx serve console --configuration=development
 nx serve console --configuration=production
 
-# Puerto personalizado
+# Custom port
 nx serve console --port=4300
 ```
 
 ## Build
 
 ```bash
-# Build de producción
+# Production build
 nx build console
 nx build admin
 
-# Build de desarrollo
+# Development build
 nx build console --configuration=development
 
-# Build de todas las apps
+# Build all apps
 npm run build:all
 
-# Build de producción con optimización
+# Production build with optimization
 npm run build:prod
 
-# Build para staging
+# Build for staging
 npm run build:staging
 ```
 
 ## Test
 
 ```bash
-# Tests de un proyecto
+# Test a project
 nx test console
 nx test chat-features-inbox
 
-# Tests de todos los proyectos
+# Test all projects
 npm run test
 
-# Tests con coverage
+# Tests with coverage
 nx test console --coverage
 npm run test:coverage
 
-# Tests en modo watch
+# Tests in watch mode
 nx test console --watch
 
-# Tests específicos
+# Specific tests
 nx test console --testNamePattern="should render"
 ```
 
 ## Lint
 
 ```bash
-# Lint de un proyecto
+# Lint a project
 nx lint console
 nx lint chat-features-inbox
 
-# Lint de todos
+# Lint all
 npm run lint
 
-# Lint con auto-fix
+# Lint with auto-fix
 nx lint console --fix
 npm run lint:fix
 
-# Ver reglas violadas
+# See violated rules
 nx lint console --format=stylish
 ```
 
 ## E2E
 
 ```bash
-# E2E de console
+# Console E2E
 nx e2e console-e2e
 
-# E2E con UI de Playwright
+# E2E with Playwright UI
 nx e2e console-e2e --ui
 
-# E2E en modo headed
+# E2E in headed mode
 nx e2e console-e2e --headed
 
-# E2E con filtro
+# E2E with filter
 nx e2e console-e2e --grep="visitors"
 ```
 
-## Affected (Proyectos Afectados)
+## Affected (Affected Projects)
 
 ```bash
-# Ver proyectos afectados
+# See affected projects
 nx affected:graph
 
-# Build solo afectados
+# Build only affected
 nx affected -t build
 
-# Test solo afectados
+# Test only affected
 nx affected -t test
 
-# Lint solo afectados
+# Lint only affected
 nx affected -t lint
 
-# Múltiples targets
+# Multiple targets
 nx affected -t lint,test,build
 
-# Comparar con rama específica
+# Compare with specific branch
 nx affected -t test --base=main --head=HEAD
 ```
 
 ## Run Many
 
 ```bash
-# Ejecutar en múltiples proyectos
+# Run on multiple projects
 nx run-many -t build
 nx run-many -t test
 nx run-many -t lint
 
-# Solo ciertos proyectos
+# Only certain projects
 nx run-many -t build --projects=console,admin
 
-# Excluir proyectos
+# Exclude projects
 nx run-many -t test --exclude=console-e2e
 
-# Paralelo
+# Parallel
 nx run-many -t test --parallel=4
 ```
 
-## Graph (Visualización)
+## Graph (Visualization)
 
 ```bash
-# Abrir grafo interactivo
+# Open interactive graph
 nx graph
 
-# Grafo de un proyecto específico
+# Graph of specific project
 nx graph --focus=chat-features-inbox
 
-# Grafo de afectados
+# Graph of affected
 nx affected:graph
 
-# Exportar a archivo
+# Export to file
 nx graph --file=graph.json
 ```
 
-## Show (Información)
+## Show (Information)
 
 ```bash
-# Listar todos los proyectos
+# List all projects
 nx show projects
 
-# Proyectos de un tipo
+# Projects of a type
 nx show projects --type=app
 nx show projects --type=lib
 
-# Proyectos con tag
+# Projects with tag
 nx show projects --withTarget=build
 ```
 
-## Reset y Cache
+## Reset and Cache
 
 ```bash
-# Limpiar cache de Nx
+# Clean Nx cache
 nx reset
 
-# Ver estado del cache
+# See cache status
 nx daemon --version
 
-# Detener daemon
+# Stop daemon
 nx daemon --stop
 ```
 
 ## Migrations
 
 ```bash
-# Actualizar Nx y dependencias
+# Update Nx and dependencies
 nx migrate latest
 
-# Ejecutar migraciones
+# Run migrations
 nx migrate --run-migrations
 
-# Ver migraciones pendientes
+# See pending migrations
 nx migrate latest --dry-run
 ```
 
-## Scripts de package.json
+## package.json Scripts
 
 ```json
 {
@@ -215,58 +215,58 @@ nx migrate latest --dry-run
 }
 ```
 
-## Comandos de Generación
+## Generation Commands
 
 ```bash
-# Generar librería
+# Generate library
 nx g @nx/angular:lib my-lib --directory=libs/path
 
-# Generar componente
+# Generate component
 nx g @nx/angular:component my-component --project=project-name
 
-# Generar servicio
+# Generate service
 nx g @nx/angular:service my-service --project=project-name
 
-# Dry run (sin crear archivos)
+# Dry run (without creating files)
 nx g @nx/angular:lib my-lib --dry-run
 ```
 
 ## CI/CD Commands
 
 ```bash
-# Para CI - solo afectados
+# For CI - only affected
 nx affected -t lint,test,build --base=origin/main
 
-# Con coverage
+# With coverage
 nx affected -t test --coverage --ci
 
-# Build de producción
+# Production build
 nx run-many -t build --configuration=production --parallel=3
 ```
 
 ## Troubleshooting
 
 ```bash
-# Ver configuración de proyecto
+# See project configuration
 nx show project console --web
 
-# Ver dependencias de proyecto
+# See project dependencies
 nx graph --focus=console
 
-# Verificar workspace
+# Verify workspace
 nx report
 
-# Ver logs detallados
+# See detailed logs
 NX_VERBOSE_LOGGING=true nx build console
 
-# Forzar recálculo de cache
+# Force cache recalculation
 nx build console --skip-nx-cache
 ```
 
-## Aliases Útiles
+## Useful Aliases
 
 ```bash
-# En .bashrc o .zshrc
+# In .bashrc or .zshrc
 alias nxs="nx serve"
 alias nxb="nx build"
 alias nxt="nx test"
@@ -275,24 +275,24 @@ alias nxg="nx graph"
 alias nxa="nx affected"
 ```
 
-## Tabla Resumen
+## Summary Table
 
-| Acción | Comando |
+| Action | Command |
 |--------|---------|
 | Serve console | `nx serve console` |
 | Serve admin | `nx serve admin` |
-| Build producción | `nx build console --configuration=production` |
+| Production build | `nx build console --configuration=production` |
 | Tests | `nx test console` |
 | Lint | `nx lint console` |
 | E2E | `nx e2e console-e2e` |
-| Grafo | `nx graph` |
-| Afectados | `nx affected -t test` |
+| Graph | `nx graph` |
+| Affected | `nx affected -t test` |
 | Reset cache | `nx reset` |
 
-## Anti-patrones
+## Anti-patterns
 
-- Usar `npm run` para tareas de proyecto individual (usar `nx`)
-- Buildear todo cuando solo cambió una lib (usar `affected`)
-- Ignorar el grafo de dependencias
-- No usar cache en CI
-- Ejecutar tests secuencialmente (usar `--parallel`)
+- Using `npm run` for individual project tasks (use `nx`)
+- Building everything when only one lib changed (use `affected`)
+- Ignoring the dependency graph
+- Not using cache in CI
+- Running tests sequentially (use `--parallel`)

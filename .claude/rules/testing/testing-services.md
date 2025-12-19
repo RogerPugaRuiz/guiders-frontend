@@ -1,14 +1,14 @@
-# Testing de Servicios
+# Service Testing
 
-## Descripción
+## Description
 
-Patrones para testing de servicios Angular con HttpClient, BehaviorSubject y dependencias.
+Patterns for testing Angular services with HttpClient, BehaviorSubject, and dependencies.
 
-## Referencia
+## Reference
 
 `libs/auth/data-access/session/src/lib/session.service.spec.ts`
 
-## Testing de Servicio HTTP
+## HTTP Service Testing
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
@@ -41,7 +41,7 @@ describe('VisitorsDataService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify(); // Verificar que no hay requests pendientes
+    httpMock.verify(); // Verify no pending requests
   });
 
   it('should be created', () => {
@@ -113,7 +113,7 @@ describe('VisitorsDataService', () => {
 });
 ```
 
-## Testing de Servicio con Estado
+## State Service Testing
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
@@ -189,7 +189,7 @@ describe('ChatStateService', () => {
 });
 ```
 
-## Testing de Servicio con Signal
+## Signal Service Testing
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
@@ -235,7 +235,7 @@ describe('UserService', () => {
 });
 ```
 
-## Mock de Servicios Dependientes
+## Mocking Dependent Services
 
 ```typescript
 import { TestBed } from '@angular/core/testing';
@@ -250,7 +250,7 @@ describe('SessionService', () => {
   let authRefreshSpy: jasmine.SpyObj<AuthRefreshService>;
 
   beforeEach(() => {
-    // Crear spies
+    // Create spies
     userServiceSpy = jasmine.createSpyObj('UserService', [
       'fetchUser',
       'clearUser',
@@ -288,12 +288,12 @@ describe('SessionService', () => {
     const mockUser = { id: '1', name: 'Test', email: 'test@test.com' };
     userServiceSpy.fetchUser.and.returnValue(of(mockUser));
 
-    // Primera llamada
+    // First call
     service.ensureSession$().subscribe();
-    // Segunda llamada (debería usar cache)
+    // Second call (should use cache)
     service.ensureSession$().subscribe();
 
-    // fetchUser solo se llama una vez
+    // fetchUser only called once
     expect(userServiceSpy.fetchUser).toHaveBeenCalledTimes(1);
   });
 
@@ -306,7 +306,7 @@ describe('SessionService', () => {
 });
 ```
 
-## Testing con Vitest Mocks
+## Testing with Vitest Mocks
 
 ```typescript
 import { vi } from 'vitest';
@@ -315,7 +315,7 @@ describe('ServiceWithVitest', () => {
   it('should mock dependency', () => {
     const mockFetch = vi.fn().mockResolvedValue({ data: 'test' });
 
-    // Usar mock
+    // Use mock
     const result = await mockFetch();
     expect(result).toEqual({ data: 'test' });
     expect(mockFetch).toHaveBeenCalled();
@@ -332,29 +332,29 @@ describe('ServiceWithVitest', () => {
 });
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
-|----------|--------|---------|
-| Archivo | `{service}.service.spec.ts` | `visitors-data.service.spec.ts` |
-| describe | Nombre del servicio | `describe('VisitorsDataService', ...)` |
+| Element | Pattern | Example |
+|---------|---------|---------|
+| File | `{service}.service.spec.ts` | `visitors-data.service.spec.ts` |
+| describe | Service name | `describe('VisitorsDataService', ...)` |
 | Mock | `mock{Name}` | `mockEnvironment`, `mockVisitors` |
 | Spy | `{name}Spy` | `userServiceSpy` |
 
 ## Checklist
 
-- [ ] `provideHttpClient()` y `provideHttpClientTesting()`
-- [ ] Mock de `ENVIRONMENT_TOKEN`
-- [ ] `httpMock.verify()` en `afterEach`
-- [ ] Verificar método HTTP y URL
-- [ ] Verificar `withCredentials`
-- [ ] Testar casos de error
-- [ ] Testar estados iniciales
+- [ ] `provideHttpClient()` and `provideHttpClientTesting()`
+- [ ] Mock `ENVIRONMENT_TOKEN`
+- [ ] `httpMock.verify()` in `afterEach`
+- [ ] Verify HTTP method and URL
+- [ ] Verify `withCredentials`
+- [ ] Test error cases
+- [ ] Test initial states
 
-## Anti-patrones
+## Anti-patterns
 
-- No verificar requests pendientes (`httpMock.verify()`)
-- Tests que dependen del orden
-- Mocks que no limpian estado
-- No testar casos de error
-- Subscripciones sin cleanup
+- Not verifying pending requests (`httpMock.verify()`)
+- Tests that depend on execution order
+- Mocks that don't clean up state
+- Not testing error cases
+- Subscriptions without cleanup

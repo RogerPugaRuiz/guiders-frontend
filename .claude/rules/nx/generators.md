@@ -1,10 +1,10 @@
-# Generadores Nx
+# Nx Generators
 
-## Descripción
+## Description
 
-Comandos para generar librerías, componentes y otros artefactos con configuración estandarizada.
+Commands to generate libraries, components and other artifacts with standardized configuration.
 
-## Generar Librerías
+## Generate Libraries
 
 ### Feature Library
 
@@ -16,7 +16,7 @@ nx g @nx/angular:lib inbox \
   --style=scss
 ```
 
-Genera:
+Generates:
 ```
 libs/chat/features/inbox/
 ├── src/
@@ -51,7 +51,7 @@ nx g @nx/angular:lib visitors-data-service \
   --standalone
 ```
 
-### Types Library (sin Angular)
+### Types Library (without Angular)
 
 ```bash
 nx g @nx/js:lib types \
@@ -60,9 +60,9 @@ nx g @nx/js:lib types \
   --unitTestRunner=none
 ```
 
-## Generar Componentes
+## Generate Components
 
-### Componente en Librería Existente
+### Component in Existing Library
 
 ```bash
 nx g @nx/angular:component visitor-card \
@@ -72,7 +72,7 @@ nx g @nx/angular:component visitor-card \
   --style=scss
 ```
 
-### Componente con Routing
+### Component with Routing
 
 ```bash
 nx g @nx/angular:component settings \
@@ -82,7 +82,7 @@ nx g @nx/angular:component settings \
   --style=scss
 ```
 
-## Generar Servicios
+## Generate Services
 
 ```bash
 nx g @nx/angular:service visitors-data \
@@ -90,7 +90,7 @@ nx g @nx/angular:service visitors-data \
   --skipTests=false
 ```
 
-## Generar Guards e Interceptors
+## Generate Guards and Interceptors
 
 ### Guard
 
@@ -108,29 +108,29 @@ nx g @nx/angular:interceptor auth-refresh \
   --functional
 ```
 
-## Opciones Comunes
+## Common Options
 
-### Para Librerías
+### For Libraries
 
-| Opción | Descripción | Ejemplo |
+| Option | Description | Example |
 |--------|-------------|---------|
-| `--directory` | Ruta de la librería | `libs/chat/features/inbox` |
-| `--tags` | Tags de Nx | `scope:chat,type:feature` |
-| `--standalone` | Sin NgModule | `true` |
-| `--style` | Formato de estilos | `scss` |
-| `--prefix` | Prefijo del selector | `guiders` |
+| `--directory` | Library path | `libs/chat/features/inbox` |
+| `--tags` | Nx tags | `scope:chat,type:feature` |
+| `--standalone` | Without NgModule | `true` |
+| `--style` | Styles format | `scss` |
+| `--prefix` | Selector prefix | `guiders` |
 
-### Para Componentes
+### For Components
 
-| Opción | Descripción | Ejemplo |
+| Option | Description | Example |
 |--------|-------------|---------|
-| `--project` | Proyecto destino | `chat-features-inbox` |
-| `--standalone` | Sin NgModule | `true` |
-| `--changeDetection` | Estrategia CD | `OnPush` |
-| `--style` | Formato de estilos | `scss` |
-| `--skipTests` | Omitir tests | `false` |
+| `--project` | Target project | `chat-features-inbox` |
+| `--standalone` | Without NgModule | `true` |
+| `--changeDetection` | CD strategy | `OnPush` |
+| `--style` | Styles format | `scss` |
+| `--skipTests` | Skip tests | `false` |
 
-## Defaults en nx.json
+## Defaults in nx.json
 
 ```json
 {
@@ -150,17 +150,17 @@ nx g @nx/angular:interceptor auth-refresh \
 }
 ```
 
-Con estos defaults, el comando se simplifica:
+With these defaults, the command is simplified:
 
 ```bash
-# Antes
+# Before
 nx g @nx/angular:lib badge --directory=libs/shared/ui/badge --tags=scope:shared,type:ui --standalone --style=scss
 
-# Después (con defaults)
+# After (with defaults)
 nx g @nx/angular:lib badge --directory=libs/shared/ui/badge --tags=scope:shared,type:ui
 ```
 
-## Ejemplos por Dominio
+## Examples by Domain
 
 ### Auth
 
@@ -199,48 +199,48 @@ nx g @nx/angular:lib modal --directory=libs/shared/ui/modal --tags=scope:shared,
 nx g @nx/js:lib types --directory=libs/shared/types --tags=scope:shared,type:util
 ```
 
-## Mover y Renombrar
+## Move and Rename
 
 ```bash
-# Mover librería
+# Move library
 nx g @nx/workspace:move --project=old-name --destination=new/path
 
-# Renombrar proyecto
+# Rename project
 nx g @nx/workspace:move --project=old-name --newProjectName=new-name
 ```
 
-## Eliminar
+## Remove
 
 ```bash
-# Eliminar librería
+# Remove library
 nx g @nx/workspace:remove --project=project-name
 ```
 
-## Verificar Generación
+## Verify Generation
 
 ```bash
-# Dry run (ver qué se generaría sin crear archivos)
+# Dry run (see what would be generated without creating files)
 nx g @nx/angular:lib my-lib --directory=libs/test --dry-run
 
-# Ver proyectos generados
+# See generated projects
 nx show projects
 
-# Ver grafo de dependencias
+# See dependency graph
 nx graph
 ```
 
-## Checklist Post-Generación
+## Post-Generation Checklist
 
-- [ ] Verificar tags en `project.json`
-- [ ] Actualizar barrel exports en `src/index.ts`
-- [ ] Verificar path mapping en `tsconfig.base.json`
-- [ ] Agregar a `.eslintrc.json` si es necesario
-- [ ] Ejecutar `nx lint` para verificar
+- [ ] Verify tags in `project.json`
+- [ ] Update barrel exports in `src/index.ts`
+- [ ] Verify path mapping in `tsconfig.base.json`
+- [ ] Add to `.eslintrc.json` if necessary
+- [ ] Run `nx lint` to verify
 
-## Anti-patrones
+## Anti-patterns
 
-- Crear archivos manualmente sin generador
-- Olvidar tags al generar
-- No verificar path mappings
-- Generar sin `--standalone`
-- Usar `--skipTests=true` por defecto
+- Creating files manually without generator
+- Forgetting tags when generating
+- Not verifying path mappings
+- Generating without `--standalone`
+- Using `--skipTests=true` by default

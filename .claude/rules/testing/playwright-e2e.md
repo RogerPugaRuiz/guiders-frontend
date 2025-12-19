@@ -1,21 +1,21 @@
 # Playwright E2E Testing
 
-## Descripción
+## Description
 
-Patrones de testing end-to-end con Playwright para aplicaciones Angular.
+End-to-end testing patterns with Playwright for Angular applications.
 
-## Referencia
+## Reference
 
 `apps/console-e2e/src/visitors-complex-filters.spec.ts`
 
-## Estructura de Test
+## Test Structure
 
 ```typescript
 import { test, expect } from '@playwright/test';
 
 test.describe('Visitors Page', () => {
   test.beforeEach(async ({ page }) => {
-    // Mock de API
+    // API Mock
     await page.route('**/api/visitors', async route => {
       await route.fulfill({
         status: 200,
@@ -27,27 +27,27 @@ test.describe('Visitors Page', () => {
       });
     });
 
-    // Navegar a la página
+    // Navigate to page
     await page.goto('/visitors');
   });
 
   test('should display visitors list', async ({ page }) => {
-    // Esperar a que cargue
+    // Wait for load
     await expect(page.locator('.visitor-card')).toHaveCount(2);
 
-    // Verificar contenido
+    // Verify content
     await expect(page.getByText('Visitor 1')).toBeVisible();
     await expect(page.getByText('Visitor 2')).toBeVisible();
   });
 });
 ```
 
-## Mock de Autenticación
+## Authentication Mock
 
 ```typescript
 test.describe('Authenticated routes', () => {
   test.beforeEach(async ({ page, context }) => {
-    // Mock de sesión
+    // Session mock
     await page.route('**/api/auth/session', async route => {
       await route.fulfill({
         status: 200,
@@ -62,7 +62,7 @@ test.describe('Authenticated routes', () => {
       });
     });
 
-    // Mock de token (si usa localStorage)
+    // Token mock (if using localStorage)
     await context.addInitScript(() => {
       localStorage.setItem('access-token', 'mock-token');
     });
@@ -70,58 +70,58 @@ test.describe('Authenticated routes', () => {
 });
 ```
 
-## Selectores
+## Selectors
 
-### Por Role (Recomendado)
+### By Role (Recommended)
 
 ```typescript
-// Botones
-await page.getByRole('button', { name: 'Guardar' }).click();
-await page.getByRole('button', { name: /cancelar/i }).click();
+// Buttons
+await page.getByRole('button', { name: 'Save' }).click();
+await page.getByRole('button', { name: /cancel/i }).click();
 
 // Links
-await page.getByRole('link', { name: 'Inicio' }).click();
+await page.getByRole('link', { name: 'Home' }).click();
 
 // Inputs
 await page.getByRole('textbox', { name: 'Email' }).fill('test@test.com');
-await page.getByRole('checkbox', { name: 'Acepto términos' }).check();
+await page.getByRole('checkbox', { name: 'Accept terms' }).check();
 
 // Headings
-await expect(page.getByRole('heading', { name: 'Visitantes' })).toBeVisible();
+await expect(page.getByRole('heading', { name: 'Visitors' })).toBeVisible();
 
 // Lists
 await expect(page.getByRole('listitem')).toHaveCount(5);
 ```
 
-### Por Label
+### By Label
 
 ```typescript
-await page.getByLabel('Nombre').fill('Juan');
-await page.getByLabel('Email').fill('juan@test.com');
-await page.getByLabel('Contraseña').fill('password123');
+await page.getByLabel('Name').fill('John');
+await page.getByLabel('Email').fill('john@test.com');
+await page.getByLabel('Password').fill('password123');
 ```
 
-### Por Placeholder
+### By Placeholder
 
 ```typescript
-await page.getByPlaceholder('Buscar...').fill('query');
+await page.getByPlaceholder('Search...').fill('query');
 ```
 
-### Por Test ID
+### By Test ID
 
 ```typescript
-// En el template: data-testid="visitor-card"
+// In template: data-testid="visitor-card"
 await page.getByTestId('visitor-card').click();
 await expect(page.getByTestId('loading-spinner')).not.toBeVisible();
 ```
 
-### Por CSS/Locator
+### By CSS/Locator
 
 ```typescript
-// Clase CSS
+// CSS class
 await page.locator('.visitor-card').first().click();
 
-// Combinación
+// Combination
 await page.locator('.visitor-card').filter({ hasText: 'Visitor 1' }).click();
 
 // nth selector
@@ -131,22 +131,22 @@ await page.locator('.visitor-card').nth(2).click();
 ## Assertions
 
 ```typescript
-// Visibilidad
-await expect(page.getByText('Bienvenido')).toBeVisible();
+// Visibility
+await expect(page.getByText('Welcome')).toBeVisible();
 await expect(page.getByTestId('error')).not.toBeVisible();
 await expect(page.locator('.modal')).toBeHidden();
 
-// Contenido
-await expect(page.locator('.title')).toHaveText('Visitantes');
+// Content
+await expect(page.locator('.title')).toHaveText('Visitors');
 await expect(page.locator('.count')).toContainText('10');
 
-// Atributos
+// Attributes
 await expect(page.getByRole('button')).toBeEnabled();
 await expect(page.getByRole('button')).toBeDisabled();
 await expect(page.locator('input')).toHaveValue('test@test.com');
 await expect(page.locator('.card')).toHaveClass(/active/);
 
-// Conteo
+// Count
 await expect(page.locator('.item')).toHaveCount(5);
 
 // URL
@@ -157,17 +157,17 @@ await expect(page).toHaveURL(/\/visitors\/\d+/);
 await expect(page).toHaveScreenshot('visitors-page.png');
 ```
 
-## Interacciones
+## Interactions
 
 ```typescript
 // Click
-await page.getByRole('button', { name: 'Enviar' }).click();
+await page.getByRole('button', { name: 'Submit' }).click();
 await page.getByRole('button').dblclick();
 await page.locator('.menu').click({ button: 'right' });
 
-// Formularios
-await page.getByLabel('Nombre').fill('Juan');
-await page.getByLabel('Nombre').clear();
+// Forms
+await page.getByLabel('Name').fill('John');
+await page.getByLabel('Name').clear();
 await page.getByRole('textbox').pressSequentially('Hello', { delay: 100 });
 
 // Selects
@@ -190,25 +190,25 @@ await page.locator('.draggable').dragTo(page.locator('.droppable'));
 await page.locator('.menu-trigger').hover();
 ```
 
-## Esperas
+## Waits
 
 ```typescript
-// Esperar elemento
+// Wait for element
 await page.waitForSelector('.loaded');
 
-// Esperar navegación
+// Wait for navigation
 await Promise.all([
   page.waitForNavigation(),
-  page.getByRole('link', { name: 'Inicio' }).click(),
+  page.getByRole('link', { name: 'Home' }).click(),
 ]);
 
-// Esperar respuesta de API
+// Wait for API response
 await page.waitForResponse('**/api/visitors');
 
-// Esperar condición
+// Wait for condition
 await expect(page.locator('.spinner')).not.toBeVisible({ timeout: 10000 });
 
-// Esperar tiempo fijo (evitar si es posible)
+// Wait for fixed time (avoid if possible)
 await page.waitForTimeout(1000);
 ```
 
@@ -224,7 +224,7 @@ export class VisitorsPage {
   }
 
   async search(query: string) {
-    await this.page.getByPlaceholder('Buscar').fill(query);
+    await this.page.getByPlaceholder('Search').fill(query);
   }
 
   async selectVisitor(name: string) {
@@ -243,7 +243,7 @@ export class VisitorsPage {
   }
 }
 
-// En el test
+// In test
 test.describe('Visitors', () => {
   test('should filter visitors', async ({ page }) => {
     const visitorsPage = new VisitorsPage(page);
@@ -256,7 +256,7 @@ test.describe('Visitors', () => {
 });
 ```
 
-## Configuración
+## Configuration
 
 ```typescript
 // playwright.config.ts
@@ -282,39 +282,39 @@ export default defineConfig({
 });
 ```
 
-## Comandos Nx
+## Nx Commands
 
 ```bash
-# Ejecutar E2E
+# Run E2E
 nx e2e console-e2e
 
-# Con UI de Playwright
+# With Playwright UI
 nx e2e console-e2e --ui
 
 # Debug
 nx e2e console-e2e --debug
 
-# Headed (ver navegador)
+# Headed (see browser)
 nx e2e console-e2e --headed
 
-# Específico test
+# Specific test
 nx e2e console-e2e --grep "visitors"
 ```
 
-## Reglas de Naming
+## Naming Rules
 
-| Elemento | Patrón | Ejemplo |
-|----------|--------|---------|
-| Archivo | `{feature}.spec.ts` | `visitors.spec.ts` |
+| Element | Pattern | Example |
+|---------|---------|---------|
+| File | `{feature}.spec.ts` | `visitors.spec.ts` |
 | describe | Feature | `test.describe('Visitors', ...)` |
-| test | Comportamiento | `test('should display list', ...)` |
+| test | Behavior | `test('should display list', ...)` |
 | Page Object | `{Page}Page` | `VisitorsPage` |
 
-## Anti-patrones
+## Anti-patterns
 
-- Selectores frágiles (usar roles y labels)
-- `waitForTimeout` en lugar de assertions
-- Tests que dependen del orden
-- No mockear APIs externas
-- Tests sin cleanup
-- Screenshots en cada test (solo on-failure)
+- Fragile selectors (use roles and labels)
+- `waitForTimeout` instead of assertions
+- Tests that depend on order
+- Not mocking external APIs
+- Tests without cleanup
+- Screenshots in every test (only on-failure)

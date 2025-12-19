@@ -1,36 +1,36 @@
-# Estándares de Componentes UI
+# UI Component Standards
 
-## Descripción
+## Description
 
-Estándares para crear componentes UI consistentes, accesibles y mantenibles.
+Standards for creating consistent, accessible, and maintainable UI components.
 
-## Referencia
+## Reference
 
 `libs/shared/ui/badge/src/lib/badge/badge.ts`
 
-## Estructura de Archivo
+## File Structure
 
 ```
 libs/shared/ui/{component-name}/
 ├── src/
 │   ├── lib/
 │   │   └── {component-name}/
-│   │       ├── {component-name}.ts       # Componente
+│   │       ├── {component-name}.ts       # Component
 │   │       ├── {component-name}.html     # Template
-│   │       ├── {component-name}.scss     # Estilos
+│   │       ├── {component-name}.scss     # Styles
 │   │       └── {component-name}.spec.ts  # Tests
 │   └── index.ts                          # Barrel export
 ├── project.json
 └── tsconfig.json
 ```
 
-## Estructura del Componente
+## Component Structure
 
 ```typescript
 import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-// Tipos exportados
+// Exported types
 export type BadgeVariant = 'default' | 'primary' | 'success' | 'warning' | 'danger';
 export type BadgeSize = 'small' | 'medium' | 'large';
 
@@ -48,7 +48,7 @@ export class Badge {
   readonly text = input<string>('');
   readonly disabled = input<boolean>(false);
 
-  // === ARIA (accesibilidad) ===
+  // === ARIA (accessibility) ===
   readonly ariaLabel = input<string>('');
 
   // === OUTPUTS ===
@@ -68,7 +68,7 @@ export class Badge {
 }
 ```
 
-## Estructura SCSS (BEM)
+## SCSS Structure (BEM)
 
 ```scss
 @use '@guiders-frontend/shared/design-tokens' as tokens;
@@ -144,7 +144,7 @@ export class Badge {
 }
 ```
 
-## Template Accesible
+## Accessible Template
 
 ```html
 <span
@@ -161,28 +161,28 @@ export class Badge {
 </span>
 ```
 
-## Patrones de Inputs
+## Input Patterns
 
-### Input Requerido
+### Required Input
 
 ```typescript
 readonly userId = input.required<string>();
 ```
 
-### Input con Valor por Defecto
+### Input with Default Value
 
 ```typescript
 readonly variant = input<BadgeVariant>('default');
 ```
 
-### Input Booleano
+### Boolean Input
 
 ```typescript
 readonly disabled = input<boolean>(false);
 readonly loading = input<boolean>(false);
 ```
 
-### Input con Transform
+### Input with Transform
 
 ```typescript
 import { numberAttribute, booleanAttribute } from '@angular/core';
@@ -191,18 +191,18 @@ readonly count = input(0, { transform: numberAttribute });
 readonly active = input(false, { transform: booleanAttribute });
 ```
 
-### Input con Alias
+### Input with Alias
 
 ```typescript
 readonly size = input<Size>('medium', { alias: 'badgeSize' });
 ```
 
-## Accesibilidad (WCAG 2.2 AA)
+## Accessibility (WCAG 2.2 AA)
 
-### Inputs ARIA Obligatorios
+### Required ARIA Inputs
 
 ```typescript
-// Para componentes interactivos
+// For interactive components
 readonly ariaLabel = input<string>('');
 readonly ariaDescribedBy = input<string>('');
 readonly ariaExpanded = input<boolean>();
@@ -216,13 +216,13 @@ readonly ariaLabelValue = computed(() => {
   const custom = this.ariaLabel();
   if (custom) return custom;
 
-  // Generar label semántico automático
+  // Generate automatic semantic label
   const count = this.count();
   if (count !== undefined) {
-    return count === 1 ? '1 elemento' : `${count} elementos`;
+    return count === 1 ? '1 item' : `${count} items`;
   }
 
-  return `Etiqueta: ${this.text()}`;
+  return `Label: ${this.text()}`;
 });
 ```
 
@@ -236,13 +236,13 @@ readonly ariaLabelValue = computed(() => {
 }
 ```
 
-### Roles Semánticos
+### Semantic Roles
 
 ```html
 <!-- Status (badges, notifications) -->
 <span role="status" aria-live="polite">...</span>
 
-<!-- Botones -->
+<!-- Buttons -->
 <button type="button" [attr.aria-pressed]="isActive()">...</button>
 
 <!-- Dialogs -->
@@ -264,7 +264,7 @@ selector: 'lib-inbox'
 selector: 'lib-visitor-list'
 ```
 
-### Clases CSS (BEM)
+### CSS Classes (BEM)
 
 ```scss
 // Block
@@ -280,37 +280,37 @@ selector: 'lib-visitor-list'
 .guiders-badge--disabled { }
 ```
 
-### Archivos
+### Files
 
 ```
-badge.ts          # Componente
+badge.ts          # Component
 badge.html        # Template
-badge.scss        # Estilos
+badge.scss        # Styles
 badge.spec.ts     # Tests
 ```
 
-## Checklist de Componente
+## Component Checklist
 
-- [ ] Selector con prefijo `guiders-*`
+- [ ] Selector with `guiders-*` prefix
 - [ ] `ChangeDetectionStrategy.OnPush`
-- [ ] Imports standalone
-- [ ] Inputs con `input()` signals
-- [ ] Outputs con `output()`
-- [ ] Computed para clases CSS
-- [ ] SCSS con design tokens
-- [ ] BEM para nomenclatura CSS
-- [ ] Inputs ARIA para accesibilidad
-- [ ] Focus visible con `focus-ring`
-- [ ] Estados: hover, focus, disabled, loading
-- [ ] Tests unitarios
-- [ ] Barrel export en `index.ts`
+- [ ] Standalone imports
+- [ ] Inputs with `input()` signals
+- [ ] Outputs with `output()`
+- [ ] Computed for CSS classes
+- [ ] SCSS with design tokens
+- [ ] BEM for CSS nomenclature
+- [ ] ARIA inputs for accessibility
+- [ ] Focus visible with `focus-ring`
+- [ ] States: hover, focus, disabled, loading
+- [ ] Unit tests
+- [ ] Barrel export in `index.ts`
 
-## Anti-patrones
+## Anti-patterns
 
-- Hardcodear colores o espaciados
-- Omitir `ChangeDetectionStrategy.OnPush`
-- Inputs/outputs con decoradores legacy
-- Clases CSS sin namespace del componente
-- Falta de estados interactivos
-- Omitir atributos ARIA
-- Lógica de negocio en componentes UI
+- Hardcoding colors or spacing
+- Omitting `ChangeDetectionStrategy.OnPush`
+- Inputs/outputs with legacy decorators
+- CSS classes without component namespace
+- Missing interactive states
+- Omitting ARIA attributes
+- Business logic in UI components
