@@ -1,0 +1,151 @@
+<form
+  class="contact-data-form"
+  [formGroup]="form"
+  (ngSubmit)="onSubmit()"
+>
+  <div class="contact-data-form__fields">
+    <!-- Nombre -->
+    <div class="contact-data-form__field">
+      <label class="contact-data-form__label" for="nombre">Nombre</label>
+      <input
+        class="contact-data-form__input"
+        [class.contact-data-form__input--error]="getError('nombre')"
+        id="nombre"
+        type="text"
+        formControlName="nombre"
+        placeholder="Nombre del visitante"
+        [attr.aria-invalid]="!!getError('nombre')"
+        [attr.aria-describedby]="getError('nombre') ? 'nombre-error' : null"
+      />
+      @if (getError('nombre')) {
+        <span class="contact-data-form__error" id="nombre-error" role="alert">
+          {{ getError('nombre') }}
+        </span>
+      }
+    </div>
+
+    <!-- Apellidos -->
+    <div class="contact-data-form__field">
+      <label class="contact-data-form__label" for="apellidos">Apellidos</label>
+      <input
+        class="contact-data-form__input"
+        [class.contact-data-form__input--error]="getError('apellidos')"
+        id="apellidos"
+        type="text"
+        formControlName="apellidos"
+        placeholder="Apellidos del visitante"
+        [attr.aria-invalid]="!!getError('apellidos')"
+        [attr.aria-describedby]="getError('apellidos') ? 'apellidos-error' : null"
+      />
+      @if (getError('apellidos')) {
+        <span class="contact-data-form__error" id="apellidos-error" role="alert">
+          {{ getError('apellidos') }}
+        </span>
+      }
+    </div>
+
+    <!-- Email -->
+    <div class="contact-data-form__field">
+      <label class="contact-data-form__label" for="email">Email</label>
+      <input
+        class="contact-data-form__input"
+        [class.contact-data-form__input--error]="getError('email')"
+        id="email"
+        type="email"
+        formControlName="email"
+        placeholder="email@ejemplo.com"
+        [attr.aria-invalid]="!!getError('email')"
+        [attr.aria-describedby]="getError('email') ? 'email-error' : null"
+      />
+      @if (getError('email')) {
+        <span class="contact-data-form__error" id="email-error" role="alert">
+          {{ getError('email') }}
+        </span>
+      }
+    </div>
+
+    <!-- Teléfono -->
+    <div class="contact-data-form__field">
+      <label class="contact-data-form__label" for="telefono">Teléfono</label>
+      <input
+        class="contact-data-form__input"
+        [class.contact-data-form__input--error]="getError('telefono')"
+        id="telefono"
+        type="tel"
+        formControlName="telefono"
+        placeholder="+34 600 000 000"
+        [attr.aria-invalid]="!!getError('telefono')"
+        [attr.aria-describedby]="getError('telefono') ? 'telefono-error' : null"
+      />
+      @if (getError('telefono')) {
+        <span class="contact-data-form__error" id="telefono-error" role="alert">
+          {{ getError('telefono') }}
+        </span>
+      }
+    </div>
+
+    <!-- DNI -->
+    <div class="contact-data-form__field">
+      <label class="contact-data-form__label" for="dni">DNI/NIF</label>
+      <input
+        class="contact-data-form__input"
+        [class.contact-data-form__input--error]="getError('dni')"
+        id="dni"
+        type="text"
+        formControlName="dni"
+        placeholder="12345678A"
+        [attr.aria-invalid]="!!getError('dni')"
+        [attr.aria-describedby]="getError('dni') ? 'dni-error' : null"
+      />
+      @if (getError('dni')) {
+        <span class="contact-data-form__error" id="dni-error" role="alert">
+          {{ getError('dni') }}
+        </span>
+      }
+    </div>
+
+    <!-- Población -->
+    <div class="contact-data-form__field">
+      <label class="contact-data-form__label" for="poblacion">Población</label>
+      <input
+        class="contact-data-form__input"
+        [class.contact-data-form__input--error]="getError('poblacion')"
+        id="poblacion"
+        type="text"
+        formControlName="poblacion"
+        placeholder="Ciudad o población"
+        [attr.aria-invalid]="!!getError('poblacion')"
+        [attr.aria-describedby]="getError('poblacion') ? 'poblacion-error' : null"
+      />
+      @if (getError('poblacion')) {
+        <span class="contact-data-form__error" id="poblacion-error" role="alert">
+          {{ getError('poblacion') }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="contact-data-form__actions">
+    <button
+      class="contact-data-form__button contact-data-form__button--secondary"
+      type="button"
+      (click)="onCancel()"
+      [disabled]="saving()"
+    >
+      Cancelar
+    </button>
+    <button
+      class="contact-data-form__button contact-data-form__button--primary"
+      type="submit"
+      [disabled]="!canSubmit() || !hasChanges()"
+    >
+      @if (saving()) {
+        <span class="contact-data-form__spinner"></span>
+        Guardando...
+      } @else {
+        Guardar
+      }
+    </button>
+  </div>
+</form>

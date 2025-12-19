@@ -1,0 +1,163 @@
+/**
+ * Contact Data Form Styles
+ */
+
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+}
+
+.contact-data-form {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-lg;
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-md;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__label {
+    font-family: tokens.$font-family-ui;
+    font-size: tokens.$font-size-sm;
+    font-weight: 500;
+    color: tokens.$color-text-secondary;
+  }
+
+  &__input {
+    width: 100%;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    font-family: tokens.$font-family-ui;
+    font-size: tokens.$font-size-sm;
+    color: tokens.$color-text-primary;
+    background: tokens.$color-surface-primary;
+    border: 1px solid tokens.$color-border-default;
+    border-radius: tokens.$border-radius-md;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+
+    &::placeholder {
+      color: tokens.$color-text-tertiary;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: tokens.$color-border-strong;
+    }
+
+    &:focus {
+      outline: none;
+      border-color: tokens.$color-primary-500;
+      box-shadow: 0 0 0 3px rgba(tokens.$color-primary-500, 0.1);
+    }
+
+    &:disabled {
+      background: tokens.$color-surface-secondary;
+      color: tokens.$color-text-tertiary;
+      cursor: not-allowed;
+    }
+
+    &--error {
+      border-color: tokens.$color-danger-500;
+
+      &:focus {
+        border-color: tokens.$color-danger-500;
+        box-shadow: 0 0 0 3px rgba(tokens.$color-danger-500, 0.1);
+      }
+    }
+  }
+
+  &__error {
+    font-family: tokens.$font-family-ui;
+    font-size: tokens.$font-size-xs;
+    color: tokens.$color-danger-500;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: tokens.$spacing-sm;
+    padding-top: tokens.$spacing-sm;
+    border-top: 1px solid tokens.$color-border-subtle;
+  }
+
+  &__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: tokens.$spacing-xs;
+    padding: tokens.$spacing-sm tokens.$spacing-lg;
+    font-family: tokens.$font-family-ui;
+    font-size: tokens.$font-size-sm;
+    font-weight: 500;
+    border: none;
+    border-radius: tokens.$border-radius-md;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &--primary {
+      background: tokens.$color-primary-500;
+      color: tokens.$color-text-inverse;
+
+      &:hover:not(:disabled) {
+        background: tokens.$color-primary-600;
+      }
+
+      &:active:not(:disabled) {
+        background: tokens.$color-primary-700;
+      }
+
+      &:focus-visible {
+        outline: 2px solid tokens.$color-primary-500;
+        outline-offset: 2px;
+      }
+    }
+
+    &--secondary {
+      background: tokens.$color-surface-secondary;
+      color: tokens.$color-text-secondary;
+
+      &:hover:not(:disabled) {
+        background: tokens.$color-surface-tertiary;
+        color: tokens.$color-text-primary;
+      }
+
+      &:active:not(:disabled) {
+        background: tokens.$color-surface-hover;
+      }
+
+      &:focus-visible {
+        outline: 2px solid tokens.$color-primary-500;
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

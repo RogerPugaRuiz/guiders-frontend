@@ -203,6 +203,21 @@
               Cuando esta habilitado, la IA puede consultar paginas de tu sitio web para obtener informacion actualizada
             </p>
           </div>
+
+          <div class="config-item">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                [checked]="saveLeadContactEnabled()"
+                (change)="onToggleSaveLeadContact($event)"
+                [disabled]="saving()" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Guardar datos de contacto automaticamente</span>
+            </label>
+            <p class="config-description">
+              La IA extrae y guarda automaticamente los datos de contacto (nombre, email, telefono) de las conversaciones
+            </p>
+          </div>
         </div>
 
         <!-- Configuracion adicional (visible solo si fetchPageEnabled) -->

@@ -56,6 +56,7 @@ export class AiConfig implements OnInit, OnDestroy {
   readonly fetchTimeoutMs = signal<number>(LLM_TOOL_CONFIG_DEFAULTS.fetchTimeoutMs);
   readonly cacheEnabled = signal<boolean>(LLM_TOOL_CONFIG_DEFAULTS.cacheEnabled);
   readonly cacheTtlSeconds = signal<number>(LLM_TOOL_CONFIG_DEFAULTS.cacheTtlSeconds);
+  readonly saveLeadContactEnabled = signal<boolean>(LLM_TOOL_CONFIG_DEFAULTS.saveLeadContactEnabled);
   readonly newPathInput = signal<string>('');
 
   // Computed para mostrar valores formateados
@@ -111,7 +112,8 @@ export class AiConfig implements OnInit, OnDestroy {
       currentToolConfig.maxIterations !== this.maxIterations() ||
       currentToolConfig.fetchTimeoutMs !== this.fetchTimeoutMs() ||
       currentToolConfig.cacheEnabled !== this.cacheEnabled() ||
-      currentToolConfig.cacheTtlSeconds !== this.cacheTtlSeconds()
+      currentToolConfig.cacheTtlSeconds !== this.cacheTtlSeconds() ||
+      currentToolConfig.saveLeadContactEnabled !== this.saveLeadContactEnabled()
     );
   });
 
@@ -187,6 +189,7 @@ export class AiConfig implements OnInit, OnDestroy {
     this.fetchTimeoutMs.set(toolConfig.fetchTimeoutMs);
     this.cacheEnabled.set(toolConfig.cacheEnabled);
     this.cacheTtlSeconds.set(toolConfig.cacheTtlSeconds);
+    this.saveLeadContactEnabled.set(toolConfig.saveLeadContactEnabled);
     this.newPathInput.set('');
   }
 
@@ -320,6 +323,11 @@ export class AiConfig implements OnInit, OnDestroy {
     }
   }
 
+  onToggleSaveLeadContact(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.saveLeadContactEnabled.set(checked);
+  }
+
   onCancel(): void {
     const current = this.config();
     if (current) {
@@ -353,7 +361,8 @@ export class AiConfig implements OnInit, OnDestroy {
         maxIterations: this.maxIterations(),
         fetchTimeoutMs: this.fetchTimeoutMs(),
         cacheEnabled: this.cacheEnabled(),
-        cacheTtlSeconds: this.cacheTtlSeconds()
+        cacheTtlSeconds: this.cacheTtlSeconds(),
+        saveLeadContactEnabled: this.saveLeadContactEnabled()
       }
     };
 

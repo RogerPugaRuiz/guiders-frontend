@@ -1,0 +1,131 @@
+<div class="sync-records">
+  <div class="section-header">
+    <div class="section-header__content">
+      <h2>Registros de Sincronización</h2>
+      <p>Monitorea el estado de sincronización de leads con el CRM.</p>
+    </div>
+    <div class="section-header__actions">
+      <button class="btn btn--secondary" (click)="refresh()" [disabled]="loading()">
+        @if (loading()) {
+          <span class="btn-spinner"></span>
+        } @else {
+          <span class="refresh-icon">↻</span>
+        }
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <span class="stat-card__value">{{ totalRecords() }}</span>
+      <span class="stat-card__label">Total</span>
+    </div>
+    <div class="stat-card stat-card--success">
+      <span class="stat-card__value">{{ syncedCount() }}</span>
+      <span class="stat-card__label">Sincronizados</span>
+    </div>
+    <div class="stat-card stat-card--warning">
+      <span class="stat-card__value">{{ pendingCount() }}</span>
+      <span class="stat-card__label">Pendientes</span>
+    </div>
+    <div class="stat-card stat-card--error">
+      <span class="stat-card__value">{{ failedCount() }}</span>
+      <span class="stat-card__label">Fallidos</span>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-bar">
+    <label class="checkbox-label">
+      <input
+        type="checkbox"
+        [ngModel]="onlyFailed()"
+        (ngModelChange)="onlyFailed.set($event); onFilterChange()"
+        class="checkbox-input"
+      />
+      <span class="checkbox-box"></span>
+      <span class="checkbox-text">Mostrar solo fallidos</span>
+    </label>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert--error">
+      <span class="alert__icon">⚠️</span>
+      <span class="alert__message">{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Cargando registros...</span>
+    </div>
+  } @else if (!hasRecords()) {
+    <!-- Empty State -->
+    <div class="empty-state">
+      <span class="empty-state__icon">📋</span>
+      <p class="empty-state__title">No hay registros de sincronización</p>
+      <p class="empty-state__description">
+        Los registros aparecerán aquí cuando se sincronicen leads con el CRM.
+      </p>
+    </div>
+  } @else {
+    <!-- Records Table -->
+    <div class="table-container">
+      <table class="records-table">
+        <thead>
+          <tr>
+            <th>Visitor ID</th>
+            <th>CRM</th>
+            <th>ID Externo</th>
+            <th>Estado</th>
+            <th>Última Sync</th>
+            <th>Reintentos</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (record of records(); track record.id) {
+            <tr [class.row--error]="record.status === 'failed'">
+              <td>
+                <span class="id-cell" [title]="record.visitorId">
+                  {{ truncateId(record.visitorId) }}
+                </span>
+              </td>
+              <td>{{ getCrmTypeLabel(record.crmType) }}</td>
+              <td>
+                @if (record.externalLeadId) {
+                  <span class="id-cell" [title]="record.externalLeadId">
+                    {{ truncateId(record.externalLeadId) }}
+                  </span>
+                } @else {
+                  <span class="text-muted">-</span>
+                }
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusClass(record.status)">
+                  {{ getStatusLabel(record.status) }}
+                </span>
+              </td>
+              <td>{{ formatDate(record.lastSyncAt) }}</td>
+              <td class="text-center">{{ record.retryCount }}</td>
+              <td>
+                @if (record.lastError) {
+                  <span class="error-message" [title]="record.lastError">
+                    {{ record.lastError.length > 50 ? record.lastError.substring(0, 50) + '...' : record.lastError }}
+                  </span>
+                } @else {
+                  <span class="text-muted">-</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

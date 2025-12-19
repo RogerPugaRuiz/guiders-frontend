@@ -6,6 +6,7 @@ export interface LlmToolConfig {
   fetchTimeoutMs: number;
   cacheEnabled: boolean;
   cacheTtlSeconds: number;
+  saveLeadContactEnabled: boolean;
 }
 
 export const LLM_TOOL_CONFIG_DEFAULTS: LlmToolConfig = {
@@ -15,7 +16,8 @@ export const LLM_TOOL_CONFIG_DEFAULTS: LlmToolConfig = {
   maxIterations: 3,
   fetchTimeoutMs: 10000,
   cacheEnabled: true,
-  cacheTtlSeconds: 3600
+  cacheTtlSeconds: 3600,
+  saveLeadContactEnabled: false
 };
 
 export interface LlmConfig {

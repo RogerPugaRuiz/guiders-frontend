@@ -1,0 +1,200 @@
+<div class="crm-config">
+  <div class="section-header">
+    <h2>Configuración de CRM</h2>
+    <p>Configura la integración con tu CRM para sincronizar leads automáticamente.</p>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <span>Cargando configuración...</span>
+    </div>
+  } @else {
+    <!-- Error Alert -->
+    @if (error()) {
+      <div class="alert alert--error">
+        <span class="alert__icon">⚠️</span>
+        <span class="alert__message">{{ error() }}</span>
+      </div>
+    }
+
+    <!-- Test Result -->
+    @if (testResult()) {
+      <div class="alert" [class.alert--success]="testResult()?.success" [class.alert--error]="!testResult()?.success">
+        <span class="alert__icon">{{ testResult()?.success ? '✓' : '✗' }}</span>
+        <span class="alert__message">{{ testResult()?.message }}</span>
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="config-form">
+      <!-- CRM Type Selection -->
+      <div class="form-section">
+        <h3>Tipo de CRM</h3>
+        <div class="form-group">
+          <label for="crmType">Selecciona tu CRM</label>
+          <select id="crmType" formControlName="crmType" class="form-control">
+            @for (type of supportedCrmTypes(); track type) {
+              <option [value]="type">{{ getCrmTypeLabel(type) }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- General Settings -->
+      <div class="form-section">
+        <h3>Configuración General</h3>
+
+        <div class="form-group form-group--toggle">
+          <label class="toggle-label">
+            <input type="checkbox" formControlName="enabled" class="toggle-input" />
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">Integración activa</span>
+          </label>
+          <p class="form-hint">Habilita o deshabilita la sincronización con el CRM</p>
+        </div>
+
+        <div class="form-group form-group--toggle">
+          <label class="toggle-label">
+            <input type="checkbox" formControlName="syncChatConversations" class="toggle-input" />
+            <span class="toggle-switch"></span>
+            <span class="toggle-text">Sincronizar conversaciones</span>
+          </label>
+          <p class="form-hint">Envía el historial de conversaciones junto con el lead</p>
+        </div>
+      </div>
+
+      <!-- Trigger Events -->
+      <div class="form-section">
+        <h3>Eventos de Sincronización</h3>
+        <p class="section-description">Selecciona cuándo se debe sincronizar un lead con el CRM</p>
+
+        <div formGroupName="triggerEvents" class="checkbox-group">
+          @for (event of availableTriggerEvents; track event) {
+            <label class="checkbox-label">
+              <input type="checkbox" [formControlName]="event" class="checkbox-input" />
+              <span class="checkbox-box"></span>
+              <span class="checkbox-text">{{ getTriggerEventLabel(event) }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <!-- LeadCars Configuration -->
+      @if (isLeadCars()) {
+        <div class="form-section">
+          <h3>Configuración de LeadCars</h3>
+
+          <div class="form-group">
+            <label for="clienteToken">Token de Cliente *</label>
+            <input
+              type="password"
+              id="clienteToken"
+              formControlName="clienteToken"
+              class="form-control"
+              placeholder="Introduce el token de LeadCars"
+              [class.form-control--error]="form.get('clienteToken')?.invalid && form.get('clienteToken')?.touched"
+            />
+            @if (form.get('clienteToken')?.invalid && form.get('clienteToken')?.touched) {
+              <span class="form-error">El token de cliente es obligatorio</span>
+            }
+          </div>
+
+          <div class="form-group form-group--toggle">
+            <label class="toggle-label">
+              <input type="checkbox" formControlName="useSandbox" class="toggle-input" />
+              <span class="toggle-switch"></span>
+              <span class="toggle-text">Usar entorno Sandbox</span>
+            </label>
+            <p class="form-hint">Activa para usar el entorno de pruebas de LeadCars</p>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="concesionarioId">ID Concesionario</label>
+              <input
+                type="number"
+                id="concesionarioId"
+                formControlName="concesionarioId"
+                class="form-control"
+                placeholder="Opcional"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="sedeId">ID Sede</label>
+              <input
+                type="number"
+                id="sedeId"
+                formControlName="sedeId"
+                class="form-control"
+                placeholder="Opcional"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="campanaId">ID Campaña</label>
+              <input
+                type="number"
+                id="campanaId"
+                formControlName="campanaId"
+                class="form-control"
+                placeholder="Opcional"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="tipoLeadDefault">Tipo de Lead por Defecto</label>
+            <select id="tipoLeadDefault" formControlName="tipoLeadDefault" class="form-control">
+              <option value="WEB">WEB</option>
+              <option value="TELEFONO">TELEFONO</option>
+              <option value="PRESENCIAL">PRESENCIAL</option>
+            </select>
+          </div>
+        </div>
+      }
+
+      <!-- Actions -->
+      <div class="form-actions">
+        @if (hasConfig()) {
+          <button
+            type="button"
+            class="btn btn--secondary"
+            (click)="onTestConnection()"
+            [disabled]="saving() || testing()"
+          >
+            @if (testing()) {
+              <span class="btn-spinner"></span>
+              Probando...
+            } @else {
+              Probar conexión
+            }
+          </button>
+
+          <button
+            type="button"
+            class="btn btn--danger"
+            (click)="onDelete()"
+            [disabled]="saving() || testing()"
+          >
+            Eliminar
+          </button>
+        }
+
+        <button
+          type="submit"
+          class="btn btn--primary"
+          [disabled]="saving() || testing() || form.invalid"
+        >
+          @if (saving()) {
+            <span class="btn-spinner"></span>
+            Guardando...
+          } @else {
+            {{ hasConfig() ? 'Guardar cambios' : 'Crear configuración' }}
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>
