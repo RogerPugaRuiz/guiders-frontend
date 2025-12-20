@@ -1,0 +1,41 @@
+.donut-chart {
+  transform: rotate(-90deg);
+
+  &__track {
+    stroke: var(--wl-chart-track);
+  }
+
+  &__progress {
+    transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    filter: drop-shadow(var(--wl-glow-primary));
+
+    &--primary {
+      stroke: var(--wl-chart-primary);
+      filter: drop-shadow(var(--wl-glow-primary));
+    }
+
+    &--success {
+      stroke: var(--wl-chart-success);
+      filter: drop-shadow(var(--wl-glow-success));
+    }
+
+    &--warning {
+      stroke: var(--wl-chart-warning);
+      filter: drop-shadow(var(--wl-glow-warning));
+    }
+
+    &--info {
+      stroke: var(--wl-chart-info);
+      filter: drop-shadow(var(--wl-glow-info));
+    }
+  }
+
+  &__value {
+    transform: rotate(90deg);
+    transform-origin: center;
+    font-family: var(--wl-font-family, 'Inter', sans-serif);
+    font-size: 14px;
+    font-weight: 600;
+    fill: var(--wl-color-text-primary);
+  }
+}

@@ -1,0 +1,36 @@
+<svg [attr.viewBox]="viewBox()" class="donut-chart">
+  <!-- Track (fondo) -->
+  <circle
+    class="donut-chart__track"
+    [attr.cx]="center()"
+    [attr.cy]="center()"
+    [attr.r]="radius()"
+    fill="none"
+    [attr.stroke-width]="strokeWidth()"
+  />
+  <!-- Progress (valor) -->
+  <circle
+    class="donut-chart__progress"
+    [class]="'donut-chart__progress donut-chart__progress--' + variant()"
+    [attr.cx]="center()"
+    [attr.cy]="center()"
+    [attr.r]="radius()"
+    fill="none"
+    [attr.stroke-width]="strokeWidth()"
+    [attr.stroke-dasharray]="circumference()"
+    [attr.stroke-dashoffset]="strokeDashoffset()"
+    stroke-linecap="round"
+  />
+  <!-- Texto central -->
+  @if (showValue()) {
+    <text
+      class="donut-chart__value"
+      [attr.x]="center()"
+      [attr.y]="center()"
+      text-anchor="middle"
+      dominant-baseline="middle"
+    >
+      {{ displayValue() }}
+    </text>
+  }
+</svg>

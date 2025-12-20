@@ -1,0 +1,14 @@
+<div class="activity-stat-card">
+  <guiders-donut-chart
+    [value]="value()"
+    [maxValue]="maxValue()"
+    [variant]="variant()"
+    [size]="size()"
+  />
+  <div class="activity-stat-card__content">
+    <span class="activity-stat-card__label">{{ label() }}</span>
+    @if (subtitle()) {
+      <span class="activity-stat-card__subtitle">{{ subtitle() }}</span>
+    }
+  </div>
+</div>

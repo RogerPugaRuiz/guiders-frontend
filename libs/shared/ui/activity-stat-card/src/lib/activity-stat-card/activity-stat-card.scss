@@ -1,0 +1,32 @@
+.activity-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: var(--wl-color-surface-primary);
+  border: 1px solid var(--wl-color-border-subtle);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--wl-color-border-default);
+    box-shadow: var(--wl-shadow-card);
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--wl-color-text-primary);
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    color: var(--wl-color-text-tertiary);
+  }
+}
