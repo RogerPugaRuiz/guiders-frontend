@@ -82,19 +82,19 @@
 
     // Color según estado
     &[data-status='online'] {
-      color: #10b981;
+      color: var(--wl-status-online);
     }
 
     &[data-status='away'] {
-      color: #f59e0b;
+      color: var(--wl-status-away);
     }
 
     &[data-status='busy'] {
-      color: #ef4444;
+      color: var(--wl-status-busy);
     }
 
     &[data-status='offline'] {
-      color: tokens.$color-text-tertiary;
+      color: var(--wl-status-offline);
     }
 
     // Dot indicator antes del texto
@@ -148,7 +148,7 @@
 
     &--close:hover {
       background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
+      color: var(--wl-status-busy);
     }
   }
 
@@ -207,11 +207,11 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--wl-scrollbar-thumb);
       border-radius: 3px;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.3);
+        background: var(--wl-scrollbar-thumb-hover);
       }
     }
   }
@@ -330,13 +330,13 @@
     display: block;
     padding: tokens.$spacing-sm tokens.$spacing-md;
     border-radius: 8px;
-    background: #F1F3F4;
+    background: var(--wl-message-visitor-bg);
     color: tokens.$color-text-primary;
     line-height: 1.5;
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--wl-shadow-sm);
     position: relative;
     max-width: 100%;
 
@@ -362,15 +362,15 @@
   }
 
   &__message-body--own {
-    background: #E3F2FD;
-    color: #000000;
+    background: var(--wl-message-own-bg);
+    color: var(--wl-message-own-text);
 
     // Own messages - sharp corner on bottom-right
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 2px;
 
     .guiders-chat-placeholder__message-meta {
-      color: rgba(0, 0, 0, 0.5);
+      color: var(--wl-message-meta);
     }
   }
 
@@ -386,13 +386,13 @@
 
   // Estilos para mensajes de IA
   &__message-body--ai {
-    background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
-    border: 1px solid #ddd6fe;
+    background: linear-gradient(135deg, var(--wl-message-ai-bg-start) 0%, var(--wl-message-ai-bg-end) 100%);
+    border: 1px solid var(--wl-message-ai-border);
     border-bottom-left-radius: 2px;
     position: relative;
 
     .guiders-chat-placeholder__message-meta {
-      color: #7c3aed;
+      color: var(--wl-message-ai-accent);
       opacity: 0.7;
     }
   }
@@ -401,7 +401,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #8b5cf6;
+    color: var(--wl-message-ai-accent);
     margin-right: 4px;
 
     svg {
@@ -417,7 +417,7 @@
     right: tokens.$spacing-sm;
     bottom: tokens.$spacing-xs;
     font-size: 11px;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--wl-message-meta);
     line-height: 1.2;
     white-space: nowrap;
     display: inline-flex;

@@ -55,6 +55,26 @@
   --wl-glow-warning: 0 0 20px rgba(245, 87, 108, 0.3);
   --wl-glow-info: 0 0 20px rgba(79, 172, 254, 0.3);
 
+  /* === STATUS COLORS === */
+  --wl-status-online: #10b981;
+  --wl-status-away: #f59e0b;
+  --wl-status-busy: #ef4444;
+  --wl-status-offline: #6c757d;
+
+  /* === MESSAGE COLORS === */
+  --wl-message-visitor-bg: #f1f3f4;
+  --wl-message-own-bg: #e3f2fd;
+  --wl-message-own-text: #000000;
+  --wl-message-ai-bg-start: #f3e8ff;
+  --wl-message-ai-bg-end: #ede9fe;
+  --wl-message-ai-border: #ddd6fe;
+  --wl-message-ai-accent: #7c3aed;
+  --wl-message-meta: rgba(0, 0, 0, 0.5);
+
+  /* === SCROLLBAR === */
+  --wl-scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --wl-scrollbar-thumb-hover: rgba(0, 0, 0, 0.3);
+
   /* === CHARTS === */
   --wl-chart-track: #e9ecef;
   --wl-chart-primary: #667eea;
@@ -113,6 +133,26 @@
   --wl-glow-success: 0 0 30px rgba(52, 211, 153, 0.4);
   --wl-glow-warning: 0 0 30px rgba(251, 191, 36, 0.4);
   --wl-glow-info: 0 0 30px rgba(96, 165, 250, 0.4);
+
+  /* === STATUS COLORS (igual en oscuro) === */
+  --wl-status-online: #10b981;
+  --wl-status-away: #f59e0b;
+  --wl-status-busy: #ef4444;
+  --wl-status-offline: #8888a8;
+
+  /* === MESSAGE COLORS OSCUROS === */
+  --wl-message-visitor-bg: #252542;
+  --wl-message-own-bg: #1e3a5f;
+  --wl-message-own-text: #ffffff;
+  --wl-message-ai-bg-start: #2a2042;
+  --wl-message-ai-bg-end: #1e1a3f;
+  --wl-message-ai-border: #3a3a5a;
+  --wl-message-ai-accent: #a855f7;
+  --wl-message-meta: rgba(255, 255, 255, 0.5);
+
+  /* === SCROLLBAR OSCURO === */
+  --wl-scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --wl-scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
 
   /* === CHARTS OSCUROS === */
   --wl-chart-track: #2a2a4a;
