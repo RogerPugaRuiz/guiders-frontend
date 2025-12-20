@@ -97,27 +97,26 @@ export class ThemeService {
       root.style.setProperty('--wl-color-surface-text-muted', '#6c757d');
     }
 
-    // 3. Colores de mensajes basados en colores de marca
+    // 3. Colores de mensajes
     const primaryColor = config.colors.primary;
-    const tertiaryColor = config.colors.tertiary;
     const isPrimaryDark = this.isDarkColor(primaryColor);
-    const isTertiaryDark = this.isDarkColor(tertiaryColor);
 
-    // Mensajes de visitantes (otros) - SIEMPRE grises fijos
-    root.style.setProperty('--wl-message-visitor-bg', isDark ? '#252542' : '#f1f3f4');
+    // Mensajes de visitantes - SIEMPRE grises fijos (no dependen de marca)
+    // Usan el mismo color tanto en tema claro como oscuro del sistema
+    root.style.setProperty('--wl-message-visitor-bg', '#f1f3f4');
 
-    // Mensajes propios (míos) - usan color de la marca (primario)
+    // Mensajes propios - usan color primario de la marca (dinámico)
     root.style.setProperty('--wl-message-own-bg', this.adjustColor(primaryColor, isPrimaryDark ? 70 : -70));
     root.style.setProperty('--wl-message-own-text', isPrimaryDark ? '#ffffff' : '#212529');
 
-    // Mensajes de IA usan color terciario
-    root.style.setProperty('--wl-message-ai-bg-start', this.adjustColor(tertiaryColor, isTertiaryDark ? 75 : -75));
-    root.style.setProperty('--wl-message-ai-bg-end', this.adjustColor(tertiaryColor, isTertiaryDark ? 70 : -70));
-    root.style.setProperty('--wl-message-ai-border', this.adjustColor(tertiaryColor, isTertiaryDark ? 50 : -50));
-    root.style.setProperty('--wl-message-ai-accent', tertiaryColor);
+    // Mensajes de IA - SIEMPRE rosado fijo (no dependen de marca)
+    root.style.setProperty('--wl-message-ai-bg-start', '#f3e8ff');
+    root.style.setProperty('--wl-message-ai-bg-end', '#ede9fe');
+    root.style.setProperty('--wl-message-ai-border', '#ddd6fe');
+    root.style.setProperty('--wl-message-ai-accent', '#7c3aed');
 
     // Meta (timestamp) con opacidad adaptativa
-    root.style.setProperty('--wl-message-meta', isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)');
+    root.style.setProperty('--wl-message-meta', 'rgba(0, 0, 0, 0.5)');
 
     // 4. Tipografía
     this.applyTypography(config.typography);
