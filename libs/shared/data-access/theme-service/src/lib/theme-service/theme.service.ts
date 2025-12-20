@@ -83,7 +83,7 @@ export class ThemeService {
     // 2. Variantes de surface generadas automáticamente según luminosidad
     if (isDark) {
       // Surface oscuro → variantes más claras
-      root.style.setProperty('--wl-color-surface-tertiary', this.adjustColor(surfaceColor, 10));
+      root.style.setProperty('--wl-color-surface-tertiary', this.adjustColor(surfaceColor, 25));
       root.style.setProperty('--wl-color-surface-hover', this.adjustColor(surfaceColor, 15));
       root.style.setProperty('--wl-color-surface-selected', this.adjustColor(surfaceColor, 20));
       root.style.setProperty('--wl-color-surface-active', this.adjustColor(surfaceColor, 25));
@@ -91,7 +91,7 @@ export class ThemeService {
       root.style.setProperty('--wl-color-surface-text-muted', '#b0b8c0');
     } else {
       // Surface claro → variantes más oscuras
-      root.style.setProperty('--wl-color-surface-tertiary', this.adjustColor(surfaceColor, -5));
+      root.style.setProperty('--wl-color-surface-tertiary', this.adjustColor(surfaceColor, -12));
       root.style.setProperty('--wl-color-surface-hover', this.adjustColor(surfaceColor, -10));
       root.style.setProperty('--wl-color-surface-selected', this.adjustColor(surfaceColor, -15));
       root.style.setProperty('--wl-color-surface-active', this.adjustColor(surfaceColor, -20));
