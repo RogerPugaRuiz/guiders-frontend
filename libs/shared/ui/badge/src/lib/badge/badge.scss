@@ -81,25 +81,25 @@
   // === VARIANTES DE COLOR ===
   &--default {
     background: tokens.$color-neutral-600;
-    color: #ffffff;
+    color: var(--wl-badge-danger-text);
     border: 1px solid tokens.$color-border-default;
   }
 
   &--primary {
     background: tokens.$color-primary-600;
-    color: #ffffff;
+    color: var(--wl-badge-danger-text);
     border: 1px solid tokens.$color-primary-600;
   }
 
   &--secondary {
     background: tokens.$color-secondary-600;
-    color: #ffffff;
+    color: var(--wl-badge-danger-text);
     border: 1px solid tokens.$color-secondary-600;
   }
 
   &--success {
     background: tokens.$color-success-600;
-    color: #ffffff;
+    color: var(--wl-badge-danger-text);
     border: 1px solid tokens.$color-success-600;
   }
 
@@ -111,14 +111,14 @@
 
   &--danger {
     // Usar un tono más suave y moderno para mejor experiencia visual
-    background: #ef4444; // Rojo más suave y balanceado (Tailwind red-500)
-    color: #ffffff;
-    border: 1px solid #ef4444;
+    background: var(--wl-badge-danger);
+    color: var(--wl-badge-danger-text);
+    border: 1px solid var(--wl-badge-danger);
   }
 
   &--info {
     background: tokens.$color-info-600;
-    color: #ffffff;
+    color: var(--wl-badge-danger-text);
     border: 1px solid tokens.$color-info-600;
   }
 
@@ -158,8 +158,8 @@
     }
 
     &.guiders-badge--danger {
-      color: #ef4444;
-      border-color: #ef4444;
+      color: var(--wl-badge-danger);
+      border-color: var(--wl-badge-danger);
     }
 
     &.guiders-badge--info {
@@ -270,13 +270,13 @@
 
     // Usar un tono más brillante de danger en modo oscuro para mejor visibilidad
     &--danger {
-      background: #f87171; // Rojo más brillante para modo oscuro (Tailwind red-400)
-      border-color: #f87171;
+      background: var(--wl-badge-danger);
+      border-color: var(--wl-badge-danger);
     }
 
     &--outline.guiders-badge--danger {
-      color: #f87171;
-      border-color: #f87171;
+      color: var(--wl-badge-danger);
+      border-color: var(--wl-badge-danger);
     }
   }
 }
