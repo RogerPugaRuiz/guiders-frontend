@@ -138,6 +138,19 @@ export class ThemeService {
     }
   }
 
+  /**
+   * Aplica el modo de tema (light/dark/auto).
+   *
+   * El atributo [data-theme] activa automáticamente todas las variables CSS
+   * definidas en styles.scss incluyendo:
+   * - Superficies (--wl-color-surface-primary, secondary, tertiary, elevated, overlay)
+   * - Textos (--wl-color-text-primary, secondary, tertiary, inverse, muted-2)
+   * - Bordes (--wl-color-border-subtle, default, strong)
+   * - Gradientes (--wl-gradient-primary, success, warning, info)
+   * - Glows (--wl-glow-primary, success, warning, info)
+   * - Charts (--wl-chart-track, primary, success, warning, info)
+   * - Sombras (--wl-shadow-sm, md, lg, card)
+   */
   private applyThemeMode(mode: ThemeMode): void {
     if (mode === 'auto') {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;

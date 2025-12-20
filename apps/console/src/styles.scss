@@ -8,7 +8,7 @@
 
 /* === WHITE LABEL CSS CUSTOM PROPERTIES === */
 :root {
-  /* Colores - Valores por defecto (sobrescritos dinámicamente por ThemeService) */
+  /* Colores principales - Valores por defecto (sobrescritos dinámicamente por ThemeService) */
   --wl-color-primary: #007bff;
   --wl-color-secondary: #6c757d;
   --wl-color-tertiary: #28a745;
@@ -17,11 +17,55 @@
   --wl-color-text: #212529;
   --wl-color-text-muted: #6c757d;
 
+  /* === SUPERFICIES === */
+  --wl-color-surface-primary: #ffffff;
+  --wl-color-surface-secondary: #f8f9fa;
+  --wl-color-surface-tertiary: #f1f3f4;
+  --wl-color-surface-elevated: #ffffff;
+  --wl-color-surface-overlay: rgba(0, 0, 0, 0.5);
+
   /* Variantes de surface - generadas automáticamente por ThemeService según luminosidad */
   --wl-color-surface-hover: #e9ecef;
   --wl-color-surface-active: #dee2e6;
   --wl-color-surface-text: #212529;
   --wl-color-surface-text-muted: #6c757d;
+
+  /* === TEXTOS === */
+  --wl-color-text-primary: #212529;
+  --wl-color-text-secondary: #495057;
+  --wl-color-text-tertiary: #6c757d;
+  --wl-color-text-inverse: #ffffff;
+  --wl-color-text-muted-2: #adb5bd;
+
+  /* === BORDES === */
+  --wl-color-border-subtle: #e9ecef;
+  --wl-color-border-default: #dee2e6;
+  --wl-color-border-strong: #ced4da;
+
+  /* === GRADIENTES === */
+  --wl-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --wl-gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  --wl-gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --wl-gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+
+  /* === GLOWS (efectos de brillo) === */
+  --wl-glow-primary: 0 0 20px rgba(102, 126, 234, 0.3);
+  --wl-glow-success: 0 0 20px rgba(56, 239, 125, 0.3);
+  --wl-glow-warning: 0 0 20px rgba(245, 87, 108, 0.3);
+  --wl-glow-info: 0 0 20px rgba(79, 172, 254, 0.3);
+
+  /* === CHARTS === */
+  --wl-chart-track: #e9ecef;
+  --wl-chart-primary: #667eea;
+  --wl-chart-success: #38ef7d;
+  --wl-chart-warning: #f5576c;
+  --wl-chart-info: #4facfe;
+
+  /* === SOMBRAS === */
+  --wl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --wl-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --wl-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --wl-shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
 
   /* Tipografía */
   --wl-font-family: 'Inter', sans-serif;
@@ -33,6 +77,50 @@
   --wl-color-surface: #16213e;
   --wl-color-text: #eaeaea;
   --wl-color-text-muted: #a0a0a0;
+
+  /* === SUPERFICIES OSCURAS === */
+  --wl-color-surface-primary: #0f0f23;
+  --wl-color-surface-secondary: #1a1a2e;
+  --wl-color-surface-tertiary: #252542;
+  --wl-color-surface-elevated: #1e1e3f;
+  --wl-color-surface-overlay: rgba(0, 0, 0, 0.7);
+
+  /* === TEXTOS OSCUROS === */
+  --wl-color-text-primary: #ffffff;
+  --wl-color-text-secondary: #b8b8d1;
+  --wl-color-text-tertiary: #8888a8;
+  --wl-color-text-inverse: #0f0f23;
+  --wl-color-text-muted-2: #6c6c8a;
+
+  /* === BORDES OSCUROS === */
+  --wl-color-border-subtle: #2a2a4a;
+  --wl-color-border-default: #3a3a5a;
+  --wl-color-border-strong: #4a4a6a;
+
+  /* === GRADIENTES (más vibrantes en oscuro) === */
+  --wl-gradient-primary: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  --wl-gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  --wl-gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --wl-gradient-info: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+
+  /* === GLOWS (más intensos en oscuro) === */
+  --wl-glow-primary: 0 0 30px rgba(124, 58, 237, 0.4);
+  --wl-glow-success: 0 0 30px rgba(52, 211, 153, 0.4);
+  --wl-glow-warning: 0 0 30px rgba(251, 191, 36, 0.4);
+  --wl-glow-info: 0 0 30px rgba(96, 165, 250, 0.4);
+
+  /* === CHARTS OSCUROS === */
+  --wl-chart-track: #2a2a4a;
+  --wl-chart-primary: #a855f7;
+  --wl-chart-success: #34d399;
+  --wl-chart-warning: #fbbf24;
+  --wl-chart-info: #60a5fa;
+
+  /* === SOMBRAS OSCURAS === */
+  --wl-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --wl-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --wl-shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+  --wl-shadow-card: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Reset y normalización */
