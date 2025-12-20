@@ -17,7 +17,7 @@
   cursor: pointer;
 
   &:hover {
-    background-color: var(--wl-color-surface-hover, tokens.$color-surface-tertiary);
+    background-color: rgba(255, 255, 255, 0.05);
   }
 
   // Modo compacto (sidebar colapsado)
