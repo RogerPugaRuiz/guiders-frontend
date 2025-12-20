@@ -99,7 +99,7 @@
   &__email {
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-regular;
-    color: var(--wl-color-surface-text-muted, tokens.$color-text-tertiary);
+    color: var(--wl-color-surface-text, tokens.$color-text-secondary);
     line-height: tokens.$line-height-tight;
     white-space: nowrap;
     overflow: hidden;
