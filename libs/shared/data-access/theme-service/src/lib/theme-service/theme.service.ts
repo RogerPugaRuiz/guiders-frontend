@@ -84,29 +84,39 @@ export class ThemeService {
     if (isDark) {
       // Surface oscuro → variantes más claras
       root.style.setProperty('--wl-color-surface-hover', this.adjustColor(surfaceColor, 15));
+      root.style.setProperty('--wl-color-surface-selected', this.adjustColor(surfaceColor, 20));
       root.style.setProperty('--wl-color-surface-active', this.adjustColor(surfaceColor, 25));
       root.style.setProperty('--wl-color-surface-text', '#ffffff');
       root.style.setProperty('--wl-color-surface-text-muted', '#b0b8c0');
     } else {
       // Surface claro → variantes más oscuras
       root.style.setProperty('--wl-color-surface-hover', this.adjustColor(surfaceColor, -10));
+      root.style.setProperty('--wl-color-surface-selected', this.adjustColor(surfaceColor, -15));
       root.style.setProperty('--wl-color-surface-active', this.adjustColor(surfaceColor, -20));
       root.style.setProperty('--wl-color-surface-text', '#212529');
       root.style.setProperty('--wl-color-surface-text-muted', '#6c757d');
     }
 
-    // 3. Tipografía
+    // 3. Colores de mensajes basados en color primario
+    const primaryColor = config.colors.primary;
+    const isPrimaryDark = this.isDarkColor(primaryColor);
+
+    // Mensaje propio usa versión muy clara del color primario
+    root.style.setProperty('--wl-message-own-bg', this.adjustColor(primaryColor, isPrimaryDark ? 70 : -70));
+    root.style.setProperty('--wl-message-own-text', isPrimaryDark ? '#ffffff' : '#212529');
+
+    // 4. Tipografía
     this.applyTypography(config.typography);
 
-    // 3. Tema (light/dark/auto)
+    // 5. Tema (light/dark/auto)
     this.applyThemeMode(config.theme);
 
-    // 4. Favicon
+    // 6. Favicon
     if (config.branding.faviconUrl) {
       this.updateFavicon(config.branding.faviconUrl);
     }
 
-    // 5. Título del documento
+    // 7. Título del documento
     if (config.branding.brandName) {
       document.title = config.branding.brandName;
     }
