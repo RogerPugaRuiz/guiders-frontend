@@ -75,7 +75,7 @@
 
 .conversation-item__name {
   @include tokens.typography('label-large');
-  color: tokens.$color-text-primary;
+  color: var(--wl-color-text-primary);
   margin: 0;
   min-width: 0;
   overflow: hidden;
@@ -85,7 +85,7 @@
 
 .conversation-item__time {
   @include tokens.typography('caption');
-  color: tokens.$color-text-tertiary;
+  color: var(--wl-color-text-tertiary);
   flex-shrink: 0;
 }
 
@@ -98,7 +98,7 @@
 
 .conversation-item__preview {
   @include tokens.typography('body-small');
-  color: tokens.$color-text-secondary;
+  color: var(--wl-color-text-secondary);
   margin: 0;
   min-width: 0;
   overflow: hidden;
