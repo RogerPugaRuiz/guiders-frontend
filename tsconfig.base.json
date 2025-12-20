@@ -15,6 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@guiders-frontend/activity-stat-card": [
+        "libs/shared/ui/activity-stat-card/src/index.ts"
+      ],
       "@guiders-frontend/ai-config": [
         "libs/admin/features/ai-config/src/index.ts"
       ],
@@ -116,6 +119,9 @@
       ],
       "@guiders-frontend/design-tokens": [
         "libs/shared/design-tokens/src/index.ts"
+      ],
+      "@guiders-frontend/donut-chart": [
+        "libs/shared/ui/donut-chart/src/index.ts"
       ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
       "@guiders-frontend/integrations": [

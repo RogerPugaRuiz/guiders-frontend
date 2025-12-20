@@ -1,6 +1,6 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DonutChart, DonutChartVariant, DonutChartSize } from '@guiders-frontend/shared/ui/donut-chart';
+import { DonutChart, DonutChartVariant, DonutChartSize } from '@guiders-frontend/donut-chart';
 
 @Component({
   selector: 'guiders-activity-stat-card',

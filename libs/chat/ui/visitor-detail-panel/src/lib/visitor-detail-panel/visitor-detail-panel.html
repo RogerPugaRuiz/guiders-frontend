@@ -188,23 +188,28 @@
   <!-- Activity Stats -->
   <div class="visitor-detail-panel__section">
     <h5 class="visitor-detail-panel__section-title">Actividad</h5>
-    <div class="visitor-detail-panel__stats">
-      <div class="visitor-detail-panel__stat">
-        <span class="visitor-detail-panel__stat-value">{{ visitor().totalChats }}</span>
-        <span class="visitor-detail-panel__stat-label">Chats</span>
-      </div>
-      <div class="visitor-detail-panel__stat">
-        <span class="visitor-detail-panel__stat-value">{{ visitor().totalSessions }}</span>
-        <span class="visitor-detail-panel__stat-label">Sesiones</span>
-      </div>
-      <div class="visitor-detail-panel__stat">
-        <span class="visitor-detail-panel__stat-value">{{ visitor().totalPageViews }}</span>
-        <span class="visitor-detail-panel__stat-label">Páginas</span>
-      </div>
-      <div class="visitor-detail-panel__stat">
-        <span class="visitor-detail-panel__stat-value">{{ formattedSessionDuration() }}</span>
-        <span class="visitor-detail-panel__stat-label">Tiempo conectado</span>
-      </div>
+    <div class="visitor-detail-panel__activity-stats">
+      <guiders-activity-stat-card
+        [value]="visitor().totalChats"
+        [maxValue]="10"
+        [label]="'Chats'"
+        [variant]="'primary'"
+        [size]="'small'"
+      />
+      <guiders-activity-stat-card
+        [value]="visitor().totalSessions"
+        [maxValue]="20"
+        [label]="'Sesiones'"
+        [variant]="'info'"
+        [size]="'small'"
+      />
+      <guiders-activity-stat-card
+        [value]="visitor().totalPageViews"
+        [maxValue]="50"
+        [label]="'Páginas'"
+        [variant]="'success'"
+        [size]="'small'"
+      />
     </div>
   </div>
 

@@ -15,10 +15,11 @@ import { CommonModule } from '@angular/common';
 import { Visitor, LeadContactData, SaveContactDataRequest } from '@guiders-frontend/shared/types';
 import { LeadScore } from '@guiders-frontend/visitors-data-service';
 import { ContactDataForm } from '@guiders-frontend/contact-data-form';
+import { ActivityStatCard } from '@guiders-frontend/activity-stat-card';
 
 @Component({
   selector: 'guiders-visitor-detail-panel',
-  imports: [CommonModule, ContactDataForm],
+  imports: [CommonModule, ContactDataForm, ActivityStatCard],
   templateUrl: './visitor-detail-panel.html',
   styleUrl: './visitor-detail-panel.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
