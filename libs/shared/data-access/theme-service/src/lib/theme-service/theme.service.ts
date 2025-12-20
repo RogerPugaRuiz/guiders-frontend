@@ -97,13 +97,27 @@ export class ThemeService {
       root.style.setProperty('--wl-color-surface-text-muted', '#6c757d');
     }
 
-    // 3. Colores de mensajes basados en color primario
+    // 3. Colores de mensajes basados en colores de marca
     const primaryColor = config.colors.primary;
+    const tertiaryColor = config.colors.tertiary;
     const isPrimaryDark = this.isDarkColor(primaryColor);
+    const isTertiaryDark = this.isDarkColor(tertiaryColor);
 
     // Mensaje propio usa versión muy clara del color primario
     root.style.setProperty('--wl-message-own-bg', this.adjustColor(primaryColor, isPrimaryDark ? 70 : -70));
     root.style.setProperty('--wl-message-own-text', isPrimaryDark ? '#ffffff' : '#212529');
+
+    // Mensaje de visitante usa variante de surface
+    root.style.setProperty('--wl-message-visitor-bg', this.adjustColor(surfaceColor, isDark ? 10 : -5));
+
+    // Mensajes de IA usan color terciario
+    root.style.setProperty('--wl-message-ai-bg-start', this.adjustColor(tertiaryColor, isTertiaryDark ? 75 : -75));
+    root.style.setProperty('--wl-message-ai-bg-end', this.adjustColor(tertiaryColor, isTertiaryDark ? 70 : -70));
+    root.style.setProperty('--wl-message-ai-border', this.adjustColor(tertiaryColor, isTertiaryDark ? 50 : -50));
+    root.style.setProperty('--wl-message-ai-accent', tertiaryColor);
+
+    // Meta (timestamp) con opacidad adaptativa
+    root.style.setProperty('--wl-message-meta', isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.5)');
 
     // 4. Tipografía
     this.applyTypography(config.typography);
