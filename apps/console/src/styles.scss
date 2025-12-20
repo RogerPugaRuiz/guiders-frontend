@@ -25,7 +25,8 @@
   --wl-color-surface-overlay: rgba(0, 0, 0, 0.5);
 
   /* Variantes de surface - generadas automáticamente por ThemeService según luminosidad */
-  --wl-color-surface-hover: #e9ecef;
+  --wl-color-surface-hover: #f1f3f4;
+  --wl-color-surface-selected: #e7f3ff;
   --wl-color-surface-active: #dee2e6;
   --wl-color-surface-text: #212529;
   --wl-color-surface-text-muted: #6c757d;
@@ -84,6 +85,10 @@
   --wl-color-surface-tertiary: #252542;
   --wl-color-surface-elevated: #1e1e3f;
   --wl-color-surface-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Variantes de surface oscuras */
+  --wl-color-surface-hover: #252542;
+  --wl-color-surface-selected: #2a2a4a;
 
   /* === TEXTOS OSCUROS === */
   --wl-color-text-primary: #ffffff;

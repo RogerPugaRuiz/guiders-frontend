@@ -26,11 +26,11 @@
   transition: background-color tokens.$duration-fast tokens.$easing-standard;
 
   &:hover {
-    background: tokens.$color-surface-tertiary;
+    background: var(--wl-color-surface-hover);
 
     // Cambiar el borde del indicador de presencia en hover
     ::ng-deep .guiders-avatar__presence-indicator {
-      border-color: tokens.$color-surface-tertiary;
+      border-color: var(--wl-color-surface-hover);
     }
   }
 
@@ -40,16 +40,16 @@
   }
 
   &--selected {
-    background: tokens.$color-surface-tertiary;
+    background: var(--wl-color-surface-selected);
 
     .conversation-item__name {
       font-weight: tokens.$font-weight-semibold;
-      color: #000000; // Color negro más intenso para estado activo
+      color: var(--wl-color-text-primary);
     }
 
     // Cambiar el borde del indicador de presencia al mismo color que el background
     ::ng-deep .guiders-avatar__presence-indicator {
-      border-color: tokens.$color-surface-tertiary;
+      border-color: var(--wl-color-surface-selected);
     }
   }
 
