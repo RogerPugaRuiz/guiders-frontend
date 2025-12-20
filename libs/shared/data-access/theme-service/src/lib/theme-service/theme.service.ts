@@ -103,12 +103,12 @@ export class ThemeService {
     const isPrimaryDark = this.isDarkColor(primaryColor);
     const isTertiaryDark = this.isDarkColor(tertiaryColor);
 
-    // Mensaje propio usa versión muy clara del color primario
+    // Mensajes de visitantes (otros) - SIEMPRE grises fijos
+    root.style.setProperty('--wl-message-visitor-bg', isDark ? '#252542' : '#f1f3f4');
+
+    // Mensajes propios (míos) - usan color de la marca (primario)
     root.style.setProperty('--wl-message-own-bg', this.adjustColor(primaryColor, isPrimaryDark ? 70 : -70));
     root.style.setProperty('--wl-message-own-text', isPrimaryDark ? '#ffffff' : '#212529');
-
-    // Mensaje de visitante usa variante de surface
-    root.style.setProperty('--wl-message-visitor-bg', this.adjustColor(surfaceColor, isDark ? 10 : -5));
 
     // Mensajes de IA usan color terciario
     root.style.setProperty('--wl-message-ai-bg-start', this.adjustColor(tertiaryColor, isTertiaryDark ? 75 : -75));
