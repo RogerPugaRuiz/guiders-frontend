@@ -28,11 +28,14 @@
   &:hover {
     background: var(--wl-color-surface-hover);
 
-    // Ajustar colores de texto en hover para ambos temas
+    // Ajustar colores de texto en hover según luminosidad de la marca blanca
     .conversation-item__name,
-    .conversation-item__preview,
+    .conversation-item__preview {
+      color: var(--wl-color-surface-text);
+    }
+
     .conversation-item__time {
-      color: var(--wl-color-text-primary);
+      color: var(--wl-color-surface-text-muted);
     }
 
     // Cambiar el borde del indicador de presencia en hover
@@ -51,7 +54,15 @@
 
     .conversation-item__name {
       font-weight: tokens.$font-weight-semibold;
-      color: var(--wl-color-text-primary);
+      color: var(--wl-color-surface-text);
+    }
+
+    .conversation-item__preview {
+      color: var(--wl-color-surface-text);
+    }
+
+    .conversation-item__time {
+      color: var(--wl-color-surface-text-muted);
     }
 
     // Cambiar el borde del indicador de presencia al mismo color que el background
