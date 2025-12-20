@@ -636,7 +636,7 @@
 .sidebar__footer {
   margin-top: auto; // Empujar al final
   border-top: 1px solid rgba(128, 128, 128, 0.2); // Border sutil que se mezcla con cualquier fondo
-  background: var(--wl-color-surface, tokens.$color-surface-secondary);
+  background: transparent;
 }
 
 // Ajustes para modo colapsado
