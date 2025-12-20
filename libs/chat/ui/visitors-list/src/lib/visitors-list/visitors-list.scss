@@ -118,6 +118,9 @@
   text-transform: uppercase;
   border-bottom: 1px solid rgba(128, 128, 128, 0.15);
   white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 
   &--pending-chats {
     text-align: center;
