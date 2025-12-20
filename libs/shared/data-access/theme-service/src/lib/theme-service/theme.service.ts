@@ -106,8 +106,10 @@ export class ThemeService {
     root.style.setProperty('--wl-message-visitor-bg', '#f1f3f4');
 
     // Mensajes propios - usan color primario de la marca (dinámico)
-    root.style.setProperty('--wl-message-own-bg', this.adjustColor(primaryColor, isPrimaryDark ? 70 : -70));
-    root.style.setProperty('--wl-message-own-text', isPrimaryDark ? '#ffffff' : '#212529');
+    // Siempre generamos una versión MUY clara del color primario (80% más claro)
+    root.style.setProperty('--wl-message-own-bg', this.adjustColor(primaryColor, 80));
+    // Texto siempre oscuro en fondo claro
+    root.style.setProperty('--wl-message-own-text', '#212529');
 
     // Mensajes de IA - SIEMPRE rosado fijo (no dependen de marca)
     root.style.setProperty('--wl-message-ai-bg-start', '#f3e8ff');
