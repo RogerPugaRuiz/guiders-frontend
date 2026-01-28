@@ -1,4 +1,11 @@
-import { Injectable, inject, signal, computed, DestroyRef, Injector } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  signal,
+  computed,
+  DestroyRef,
+  Injector,
+} from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -7,7 +14,7 @@ import {
   Message,
   UnreadCountMap,
   UnreadMessagesResponse,
-  MarkAsReadResponse
+  MarkAsReadResponse,
 } from '@guiders-frontend/shared/types';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-service';
@@ -30,7 +37,7 @@ import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-s
  * - WebSocket: message:new
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UnreadMessagesService {
   private readonly http = inject(HttpClient);
@@ -158,22 +165,34 @@ export class UnreadMessagesService {
     this.activeChatId = chatId;
 
     console.log(`[UnreadMessagesService] 🔄 ===== CAMBIO DE CHAT ACTIVO =====`);
-    console.log(`[UnreadMessagesService] 📋 Chat anterior: ${previousChatId || 'ninguno'}`);
-    console.log(`[UnreadMessagesService] 📋 Chat nuevo: ${chatId || 'ninguno'}`);
-    console.log(`[UnreadMessagesService] 📊 activeChatId ACTUALIZADO A: ${this.activeChatId}`);
+    console.log(
+      `[UnreadMessagesService] 📋 Chat anterior: ${previousChatId || 'ninguno'}`
+    );
+    console.log(
+      `[UnreadMessagesService] 📋 Chat nuevo: ${chatId || 'ninguno'}`
+    );
+    console.log(
+      `[UnreadMessagesService] 📊 activeChatId ACTUALIZADO A: ${this.activeChatId}`
+    );
     console.log(`[UnreadMessagesService] 📊 Estado actual de contadores:`, {
-      ...this.unreadCountMap()
+      ...this.unreadCountMap(),
     });
 
     // Si se activó un chat, marcar sus mensajes no leídos como leídos automáticamente
     if (chatId) {
-      console.log(`[UnreadMessagesService] ✅ Iniciando markActiveChatAsRead para: ${chatId}`);
+      console.log(
+        `[UnreadMessagesService] ✅ Iniciando markActiveChatAsRead para: ${chatId}`
+      );
       this.markActiveChatAsRead(chatId);
     } else {
-      console.log(`[UnreadMessagesService] ⚠️ Chat desactivado (cerrado), no hay chat activo`);
+      console.log(
+        `[UnreadMessagesService] ⚠️ Chat desactivado (cerrado), no hay chat activo`
+      );
     }
 
-    console.log(`[UnreadMessagesService] 🎯 ===== FIN CAMBIO DE CHAT ACTIVO =====`);
+    console.log(
+      `[UnreadMessagesService] 🎯 ===== FIN CAMBIO DE CHAT ACTIVO =====`
+    );
 
     // Mostrar estado completo después del cambio
     this.debugState();
@@ -190,13 +209,29 @@ export class UnreadMessagesService {
    * Método de debugging para ver el estado completo del servicio
    */
   debugState(): void {
-    console.log('[UnreadMessagesService] 🐛 ===== ESTADO ACTUAL DEL SERVICIO =====');
+    console.log(
+      '[UnreadMessagesService] 🐛 ===== ESTADO ACTUAL DEL SERVICIO ====='
+    );
     console.log('[UnreadMessagesService] 📋 activeChatId:', this.activeChatId);
-    console.log('[UnreadMessagesService] 📋 currentUserId:', this.currentUserId);
-    console.log('[UnreadMessagesService] 📋 notificationsEnabled:', this.notificationsEnabled);
-    console.log('[UnreadMessagesService] 📊 unreadCountMap:', { ...this.unreadCountMap() });
-    console.log('[UnreadMessagesService] 📨 unreadMessagesMap keys:', Object.keys(this.unreadMessagesMap()));
-    console.log('[UnreadMessagesService] 📊 totalUnreadCount:', this.totalUnreadCount());
+    console.log(
+      '[UnreadMessagesService] 📋 currentUserId:',
+      this.currentUserId
+    );
+    console.log(
+      '[UnreadMessagesService] 📋 notificationsEnabled:',
+      this.notificationsEnabled
+    );
+    console.log('[UnreadMessagesService] 📊 unreadCountMap:', {
+      ...this.unreadCountMap(),
+    });
+    console.log(
+      '[UnreadMessagesService] 📨 unreadMessagesMap keys:',
+      Object.keys(this.unreadMessagesMap())
+    );
+    console.log(
+      '[UnreadMessagesService] 📊 totalUnreadCount:',
+      this.totalUnreadCount()
+    );
     console.log('[UnreadMessagesService] 🐛 ===== FIN ESTADO =====');
   }
 
@@ -209,30 +244,48 @@ export class UnreadMessagesService {
    * 4. Actualizar badge a 0
    */
   private markActiveChatAsRead(chatId: string): void {
-    console.log(`[UnreadMessagesService] 🔄 === INICIANDO RESETEO DE CONTADOR ===`);
+    console.log(
+      `[UnreadMessagesService] 🔄 === INICIANDO RESETEO DE CONTADOR ===`
+    );
     console.log(`[UnreadMessagesService] 📋 ChatId a resetear: ${chatId}`);
-    console.log(`[UnreadMessagesService] 📊 Contador actual ANTES: ${this.unreadCountMap()[chatId] || 0}`);
-    console.log(`[UnreadMessagesService] 📨 Mensajes locales no leídos:`, this.unreadMessagesMap()[chatId]?.length || 0);
+    console.log(
+      `[UnreadMessagesService] 📊 Contador actual ANTES: ${
+        this.unreadCountMap()[chatId] || 0
+      }`
+    );
+    console.log(
+      `[UnreadMessagesService] 📨 Mensajes locales no leídos:`,
+      this.unreadMessagesMap()[chatId]?.length || 0
+    );
 
     // ✅ RESETEAR CONTADOR INMEDIATAMENTE en la UI (feedback instantáneo)
-    this.unreadCountMap.update(map => {
+    this.unreadCountMap.update((map) => {
       const newMap = { ...map, [chatId]: 0 };
-      console.log(`[UnreadMessagesService] ✅ unreadCountMap actualizado:`, newMap);
+      console.log(
+        `[UnreadMessagesService] ✅ unreadCountMap actualizado:`,
+        newMap
+      );
       return newMap;
     });
 
     // Limpiar mensajes no leídos localmente
-    this.unreadMessagesMap.update(map => {
+    this.unreadMessagesMap.update((map) => {
       const newMap = { ...map };
       delete newMap[chatId];
-      console.log(`[UnreadMessagesService] ✅ unreadMessagesMap limpiado para chat ${chatId}`);
+      console.log(
+        `[UnreadMessagesService] ✅ unreadMessagesMap limpiado para chat ${chatId}`
+      );
       return newMap;
     });
 
     // Actualizar subject
     this.unreadCountSubject.next(this.unreadCountMap());
     console.log(`[UnreadMessagesService] ✅ BehaviorSubject actualizado`);
-    console.log(`[UnreadMessagesService] 📊 Contador actual DESPUÉS: ${this.unreadCountMap()[chatId] || 0}`);
+    console.log(
+      `[UnreadMessagesService] 📊 Contador actual DESPUÉS: ${
+        this.unreadCountMap()[chatId] || 0
+      }`
+    );
 
     // Detener parpadeo si no hay más mensajes no leídos
     if (this.totalUnreadCount() === 0) {
@@ -243,58 +296,96 @@ export class UnreadMessagesService {
     // Esto es crítico porque puede haber mensajes no leídos que llegaron
     // mientras el comercial estaba desconectado
     // IMPORTANTE: Usar método privado que NO actualiza el estado local
-    console.log(`[UnreadMessagesService] 🌐 Consultando servidor para mensajes no leídos (sin actualizar estado)...`);
+    console.log(
+      `[UnreadMessagesService] 🌐 Consultando servidor para mensajes no leídos (sin actualizar estado)...`
+    );
     this.getUnreadMessagesWithoutStateUpdate(chatId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (unreadMessages) => {
-          console.log(`[UnreadMessagesService] 📥 Respuesta del servidor recibida`);
+          console.log(
+            `[UnreadMessagesService] 📥 Respuesta del servidor recibida`
+          );
 
           if (unreadMessages.length === 0) {
-            console.log(`[UnreadMessagesService] ✅ No hay mensajes sin leer en el servidor para chat ${chatId}`);
+            console.log(
+              `[UnreadMessagesService] ✅ No hay mensajes sin leer en el servidor para chat ${chatId}`
+            );
             return;
           }
 
-          console.log(`[UnreadMessagesService] 📋 ${unreadMessages.length} mensajes no leídos encontrados en servidor:`);
-          console.log(`[UnreadMessagesService] 📋 Estructura del primer mensaje:`, unreadMessages[0]);
+          console.log(
+            `[UnreadMessagesService] 📋 ${unreadMessages.length} mensajes no leídos encontrados en servidor:`
+          );
+          console.log(
+            `[UnreadMessagesService] 📋 Estructura del primer mensaje:`,
+            unreadMessages[0]
+          );
 
           // IMPORTANTE: El servidor puede devolver 'id' o 'messageId'
           // Intentar ambos campos para compatibilidad
-          const messageIds = unreadMessages.map(m => (m as any).id || m.messageId);
+          const messageIds = unreadMessages.map(
+            (m) => (m as any).id || m.messageId
+          );
 
           console.log(`[UnreadMessagesService] 📋 IDs extraídos:`, messageIds);
-          const validIds = messageIds.filter(id => id !== undefined && id !== null);
-          console.log(`[UnreadMessagesService] 📋 IDs válidos:`, validIds.length);
+          const validIds = messageIds.filter(
+            (id) => id !== undefined && id !== null
+          );
+          console.log(
+            `[UnreadMessagesService] 📋 IDs válidos:`,
+            validIds.length
+          );
 
           if (validIds.length === 0) {
-            console.warn(`[UnreadMessagesService] ⚠️ No se pudieron extraer IDs válidos de los mensajes`);
-            console.warn(`[UnreadMessagesService] ⚠️ Verificar estructura del mensaje del servidor`);
+            console.warn(
+              `[UnreadMessagesService] ⚠️ No se pudieron extraer IDs válidos de los mensajes`
+            );
+            console.warn(
+              `[UnreadMessagesService] ⚠️ Verificar estructura del mensaje del servidor`
+            );
             return;
           }
 
           // Esperar 1 segundo antes de marcar en el servidor
-          console.log(`[UnreadMessagesService] ⏱️ Esperando 1 segundo antes de marcar como leídos...`);
+          console.log(
+            `[UnreadMessagesService] ⏱️ Esperando 1 segundo antes de marcar como leídos...`
+          );
           setTimeout(() => {
-            console.log(`[UnreadMessagesService] 🚀 Enviando solicitud para marcar ${validIds.length} mensajes como leídos`);
+            console.log(
+              `[UnreadMessagesService] 🚀 Enviando solicitud para marcar ${validIds.length} mensajes como leídos`
+            );
             this.markAsRead(validIds).subscribe({
               next: (response) => {
                 if (response.success) {
-                  console.log(`✅ [UnreadMessagesService] ${response.markedCount} mensajes marcados como leídos en el servidor`);
-                  console.log(`[UnreadMessagesService] 🎉 === RESETEO COMPLETADO ===`);
+                  console.log(
+                    `✅ [UnreadMessagesService] ${response.markedCount} mensajes marcados como leídos en el servidor`
+                  );
+                  console.log(
+                    `[UnreadMessagesService] 🎉 === RESETEO COMPLETADO ===`
+                  );
                 } else {
-                  console.warn(`⚠️ [UnreadMessagesService] Respuesta del servidor: success=false`);
+                  console.warn(
+                    `⚠️ [UnreadMessagesService] Respuesta del servidor: success=false`
+                  );
                 }
               },
               error: (error) => {
-                console.error('[UnreadMessagesService] ❌ Error al marcar mensajes como leídos:', error);
-              }
+                console.error(
+                  '[UnreadMessagesService] ❌ Error al marcar mensajes como leídos:',
+                  error
+                );
+              },
             });
           }, 1000);
         },
         error: (error) => {
-          console.error('[UnreadMessagesService] ❌ Error al obtener mensajes no leídos del servidor:', error);
+          console.error(
+            '[UnreadMessagesService] ❌ Error al obtener mensajes no leídos del servidor:',
+            error
+          );
           console.error('[UnreadMessagesService] Error details:', error);
-        }
+        },
       });
   }
 
@@ -304,32 +395,42 @@ export class UnreadMessagesService {
    * Obtener mensajes no leídos SIN actualizar el estado local
    * Usado internamente por markActiveChatAsRead para evitar incrementar el contador
    */
-  private getUnreadMessagesWithoutStateUpdate(chatId: string): Observable<Message[]> {
-    console.log(`[UnreadMessagesService] 🌐 === LLAMANDO GET /v2/messages/chat/${chatId}/unread (SIN ACTUALIZAR ESTADO) ===`);
+  private getUnreadMessagesWithoutStateUpdate(
+    chatId: string
+  ): Observable<Message[]> {
+    console.log(
+      `[UnreadMessagesService] 🌐 === LLAMANDO GET /v2/messages/chat/${chatId}/unread (SIN ACTUALIZAR ESTADO) ===`
+    );
 
     const url = `${this.baseUrl}/messages/chat/${chatId}/unread`;
     console.log(`[UnreadMessagesService] 📋 URL completa:`, url);
 
-    return this.http.get<Message[]>(
-      url,
-      this.getHttpOptions()
-    ).pipe(
-      map(messages => {
-        console.log(`[UnreadMessagesService] 📥 Respuesta del servidor (sin actualizar estado):`, messages);
+    return this.http.get<Message[]>(url, this.getHttpOptions()).pipe(
+      map((messages) => {
+        console.log(
+          `[UnreadMessagesService] 📥 Respuesta del servidor (sin actualizar estado):`,
+          messages
+        );
 
         // Transformar fechas de string a Date pero NO actualizar estado local
-        const transformedMessages = messages.map(msg => ({
+        const transformedMessages = messages.map((msg) => ({
           ...msg,
           sentAt: new Date(msg.sentAt),
           readAt: msg.readAt ? new Date(msg.readAt) : null,
-          editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined
+          editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
         }));
 
-        console.log(`[UnreadMessagesService] 🔄 Mensajes transformados (sin tocar estado):`, transformedMessages.length);
+        console.log(
+          `[UnreadMessagesService] 🔄 Mensajes transformados (sin tocar estado):`,
+          transformedMessages.length
+        );
         return transformedMessages;
       }),
-      catchError(error => {
-        console.error('[UnreadMessagesService] ❌ Error al obtener mensajes no leídos:', error);
+      catchError((error) => {
+        console.error(
+          '[UnreadMessagesService] ❌ Error al obtener mensajes no leídos:',
+          error
+        );
         return of([]);
       })
     );
@@ -340,30 +441,38 @@ export class UnreadMessagesService {
    * GET /v2/messages/chat/:chatId/unread
    */
   getUnreadMessages(chatId: string): Observable<Message[]> {
-    console.log(`[UnreadMessagesService] 🌐 === LLAMANDO GET /v2/messages/chat/${chatId}/unread ===`);
+    console.log(
+      `[UnreadMessagesService] 🌐 === LLAMANDO GET /v2/messages/chat/${chatId}/unread ===`
+    );
     this.isLoading.set(true);
     this.error.set(null);
 
     const url = `${this.baseUrl}/messages/chat/${chatId}/unread`;
     console.log(`[UnreadMessagesService] 📋 URL completa:`, url);
 
-    return this.http.get<Message[]>(
-      url,
-      this.getHttpOptions()
-    ).pipe(
-      map(messages => {
-        console.log(`[UnreadMessagesService] 📥 Respuesta del servidor:`, messages);
-        console.log(`[UnreadMessagesService] 📊 Total de mensajes no leídos:`, messages.length);
+    return this.http.get<Message[]>(url, this.getHttpOptions()).pipe(
+      map((messages) => {
+        console.log(
+          `[UnreadMessagesService] 📥 Respuesta del servidor:`,
+          messages
+        );
+        console.log(
+          `[UnreadMessagesService] 📊 Total de mensajes no leídos:`,
+          messages.length
+        );
 
         // Transformar fechas de string a Date
-        const transformedMessages = messages.map(msg => ({
+        const transformedMessages = messages.map((msg) => ({
           ...msg,
           sentAt: new Date(msg.sentAt),
           readAt: msg.readAt ? new Date(msg.readAt) : null,
-          editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined
+          editedAt: msg.editedAt ? new Date(msg.editedAt) : undefined,
         }));
 
-        console.log(`[UnreadMessagesService] 🔄 Mensajes transformados:`, transformedMessages.length);
+        console.log(
+          `[UnreadMessagesService] 🔄 Mensajes transformados:`,
+          transformedMessages.length
+        );
 
         // Actualizar estado local
         this.updateUnreadMessagesForChat(chatId, transformedMessages);
@@ -372,8 +481,11 @@ export class UnreadMessagesService {
         console.log(`[UnreadMessagesService] ✅ getUnreadMessages completado`);
         return transformedMessages;
       }),
-      catchError(error => {
-        console.error('[UnreadMessagesService] ❌ Error al obtener mensajes no leídos:', error);
+      catchError((error) => {
+        console.error(
+          '[UnreadMessagesService] ❌ Error al obtener mensajes no leídos:',
+          error
+        );
         console.error('[UnreadMessagesService] ❌ Status:', error.status);
         console.error('[UnreadMessagesService] ❌ Message:', error.message);
         console.error('[UnreadMessagesService] ❌ Full error:', error);
@@ -393,25 +505,32 @@ export class UnreadMessagesService {
       return of({ success: true, markedCount: 0 });
     }
 
-    return this.http.put<MarkAsReadResponse>(
-      `${this.baseUrl}/messages/mark-as-read`,
-      { messageIds },
-      this.getHttpOptions()
-    ).pipe(
-      map(response => {
-        console.log(`[UnreadMessagesService] ${response.markedCount} mensajes marcados como leídos`);
+    return this.http
+      .put<MarkAsReadResponse>(
+        `${this.baseUrl}/messages/mark-as-read`,
+        { messageIds },
+        this.getHttpOptions()
+      )
+      .pipe(
+        map((response) => {
+          console.log(
+            `[UnreadMessagesService] ${response.markedCount} mensajes marcados como leídos`
+          );
 
-        // Actualizar estado local: remover mensajes marcados
-        this.removeMarkedMessages(messageIds);
+          // Actualizar estado local: remover mensajes marcados
+          this.removeMarkedMessages(messageIds);
 
-        return response;
-      }),
-      catchError(error => {
-        console.error('[UnreadMessagesService] Error al marcar mensajes como leídos:', error);
-        this.error.set('Error al marcar mensajes como leídos');
-        return of({ success: false, markedCount: 0 });
-      })
-    );
+          return response;
+        }),
+        catchError((error) => {
+          console.error(
+            '[UnreadMessagesService] Error al marcar mensajes como leídos:',
+            error
+          );
+          this.error.set('Error al marcar mensajes como leídos');
+          return of({ success: false, markedCount: 0 });
+        })
+      );
   }
 
   /**
@@ -419,18 +538,29 @@ export class UnreadMessagesService {
    * IMPORTANTE: NO refresca el contador del chat activo para evitar conflictos
    */
   refreshUnreadCounts(chatIds: string[]): void {
-    console.log('[UnreadMessagesService] 🔄 Refrescando contadores para', chatIds.length, 'chats');
-    console.log('[UnreadMessagesService] 📋 Chat activo actual:', this.activeChatId);
+    console.log(
+      '[UnreadMessagesService] 🔄 Refrescando contadores para',
+      chatIds.length,
+      'chats'
+    );
+    console.log(
+      '[UnreadMessagesService] 📋 Chat activo actual:',
+      this.activeChatId
+    );
 
-    chatIds.forEach(chatId => {
+    chatIds.forEach((chatId) => {
       // ✅ IMPORTANTE: NO refrescar el contador del chat activo
       // porque ya se está reseteando automáticamente con markActiveChatAsRead()
       if (chatId === this.activeChatId) {
-        console.log(`[UnreadMessagesService] ⏭️ Saltando refresh para chat activo: ${chatId}`);
+        console.log(
+          `[UnreadMessagesService] ⏭️ Saltando refresh para chat activo: ${chatId}`
+        );
         return;
       }
 
-      console.log(`[UnreadMessagesService] 🔄 Refrescando contador para chat: ${chatId}`);
+      console.log(
+        `[UnreadMessagesService] 🔄 Refrescando contador para chat: ${chatId}`
+      );
       this.getUnreadMessages(chatId)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe();
@@ -458,9 +588,9 @@ export class UnreadMessagesService {
    * Esto permite agrupar contadores de no leídos por visitante
    */
   registerChatVisitor(chatId: string, visitorId: string): void {
-    this.chatToVisitorMap.update(map => ({
+    this.chatToVisitorMap.update((map) => ({
       ...map,
-      [chatId]: visitorId
+      [chatId]: visitorId,
     }));
   }
 
@@ -468,8 +598,10 @@ export class UnreadMessagesService {
    * Registrar múltiples relaciones chat-visitante de una vez
    * Útil al cargar la lista de chats
    */
-  registerChatsVisitors(chats: Array<{ chatId: string; visitorId: string }>): void {
-    this.chatToVisitorMap.update(map => {
+  registerChatsVisitors(
+    chats: Array<{ chatId: string; visitorId: string }>
+  ): void {
+    this.chatToVisitorMap.update((map) => {
       const newMap = { ...map };
       chats.forEach(({ chatId, visitorId }) => {
         newMap[chatId] = visitorId;
@@ -499,7 +631,9 @@ export class UnreadMessagesService {
    * Inicializar listeners de WebSocket
    */
   private initializeWebSocketListeners(): void {
-    console.log('[UnreadMessagesService] 🎧 Inicializando listeners de WebSocket');
+    console.log(
+      '[UnreadMessagesService] 🎧 Inicializando listeners de WebSocket'
+    );
 
     // Escuchar mensajes nuevos del WebSocket
     this.webSocket.messageReceived$
@@ -507,58 +641,103 @@ export class UnreadMessagesService {
         filter((message): message is Message => message !== null),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(message => {
-        console.log('[UnreadMessagesService] 📨 === NUEVO MENSAJE RECIBIDO POR WEBSOCKET ===');
+      .subscribe((message) => {
+        console.log(
+          '[UnreadMessagesService] 📨 === NUEVO MENSAJE RECIBIDO POR WEBSOCKET ==='
+        );
         console.log('[UnreadMessagesService] 📋 MessageId:', message.messageId);
         console.log('[UnreadMessagesService] 📋 ChatId:', message.chatId);
         console.log('[UnreadMessagesService] 📋 SenderId:', message.senderId);
-        console.log('[UnreadMessagesService] 📋 Content:', message.content.substring(0, 50) + '...');
+        console.log(
+          '[UnreadMessagesService] 📋 Content:',
+          message.content.substring(0, 50) + '...'
+        );
 
         // Solo procesar si no es mensaje propio
         if (message.senderId === this.currentUserId) {
-          console.log('[UnreadMessagesService] ⏭️ Mensaje propio ignorado (senderId === currentUserId)');
-          console.log('[UnreadMessagesService] 📋 CurrentUserId:', this.currentUserId);
+          console.log(
+            '[UnreadMessagesService] ⏭️ Mensaje propio ignorado (senderId === currentUserId)'
+          );
+          console.log(
+            '[UnreadMessagesService] 📋 CurrentUserId:',
+            this.currentUserId
+          );
           return;
         }
 
-        console.log('[UnreadMessagesService] ✅ Mensaje de otro usuario, procesando...');
+        console.log(
+          '[UnreadMessagesService] ✅ Mensaje de otro usuario, procesando...'
+        );
 
         // ✅ VERIFICAR SI ES DEL CHAT ACTIVO
         const isFromActiveChat = message.chatId === this.activeChatId;
-        console.log('[UnreadMessagesService] 🔍 ===== VERIFICACIÓN DE CHAT ACTIVO =====');
-        console.log('[UnreadMessagesService] 📋 message.chatId:', message.chatId);
-        console.log('[UnreadMessagesService] 📋 this.activeChatId:', this.activeChatId);
-        console.log('[UnreadMessagesService] 📋 Son iguales?:', message.chatId === this.activeChatId);
-        console.log('[UnreadMessagesService] 📋 isFromActiveChat:', isFromActiveChat);
+        console.log(
+          '[UnreadMessagesService] 🔍 ===== VERIFICACIÓN DE CHAT ACTIVO ====='
+        );
+        console.log(
+          '[UnreadMessagesService] 📋 message.chatId:',
+          message.chatId
+        );
+        console.log(
+          '[UnreadMessagesService] 📋 this.activeChatId:',
+          this.activeChatId
+        );
+        console.log(
+          '[UnreadMessagesService] 📋 Son iguales?:',
+          message.chatId === this.activeChatId
+        );
+        console.log(
+          '[UnreadMessagesService] 📋 isFromActiveChat:',
+          isFromActiveChat
+        );
         console.log('[UnreadMessagesService] 🔍 ===== FIN VERIFICACIÓN =====');
 
         if (isFromActiveChat) {
-          console.log('[UnreadMessagesService] ✅ Mensaje del chat activo - NO incrementar contador ni notificar');
+          console.log(
+            '[UnreadMessagesService] ✅ Mensaje del chat activo - NO incrementar contador ni notificar'
+          );
 
           // Marcar como leído inmediatamente (chat activo visible)
-          console.log('[UnreadMessagesService] ⏱️ Esperando 1 segundo para marcar como leído...');
+          console.log(
+            '[UnreadMessagesService] ⏱️ Esperando 1 segundo para marcar como leído...'
+          );
           setTimeout(() => {
-            console.log('[UnreadMessagesService] 🚀 Marcando mensaje del chat activo como leído');
+            console.log(
+              '[UnreadMessagesService] 🚀 Marcando mensaje del chat activo como leído'
+            );
 
             // IMPORTANTE: Usar el mismo fallback que en markActiveChatAsRead
             const messageId = (message as any).id || message.messageId;
-            console.log('[UnreadMessagesService] 📋 MessageId extraído:', messageId);
+            console.log(
+              '[UnreadMessagesService] 📋 MessageId extraído:',
+              messageId
+            );
 
             if (!messageId) {
-              console.error('[UnreadMessagesService] ❌ No se pudo extraer messageId del mensaje del chat activo');
-              console.error('[UnreadMessagesService] ❌ Estructura del mensaje:', message);
+              console.error(
+                '[UnreadMessagesService] ❌ No se pudo extraer messageId del mensaje del chat activo'
+              );
+              console.error(
+                '[UnreadMessagesService] ❌ Estructura del mensaje:',
+                message
+              );
               return;
             }
 
             this.markAsRead([messageId]).subscribe({
               next: (response) => {
                 if (response.success) {
-                  console.log(`✅ Mensaje del chat activo marcado como leído automáticamente`);
+                  console.log(
+                    `✅ Mensaje del chat activo marcado como leído automáticamente`
+                  );
                 }
               },
               error: (error) => {
-                console.error('[UnreadMessagesService] ❌ Error al marcar mensaje del chat activo:', error);
-              }
+                console.error(
+                  '[UnreadMessagesService] ❌ Error al marcar mensaje del chat activo:',
+                  error
+                );
+              },
             });
           }, 1000);
 
@@ -566,47 +745,65 @@ export class UnreadMessagesService {
         }
 
         // Solo si NO es del chat activo:
-        console.log('[UnreadMessagesService] ⚠️ Mensaje de chat INACTIVO - Incrementando contador');
+        console.log(
+          '[UnreadMessagesService] ⚠️ Mensaje de chat INACTIVO - Incrementando contador'
+        );
 
         // 1. Incrementar contador
         const currentCount = this.unreadCountMap()[message.chatId] || 0;
         console.log('[UnreadMessagesService] 📊 Contador ANTES:', currentCount);
         this.incrementUnreadCount(message.chatId);
-        console.log('[UnreadMessagesService] 📊 Contador DESPUÉS:', this.unreadCountMap()[message.chatId]);
+        console.log(
+          '[UnreadMessagesService] 📊 Contador DESPUÉS:',
+          this.unreadCountMap()[message.chatId]
+        );
 
         // 2. Agregar a lista de mensajes no leídos
         this.addUnreadMessage(message);
-        console.log('[UnreadMessagesService] 📨 Mensaje agregado a lista de no leídos');
+        console.log(
+          '[UnreadMessagesService] 📨 Mensaje agregado a lista de no leídos'
+        );
 
         // 3. Mostrar notificación del navegador si está habilitado
         // IMPORTANTE: Mostrar notificación incluso si la app está activa,
         // porque el usuario está mirando OTRO chat (no el que recibió el mensaje)
         if (this.notificationsEnabled) {
-          console.log('[UnreadMessagesService] 🔔 Mostrando notificación del navegador para chat inactivo');
+          console.log(
+            '[UnreadMessagesService] 🔔 Mostrando notificación del navegador para chat inactivo'
+          );
           this.showBrowserNotification(message);
         } else {
-          console.log('[UnreadMessagesService] 🔕 No mostrar notificación (notificationsEnabled:', this.notificationsEnabled, ')');
+          console.log(
+            '[UnreadMessagesService] 🔕 No mostrar notificación (notificationsEnabled:',
+            this.notificationsEnabled,
+            ')'
+          );
         }
 
         // 4. Iniciar parpadeo del título
         this.startTitleFlashing();
 
-        console.log(`[UnreadMessagesService] 📊 === PROCESAMIENTO COMPLETADO ===`);
+        console.log(
+          `[UnreadMessagesService] 📊 === PROCESAMIENTO COMPLETADO ===`
+        );
       });
   }
 
   /**
    * Actualizar mensajes no leídos para un chat
    */
-  private updateUnreadMessagesForChat(chatId: string, messages: Message[]): void {
-    this.unreadMessagesMap.update(map => ({
+  private updateUnreadMessagesForChat(
+    chatId: string,
+    messages: Message[]
+  ): void {
+    this.unreadMessagesMap.update((map) => ({
       ...map,
-      [chatId]: messages
+      [chatId]: messages,
     }));
 
-    this.unreadCountMap.update(map => ({
+    this.unreadCountMap.update((map) => ({
       ...map,
-      [chatId]: messages.length
+      [chatId]: messages.length,
     }));
 
     this.unreadCountSubject.next(this.unreadCountMap());
@@ -616,38 +813,49 @@ export class UnreadMessagesService {
    * Incrementar contador de mensajes no leídos para un chat
    */
   private incrementUnreadCount(chatId: string): void {
-    console.log(`[UnreadMessagesService] ➕ Incrementando contador para chat ${chatId}`);
+    console.log(
+      `[UnreadMessagesService] ➕ Incrementando contador para chat ${chatId}`
+    );
     const currentCount = this.unreadCountMap()[chatId] || 0;
 
-    this.unreadCountMap.update(map => {
+    this.unreadCountMap.update((map) => {
       const newMap = {
         ...map,
-        [chatId]: currentCount + 1
+        [chatId]: currentCount + 1,
       };
-      console.log(`[UnreadMessagesService] 📊 Contador actualizado: ${currentCount} -> ${newMap[chatId]}`);
-      console.log(`[UnreadMessagesService] 📊 Mapa completo de contadores:`, newMap);
+      console.log(
+        `[UnreadMessagesService] 📊 Contador actualizado: ${currentCount} -> ${newMap[chatId]}`
+      );
+      console.log(
+        `[UnreadMessagesService] 📊 Mapa completo de contadores:`,
+        newMap
+      );
       return newMap;
     });
 
     this.unreadCountSubject.next(this.unreadCountMap());
-    console.log(`[UnreadMessagesService] ✅ BehaviorSubject notificado con nuevos contadores`);
+    console.log(
+      `[UnreadMessagesService] ✅ BehaviorSubject notificado con nuevos contadores`
+    );
   }
 
   /**
    * Agregar mensaje no leído a la lista
    */
   private addUnreadMessage(message: Message): void {
-    this.unreadMessagesMap.update(map => {
+    this.unreadMessagesMap.update((map) => {
       const currentMessages = map[message.chatId] || [];
       // Verificar que no exista duplicado
-      const exists = currentMessages.some(m => m.messageId === message.messageId);
+      const exists = currentMessages.some(
+        (m) => m.messageId === message.messageId
+      );
       if (exists) {
         return map;
       }
 
       return {
         ...map,
-        [message.chatId]: [...currentMessages, message]
+        [message.chatId]: [...currentMessages, message],
       };
     });
   }
@@ -657,13 +865,13 @@ export class UnreadMessagesService {
    */
   private removeMarkedMessages(messageIds: string[]): void {
     // Actualizar mensajes no leídos
-    this.unreadMessagesMap.update(map => {
+    this.unreadMessagesMap.update((map) => {
       const newMap: Record<string, Message[]> = {};
 
       Object.entries(map).forEach(([chatId, messages]) => {
         // Filtrar mensajes que no están en la lista de marcados
         const filteredMessages = messages.filter(
-          msg => !messageIds.includes(msg.messageId)
+          (msg) => !messageIds.includes(msg.messageId)
         );
 
         if (filteredMessages.length > 0) {
@@ -675,11 +883,11 @@ export class UnreadMessagesService {
     });
 
     // Actualizar contadores
-    this.unreadCountMap.update(map => {
+    this.unreadCountMap.update((map) => {
       const newMap: UnreadCountMap = {};
       const messagesMap = this.unreadMessagesMap();
 
-      Object.keys(map).forEach(chatId => {
+      Object.keys(map).forEach((chatId) => {
         const count = messagesMap[chatId]?.length || 0;
         if (count > 0) {
           newMap[chatId] = count;
@@ -697,7 +905,7 @@ export class UnreadMessagesService {
    */
   private getHeaders(): HttpHeaders {
     let headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     });
 
     // El token se maneja automáticamente por las cookies con withCredentials
@@ -715,21 +923,33 @@ export class UnreadMessagesService {
   private getHttpOptions(): { headers: HttpHeaders; withCredentials: boolean } {
     return {
       headers: this.getHeaders(),
-      withCredentials: true
+      withCredentials: true,
     };
   }
 
   // ===== NOTIFICACIONES DEL NAVEGADOR =====
 
   /**
-   * Inicializar sonido de notificación
+   * Inicializar el sonido de notificación
    * Usamos la API Web Audio para generar un tono corto
    */
   private initializeNotificationSound(): void {
     try {
+      // Check if AudioContext is available (not available in tests)
+      if (
+        typeof window === 'undefined' ||
+        (!window.AudioContext && !(window as any).webkitAudioContext)
+      ) {
+        console.log(
+          '[UnreadMessagesService] AudioContext no disponible en este entorno'
+        );
+        return;
+      }
+
       // Crear sonido usando data URL (tono de notificación simple)
       // Este es un tono corto y agradable generado sintéticamente
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -744,12 +964,17 @@ export class UnreadMessagesService {
       const now = audioContext.currentTime;
       gainNode.gain.setValueAtTime(0, now);
       gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Attack
-      gainNode.gain.linearRampToValueAtTime(0.2, now + 0.1);  // Sustain
-      gainNode.gain.linearRampToValueAtTime(0, now + 0.2);    // Release
+      gainNode.gain.linearRampToValueAtTime(0.2, now + 0.1); // Sustain
+      gainNode.gain.linearRampToValueAtTime(0, now + 0.2); // Release
 
-      console.log('[UnreadMessagesService] 🔔 Sonido de notificación inicializado');
+      console.log(
+        '[UnreadMessagesService] 🔔 Sonido de notificación inicializado'
+      );
     } catch (error) {
-      console.warn('[UnreadMessagesService] No se pudo inicializar el sonido de notificación:', error);
+      console.warn(
+        '[UnreadMessagesService] No se pudo inicializar el sonido de notificación:',
+        error
+      );
     }
   }
 
@@ -763,8 +988,20 @@ export class UnreadMessagesService {
     }
 
     try {
+      // Check if AudioContext is available (not available in tests)
+      if (
+        typeof window === 'undefined' ||
+        (!window.AudioContext && !(window as any).webkitAudioContext)
+      ) {
+        console.log(
+          '[UnreadMessagesService] AudioContext no disponible en este entorno'
+        );
+        return;
+      }
+
       // Crear un nuevo contexto de audio para cada notificación
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -790,9 +1027,14 @@ export class UnreadMessagesService {
       oscillator.start(now);
       oscillator.stop(now + 0.3);
 
-      console.log('[UnreadMessagesService] 🔊 Reproduciendo sonido de notificación');
+      console.log(
+        '[UnreadMessagesService] 🔊 Reproduciendo sonido de notificación'
+      );
     } catch (error) {
-      console.error('[UnreadMessagesService] Error al reproducir sonido:', error);
+      console.error(
+        '[UnreadMessagesService] Error al reproducir sonido:',
+        error
+      );
     }
   }
 
@@ -802,13 +1044,19 @@ export class UnreadMessagesService {
   private requestNotificationPermission(): void {
     if ('Notification' in window) {
       if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
+        Notification.requestPermission().then((permission) => {
           this.notificationsEnabled = permission === 'granted';
-          console.log('[UnreadMessagesService] Permiso de notificaciones:', permission);
+          console.log(
+            '[UnreadMessagesService] Permiso de notificaciones:',
+            permission
+          );
         });
       } else {
         this.notificationsEnabled = Notification.permission === 'granted';
-        console.log('[UnreadMessagesService] Estado de notificaciones:', this.notificationsEnabled ? 'habilitadas' : 'deshabilitadas');
+        console.log(
+          '[UnreadMessagesService] Estado de notificaciones:',
+          this.notificationsEnabled ? 'habilitadas' : 'deshabilitadas'
+        );
       }
     }
   }
@@ -821,7 +1069,10 @@ export class UnreadMessagesService {
       try {
         this.router = this.injector.get(Router);
       } catch (error) {
-        console.warn('[UnreadMessagesService] No se pudo obtener el Router:', error);
+        console.warn(
+          '[UnreadMessagesService] No se pudo obtener el Router:',
+          error
+        );
         return null;
       }
     }
@@ -835,29 +1086,38 @@ export class UnreadMessagesService {
    * - O la pestaña está visible pero el usuario está en otro chat
    */
   private showBrowserNotification(message: Message): void {
-    console.log('[UnreadMessagesService] 🔔 === INTENTANDO MOSTRAR NOTIFICACIÓN ===');
+    console.log(
+      '[UnreadMessagesService] 🔔 === INTENTANDO MOSTRAR NOTIFICACIÓN ==='
+    );
     console.log('[UnreadMessagesService] 📋 Estado de permisos:', {
       notificationsEnabled: this.notificationsEnabled,
       notificationInWindow: 'Notification' in window,
-      notificationPermission: 'Notification' in window ? Notification.permission : 'N/A'
+      notificationPermission:
+        'Notification' in window ? Notification.permission : 'N/A',
     });
 
     if (!this.notificationsEnabled || !('Notification' in window)) {
-      console.log('[UnreadMessagesService] ❌ Notificaciones del navegador deshabilitadas');
+      console.log(
+        '[UnreadMessagesService] ❌ Notificaciones del navegador deshabilitadas'
+      );
       return;
     }
 
     if (Notification.permission !== 'granted') {
-      console.log('[UnreadMessagesService] ❌ Permiso de notificaciones NO concedido:', Notification.permission);
+      console.log(
+        '[UnreadMessagesService] ❌ Permiso de notificaciones NO concedido:',
+        Notification.permission
+      );
       return;
     }
 
     // Verificar si la pestaña está en background
-    const isPageHidden = document.hidden || document.visibilityState === 'hidden';
+    const isPageHidden =
+      document.hidden || document.visibilityState === 'hidden';
     console.log('[UnreadMessagesService] 📋 Estado de visibilidad:', {
       hidden: document.hidden,
       visibilityState: document.visibilityState,
-      isPageHidden
+      isPageHidden,
     });
 
     // Reproducir sonido de notificación
@@ -869,16 +1129,20 @@ export class UnreadMessagesService {
       : '💬 Mensaje en otro chat';
 
     // Preparar contenido con preview del mensaje
-    const body = message.content.length > 100
-      ? `${message.content.substring(0, 100)}...`
-      : message.content;
+    const body =
+      message.content.length > 100
+        ? `${message.content.substring(0, 100)}...`
+        : message.content;
 
-    console.log('[UnreadMessagesService] 🔔 Mostrando notificación del navegador:', {
-      title,
-      body,
-      chatId: message.chatId,
-      isPageHidden
-    });
+    console.log(
+      '[UnreadMessagesService] 🔔 Mostrando notificación del navegador:',
+      {
+        title,
+        body,
+        chatId: message.chatId,
+        isPageHidden,
+      }
+    );
 
     try {
       const notification = new Notification(title, {
@@ -897,16 +1161,27 @@ export class UnreadMessagesService {
         // Navegar a inbox con el chat seleccionado
         const router = this.getRouter();
         if (router) {
-          console.log('[UnreadMessagesService] 🚀 Navegando a inbox con chat:', message.chatId);
-          router.navigate(['/inbox'], {
-            queryParams: { chat: message.chatId }
-          }).then(() => {
-            console.log('[UnreadMessagesService] ✅ Navegación completada');
-          }).catch((error) => {
-            console.error('[UnreadMessagesService] ❌ Error en navegación:', error);
-          });
+          console.log(
+            '[UnreadMessagesService] 🚀 Navegando a inbox con chat:',
+            message.chatId
+          );
+          router
+            .navigate(['/inbox'], {
+              queryParams: { chat: message.chatId },
+            })
+            .then(() => {
+              console.log('[UnreadMessagesService] ✅ Navegación completada');
+            })
+            .catch((error) => {
+              console.error(
+                '[UnreadMessagesService] ❌ Error en navegación:',
+                error
+              );
+            });
         } else {
-          console.warn('[UnreadMessagesService] ⚠️ No se pudo navegar: Router no disponible');
+          console.warn(
+            '[UnreadMessagesService] ⚠️ No se pudo navegar: Router no disponible'
+          );
           // Fallback: usar location.href
           window.location.href = `/inbox?chat=${message.chatId}`;
         }
@@ -923,9 +1198,14 @@ export class UnreadMessagesService {
         }
       }, 6000);
 
-      console.log('[UnreadMessagesService] ✅ Notificación del navegador mostrada correctamente');
+      console.log(
+        '[UnreadMessagesService] ✅ Notificación del navegador mostrada correctamente'
+      );
     } catch (error) {
-      console.error('[UnreadMessagesService] Error al mostrar notificación del navegador:', error);
+      console.error(
+        '[UnreadMessagesService] Error al mostrar notificación del navegador:',
+        error
+      );
     }
   }
 
@@ -933,8 +1213,12 @@ export class UnreadMessagesService {
    * Habilitar/deshabilitar notificaciones del navegador
    */
   enableNotifications(enabled: boolean): void {
-    this.notificationsEnabled = enabled && Notification.permission === 'granted';
-    console.log('[UnreadMessagesService] Notificaciones', enabled ? 'habilitadas' : 'deshabilitadas');
+    this.notificationsEnabled =
+      enabled && Notification.permission === 'granted';
+    console.log(
+      '[UnreadMessagesService] Notificaciones',
+      enabled ? 'habilitadas' : 'deshabilitadas'
+    );
   }
 
   /**
@@ -949,7 +1233,10 @@ export class UnreadMessagesService {
    */
   enableSound(enabled: boolean): void {
     this.soundEnabled = enabled;
-    console.log('[UnreadMessagesService] Sonido', enabled ? 'habilitado' : 'deshabilitado');
+    console.log(
+      '[UnreadMessagesService] Sonido',
+      enabled ? 'habilitado' : 'deshabilitado'
+    );
   }
 
   /**
@@ -972,24 +1259,39 @@ export class UnreadMessagesService {
    */
   testNotification(): void {
     console.log('[UnreadMessagesService] 🧪 === PRUEBA DE NOTIFICACIÓN ===');
-    console.log('[UnreadMessagesService] 📋 Notification API disponible:', 'Notification' in window);
-    console.log('[UnreadMessagesService] 📋 Permiso actual:', 'Notification' in window ? Notification.permission : 'N/A');
-    console.log('[UnreadMessagesService] 📋 notificationsEnabled:', this.notificationsEnabled);
+    console.log(
+      '[UnreadMessagesService] 📋 Notification API disponible:',
+      'Notification' in window
+    );
+    console.log(
+      '[UnreadMessagesService] 📋 Permiso actual:',
+      'Notification' in window ? Notification.permission : 'N/A'
+    );
+    console.log(
+      '[UnreadMessagesService] 📋 notificationsEnabled:',
+      this.notificationsEnabled
+    );
 
     if (!('Notification' in window)) {
-      console.error('[UnreadMessagesService] ❌ Este navegador no soporta notificaciones');
+      console.error(
+        '[UnreadMessagesService] ❌ Este navegador no soporta notificaciones'
+      );
       return;
     }
 
     if (Notification.permission === 'denied') {
-      console.error('[UnreadMessagesService] ❌ Notificaciones bloqueadas por el usuario');
-      console.log('[UnreadMessagesService] 💡 Ve a Configuración del navegador > Privacidad > Notificaciones y permite localhost:4200');
+      console.error(
+        '[UnreadMessagesService] ❌ Notificaciones bloqueadas por el usuario'
+      );
+      console.log(
+        '[UnreadMessagesService] 💡 Ve a Configuración del navegador > Privacidad > Notificaciones y permite localhost:4200'
+      );
       return;
     }
 
     if (Notification.permission === 'default') {
       console.log('[UnreadMessagesService] ⚠️ Solicitando permiso...');
-      Notification.requestPermission().then(permission => {
+      Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
           this.showTestNotification();
         } else {
@@ -1007,19 +1309,24 @@ export class UnreadMessagesService {
       const notification = new Notification('🧪 Prueba de notificación', {
         body: 'Si ves esto, las notificaciones funcionan correctamente!',
         icon: '/favicon.ico',
-        tag: 'test-notification'
+        tag: 'test-notification',
       });
 
       console.log('[UnreadMessagesService] ✅ Notificación de prueba creada');
 
       notification.onclick = () => {
-        console.log('[UnreadMessagesService] 👆 Click en notificación de prueba');
+        console.log(
+          '[UnreadMessagesService] 👆 Click en notificación de prueba'
+        );
         notification.close();
       };
 
       setTimeout(() => notification.close(), 5000);
     } catch (error) {
-      console.error('[UnreadMessagesService] ❌ Error al crear notificación:', error);
+      console.error(
+        '[UnreadMessagesService] ❌ Error al crear notificación:',
+        error
+      );
     }
   }
 
@@ -1095,13 +1402,16 @@ export class UnreadMessagesService {
       try {
         // Intentar crear y reanudar el AudioContext
         if (!this.audioContext) {
-          this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+          this.audioContext = new (window.AudioContext ||
+            (window as any).webkitAudioContext)();
         }
 
         if (this.audioContext.state === 'suspended') {
           this.audioContext.resume().then(() => {
             this.audioResumed = true;
-            console.log('[UnreadMessagesService] ✅ AudioContext reanudado después de gesto del usuario');
+            console.log(
+              '[UnreadMessagesService] ✅ AudioContext reanudado después de gesto del usuario'
+            );
 
             // Limpiar listeners después de reanudar
             document.removeEventListener('click', resumeAudio);
@@ -1112,7 +1422,10 @@ export class UnreadMessagesService {
           this.audioResumed = true;
         }
       } catch (error) {
-        console.warn('[UnreadMessagesService] Error al reanudar AudioContext:', error);
+        console.warn(
+          '[UnreadMessagesService] Error al reanudar AudioContext:',
+          error
+        );
       }
     };
 
@@ -1121,7 +1434,9 @@ export class UnreadMessagesService {
     document.addEventListener('keydown', resumeAudio, { once: false });
     document.addEventListener('touchstart', resumeAudio, { once: false });
 
-    console.log('[UnreadMessagesService] 🎧 Listeners de gesto de usuario configurados para reanudar audio');
+    console.log(
+      '[UnreadMessagesService] 🎧 Listeners de gesto de usuario configurados para reanudar audio'
+    );
   }
 
   // ===== CLEANUP =====

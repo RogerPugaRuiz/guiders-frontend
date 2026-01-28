@@ -1,4 +1,10 @@
-import { Injectable, inject, signal, computed, DestroyRef } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  signal,
+  computed,
+  DestroyRef,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-service';
 import { EscalationEvent } from '@guiders-frontend/shared/types';
@@ -59,21 +65,24 @@ export class EscalationService {
    */
   addEscalation(event: EscalationEvent): void {
     // Avoid duplicates
-    const exists = this._escalations().some(e => e.chatId === event.chatId);
+    const exists = this._escalations().some((e) => e.chatId === event.chatId);
     if (exists) {
-      console.warn('[EscalationService] Escalation already exists:', event.chatId);
+      console.warn(
+        '[EscalationService] Escalation already exists:',
+        event.chatId
+      );
       return;
     }
 
-    this._escalations.update(current => [...current, event]);
+    this._escalations.update((current) => [...current, event]);
   }
 
   /**
    * Remove escalation from the list
    */
   removeEscalation(chatId: string): void {
-    this._escalations.update(current =>
-      current.filter(e => e.chatId !== chatId)
+    this._escalations.update((current) =>
+      current.filter((e) => e.chatId !== chatId)
     );
   }
 
@@ -121,12 +130,19 @@ export class EscalationService {
    * Show browser notification
    */
   private showBrowserNotification(event: EscalationEvent): void {
-    if (!('Notification' in window) || Notification.permission !== 'granted') {
+    // Check if Notification API is available (not available in tests)
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      return;
+    }
+
+    if (Notification.permission !== 'granted') {
       return;
     }
 
     const notification = new Notification('🤖 Escalación de IA', {
-      body: event.message.substring(0, 100) + (event.message.length > 100 ? '...' : ''),
+      body:
+        event.message.substring(0, 100) +
+        (event.message.length > 100 ? '...' : ''),
       icon: '/favicon.ico',
       tag: `escalation-${event.chatId}`,
       requireInteraction: true, // Don't auto-close
@@ -144,8 +160,14 @@ export class EscalationService {
    * Request notification permission
    */
   private requestNotificationPermission(): void {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(permission => {
+    // Check if Notification API is available (not available in tests)
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      this.browserNotificationsEnabled = false;
+      return;
+    }
+
+    if (Notification.permission === 'default') {
+      Notification.requestPermission().then((permission) => {
         this.browserNotificationsEnabled = permission === 'granted';
         console.log('[EscalationService] Notification permission:', permission);
       });
@@ -165,6 +187,13 @@ export class EscalationService {
    * Enable/disable browser notifications
    */
   enableBrowserNotifications(enabled: boolean): void {
-    this.browserNotificationsEnabled = enabled && Notification.permission === 'granted';
+    // Check if Notification API is available (not available in tests)
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      this.browserNotificationsEnabled = false;
+      return;
+    }
+
+    this.browserNotificationsEnabled =
+      enabled && Notification.permission === 'granted';
   }
 }
