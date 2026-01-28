@@ -1,8 +1,4 @@
-<form
-  class="contact-data-form"
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
->
+<form class="contact-data-form" [formGroup]="form" (ngSubmit)="onSubmit()">
   <div class="contact-data-form__fields">
     <!-- Nombre -->
     <div class="contact-data-form__field">
@@ -18,9 +14,9 @@
         [attr.aria-describedby]="getError('nombre') ? 'nombre-error' : null"
       />
       @if (getError('nombre')) {
-        <span class="contact-data-form__error" id="nombre-error" role="alert">
-          {{ getError('nombre') }}
-        </span>
+      <span class="contact-data-form__error" id="nombre-error" role="alert">
+        {{ getError('nombre') }}
+      </span>
       }
     </div>
 
@@ -38,9 +34,9 @@
         [attr.aria-describedby]="getError('apellidos') ? 'apellidos-error' : null"
       />
       @if (getError('apellidos')) {
-        <span class="contact-data-form__error" id="apellidos-error" role="alert">
-          {{ getError('apellidos') }}
-        </span>
+      <span class="contact-data-form__error" id="apellidos-error" role="alert">
+        {{ getError('apellidos') }}
+      </span>
       }
     </div>
 
@@ -58,9 +54,9 @@
         [attr.aria-describedby]="getError('email') ? 'email-error' : null"
       />
       @if (getError('email')) {
-        <span class="contact-data-form__error" id="email-error" role="alert">
-          {{ getError('email') }}
-        </span>
+      <span class="contact-data-form__error" id="email-error" role="alert">
+        {{ getError('email') }}
+      </span>
       }
     </div>
 
@@ -78,9 +74,9 @@
         [attr.aria-describedby]="getError('telefono') ? 'telefono-error' : null"
       />
       @if (getError('telefono')) {
-        <span class="contact-data-form__error" id="telefono-error" role="alert">
-          {{ getError('telefono') }}
-        </span>
+      <span class="contact-data-form__error" id="telefono-error" role="alert">
+        {{ getError('telefono') }}
+      </span>
       }
     </div>
 
@@ -98,9 +94,9 @@
         [attr.aria-describedby]="getError('dni') ? 'dni-error' : null"
       />
       @if (getError('dni')) {
-        <span class="contact-data-form__error" id="dni-error" role="alert">
-          {{ getError('dni') }}
-        </span>
+      <span class="contact-data-form__error" id="dni-error" role="alert">
+        {{ getError('dni') }}
+      </span>
       }
     </div>
 
@@ -118,9 +114,9 @@
         [attr.aria-describedby]="getError('poblacion') ? 'poblacion-error' : null"
       />
       @if (getError('poblacion')) {
-        <span class="contact-data-form__error" id="poblacion-error" role="alert">
-          {{ getError('poblacion') }}
-        </span>
+      <span class="contact-data-form__error" id="poblacion-error" role="alert">
+        {{ getError('poblacion') }}
+      </span>
       }
     </div>
   </div>
@@ -138,14 +134,11 @@
     <button
       class="contact-data-form__button contact-data-form__button--primary"
       type="submit"
-      [disabled]="!canSubmit() || !hasChanges()"
+      [disabled]="!canSubmit()"
     >
       @if (saving()) {
-        <span class="contact-data-form__spinner"></span>
-        Guardando...
-      } @else {
-        Guardar
-      }
+      <span class="contact-data-form__spinner"></span>
+      Guardando... } @else { Guardar }
     </button>
   </div>
 </form>

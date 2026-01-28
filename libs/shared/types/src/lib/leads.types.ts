@@ -18,8 +18,8 @@ export interface LeadContactData {
 }
 
 // Request para guardar datos de contacto
+// NOTA: visitorId va en la URL del endpoint, NO en el body
 export interface SaveContactDataRequest {
-  visitorId: string; // Required
   nombre?: string;
   apellidos?: string;
   email?: string;

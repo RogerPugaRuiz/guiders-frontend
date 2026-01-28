@@ -1,57 +1,63 @@
-<div class="inbox" [attr.data-testid]="'chat-inbox'" [class.inbox--panel-open]="showVisitorPanel()">
-	<!-- Panel izquierdo: Sidebar completo -->
-	<div class="inbox__sidebar">
-		<guiders-inbox-sidebar
-			[conversations]="conversations()"
-			[selectedConversationId]="selectedConversationId()"
-			[presenceMap]="chatPresenceMap()"
-			[title]="'Conversaciones'"
-			[showNewChatButton]="true"
-			(conversationSelected)="onUserSelected($event)"
-			(newChatClicked)="onNewChatClick()"
-		/>
-	</div>
+<div
+  class="inbox"
+  [attr.data-testid]="'chat-inbox'"
+  [class.inbox--panel-open]="showVisitorPanel()"
+>
+  <!-- Panel izquierdo: Sidebar completo -->
+  <div class="inbox__sidebar">
+    <guiders-inbox-sidebar
+      [conversations]="conversations()"
+      [selectedConversationId]="selectedConversationId()"
+      [presenceMap]="chatPresenceMap()"
+      [title]="'Conversaciones'"
+      [showNewChatButton]="true"
+      (conversationSelected)="onUserSelected($event)"
+      (newChatClicked)="onNewChatClick()"
+    />
+  </div>
 
-	<!-- Panel central: Chat activo -->
-	<div class="inbox__main">
-		@if (selectedConversationId() && selectedChat()) {
-			<guiders-chat-placeholder
-				[selectedChat]="selectedChat()!"
-				[showActions]="true"
-				[isPanelOpen]="showVisitorPanel()"
-				[placeholderMessage]="'Envía un mensaje para iniciar la conversación'"
-				[messages]="currentMessages()"
-				[currentUserId]="currentUserId()"
-				[isLoading]="isLoading()"
-				[isLoadingMore]="currentPagination().isLoadingMore"
-				[hasMoreMessages]="currentPagination().hasMore"
-				[siteId]="siteId()"
-				(settingsClicked)="toggleVisitorPanel()"
-				(closeChat)="onCloseChat()"
-				(messageSent)="onSendMessage($event)"
-				(loadMoreMessages)="onLoadMoreMessages()"
-			/>
-		} @else {
-			<guiders-chat-welcome-state
-				[title]="'Selecciona una conversación'"
-				[description]="'Elige una conversación de la lista para comenzar a chatear'"
-				[showNewChatButton]="false"
-				(newChatClicked)="onNewChatClick()"
-			/>
-		}
-	</div>
+  <!-- Panel central: Chat activo -->
+  <div class="inbox__main">
+    @if (selectedConversationId() && selectedChat()) {
+    <guiders-chat-placeholder
+      [selectedChat]="selectedChat()!"
+      [showActions]="true"
+      [isPanelOpen]="showVisitorPanel()"
+      [placeholderMessage]="'Envía un mensaje para iniciar la conversación'"
+      [messages]="currentMessages()"
+      [currentUserId]="currentUserId()"
+      [isLoading]="isLoading()"
+      [isLoadingMore]="currentPagination().isLoadingMore"
+      [hasMoreMessages]="currentPagination().hasMore"
+      [siteId]="siteId()"
+      (settingsClicked)="toggleVisitorPanel()"
+      (closeChat)="onCloseChat()"
+      (messageSent)="onSendMessage($event)"
+      (loadMoreMessages)="onLoadMoreMessages()"
+    />
+    } @else {
+    <guiders-chat-welcome-state
+      [title]="'Selecciona una conversación'"
+      [description]="'Elige una conversación de la lista para comenzar a chatear'"
+      [showNewChatButton]="false"
+      (newChatClicked)="onNewChatClick()"
+    />
+    }
+  </div>
 
-	<!-- Panel derecho: Detalles del visitante -->
-	@if (showVisitorPanel() && selectedVisitor()) {
-		<div class="inbox__detail-panel">
-			<guiders-visitor-detail-panel
-				[visitor]="selectedVisitor()!"
-				[isOpen]="showVisitorPanel()"
-				[leadScore]="visitorActivity()?.leadScore ?? null"
-				[savingContactData]="savingContactData()"
-				(closePanel)="onCloseVisitorPanel()"
-				(saveContactData)="onSaveContactData($event)"
-			/>
-		</div>
-	}
+  <!-- Panel derecho: Detalles del visitante -->
+  @if (showVisitorPanel() && selectedVisitor()) {
+  <div class="inbox__detail-panel">
+    <guiders-visitor-detail-panel
+      [visitor]="selectedVisitor()!"
+      [isOpen]="showVisitorPanel()"
+      [leadScore]="visitorActivity()?.leadScore ?? null"
+      [contactData]="visitorContactData()"
+      [savingContactData]="savingContactData()"
+      [chatId]="selectedConversationId() ?? undefined"
+      (closePanel)="onCloseVisitorPanel()"
+      (saveContactData)="onSaveContactData($event)"
+    />
+  </div>
+  }
 </div>

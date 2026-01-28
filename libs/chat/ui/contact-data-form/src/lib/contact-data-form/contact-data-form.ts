@@ -6,11 +6,15 @@ import {
   computed,
   inject,
   effect,
-  OnInit
+  OnInit,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { LeadContactData, SaveContactDataRequest } from '@guiders-frontend/shared/types';
+import {
+  LeadContactData,
+  SaveContactDataRequest,
+} from '@guiders-frontend/shared/types';
 
 export interface ContactDataFormValue {
   nombre: string;
@@ -59,29 +63,40 @@ export class ContactDataForm implements OnInit {
     nombre: ['', [Validators.maxLength(100)]],
     apellidos: ['', [Validators.maxLength(100)]],
     email: ['', [Validators.email, Validators.maxLength(255)]],
-    telefono: ['', [Validators.pattern(/^[+]?[\d\s\-()]{6,20}$/), Validators.maxLength(20)]],
+    telefono: [
+      '',
+      [Validators.pattern(/^[+]?[\d\s\-()]{6,20}$/), Validators.maxLength(20)],
+    ],
     dni: ['', [Validators.maxLength(20)]],
     poblacion: ['', [Validators.maxLength(100)]],
   });
 
-  // === COMPUTED ===
-  readonly isFormValid = computed(() => {
-    const formValue = this.form.value;
-    // Al menos un campo debe tener valor
-    return !!(
-      formValue.nombre?.trim() ||
-      formValue.apellidos?.trim() ||
-      formValue.email?.trim() ||
-      formValue.telefono?.trim() ||
-      formValue.dni?.trim() ||
-      formValue.poblacion?.trim()
-    );
-  });
+  // === STATE ===
+  /**
+   * Tracks form validity reactively.
+   * Signal that indicates if the form has at least one field with a value.
+   */
+  private readonly _isFormValid = signal<boolean>(false);
+  readonly isFormValid = this._isFormValid.asReadonly();
 
+  /**
+   * Determines if the form can be submitted.
+   * The submit button will be enabled when:
+   * - The form has at least one field with a value (isFormValid)
+   * - The form is not currently saving (saving)
+   * - The form is not in readonly mode (readonly)
+   */
   readonly canSubmit = computed(() => {
     return this.isFormValid() && !this.saving() && !this.readonly();
   });
 
+  /**
+   * Detects if there are changes compared to the original contact data.
+   * NOTE: This computed is currently not used to disable the submit button,
+   * but is maintained for potential future UX improvements (e.g., showing a visual indicator).
+   *
+   * Returns true when form values differ from the original contactData.
+   */
   readonly hasChanges = computed(() => {
     const current = this.contactData();
     const formValue = this.form.value;
@@ -107,14 +122,17 @@ export class ContactDataForm implements OnInit {
     effect(() => {
       const data = this.contactData();
       if (data) {
-        this.form.patchValue({
-          nombre: data.nombre || '',
-          apellidos: data.apellidos || '',
-          email: data.email || '',
-          telefono: data.telefono || '',
-          dni: data.dni || '',
-          poblacion: data.poblacion || '',
-        }, { emitEvent: false });
+        this.form.patchValue(
+          {
+            nombre: data.nombre || '',
+            apellidos: data.apellidos || '',
+            email: data.email || '',
+            telefono: data.telefono || '',
+            dni: data.dni || '',
+            poblacion: data.poblacion || '',
+          },
+          { emitEvent: true }
+        );
       }
     });
 
@@ -126,6 +144,28 @@ export class ContactDataForm implements OnInit {
         this.form.enable();
       }
     });
+
+    // Subscribe to form changes to update isFormValid signal
+    this.form.valueChanges.subscribe(() => {
+      this.updateFormValiditySignal();
+    });
+  }
+
+  /**
+   * Updates the form validity signal based on current form values.
+   * Called whenever form values change.
+   */
+  private updateFormValiditySignal(): void {
+    const formValue = this.form.value;
+    const isValid = !!(
+      formValue.nombre?.trim() ||
+      formValue.apellidos?.trim() ||
+      formValue.email?.trim() ||
+      formValue.telefono?.trim() ||
+      formValue.dni?.trim() ||
+      formValue.poblacion?.trim()
+    );
+    this._isFormValid.set(isValid);
   }
 
   ngOnInit(): void {
@@ -141,6 +181,9 @@ export class ContactDataForm implements OnInit {
         poblacion: data.poblacion || '',
       });
     }
+
+    // Initial validation check
+    this.updateFormValiditySignal();
   }
 
   // === METHODS ===
@@ -149,15 +192,24 @@ export class ContactDataForm implements OnInit {
 
     const formValue = this.form.value;
 
+    // NOTA: visitorId NO va en el body, se pasa separadamente al componente padre
+    // El padre (Inbox) lo usará en la URL del endpoint
+    // NOTA: extractedFromChatId NO se envía en edición manual, solo en extracción automática (IA)
     const request: SaveContactDataRequest = {
-      visitorId: this.visitorId(),
       ...(formValue.nombre?.trim() && { nombre: formValue.nombre.trim() }),
-      ...(formValue.apellidos?.trim() && { apellidos: formValue.apellidos.trim() }),
+      ...(formValue.apellidos?.trim() && {
+        apellidos: formValue.apellidos.trim(),
+      }),
       ...(formValue.email?.trim() && { email: formValue.email.trim() }),
-      ...(formValue.telefono?.trim() && { telefono: formValue.telefono.trim() }),
+      ...(formValue.telefono?.trim() && {
+        telefono: formValue.telefono.trim(),
+      }),
       ...(formValue.dni?.trim() && { dni: formValue.dni.trim() }),
-      ...(formValue.poblacion?.trim() && { poblacion: formValue.poblacion.trim() }),
-      ...(this.chatId() && { extractedFromChatId: this.chatId() }),
+      ...(formValue.poblacion?.trim() && {
+        poblacion: formValue.poblacion.trim(),
+      }),
+      // extractedFromChatId se omite en edición manual
+      // Solo se enviaría en un flujo de extracción automática
     };
 
     this.save.emit(request);

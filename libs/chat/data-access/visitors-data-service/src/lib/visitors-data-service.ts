@@ -24,7 +24,7 @@ import {
   SaveFilterRequest,
   SaveFilterResponse,
   SaveContactDataRequest,
-  LeadContactData
+  LeadContactData,
 } from '@guiders-frontend/shared/types';
 
 export interface LeadScoreSignals {
@@ -53,10 +53,8 @@ export interface VisitorActivity {
   leadScore: LeadScore;
 }
 
-
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class VisitorsDataService {
   private readonly http = inject(HttpClient);
@@ -82,33 +80,45 @@ export class VisitorsDataService {
     currentUrl: string;
     updatedAt: string;
   }> {
-    return this.http.get<{
-      currentUrl: string;
-      updatedAt: string;
-    }>(
-      `${this.baseUrl}/visitors/${visitorId}/current-page`,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => console.log('[VisitorsDataService] Current page:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error getting current page:', error);
-        return throwError(() => error);
+    return this.http
+      .get<{
+        currentUrl: string;
+        updatedAt: string;
+      }>(`${this.baseUrl}/visitors/${visitorId}/current-page`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Current page:', response)
+        ),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error getting current page:',
+            error
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   // Obtener actividad del visitante (para carga inicial de detalles)
   getVisitorActivity(visitorId: string): Observable<VisitorActivity> {
-    return this.http.get<VisitorActivity>(
-      `${this.baseUrl}/visitors/${visitorId}/activity`,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => console.log('[VisitorsDataService] Visitor activity:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error getting visitor activity:', error);
-        return throwError(() => error);
+    return this.http
+      .get<VisitorActivity>(`${this.baseUrl}/visitors/${visitorId}/activity`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Visitor activity:', response)
+        ),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error getting visitor activity:',
+            error
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   // Obtener sesiones de un visitante
@@ -134,16 +144,20 @@ export class VisitorsDataService {
     limit = 20
   ): Observable<GetChatsResponse> {
     let params = new HttpParams().set('limit', limit.toString());
-    
+
     if (cursor) {
       params = params.set('cursor', cursor);
     }
 
     // Configurar headers de autenticación
     const token = this.getAccessToken();
-    const options = token ? 
-      { params, headers: { 'Authorization': `Bearer ${token}` }, withCredentials: true } : 
-      { params, withCredentials: true };
+    const options = token
+      ? {
+          params,
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
+        }
+      : { params, withCredentials: true };
 
     return this.http.get<GetChatsResponse>(
       `${this.baseUrl}/v2/chats/visitor/${visitorId}`,
@@ -162,7 +176,7 @@ export class VisitorsDataService {
         {
           firstMessage: request.firstMessage,
           visitorInfo: request.visitorInfo,
-          metadata: request.metadata
+          metadata: request.metadata,
         },
         { withCredentials: true }
       );
@@ -172,7 +186,7 @@ export class VisitorsDataService {
         `${this.baseUrl}/v2/chats`,
         {
           visitorInfo: request.visitorInfo,
-          metadata: request.metadata
+          metadata: request.metadata,
         },
         { withCredentials: true }
       );
@@ -180,13 +194,16 @@ export class VisitorsDataService {
   }
 
   // Obtener cola de chats pendientes (sin asignar)
-  getPendingChats(department?: string, limit = 50): Observable<{
+  getPendingChats(
+    department?: string,
+    limit = 50
+  ): Observable<{
     queue: Chat[];
     total: number;
     waitTime: { average: number; median: number };
   }> {
     let params = new HttpParams().set('limit', limit.toString());
-    
+
     if (department) {
       params = params.set('department', department);
     }
@@ -195,7 +212,10 @@ export class VisitorsDataService {
       queue: Chat[];
       total: number;
       waitTime: { average: number; median: number };
-    }>(`${this.baseUrl}/v2/chats/queue/pending`, { params, withCredentials: true });
+    }>(`${this.baseUrl}/v2/chats/queue/pending`, {
+      params,
+      withCredentials: true,
+    });
   }
 
   // Asignar chat a comercial
@@ -211,7 +231,9 @@ export class VisitorsDataService {
   }
 
   // Identificar visitante (para tracking)
-  identifyVisitor(request: IdentifyVisitorRequest): Observable<IdentifyVisitorResponse> {
+  identifyVisitor(
+    request: IdentifyVisitorRequest
+  ): Observable<IdentifyVisitorResponse> {
     return this.http.post<IdentifyVisitorResponse>(
       `${this.baseUrl}/visitors/identify`,
       request,
@@ -254,7 +276,9 @@ export class VisitorsDataService {
         highestConfidence: number;
         dominantCategory: string;
       };
-    }>(`${this.baseUrl}/tracking/intent/${visitorId}`, { withCredentials: true });
+    }>(`${this.baseUrl}/tracking/intent/${visitorId}`, {
+      withCredentials: true,
+    });
   }
 
   // Obtener tags de intención del visitante
@@ -275,12 +299,17 @@ export class VisitorsDataService {
       }>;
       categories: Record<string, number>;
       visitor: Visitor;
-    }>(`${this.baseUrl}/tracking/intent-tags/${visitorId}`, { withCredentials: true });
+    }>(`${this.baseUrl}/tracking/intent-tags/${visitorId}`, {
+      withCredentials: true,
+    });
   }
 
   // Obtener estadísticas de visitantes usando tenant-visitors endpoint
   getVisitorStats(companyId: string): Observable<VisitorStats> {
-    return this.http.get<VisitorStats>(`${this.baseUrl}/tenant-visitors/${companyId}/visitors/stats`, { withCredentials: true });
+    return this.http.get<VisitorStats>(
+      `${this.baseUrl}/tenant-visitors/${companyId}/visitors/stats`,
+      { withCredentials: true }
+    );
   }
 
   /**
@@ -296,27 +325,38 @@ export class VisitorsDataService {
     siteId: string;
     tenantId: string;
   }> {
-    console.log('[VisitorsDataService] Obteniendo siteId del visitante:', visitorId);
-    return this.http.get<{
-      visitorId: string;
-      siteId: string;
-      tenantId: string;
-    }>(`${this.baseUrl}/visitors/${visitorId}/site`, {
-      withCredentials: true
-    }).pipe(
-      tap(response => {
-        console.log('[VisitorsDataService] SiteId del visitante obtenido:', response);
-      }),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error al obtener siteId del visitante:', {
-          visitorId,
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message
-        });
-        return throwError(() => error);
-      })
+    console.log(
+      '[VisitorsDataService] Obteniendo siteId del visitante:',
+      visitorId
     );
+    return this.http
+      .get<{
+        visitorId: string;
+        siteId: string;
+        tenantId: string;
+      }>(`${this.baseUrl}/visitors/${visitorId}/site`, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((response) => {
+          console.log(
+            '[VisitorsDataService] SiteId del visitante obtenido:',
+            response
+          );
+        }),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error al obtener siteId del visitante:',
+            {
+              visitorId,
+              status: error.status,
+              statusText: error.statusText,
+              message: error.message,
+            }
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   // Obtener información de la empresa del usuario autenticado
@@ -333,95 +373,111 @@ export class VisitorsDataService {
     companyName: string;
     totalSites: number;
   }> {
-    console.log('[VisitorsDataService] Obteniendo información de la empresa del usuario autenticado');
-    
+    console.log(
+      '[VisitorsDataService] Obteniendo información de la empresa del usuario autenticado'
+    );
+
     // Usar el endpoint /api/me/company que requiere autenticación (cookies BFF)
-    return this.http.get<{
-      id: string;
-      companyName: string;
-      domains: string[];
-      siteId: string;
-      siteName: string;
-    }>(`${this.baseUrl}/me/company`, {
-      withCredentials: true // Requiere autenticación via cookies BFF
-    }).pipe(
-      switchMap(companyInfo => {
-        console.log('[VisitorsDataService] Información de empresa obtenida:', companyInfo);
+    return this.http
+      .get<{
+        id: string;
+        companyName: string;
+        domains: string[];
+        siteId: string;
+        siteName: string;
+      }>(`${this.baseUrl}/me/company`, {
+        withCredentials: true, // Requiere autenticación via cookies BFF
+      })
+      .pipe(
+        switchMap((companyInfo) => {
+          console.log(
+            '[VisitorsDataService] Información de empresa obtenida:',
+            companyInfo
+          );
 
-        // Transformar la respuesta de /me/company al formato esperado
-        // Usar el siteId real del backend, no el companyId
-        const sites = companyInfo.domains.map(domain => ({
-          siteId: companyInfo.siteId, // Usar el siteId real
-          companyId: companyInfo.id, // El id es el companyId
-          siteName: companyInfo.siteName || domain,
-          domain: domain,
-          isActive: true // Asumir que todos los dominios están activos
-        }));
+          // Transformar la respuesta de /me/company al formato esperado
+          // Usar el siteId real del backend, no el companyId
+          const sites = companyInfo.domains.map((domain) => ({
+            siteId: companyInfo.siteId, // Usar el siteId real
+            companyId: companyInfo.id, // El id es el companyId
+            siteName: companyInfo.siteName || domain,
+            domain: domain,
+            isActive: true, // Asumir que todos los dominios están activos
+          }));
 
-        return new Observable<{
-          sites: Array<{
+          return new Observable<{
+            sites: Array<{
+              siteId: string;
+              companyId: string;
+              siteName: string;
+              domain: string;
+              isActive: boolean;
+            }>;
             siteId: string;
             companyId: string;
-            siteName: string;
-            domain: string;
-            isActive: boolean;
-          }>;
-          siteId: string;
-          companyId: string;
-          companyName: string;
-          totalSites: number;
-        }>(subscriber => {
-          subscriber.next({
-            sites: sites,
-            siteId: companyInfo.siteId,
-            companyId: companyInfo.id,
-            companyName: companyInfo.companyName,
-            totalSites: sites.length
+            companyName: string;
+            totalSites: number;
+          }>((subscriber) => {
+            subscriber.next({
+              sites: sites,
+              siteId: companyInfo.siteId,
+              companyId: companyInfo.id,
+              companyName: companyInfo.companyName,
+              totalSites: sites.length,
+            });
+            subscriber.complete();
           });
-          subscriber.complete();
-        });
-      }),
-      tap(response => {
-        console.log('[VisitorsDataService] Sitios procesados:', response);
-      }),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error al obtener información de la empresa:', {
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message,
-          url: error.url
-        });
-        console.error('[VisitorsDataService] Esto puede causar que las sugerencias de IA no funcionen');
-        return throwError(() => error);
-      })
-    );
+        }),
+        tap((response) => {
+          console.log('[VisitorsDataService] Sitios procesados:', response);
+        }),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error al obtener información de la empresa:',
+            {
+              status: error.status,
+              statusText: error.statusText,
+              message: error.message,
+              url: error.url,
+            }
+          );
+          console.error(
+            '[VisitorsDataService] Esto puede causar que las sugerencias de IA no funcionen'
+          );
+          return throwError(() => error);
+        })
+      );
   }
-
-
 
   /**
    * @deprecated Usar getCompanySites() directamente en su lugar
    * Método simple para obtener sitios - mantenido para compatibilidad
    */
-  getUserSites(): Observable<Array<{
-    siteId: string;
-    companyId: string;
-    siteName: string;
-    domain: string;
-    isActive: boolean;
-  }>> {
-    console.warn('[VisitorsDataService] getUserSites() está deprecado, usar getCompanySites() directamente');
-    
+  getUserSites(): Observable<
+    Array<{
+      siteId: string;
+      companyId: string;
+      siteName: string;
+      domain: string;
+      isActive: boolean;
+    }>
+  > {
+    console.warn(
+      '[VisitorsDataService] getUserSites() está deprecado, usar getCompanySites() directamente'
+    );
+
     // Usar el método completo y extraer solo los sitios
     return this.getCompanySites().pipe(
-      switchMap(response => {
-        return new Observable<Array<{
-          siteId: string;
-          companyId: string;
-          siteName: string;
-          domain: string;
-          isActive: boolean;
-        }>>(subscriber => {
+      switchMap((response) => {
+        return new Observable<
+          Array<{
+            siteId: string;
+            companyId: string;
+            siteName: string;
+            domain: string;
+            isActive: boolean;
+          }>
+        >((subscriber) => {
           subscriber.next(response.sites);
           subscriber.complete();
         });
@@ -445,18 +501,25 @@ export class VisitorsDataService {
     totalSites: number;
   }> {
     return this.sessionService.ensureSession$().pipe(
-      switchMap(user => {
-        console.log('[VisitorsDataService] Usuario obtenido para fallback:', user);
-        
+      switchMap((user) => {
+        console.log(
+          '[VisitorsDataService] Usuario obtenido para fallback:',
+          user
+        );
+
         // Usar directamente el endpoint /api/me/company que requiere autenticación
-        console.log('[VisitorsDataService] Fallback: Usando endpoint /api/me/company');
+        console.log(
+          '[VisitorsDataService] Fallback: Usando endpoint /api/me/company'
+        );
         return this.getCompanySites();
       }),
-      catchError(error => {
+      catchError((error) => {
         console.error('[VisitorsDataService] Error en fallback:', error);
-        
+
         // Como último recurso, intentar obtener todos los sitios del usuario
-        console.log('[VisitorsDataService] Último recurso: obteniendo sitios del usuario');
+        console.log(
+          '[VisitorsDataService] Último recurso: obteniendo sitios del usuario'
+        );
         return this.http.get<{
           sites: Array<{
             siteId: string;
@@ -469,7 +532,7 @@ export class VisitorsDataService {
           companyName: string;
           totalSites: number;
         }>(`${this.baseUrl}/sites/user`, {
-          withCredentials: true
+          withCredentials: true,
         });
       })
     );
@@ -486,22 +549,26 @@ export class VisitorsDataService {
   }> {
     console.log(`[VisitorsDataService] Obteniendo sitio por ID: ${siteId}`);
 
-    return this.http.get<{
-      siteId: string;
-      companyId: string;
-      siteName: string;
-      companyName: string;
-      domain: string;
-      isActive: boolean;
-    }>(`${this.baseUrl}/sites/${siteId}`, { 
-      withCredentials: true 
-    }).pipe(
-      tap(response => console.log('[VisitorsDataService] Sitio obtenido:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error al obtener sitio:', error);
-        return throwError(() => error);
+    return this.http
+      .get<{
+        siteId: string;
+        companyId: string;
+        siteName: string;
+        companyName: string;
+        domain: string;
+        isActive: boolean;
+      }>(`${this.baseUrl}/sites/${siteId}`, {
+        withCredentials: true,
       })
-    );
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Sitio obtenido:', response)
+        ),
+        catchError((error) => {
+          console.error('[VisitorsDataService] Error al obtener sitio:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -514,15 +581,18 @@ export class VisitorsDataService {
     siteName: string;
     companyName: string;
   }> {
-    console.warn('[VisitorsDataService] resolveSite() está deprecado, usar getCompanySites() en su lugar');
-    
+    console.warn(
+      '[VisitorsDataService] resolveSite() está deprecado, usar getCompanySites() en su lugar'
+    );
+
     // Buscar en los sitios de la empresa el que coincida con el host
     return this.getCompanySites().pipe(
-      switchMap(response => {
+      switchMap((response) => {
         const hostname = (host || '').split(':')[0].trim().toLowerCase();
-        const matchingSite = response.sites.find(site => 
-          site.domain.toLowerCase() === hostname || 
-          site.domain.toLowerCase().includes(hostname)
+        const matchingSite = response.sites.find(
+          (site) =>
+            site.domain.toLowerCase() === hostname ||
+            site.domain.toLowerCase().includes(hostname)
         );
 
         if (matchingSite) {
@@ -531,17 +601,19 @@ export class VisitorsDataService {
             companyId: string;
             siteName: string;
             companyName: string;
-          }>(subscriber => {
+          }>((subscriber) => {
             subscriber.next({
               siteId: matchingSite.siteId,
               companyId: matchingSite.companyId,
               siteName: matchingSite.siteName,
-              companyName: response.companyName
+              companyName: response.companyName,
             });
             subscriber.complete();
           });
         } else {
-          return throwError(() => new Error(`No se encontró sitio para el host: ${hostname}`));
+          return throwError(
+            () => new Error(`No se encontró sitio para el host: ${hostname}`)
+          );
         }
       })
     );
@@ -559,19 +631,29 @@ export class VisitorsDataService {
     tenantId: string,
     request: VisitorSearchRequest = {}
   ): Observable<VisitorSearchResponse> {
-    console.log(`[VisitorsDataService] Searching visitors with filters:`, request);
-
-    return this.http.post<VisitorSearchResponse>(
-      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/search`,
-      request,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => console.log('[VisitorsDataService] Search response:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error searching visitors:', error);
-        return throwError(() => error);
-      })
+    console.log(
+      `[VisitorsDataService] Searching visitors with filters:`,
+      request
     );
+
+    return this.http
+      .post<VisitorSearchResponse>(
+        `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/search`,
+        request,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Search response:', response)
+        ),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error searching visitors:',
+            error
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -579,18 +661,27 @@ export class VisitorsDataService {
    * GET /tenant-visitors/:tenantId/visitors/filters/quick
    */
   getQuickFilters(tenantId: string): Observable<QuickFiltersResponse> {
-    console.log(`[VisitorsDataService] Getting quick filters for tenant: ${tenantId}`);
-
-    return this.http.get<QuickFiltersResponse>(
-      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/quick`,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => console.log('[VisitorsDataService] Quick filters:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error getting quick filters:', error);
-        return throwError(() => error);
-      })
+    console.log(
+      `[VisitorsDataService] Getting quick filters for tenant: ${tenantId}`
     );
+
+    return this.http
+      .get<QuickFiltersResponse>(
+        `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/quick`,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Quick filters:', response)
+        ),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error getting quick filters:',
+            error
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -598,18 +689,27 @@ export class VisitorsDataService {
    * GET /tenant-visitors/:tenantId/visitors/filters/saved
    */
   getSavedFilters(tenantId: string): Observable<SavedFiltersResponse> {
-    console.log(`[VisitorsDataService] Getting saved filters for tenant: ${tenantId}`);
-
-    return this.http.get<SavedFiltersResponse>(
-      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved`,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => console.log('[VisitorsDataService] Saved filters:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error getting saved filters:', error);
-        return throwError(() => error);
-      })
+    console.log(
+      `[VisitorsDataService] Getting saved filters for tenant: ${tenantId}`
     );
+
+    return this.http
+      .get<SavedFiltersResponse>(
+        `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved`,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Saved filters:', response)
+        ),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error getting saved filters:',
+            error
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -623,17 +723,21 @@ export class VisitorsDataService {
   ): Observable<SaveFilterResponse> {
     console.log(`[VisitorsDataService] Saving filter:`, filter);
 
-    return this.http.post<SaveFilterResponse>(
-      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved`,
-      filter,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => console.log('[VisitorsDataService] Filter saved:', response)),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error saving filter:', error);
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .post<SaveFilterResponse>(
+        `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved`,
+        filter,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) =>
+          console.log('[VisitorsDataService] Filter saved:', response)
+        ),
+        catchError((error) => {
+          console.error('[VisitorsDataService] Error saving filter:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
@@ -643,16 +747,18 @@ export class VisitorsDataService {
   deleteFilter(tenantId: string, filterId: string): Observable<void> {
     console.log(`[VisitorsDataService] Deleting filter: ${filterId}`);
 
-    return this.http.delete<void>(
-      `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved/${filterId}`,
-      { withCredentials: true }
-    ).pipe(
-      tap(() => console.log('[VisitorsDataService] Filter deleted')),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error deleting filter:', error);
-        return throwError(() => error);
-      })
-    );
+    return this.http
+      .delete<void>(
+        `${this.baseUrl}/tenant-visitors/${tenantId}/visitors/filters/saved/${filterId}`,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap(() => console.log('[VisitorsDataService] Filter deleted')),
+        catchError((error) => {
+          console.error('[VisitorsDataService] Error deleting filter:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   // ============================================
@@ -661,70 +767,99 @@ export class VisitorsDataService {
 
   /**
    * Guardar datos de contacto de un visitante (lead)
-   * POST /v1/leads/contact-data
+   * POST /leads/contact-data/:visitorId
    *
    * Permite a comerciales guardar información de contacto del visitante
    * como nombre, email, teléfono, etc. También soporta datos adicionales
    * personalizados según el sector (vehiculo, inmueble, etc.)
    *
-   * @param request - Datos de contacto a guardar (visitorId requerido)
+   * NOTA: visitorId va en la URL, NO en el body del request
+   *
+   * @param visitorId - ID del visitante (va en la URL)
+   * @param request - Datos de contacto a guardar (sin visitorId)
    * @returns Observable con los datos de contacto guardados
    */
-  saveContactData(request: SaveContactDataRequest): Observable<LeadContactData> {
-    console.log('[VisitorsDataService] Guardando datos de contacto:', request);
-
-    return this.http.post<LeadContactData>(
-      `${this.baseUrl}/v1/leads/contact-data`,
+  saveContactData(
+    visitorId: string,
+    request: SaveContactDataRequest
+  ): Observable<LeadContactData> {
+    console.log('[VisitorsDataService] Guardando datos de contacto:', {
+      visitorId,
       request,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => {
-        console.log('[VisitorsDataService] Datos de contacto guardados:', response);
-      }),
-      catchError(error => {
-        console.error('[VisitorsDataService] Error guardando datos de contacto:', {
-          visitorId: request.visitorId,
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message
-        });
-        return throwError(() => error);
-      })
-    );
+    });
+
+    return this.http
+      .post<LeadContactData>(
+        `${this.baseUrl}/leads/contact-data/${visitorId}`,
+        request,
+        { withCredentials: true }
+      )
+      .pipe(
+        tap((response) => {
+          console.log(
+            '[VisitorsDataService] Datos de contacto guardados:',
+            response
+          );
+        }),
+        catchError((error) => {
+          console.error(
+            '[VisitorsDataService] Error guardando datos de contacto:',
+            {
+              visitorId: visitorId,
+              status: error.status,
+              statusText: error.statusText,
+              message: error.message,
+            }
+          );
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
    * Obtener datos de contacto de un visitante
-   * GET /v1/leads/contact-data/:visitorId
+   * GET /leads/contact-data/:visitorId
    *
    * @param visitorId - ID del visitante
    * @returns Observable con los datos de contacto del visitante o null si no existen
    */
   getContactData(visitorId: string): Observable<LeadContactData | null> {
-    console.log('[VisitorsDataService] Obteniendo datos de contacto para:', visitorId);
-
-    return this.http.get<LeadContactData>(
-      `${this.baseUrl}/v1/leads/contact-data/${visitorId}`,
-      { withCredentials: true }
-    ).pipe(
-      tap(response => {
-        console.log('[VisitorsDataService] Datos de contacto obtenidos:', response);
-      }),
-      catchError(error => {
-        if (error.status === 404) {
-          console.log('[VisitorsDataService] No hay datos de contacto para el visitante');
-          return new Observable<LeadContactData | null>(subscriber => {
-            subscriber.next(null);
-            subscriber.complete();
-          });
-        }
-        console.error('[VisitorsDataService] Error obteniendo datos de contacto:', {
-          visitorId,
-          status: error.status,
-          message: error.message
-        });
-        return throwError(() => error);
-      })
+    console.log(
+      '[VisitorsDataService] Obteniendo datos de contacto para:',
+      visitorId
     );
+
+    return this.http
+      .get<LeadContactData>(`${this.baseUrl}/leads/contact-data/${visitorId}`, {
+        withCredentials: true,
+      })
+      .pipe(
+        tap((response) => {
+          console.log(
+            '[VisitorsDataService] Datos de contacto obtenidos:',
+            response
+          );
+        }),
+        catchError((error) => {
+          if (error.status === 404) {
+            console.log(
+              '[VisitorsDataService] No hay datos de contacto para el visitante'
+            );
+            return new Observable<LeadContactData | null>((subscriber) => {
+              subscriber.next(null);
+              subscriber.complete();
+            });
+          }
+          console.error(
+            '[VisitorsDataService] Error obteniendo datos de contacto:',
+            {
+              visitorId,
+              status: error.status,
+              message: error.message,
+            }
+          );
+          return throwError(() => error);
+        })
+      );
   }
 }

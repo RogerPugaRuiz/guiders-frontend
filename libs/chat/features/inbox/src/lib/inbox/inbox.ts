@@ -1,13 +1,31 @@
-import { Component, inject, signal, computed, OnInit, OnDestroy, DestroyRef } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  OnInit,
+  OnDestroy,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
-import { Chat, Message, PresenceStatus, Visitor, SaveContactDataRequest } from '@guiders-frontend/shared/types';
+import {
+  Chat,
+  Message,
+  PresenceStatus,
+  Visitor,
+  SaveContactDataRequest,
+  LeadContactData,
+} from '@guiders-frontend/shared/types';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { PresenceService } from '@guiders-frontend/presence-service';
-import { VisitorsDataService, VisitorActivity } from '@guiders-frontend/visitors-data-service';
+import {
+  VisitorsDataService,
+  VisitorActivity,
+} from '@guiders-frontend/visitors-data-service';
 import { LeadContactService } from '@guiders-frontend/lead-contact-service';
 import { GuidersInboxSidebarComponent } from '@guiders-frontend/chat/ui/inbox-sidebar';
 import { GuidersChatWelcomeStateComponent } from '@guiders-frontend/chat/ui/chat-welcome-state';
@@ -17,16 +35,16 @@ import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
 
 /**
  * Inbox - Coordinador principal del chat
- * 
+ *
  * Responsabilidades simplificadas:
  * - Coordinar comunicación entre componentes UI modulares
  * - Manejar estado global de conversaciones y selección
  * - Gestionar servicios de datos (ChatService, SessionService)
  * - Sincronizar datos entre sidebar, welcome state y placeholder
- * 
+ *
  * Componentes UI utilizados:
  * - GuidersInboxSidebarComponent: Panel lateral completo
- * - GuidersChatWelcomeStateComponent: Estado sin chat seleccionado  
+ * - GuidersChatWelcomeStateComponent: Estado sin chat seleccionado
  * - GuidersChatPlaceholderComponent: Placeholder para chat seleccionado
  */
 
@@ -39,7 +57,7 @@ import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
     GuidersInboxSidebarComponent,
     GuidersChatWelcomeStateComponent,
     GuidersChatPlaceholderComponent,
-    VisitorDetailPanel
+    VisitorDetailPanel,
   ],
   templateUrl: './inbox.html',
   styleUrl: './inbox.scss',
@@ -59,17 +77,24 @@ export class Inbox implements OnInit, OnDestroy {
   readonly error = signal<string | null>(null);
   readonly conversations = signal<Chat[]>([]);
   readonly messagesMap = signal<Record<string, Message[]>>({});
-  
+
   // Estado de paginación de mensajes
-  readonly messagePaginationMap = signal<Record<string, {
-    total: number;
-    hasMore: boolean;
-    nextCursor?: string;
-    isLoadingMore: boolean;
-  }>>({});
+  readonly messagePaginationMap = signal<
+    Record<
+      string,
+      {
+        total: number;
+        hasMore: boolean;
+        nextCursor?: string;
+        isLoadingMore: boolean;
+      }
+    >
+  >({});
 
   // Estado de presencia por chat
-  readonly chatPresenceMap = signal<Record<string, PresenceStatus | undefined>>({});
+  readonly chatPresenceMap = signal<Record<string, PresenceStatus | undefined>>(
+    {}
+  );
 
   // Estado del panel de detalles del visitante
   readonly showVisitorPanel = signal<boolean>(false);
@@ -86,6 +111,9 @@ export class Inbox implements OnInit, OnDestroy {
   // Estado de guardado de datos de contacto
   readonly savingContactData = signal<boolean>(false);
 
+  // Datos de contacto del visitante seleccionado
+  readonly visitorContactData = signal<LeadContactData | null>(null);
+
   // ===== COMPUTED VALUES =====
   readonly currentUser = computed(() => this.sessionService.getCurrentUser());
   readonly currentUserId = computed(() => this.currentUser()?.sub || null);
@@ -96,17 +124,23 @@ export class Inbox implements OnInit, OnDestroy {
     }
     return this.messagesMap()[chatId] ?? [];
   });
-  
+
   readonly selectedChat = computed(() => {
     const chatId = this.selectedConversationId();
     if (!chatId) return null;
-    return this.conversations().find(chat => chat.chatId === chatId) || null;
+    return this.conversations().find((chat) => chat.chatId === chatId) || null;
   });
 
   readonly currentPagination = computed(() => {
     const chatId = this.selectedConversationId();
     if (!chatId) return { total: 0, hasMore: false, isLoadingMore: false };
-    return this.messagePaginationMap()[chatId] ?? { total: 0, hasMore: false, isLoadingMore: false };
+    return (
+      this.messagePaginationMap()[chatId] ?? {
+        total: 0,
+        hasMore: false,
+        isLoadingMore: false,
+      }
+    );
   });
 
   readonly selectedVisitor = computed((): Visitor | null => {
@@ -161,13 +195,17 @@ export class Inbox implements OnInit, OnDestroy {
       status: visitorStatus,
       lifecycle: activity?.lifecycle || 'ENGAGED',
       firstVisit: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Hace 7 días
-      lastVisit: activity?.lastActivityAt ? new Date(activity.lastActivityAt) : (chat.updatedAt || chat.createdAt),
+      lastVisit: activity?.lastActivityAt
+        ? new Date(activity.lastActivityAt)
+        : chat.updatedAt || chat.createdAt,
       totalChats: activity?.totalChats ?? 0,
       totalSessions: activity?.totalSessions ?? 0,
       totalPageViews: activity?.totalPagesVisited ?? 0,
-      averageSessionDuration: activity ? Math.floor(activity.totalTimeConnectedMs / 1000) : 0,
+      averageSessionDuration: activity
+        ? Math.floor(activity.totalTimeConnectedMs / 1000)
+        : 0,
       isNewVisitor: false,
-      hasActiveChat: true
+      hasActiveChat: true,
     };
   });
 
@@ -199,7 +237,7 @@ export class Inbox implements OnInit, OnDestroy {
     console.log('[Inbox] ✅ Estado de chat activo limpiado correctamente');
   }
 
-    // ===== INICIALIZACIÓN =====
+  // ===== INICIALIZACIÓN =====
   private initializeDataSubscriptions(): void {
     // Sincronizar chats del servicio con la señal local
     this.chatService.chats$
@@ -234,20 +272,25 @@ export class Inbox implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((messagesMap) => {
         // Obtener todos los chats que tienen mensajes en el servicio
-        Object.keys(messagesMap).forEach(chatId => {
+        Object.keys(messagesMap).forEach((chatId) => {
           const serviceMessages = messagesMap[chatId];
           const currentMessages = this.messagesMap()[chatId] || [];
-          
+
           // Solo actualizar si hay mensajes nuevos que no estén en la lista local
-          const newMessages = serviceMessages.filter(serviceMsg => 
-            !currentMessages.some(localMsg => localMsg.messageId === serviceMsg.messageId)
+          const newMessages = serviceMessages.filter(
+            (serviceMsg) =>
+              !currentMessages.some(
+                (localMsg) => localMsg.messageId === serviceMsg.messageId
+              )
           );
-          
+
           if (newMessages.length > 0) {
-            console.log(`[Inbox] Sincronizando ${newMessages.length} mensajes nuevos para chat ${chatId}`);
-            this.messagesMap.update(map => ({
+            console.log(
+              `[Inbox] Sincronizando ${newMessages.length} mensajes nuevos para chat ${chatId}`
+            );
+            this.messagesMap.update((map) => ({
               ...map,
-              [chatId]: [...currentMessages, ...newMessages]
+              [chatId]: [...currentMessages, ...newMessages],
             }));
           }
         });
@@ -271,7 +314,8 @@ export class Inbox implements OnInit, OnDestroy {
    * Usa el endpoint /api/visitors/:visitorId/site que es más preciso
    */
   private loadVisitorSiteId(visitorId: string): void {
-    this.visitorsDataService.getVisitorSite(visitorId)
+    this.visitorsDataService
+      .getVisitorSite(visitorId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
@@ -281,7 +325,26 @@ export class Inbox implements OnInit, OnDestroy {
         error: (err) => {
           console.error('[Inbox] Error al cargar siteId del visitante:', err);
           this.siteId.set(null);
-        }
+        },
+      });
+  }
+
+  /**
+   * Cargar datos de contacto del visitante
+   */
+  private loadVisitorContactData(visitorId: string): void {
+    this.leadContactService
+      .getContactData(visitorId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (contactData) => {
+          console.log('[Inbox] Datos de contacto del visitante:', contactData);
+          this.visitorContactData.set(contactData);
+        },
+        error: (err) => {
+          console.error('[Inbox] Error al cargar datos de contacto:', err);
+          this.visitorContactData.set(null);
+        },
       });
   }
 
@@ -289,44 +352,49 @@ export class Inbox implements OnInit, OnDestroy {
     const commercialId = this.currentUserId();
     if (!commercialId) return;
 
-    this.chatService.getCommercialChats(commercialId)
+    this.chatService
+      .getCommercialChats(commercialId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-      next: (chats) => {
-        console.log('Chats cargados:', chats.length);
+        next: (chats) => {
+          console.log('Chats cargados:', chats.length);
 
-        // Extraer IDs de todos los chats
-        const chatIds = chats.map(chat => chat.chatId);
+          // Extraer IDs de todos los chats
+          const chatIds = chats.map((chat) => chat.chatId);
 
-        // ✅ Registrar relaciones chat-visitor para badges en la tabla de visitantes
-        const chatsToRegister = chats.map(chat => ({
-          chatId: chat.chatId,
-          visitorId: chat.visitorId
-        }));
-        this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
-        console.log(`✅ [Inbox] Registradas ${chatsToRegister.length} relaciones chat-visitor`);
+          // ✅ Registrar relaciones chat-visitor para badges en la tabla de visitantes
+          const chatsToRegister = chats.map((chat) => ({
+            chatId: chat.chatId,
+            visitorId: chat.visitorId,
+          }));
+          this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
+          console.log(
+            `✅ [Inbox] Registradas ${chatsToRegister.length} relaciones chat-visitor`
+          );
 
-        // ✅ IMPORTANTE: Suscribirse a TODOS los chats vía WebSocket
-        // Esto permite recibir notificaciones en tiempo real de mensajes nuevos
-        // en cualquier chat, no solo el chat seleccionado
-        if (this.chatService.isWebSocketConnected && chatIds.length > 0) {
-          this.chatService.webSocketService.joinMultipleRooms(chatIds);
-          console.log(`✅ [Inbox] Suscrito a ${chatIds.length} chats para notificaciones en tiempo real`);
-        }
+          // ✅ IMPORTANTE: Suscribirse a TODOS los chats vía WebSocket
+          // Esto permite recibir notificaciones en tiempo real de mensajes nuevos
+          // en cualquier chat, no solo el chat seleccionado
+          if (this.chatService.isWebSocketConnected && chatIds.length > 0) {
+            this.chatService.webSocketService.joinMultipleRooms(chatIds);
+            console.log(
+              `✅ [Inbox] Suscrito a ${chatIds.length} chats para notificaciones en tiempo real`
+            );
+          }
 
-        // Refrescar contadores de mensajes no leídos para todos los chats
-        this.unreadMessagesService.refreshUnreadCounts(chatIds);
+          // Refrescar contadores de mensajes no leídos para todos los chats
+          this.unreadMessagesService.refreshUnreadCounts(chatIds);
 
-        // Cargar estado de presencia para cada chat
-        chats.forEach(chat => {
-          this.loadChatPresence(chat.chatId);
-        });
-      },
-      error: (error) => {
-        console.error('Error al cargar chats:', error);
-        this.error.set('Error al cargar las conversaciones');
-      }
-    });
+          // Cargar estado de presencia para cada chat
+          chats.forEach((chat) => {
+            this.loadChatPresence(chat.chatId);
+          });
+        },
+        error: (error) => {
+          console.error('Error al cargar chats:', error);
+          this.error.set('Error al cargar las conversaciones');
+        },
+      });
   }
 
   // ===== EVENT HANDLERS - COORDINACIÓN ENTRE COMPONENTES =====
@@ -337,7 +405,10 @@ export class Inbox implements OnInit, OnDestroy {
   onUserSelected(conversation: Chat): void {
     console.log('[Inbox] 🔄 === CONVERSACIÓN SELECCIONADA ===');
     console.log('[Inbox] 📋 ChatId:', conversation.chatId);
-    console.log('[Inbox] 📋 Visitor Name:', conversation.participants?.[0]?.name);
+    console.log(
+      '[Inbox] 📋 Visitor Name:',
+      conversation.participants?.[0]?.name
+    );
     console.log('[Inbox] 📊 Unread Count (antes):', conversation.unreadCount);
 
     this.selectedConversationId.set(conversation.chatId);
@@ -353,11 +424,12 @@ export class Inbox implements OnInit, OnDestroy {
     console.log('[Inbox] 📥 Cargando mensajes del chat...');
     this.loadMessages(conversation.chatId);
 
-    // Cargar datos del visitante (URL actual y siteId)
+    // Cargar datos del visitante (URL actual, siteId y contactData)
     const visitorId = conversation.participants?.[0]?.id;
     if (visitorId) {
       this.loadVisitorCurrentPage(visitorId);
       this.loadVisitorSiteId(visitorId);
+      this.loadVisitorContactData(visitorId);
     }
   }
 
@@ -391,8 +463,15 @@ export class Inbox implements OnInit, OnDestroy {
     this.chatService.selectChat(null);
     this.showVisitorPanel.set(false);
 
+    // Limpiar datos del visitante
+    this.visitorContactData.set(null);
+    this.visitorActivity.set(null);
+    this.visitorCurrentUrl.set(null);
+
     // ✅ NOTIFICAR AL SERVICIO QUE NO HAY CHAT ACTIVO
-    console.log('[Inbox] 🚀 Llamando a unreadMessagesService.setActiveChat(null)...');
+    console.log(
+      '[Inbox] 🚀 Llamando a unreadMessagesService.setActiveChat(null)...'
+    );
     this.unreadMessagesService.setActiveChat(null);
     console.log('[Inbox] ✅ Chat cerrado correctamente');
   }
@@ -401,7 +480,7 @@ export class Inbox implements OnInit, OnDestroy {
    * Toggle del panel de detalles del visitante
    */
   toggleVisitorPanel(): void {
-    this.showVisitorPanel.update(value => !value);
+    this.showVisitorPanel.update((value) => !value);
   }
 
   /**
@@ -413,6 +492,8 @@ export class Inbox implements OnInit, OnDestroy {
 
   /**
    * Manejar guardado de datos de contacto
+   * NOTA: El visitorId va en la URL del endpoint POST, no en el body
+   * NOTA: La API no devuelve los datos guardados, por lo que construimos el objeto localmente
    */
   onSaveContactData(request: SaveContactDataRequest): void {
     const visitorId = this.selectedVisitor()?.id;
@@ -422,19 +503,49 @@ export class Inbox implements OnInit, OnDestroy {
     }
 
     this.savingContactData.set(true);
-    this.leadContactService.saveContactData(visitorId, request)
+    // visitorId se pasa separado para construir la URL del endpoint
+    this.leadContactService
+      .saveContactData(visitorId, request)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (contactData) => {
-          console.log('Datos de contacto guardados:', contactData);
+        next: () => {
+          console.log('[Inbox] Datos de contacto guardados exitosamente');
           this.savingContactData.set(false);
+
+          // Como la API no devuelve los datos, construimos el objeto LeadContactData
+          // a partir del request enviado
+          const now = new Date().toISOString();
+          const updatedContactData: LeadContactData = {
+            id: this.visitorContactData()?.id || `temp-${Date.now()}`,
+            visitorId: visitorId,
+            companyId: this.visitorContactData()?.companyId || 'unknown',
+            nombre: request.nombre,
+            apellidos: request.apellidos,
+            email: request.email,
+            telefono: request.telefono,
+            dni: request.dni,
+            poblacion: request.poblacion,
+            extractedFromChatId: request.extractedFromChatId,
+            additionalData: request.additionalData,
+            extractedAt: this.visitorContactData()?.extractedAt || now,
+            updatedAt: now,
+          };
+
+          // Actualizar el signal con los datos construidos
+          this.visitorContactData.set(updatedContactData);
+
+          console.log(
+            '[Inbox] Datos de contacto actualizados localmente:',
+            updatedContactData
+          );
+
           // TODO: Mostrar notificación de éxito
         },
         error: (error) => {
-          console.error('Error al guardar datos de contacto:', error);
+          console.error('[Inbox] Error al guardar datos de contacto:', error);
           this.savingContactData.set(false);
           // TODO: Mostrar notificación de error
-        }
+        },
       });
   }
 
@@ -449,11 +560,13 @@ export class Inbox implements OnInit, OnDestroy {
       return;
     }
 
-    this.chatService.sendMessage({
-      chatId,
-      content,
-      type: 'text'
-    }).pipe(takeUntilDestroyed(this.destroyRef))
+    this.chatService
+      .sendMessage({
+        chatId,
+        content,
+        type: 'text',
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (message) => {
           console.log('Mensaje enviado:', message);
@@ -463,47 +576,51 @@ export class Inbox implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error al enviar mensaje:', error);
           this.error.set('Error al enviar el mensaje');
-        }
+        },
       });
   }
 
   // ===== MÉTODOS AUXILIARES =====
 
   private loadMessages(chatId: string): void {
-    this.chatService.getMessagesV2(chatId, {
-      limit: 50
-      // El endpoint por defecto devuelve sentAt DESC (más recientes primero)
-    })
+    this.chatService
+      .getMessagesV2(chatId, {
+        limit: 50,
+        // El endpoint por defecto devuelve sentAt DESC (más recientes primero)
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          console.log(`Mensajes cargados para ${chatId}:`, response.messages.length);
-          
+          console.log(
+            `Mensajes cargados para ${chatId}:`,
+            response.messages.length
+          );
+
           // Los mensajes vienen en orden descendente (más recientes primero)
           // Los revertimos para mostrarlos ascendente (más antiguos arriba)
           const messages = [...response.messages].reverse();
-          
+
           // Actualizar mensajes
-          this.messagesMap.update(map => ({
+          this.messagesMap.update((map) => ({
             ...map,
-            [chatId]: messages
+            [chatId]: messages,
           }));
-          
+
           // Actualizar información de paginación
-          this.messagePaginationMap.update(map => ({
+          this.messagePaginationMap.update((map) => ({
             ...map,
             [chatId]: {
               total: response.total,
               hasMore: response.hasMore,
               nextCursor: response.nextCursor,
-              isLoadingMore: false
-            }
+              isLoadingMore: false,
+            },
           }));
         },
         error: (error) => {
           console.error('Error al cargar mensajes:', error);
           this.error.set('Error al cargar los mensajes');
-        }
+        },
       });
   }
 
@@ -520,60 +637,66 @@ export class Inbox implements OnInit, OnDestroy {
       return;
     }
 
-    console.log(`Cargando más mensajes para ${chatId} con cursor:`, pagination.nextCursor);
+    console.log(
+      `Cargando más mensajes para ${chatId} con cursor:`,
+      pagination.nextCursor
+    );
 
     // Marcar como cargando
-    this.messagePaginationMap.update(map => ({
+    this.messagePaginationMap.update((map) => ({
       ...map,
       [chatId]: {
         ...map[chatId],
-        isLoadingMore: true
-      }
+        isLoadingMore: true,
+      },
     }));
 
-    this.chatService.getMessagesV2(chatId, {
-      cursor: pagination.nextCursor,
-      limit: 50
-      // El endpoint por defecto devuelve sentAt DESC
-    })
+    this.chatService
+      .getMessagesV2(chatId, {
+        cursor: pagination.nextCursor,
+        limit: 50,
+        // El endpoint por defecto devuelve sentAt DESC
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (response) => {
-          console.log(`Mensajes antiguos cargados: ${response.messages.length}`);
-          
+          console.log(
+            `Mensajes antiguos cargados: ${response.messages.length}`
+          );
+
           // Los mensajes vienen en orden descendente
           // Los revertimos y los agregamos AL INICIO del array existente
           const newMessages = [...response.messages].reverse();
           const currentMessages = this.messagesMap()[chatId] || [];
-          
-          this.messagesMap.update(map => ({
+
+          this.messagesMap.update((map) => ({
             ...map,
-            [chatId]: [...newMessages, ...currentMessages]
+            [chatId]: [...newMessages, ...currentMessages],
           }));
-          
+
           // Actualizar paginación
-          this.messagePaginationMap.update(map => ({
+          this.messagePaginationMap.update((map) => ({
             ...map,
             [chatId]: {
               total: response.total,
               hasMore: response.hasMore,
               nextCursor: response.nextCursor,
-              isLoadingMore: false
-            }
+              isLoadingMore: false,
+            },
           }));
         },
         error: (error) => {
           console.error('Error al cargar más mensajes:', error);
-          
+
           // Desmarcar loading en caso de error
-          this.messagePaginationMap.update(map => ({
+          this.messagePaginationMap.update((map) => ({
             ...map,
             [chatId]: {
               ...map[chatId],
-              isLoadingMore: false
-            }
+              isLoadingMore: false,
+            },
           }));
-        }
+        },
       });
   }
 
@@ -599,7 +722,9 @@ export class Inbox implements OnInit, OnDestroy {
    * Inicializar sincronización de mensajes no leídos
    */
   private initializeUnreadMessagesSync(): void {
-    console.log('[Inbox] 🎧 Inicializando sincronización de mensajes no leídos');
+    console.log(
+      '[Inbox] 🎧 Inicializando sincronización de mensajes no leídos'
+    );
 
     // Sincronizar contadores de no leídos con los chats
     this.unreadMessagesService.unreadCount$
@@ -609,20 +734,22 @@ export class Inbox implements OnInit, OnDestroy {
         console.log('[Inbox] 📋 Mapa de contadores recibido:', unreadCountMap);
 
         // Actualizar unreadCount en los chats locales
-        this.conversations.update(chats => {
+        this.conversations.update((chats) => {
           console.log('[Inbox] 📋 Total de chats a actualizar:', chats.length);
 
-          const updatedChats = chats.map(chat => {
+          const updatedChats = chats.map((chat) => {
             const newCount = unreadCountMap[chat.chatId] || 0;
             const oldCount = chat.unreadCount || 0;
 
             if (newCount !== oldCount) {
-              console.log(`[Inbox] 🔄 Chat ${chat.chatId}: ${oldCount} -> ${newCount}`);
+              console.log(
+                `[Inbox] 🔄 Chat ${chat.chatId}: ${oldCount} -> ${newCount}`
+              );
             }
 
             return {
               ...chat,
-              unreadCount: newCount
+              unreadCount: newCount,
             };
           });
 
@@ -634,16 +761,18 @@ export class Inbox implements OnInit, OnDestroy {
     // Reconectar a todos los chats si el WebSocket se reconecta
     this.chatService.webSocketService.connectionState$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(state => {
+      .subscribe((state) => {
         if (state === 'connected') {
-          const chatIds = this.conversations().map(chat => chat.chatId);
+          const chatIds = this.conversations().map((chat) => chat.chatId);
           if (chatIds.length > 0) {
-            console.log('[Inbox] WebSocket reconectado, resubscribiendo a chats...');
+            console.log(
+              '[Inbox] WebSocket reconectado, resubscribiendo a chats...'
+            );
             this.chatService.webSocketService.joinMultipleRooms(chatIds);
             // Refrescar contadores después de reconectar
             this.unreadMessagesService.refreshUnreadCounts(chatIds);
             // Refrescar presencia después de reconectar
-            chatIds.forEach(chatId => this.loadChatPresence(chatId));
+            chatIds.forEach((chatId) => this.loadChatPresence(chatId));
           }
         }
       });
@@ -654,8 +783,10 @@ export class Inbox implements OnInit, OnDestroy {
       .subscribe((event) => {
         console.log('[Inbox] Cambio de presencia detectado:', event);
         // Recargar presencia para todos los chats del usuario afectado
-        this.conversations().forEach(chat => {
-          const isParticipant = chat.participants?.some(p => p.id === event.userId);
+        this.conversations().forEach((chat) => {
+          const isParticipant = chat.participants?.some(
+            (p) => p.id === event.userId
+          );
           if (isParticipant) {
             this.loadChatPresence(chat.chatId);
           }
@@ -667,24 +798,28 @@ export class Inbox implements OnInit, OnDestroy {
    * Cargar estado de presencia para un chat específico
    */
   private loadChatPresence(chatId: string): void {
-    this.presenceService.getChatPresence(chatId)
+    this.presenceService
+      .getChatPresence(chatId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (chatPresence) => {
           // Obtener el estado del otro participante (no el usuario actual)
           const currentUserId = this.currentUserId();
           const otherParticipant = chatPresence.participants.find(
-            p => p.userId !== currentUserId
+            (p) => p.userId !== currentUserId
           );
 
-          this.chatPresenceMap.update(map => ({
+          this.chatPresenceMap.update((map) => ({
             ...map,
-            [chatId]: otherParticipant?.connectionStatus
+            [chatId]: otherParticipant?.connectionStatus,
           }));
         },
         error: (error) => {
-          console.error(`[Inbox] Error al cargar presencia para chat ${chatId}:`, error);
-        }
+          console.error(
+            `[Inbox] Error al cargar presencia para chat ${chatId}:`,
+            error
+          );
+        },
       });
   }
 
@@ -699,7 +834,8 @@ export class Inbox implements OnInit, OnDestroy {
    * Cargar la actividad del visitante (datos iniciales del panel de detalles)
    */
   private loadVisitorCurrentPage(visitorId: string): void {
-    this.visitorsDataService.getVisitorActivity(visitorId)
+    this.visitorsDataService
+      .getVisitorActivity(visitorId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (activity) => {
@@ -708,10 +844,13 @@ export class Inbox implements OnInit, OnDestroy {
           this.visitorCurrentUrl.set(activity.currentUrl);
         },
         error: (error) => {
-          console.error('[Inbox] Error al cargar actividad del visitante:', error);
+          console.error(
+            '[Inbox] Error al cargar actividad del visitante:',
+            error
+          );
           this.visitorActivity.set(null);
           this.visitorCurrentUrl.set(null);
-        }
+        },
       });
   }
 
@@ -720,23 +859,29 @@ export class Inbox implements OnInit, OnDestroy {
    */
   private initializePageChangeListener(): void {
     // Escuchar evento WebSocket de cambio de página
-    this.chatService.webSocketService.on('visitor:page-changed', (...args: unknown[]) => {
-      const event = args[0] as {
-        visitorId: string;
-        chatId: string;
-        previousPage: string | null;
-        currentPage: string;
-        timestamp: string;
-      };
+    this.chatService.webSocketService.on(
+      'visitor:page-changed',
+      (...args: unknown[]) => {
+        const event = args[0] as {
+          visitorId: string;
+          chatId: string;
+          previousPage: string | null;
+          currentPage: string;
+          timestamp: string;
+        };
 
-      console.log('[Inbox] Cambio de página detectado:', event);
+        console.log('[Inbox] Cambio de página detectado:', event);
 
-      // Verificar si el cambio es para el chat seleccionado
-      const selectedChatId = this.selectedConversationId();
-      if (selectedChatId === event.chatId) {
-        console.log('[Inbox] Actualizando URL del visitante:', event.currentPage);
-        this.visitorCurrentUrl.set(event.currentPage);
+        // Verificar si el cambio es para el chat seleccionado
+        const selectedChatId = this.selectedConversationId();
+        if (selectedChatId === event.chatId) {
+          console.log(
+            '[Inbox] Actualizando URL del visitante:',
+            event.currentPage
+          );
+          this.visitorCurrentUrl.set(event.currentPage);
+        }
       }
-    });
+    );
   }
 }
