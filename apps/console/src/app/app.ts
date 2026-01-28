@@ -6,6 +6,7 @@ import { ChatWidgetComponent } from '@guiders-frontend/chat/ui/chat-widget';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { ProfileModalComponent, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
 import { ProfileService } from '@guiders-frontend/profile-service';
+import { EscalationService } from '@guiders-frontend/escalation-service';
 
 @Component({
   imports: [RouterModule, Sidebar, ChatWidgetComponent, ProfileModalComponent],
@@ -19,6 +20,7 @@ export class App {
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly profileService = inject(ProfileService);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly escalationService = inject(EscalationService);
 
   protected title = 'console';
 
@@ -49,6 +51,7 @@ export class App {
   // Computed para actualizar el badge dinámicamente
   readonly sidebarItems = computed<SidebarItem[]>(() => {
     const totalUnread = this.unreadMessagesService.totalUnreadCount();
+    const escalationCount = this.escalationService.escalationCount();
 
     return [
       {
@@ -60,6 +63,19 @@ export class App {
         ...(totalUnread > 0 && {
           badge: {
             text: totalUnread > 99 ? '99+' : totalUnread.toString(),
+            variant: 'danger' as const
+          }
+        })
+      },
+      {
+        id: 'escalations',
+        label: 'Escalaciones',
+        icon: 'alert-triangle',
+        route: '/escalations',
+        // Agregar badge solo si hay escalaciones pendientes
+        ...(escalationCount > 0 && {
+          badge: {
+            text: escalationCount.toString(),
             variant: 'danger' as const
           }
         })

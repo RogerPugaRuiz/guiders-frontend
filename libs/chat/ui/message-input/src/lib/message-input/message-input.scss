@@ -120,8 +120,84 @@
     }
   }
 
-  // Botón para activar sugerencias/mejora
-  &__suggestions-button {
+  // Chips de herramientas flotantes (arriba del input)
+  &__tools-chips {
+    display: flex;
+    gap: tokens.$spacing-xs;
+    margin-bottom: tokens.$spacing-sm;
+    padding: tokens.$spacing-xs 0;
+    animation: slideDown 0.2s ease-out;
+  }
+
+  &__tool-chip {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-xs;
+    padding: tokens.$spacing-xs tokens.$spacing-sm;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1.5px solid;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    &:active:not(:disabled) {
+      // No transform needed
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    // Variantes de color
+    &--suggestion {
+      border-color: #c4b5fd;
+      color: #7c3aed;
+      background: linear-gradient(135deg, rgba(250, 245, 255, 0.98), rgba(243, 232, 255, 0.98));
+
+      &:hover:not(:disabled) {
+        border-color: #a78bfa;
+        background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+      }
+    }
+
+    &--lead {
+      border-color: #fca5a5;
+      color: #dc2626;
+      background: linear-gradient(135deg, rgba(254, 242, 242, 0.98), rgba(254, 226, 226, 0.98));
+
+      &:hover:not(:disabled) {
+        border-color: #f87171;
+        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+      }
+    }
+
+    &--sentiment {
+      border-color: #6ee7b7;
+      color: #059669;
+      background: linear-gradient(135deg, rgba(240, 253, 244, 0.98), rgba(209, 250, 229, 0.98));
+
+      &:hover:not(:disabled) {
+        border-color: #34d399;
+        background: linear-gradient(135deg, #f0fdf4, #d1fae5);
+      }
+    }
+  }
+
+  // Botón toggle de herramientas (reemplaza botón de IA)
+  &__tools-toggle {
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -150,49 +226,81 @@
       background: #ede9fe;
       color: #7c3aed;
     }
-
-    &--loading {
-      cursor: wait;
-      opacity: 0.7;
-      background: #f5f3ff;
-    }
   }
 
-  // Spinner para botón de IA
-  &__button-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid #e9d5ff;
-    border-top-color: #8b5cf6;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
+  // Resumen del Lead
+  &__lead-summary {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fca5a5;
+    border-radius: 12px;
+    margin-bottom: tokens.$spacing-sm;
+    overflow: hidden;
+  }
+
+  &__lead-content {
+    padding: tokens.$spacing-md;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #7c2d12;
+  }
+
+  // Análisis de Sentimiento
+  &__sentiment {
+    background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%);
+    border: 1px solid #6ee7b7;
+    border-radius: 12px;
+    margin-bottom: tokens.$spacing-sm;
+    overflow: hidden;
+  }
+
+  &__sentiment-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: tokens.$spacing-md;
+  }
+
+  &__sentiment-confidence {
+    font-size: 12px;
+    color: #065f46;
+    font-weight: 500;
   }
 
   &__input-wrapper {
     flex: 1;
-    display: flex;
-    align-items: flex-end;
-    gap: tokens.$spacing-xs;
     background: #ffffff;
-    border-radius: 8px;
-    padding: 8px 8px 8px 20px;
+    border-radius: 20px;
     transition: all 0.2s ease;
     border: 1px solid #e4e4e7;
-    min-height: 48px;
-
+ 
     &:focus-within {
       background: #ffffff;
       border-color: #d4d4d8;
       box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
     }
+
+    // Modo widget: layout inline (textarea + botón en la misma línea)
+    &--widget {
+      display: flex;
+      align-items: flex-end;
+      gap: tokens.$spacing-xs;
+      padding: 8px 8px 8px 20px;
+      min-height: 48px;
+    }
+
+    // Modo inbox: layout vertical (textarea arriba, botones abajo)
+    &--inbox {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+      min-height: auto;
+    }
   }
 
   &__textarea {
-    flex: 1;
+    height: auto;
     min-height: 24px;
     max-height: 120px;
-    padding: 7px 0;
     font-family: tokens.$font-family-ui;
     font-size: 15px;
     line-height: 1.5;
@@ -201,6 +309,21 @@
     border: none;
     resize: none;
     overflow-y: auto;
+    overflow-x: hidden;
+
+    // Widget mode: padding inline, flex para ocupar espacio
+    .message-input__input-wrapper--widget & {
+      flex: 1;
+      padding: 7px 0;
+    }
+
+    // Inbox mode: padding vertical, full width, sin flex
+    .message-input__input-wrapper--inbox & {
+      padding: 0;
+      margin-bottom: tokens.$spacing-xs;
+      width: 100%;
+      flex: 0 0 auto;
+    }
 
     // Scrollbar styling
     &::-webkit-scrollbar {
@@ -231,20 +354,75 @@
     }
   }
 
+  // Contenedor de acciones para modo inbox
+  &__actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: tokens.$spacing-xs;
+    padding-top: tokens.$spacing-xs;
+  }
+
+  &__actions-left {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-2xs;
+  }
+
+  // Botones de acción (adjuntar, emoji, etc.)
+  &__action-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #71717a;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #f4f4f5;
+      color: #18181b;
+    }
+
+    &:active {
+      background: #e4e4e7;
+    }
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
   &__send-button {
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
     padding: 0;
     color: white;
     background: #18181b;
     border: none;
-    border-radius: 50%;
     cursor: pointer;
     transition: all 0.15s ease;
+
+    // Widget mode: botón circular
+    .message-input__input-wrapper--widget & {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+
+    // Inbox mode: botón más pequeño y cuadrado con bordes redondeados
+    .message-input__actions & {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+    }
 
     &:hover:not(.message-input__send-button--disabled) {
       background: #27272a;
@@ -276,10 +454,21 @@
   }
 }
 
-// Animación de spinner
+// Animaciones
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -288,15 +477,45 @@
   .message-input {
     padding: tokens.$spacing-xs tokens.$spacing-sm;
 
+    &__tools-chips {
+      flex-wrap: wrap;
+      gap: tokens.$spacing-2xs;
+      margin-bottom: tokens.$spacing-xs;
+    }
+
+    &__tool-chip {
+      font-size: 11px;
+      padding: 6px tokens.$spacing-xs;
+
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
+
     &__input-wrapper {
-      padding: 6px 6px 6px 16px;
-      border-radius: 6px;
-      min-height: 44px;
+      border-radius: 20px;
+
+      &--widget {
+        padding: 6px 6px 6px 16px;
+        min-height: 44px;
+      }
+
+      &--inbox {
+        padding: 10px 12px;
+      }
     }
 
     &__send-button {
-      width: 32px;
-      height: 32px;
+      .message-input__input-wrapper--widget & {
+        width: 32px;
+        height: 32px;
+      }
+
+      .message-input__actions & {
+        width: 28px;
+        height: 28px;
+      }
 
       svg {
         width: 14px;
@@ -304,10 +523,14 @@
       }
     }
 
-    // Ocultar botón de sugerencias en móvil para ahorrar espacio
-    &__suggestions-button {
+    &__action-button {
       width: 28px;
       height: 28px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
     }
 
     &__suggestions {
@@ -318,6 +541,17 @@
       padding: tokens.$spacing-xs tokens.$spacing-sm;
       font-size: 12px;
       line-height: 1.4;
+    }
+
+    &__lead-summary,
+    &__sentiment {
+      margin-bottom: tokens.$spacing-xs;
+    }
+
+    &__lead-content,
+    &__sentiment-content {
+      padding: tokens.$spacing-sm;
+      font-size: 12px;
     }
   }
 }

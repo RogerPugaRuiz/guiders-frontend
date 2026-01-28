@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chat, User } from '@guiders-frontend/shared/types';
 import { TextField } from '@guiders-frontend/text-field';
+import { Badge } from '@guiders-frontend/badge';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
 
 @Component({
   selector: 'guiders-chat-list',
-  imports: [CommonModule, FormsModule, TextField],
+  imports: [CommonModule, FormsModule, TextField, Badge],
   templateUrl: './chat-list.html',
   styleUrl: './chat-list.scss',
 })

@@ -311,20 +311,6 @@
   flex-shrink: 0;
 }
 
-.unread-badge {
-  background: tokens.$color-primary-600;
-  color: #ffffff;
-  font-size: tokens.$font-size-xs;
-  font-weight: tokens.$font-weight-semibold;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  padding: 2px tokens.$spacing-sm;
-  border-radius: tokens.$border-radius-full;
-  min-width: 18px;
-  text-align: center;
-  line-height: 1;
-  box-shadow: tokens.$shadow-sm;
-}
-
 .message-status {
   font-size: tokens.$font-size-sm;
   color: tokens.$color-text-tertiary;

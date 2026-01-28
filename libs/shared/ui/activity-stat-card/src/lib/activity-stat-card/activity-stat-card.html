@@ -1,12 +1,18 @@
 <div class="activity-stat-card">
-  <guiders-donut-chart
-    [value]="value()"
-    [maxValue]="maxValue()"
-    [variant]="variant()"
-    [size]="size()"
-  />
   <div class="activity-stat-card__content">
     <span class="activity-stat-card__label">{{ label() }}</span>
+    <div class="activity-stat-card__stats">
+      <span class="activity-stat-card__value">{{ value() }}</span>
+      @if (trendChange() !== 0 || trendPercentage() !== 0) {
+        <span [ngClass]="trendClasses()">
+          <span class="activity-stat-card__trend-icon">{{ trendIcon() }}</span>
+          <span class="activity-stat-card__trend-text">
+            {{ trendChange() > 0 ? '+' : '' }}{{ trendChange() }}
+            ({{ trendPercentage() > 0 ? '+' : '' }}{{ trendPercentage() }}%)
+          </span>
+        </span>
+      }
+    </div>
     @if (subtitle()) {
       <span class="activity-stat-card__subtitle">{{ subtitle() }}</span>
     }

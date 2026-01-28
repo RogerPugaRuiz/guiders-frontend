@@ -1,41 +1,46 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
 .donut-chart {
+  width: 60px;
+  height: 60px;
+  display: block;
   transform: rotate(-90deg);
 
   &__track {
-    stroke: var(--wl-chart-track);
+    stroke: tokens.$color-border-subtle;
+    opacity: 0.3;
   }
 
   &__progress {
     transition: stroke-dashoffset 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(var(--wl-glow-primary));
 
     &--primary {
-      stroke: var(--wl-chart-primary);
-      filter: drop-shadow(var(--wl-glow-primary));
+      stroke: tokens.$color-primary-500;
+      filter: drop-shadow(0 0 4px rgba(0, 123, 255, 0.4));
     }
 
     &--success {
-      stroke: var(--wl-chart-success);
-      filter: drop-shadow(var(--wl-glow-success));
+      stroke: tokens.$color-success-500;
+      filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.4));
     }
 
     &--warning {
-      stroke: var(--wl-chart-warning);
-      filter: drop-shadow(var(--wl-glow-warning));
+      stroke: tokens.$color-warning-500;
+      filter: drop-shadow(0 0 4px rgba(245, 158, 11, 0.4));
     }
 
     &--info {
-      stroke: var(--wl-chart-info);
-      filter: drop-shadow(var(--wl-glow-info));
+      stroke: tokens.$color-info-500;
+      filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.4));
     }
   }
 
   &__value {
     transform: rotate(90deg);
     transform-origin: center;
-    font-family: var(--wl-font-family, 'Inter', sans-serif);
+    font-family: tokens.$font-family-ui;
     font-size: 14px;
-    font-weight: 600;
-    fill: var(--wl-color-text-primary);
+    font-weight: tokens.$font-weight-semibold;
+    fill: tokens.$color-text-primary;
   }
 }

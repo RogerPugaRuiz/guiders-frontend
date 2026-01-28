@@ -16,7 +16,11 @@
           [attr.aria-pressed]="isActive(filter.id)"
         >
           <span class="quick-filters__label">{{ filter.label }}</span>
-          <span class="quick-filters__count">{{ filter.count }}</span>
+          <guiders-badge
+            [count]="filter.count"
+            variant="neutral"
+            size="small"
+          />
         </button>
       }
     </div>

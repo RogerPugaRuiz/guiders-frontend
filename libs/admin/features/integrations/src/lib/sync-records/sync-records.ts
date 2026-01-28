@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import { CrmSyncRecord, SyncStatus, CrmType } from '@guiders-frontend/shared/types';
+import { Badge } from '@guiders-frontend/badge';
 
 @Component({
   selector: 'lib-sync-records',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, Badge],
   templateUrl: './sync-records.html',
   styleUrl: './sync-records.scss',
 })
@@ -85,6 +86,16 @@ export class SyncRecords implements OnInit {
       partial: 'status-badge--info',
     };
     return classes[status] || '';
+  }
+
+  getStatusVariant(status: SyncStatus): 'success' | 'warning' | 'danger' | 'info' {
+    const variants: Record<SyncStatus, 'success' | 'warning' | 'danger' | 'info'> = {
+      pending: 'warning',
+      synced: 'success',
+      failed: 'danger',
+      partial: 'info',
+    };
+    return variants[status] || 'info';
   }
 
   getCrmTypeLabel(type: CrmType): string {

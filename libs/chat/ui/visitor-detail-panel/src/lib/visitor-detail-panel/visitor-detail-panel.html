@@ -191,24 +191,15 @@
     <div class="visitor-detail-panel__activity-stats">
       <guiders-activity-stat-card
         [value]="visitor().totalChats"
-        [maxValue]="10"
         [label]="'Chats'"
-        [variant]="'primary'"
-        [size]="'small'"
       />
       <guiders-activity-stat-card
         [value]="visitor().totalSessions"
-        [maxValue]="20"
         [label]="'Sesiones'"
-        [variant]="'info'"
-        [size]="'small'"
       />
       <guiders-activity-stat-card
         [value]="visitor().totalPageViews"
-        [maxValue]="50"
         [label]="'Páginas'"
-        [variant]="'success'"
-        [size]="'small'"
       />
     </div>
   </div>

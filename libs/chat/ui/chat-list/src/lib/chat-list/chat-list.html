@@ -96,9 +96,12 @@
 
                 <div class="chat-item__indicators">
                   @if (chat.unreadCount > 0) {
-                    <span class="unread-badge">
-                      {{ chat.unreadCount > 99 ? '99+' : chat.unreadCount }}
-                    </span>
+                    <guiders-badge
+                      [count]="chat.unreadCount"
+                      [maxCount]="99"
+                      variant="danger"
+                      size="small"
+                    />
                   }
                   @if (chat.lastMessage && chat.lastMessage.status) {
                     <span class="message-status">

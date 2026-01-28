@@ -1,4 +1,46 @@
-<div class="message-input">
+<div class="message-input" [class.message-input--inbox]="mode() === 'inbox'" [class.message-input--widget]="mode() === 'widget'">
+  <!-- Chips de herramientas flotantes (solo en modo inbox) -->
+  @if (showAdvancedFeatures() && chatId()) {
+    <div class="message-input__tools-chips">
+      <button
+        type="button"
+        class="message-input__tool-chip message-input__tool-chip--suggestion"
+        (click)="activateSuggestionTool()"
+        [disabled]="isLoadingSuggestions()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+          <path d="M8 15C12.8747 15 15 12.949 15 8C15 12.949 17.1104 15 22 15C17.1104 15 15 17.1104 15 22C15 17.1104 12.8747 15 8 15Z"/>
+          <path d="M2 6.5C5.13376 6.5 6.5 5.18153 6.5 2C6.5 5.18153 7.85669 6.5 11 6.5C7.85669 6.5 6.5 7.85669 6.5 11C6.5 7.85669 5.13376 6.5 2 6.5Z"/>
+        </svg>
+        Sugerir Respuesta
+      </button>
+
+      <button
+        type="button"
+        class="message-input__tool-chip message-input__tool-chip--lead"
+        (click)="activateLeadSummaryTool()"
+        [disabled]="isLoadingLeadSummary()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+          <line x1="12" y1="22.08" x2="12" y2="12"/>
+        </svg>
+        Resumen del Lead
+      </button>
+
+      <button
+        type="button"
+        class="message-input__tool-chip message-input__tool-chip--sentiment"
+        (click)="activateSentimentTool()"
+        [disabled]="isLoadingSentiment()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12 L7 7 L12 12 L22 2"/>
+          <path d="M16 2 L22 2 L22 8"/>
+        </svg>
+        Análisis de Sentimiento
+      </button>
+    </div>
+  }
+
   <!-- Sección de sugerencias de IA -->
   @if (showSuggestions()) {
     <div class="message-input__suggestions">
@@ -47,48 +89,169 @@
     </div>
   }
 
-  <div class="message-input__input-wrapper">
-    <!-- Botón de sugerencias/mejora IA -->
-    <button
-      type="button"
-      class="message-input__suggestions-button"
-      [class.message-input__suggestions-button--active]="showSuggestions()"
-      [class.message-input__suggestions-button--loading]="isImprovingText()"
-      (click)="toggleSuggestions()"
-      [disabled]="!chatId() || isImprovingText()"
-      [title]="messageText.trim() ? 'Mejorar texto con IA' : 'Obtener sugerencias de respuesta con IA'"
-      aria-label="IA">
-      @if (isImprovingText()) {
-        <span class="message-input__button-spinner"></span>
-      } @else {
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
-          <path d="M8 15C12.8747 15 15 12.949 15 8C15 12.949 17.1104 15 22 15C17.1104 15 15 17.1104 15 22C15 17.1104 12.8747 15 8 15Z"/>
-          <path d="M2 6.5C5.13376 6.5 6.5 5.18153 6.5 2C6.5 5.18153 7.85669 6.5 11 6.5C7.85669 6.5 6.5 7.85669 6.5 11C6.5 7.85669 5.13376 6.5 2 6.5Z"/>
-        </svg>
-      }
-    </button>
+  <!-- Resumen del Lead -->
+  @if (showLeadSummary()) {
+    <div class="message-input__lead-summary">
+      <div class="message-input__suggestions-header">
+        <span class="message-input__suggestions-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          Resumen del Lead
+        </span>
+        <button
+          type="button"
+          class="message-input__suggestions-close"
+          (click)="closeLeadSummary()"
+          aria-label="Cerrar resumen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
 
-    <textarea
-      #textarea
-      class="message-input__textarea"
-      [(ngModel)]="messageText"
-      (input)="onInput()"
-      (blur)="onBlur()"
-      (keydown)="onKeyDown($event)"
-      placeholder="Escribe un mensaje..."
-      rows="1"
-      [disabled]="isSending()"
-    ></textarea>
-    <button
-      type="button"
-      class="message-input__send-button"
-      (click)="messageText.trim() && sendMessage()"
-      [class.message-input__send-button--disabled]="!messageText.trim() || isSending()"
-      aria-label="Enviar mensaje"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.29106 3.3088C3.00745 3.18938 2.67967 3.25533 2.4643 3.47514C2.24894 3.69495 2.1897 4.02401 2.31488 4.30512L5.40752 11.25H13C13.4142 11.25 13.75 11.5858 13.75 12C13.75 12.4142 13.4142 12.75 13 12.75H5.40754L2.31488 19.6949C2.1897 19.976 2.24894 20.3051 2.4643 20.5249C2.67967 20.7447 3.00745 20.8107 3.29106 20.6912L22.2911 12.6913C22.5692 12.5742 22.75 12.3018 22.75 12C22.75 11.6983 22.5692 11.4259 22.2911 11.3088L3.29106 3.3088Z" fill="currentColor"/>
-      </svg>
-    </button>
-  </div>
+      @if (isLoadingLeadSummary()) {
+        <div class="message-input__suggestions-loading">
+          <span class="message-input__suggestions-spinner"></span>
+          <span>Generando resumen...</span>
+        </div>
+      } @else if (leadSummary()) {
+        <div class="message-input__lead-content">
+          {{ leadSummary() }}
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Análisis de Sentimiento -->
+  @if (showSentiment()) {
+    <div class="message-input__sentiment">
+      <div class="message-input__suggestions-header">
+        <span class="message-input__suggestions-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12 L7 7 L12 12 L22 2"/>
+            <path d="M16 2 L22 2 L22 8"/>
+          </svg>
+          Análisis de Sentimiento
+        </span>
+        <button
+          type="button"
+          class="message-input__suggestions-close"
+          (click)="closeSentiment()"
+          aria-label="Cerrar análisis">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      @if (isLoadingSentiment()) {
+        <div class="message-input__suggestions-loading">
+          <span class="message-input__suggestions-spinner"></span>
+          <span>Analizando sentimiento...</span>
+        </div>
+      } @else if (sentimentAnalysis()) {
+        <div class="message-input__sentiment-content">
+          <guiders-badge
+            [text]="sentimentAnalysis()?.sentiment || ''"
+            [variant]="getSentimentVariant(sentimentAnalysis()?.sentiment || '')"
+            size="small"
+          />
+          <div class="message-input__sentiment-confidence">
+            Confianza: {{ (sentimentAnalysis()?.confidence || 0) * 100 | number:'1.0-0' }}%
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Layout para modo widget (simple, inline) -->
+  @if (mode() === 'widget') {
+    <div class="message-input__input-wrapper message-input__input-wrapper--widget">
+      <textarea
+        #textarea
+        class="message-input__textarea"
+        [(ngModel)]="messageText"
+        (input)="onInput()"
+        (blur)="onBlur()"
+        (keydown)="onKeyDown($event)"
+        placeholder="Escribe un mensaje..."
+        rows="1"
+        [disabled]="isSending()"
+      ></textarea>
+      <button
+        type="button"
+        class="message-input__send-button"
+        (click)="messageText.trim() && sendMessage()"
+        [class.message-input__send-button--disabled]="!messageText.trim() || isSending()"
+        aria-label="Enviar mensaje"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M3.29106 3.3088C3.00745 3.18938 2.67967 3.25533 2.4643 3.47514C2.24894 3.69495 2.1897 4.02401 2.31488 4.30512L5.40752 11.25H13C13.4142 11.25 13.75 11.5858 13.75 12C13.75 12.4142 13.4142 12.75 13 12.75H5.40754L2.31488 19.6949C2.1897 19.976 2.24894 20.3051 2.4643 20.5249C2.67967 20.7447 3.00745 20.8107 3.29106 20.6912L22.2911 12.6913C22.5692 12.5742 22.75 12.3018 22.75 12C22.75 11.6983 22.5692 11.4259 22.2911 11.3088L3.29106 3.3088Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Layout para modo inbox (textarea arriba, botones abajo) -->
+  @if (mode() === 'inbox') {
+    <div class="message-input__input-wrapper message-input__input-wrapper--inbox">
+      <textarea
+        #textarea
+        class="message-input__textarea"
+        [(ngModel)]="messageText"
+        (input)="onInput()"
+        (blur)="onBlur()"
+        (keydown)="onKeyDown($event)"
+        placeholder="Escribe un mensaje..."
+        rows="1"
+        [disabled]="isSending()"
+      ></textarea>
+
+      <div class="message-input__actions">
+        <div class="message-input__actions-left">
+          <button
+            type="button"
+            class="message-input__action-button"
+            aria-label="Adjuntar archivo"
+            title="Adjuntar archivo"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            class="message-input__action-button"
+            aria-label="Añadir emoji"
+            title="Añadir emoji"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+              <line x1="9" y1="9" x2="9.01" y2="9"/>
+              <line x1="15" y1="9" x2="15.01" y2="9"/>
+            </svg>
+          </button>
+        </div>
+
+        <button
+          type="button"
+          class="message-input__send-button"
+          (click)="messageText.trim() && sendMessage()"
+          [class.message-input__send-button--disabled]="!messageText.trim() || isSending()"
+          aria-label="Enviar mensaje"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M3.29106 3.3088C3.00745 3.18938 2.67967 3.25533 2.4643 3.47514C2.24894 3.69495 2.1897 4.02401 2.31488 4.30512L5.40752 11.25H13C13.4142 11.25 13.75 11.5858 13.75 12C13.75 12.4142 13.4142 12.75 13 12.75H5.40754L2.31488 19.6949C2.1897 19.976 2.24894 20.3051 2.4643 20.5249C2.67967 20.7447 3.00745 20.8107 3.29106 20.6912L22.2911 12.6913C22.5692 12.5742 22.75 12.3018 22.75 12C22.75 11.6983 22.5692 11.4259 22.2911 11.3088L3.29106 3.3088Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
 </div>

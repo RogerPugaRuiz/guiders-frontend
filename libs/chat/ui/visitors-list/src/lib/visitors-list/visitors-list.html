@@ -119,9 +119,11 @@
                     <div class="visitor-name">
                       <span class="name-text">{{ visitor.name || 'Visitante anónimo' }}</span>
                       @if (visitor.isMe) {
-                        <span class="me-badge">
-                          Tú
-                        </span>
+                        <guiders-badge
+                          text="Tú"
+                          variant="primary"
+                          size="small"
+                        />
                       }
                       @if (visitor.isInternal) {
                         <span class="internal-badge">

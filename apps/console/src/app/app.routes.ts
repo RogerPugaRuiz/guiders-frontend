@@ -9,6 +9,12 @@ export const appRoutes: Route[] = [
 		canActivate: [authGuard],
 	},
 	{
+		path: 'escalations',
+		loadChildren: () => import('@guiders-frontend/escalations').then(m => m.routes),
+		title: 'Escalaciones',
+		canActivate: [authGuard],
+	},
+	{
 		path: 'visitors',
 		loadChildren: () => import('@guiders-frontend/visitors').then(m => m.visitorsRoutes),
 		title: 'Visitantes',

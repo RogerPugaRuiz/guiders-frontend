@@ -14,8 +14,8 @@
   &__chip {
     display: inline-flex;
     align-items: center;
-    gap: tokens.$spacing-2xs;
-    padding: tokens.$spacing-2xs tokens.$spacing-sm;
+    gap: tokens.$spacing-xs;
+    padding: tokens.$spacing-xs tokens.$spacing-md;
     border: 1px solid tokens.$color-border-subtle;
     border-radius: tokens.$border-radius-full;
     background: tokens.$color-surface-primary;
@@ -26,10 +26,30 @@
     transition: all tokens.$duration-fast tokens.$easing-standard;
     white-space: nowrap;
 
+    // Estilos mejorados para el badge cuando no está activo
+    ::ng-deep guiders-badge {
+      .guiders-badge {
+        background: tokens.$color-surface-tertiary;
+        color: tokens.$color-text-secondary;
+        border-color: tokens.$color-border-default;
+        font-weight: tokens.$font-weight-semibold;
+        min-width: 20px;
+        transition: all tokens.$duration-fast tokens.$easing-standard;
+      }
+    }
+
     &:hover {
       background: tokens.$color-surface-secondary;
       border-color: tokens.$color-border-default;
       color: tokens.$color-text-primary;
+
+      ::ng-deep guiders-badge {
+        .guiders-badge {
+          background: tokens.$color-surface-primary;
+          color: tokens.$color-text-primary;
+          border-color: tokens.$color-border-default;
+        }
+      }
     }
 
     &:focus-visible {
@@ -42,15 +62,28 @@
       border-color: var(--wl-color-primary, tokens.$color-primary-500);
       color: tokens.$color-text-inverse;
 
+      // Estilos mejorados para el badge cuando está activo
+      ::ng-deep guiders-badge {
+        .guiders-badge {
+          background: rgba(255, 255, 255, 0.25);
+          color: tokens.$color-text-inverse;
+          border-color: rgba(255, 255, 255, 0.35);
+          font-weight: tokens.$font-weight-bold;
+          backdrop-filter: blur(4px);
+        }
+      }
+
       &:hover {
         background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
         border-color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
         color: tokens.$color-text-inverse;
-      }
 
-      .quick-filters__count {
-        background: rgba(255, 255, 255, 0.2);
-        color: tokens.$color-text-inverse;
+        ::ng-deep guiders-badge {
+          .guiders-badge {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+          }
+        }
       }
     }
   }

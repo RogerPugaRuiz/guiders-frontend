@@ -33,11 +33,7 @@
   z-index: 1;
   flex-direction: column;
   transition: width tokens.$duration-normal tokens.$easing-standard;
-  background: linear-gradient(
-    180deg,
-    var(--wl-color-surface, tokens.$color-surface-secondary) 0%,
-    var(--wl-color-surface-tertiary, tokens.$color-surface-tertiary) 100%
-  );
+  background: var(--wl-color-surface, tokens.$color-surface-secondary);
   color: var(--wl-color-surface-text, tokens.$color-text-primary);
   position: relative;
   overflow-x: hidden;

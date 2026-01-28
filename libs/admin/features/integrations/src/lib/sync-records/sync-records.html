@@ -107,9 +107,11 @@
                 }
               </td>
               <td>
-                <span class="status-badge" [ngClass]="getStatusClass(record.status)">
-                  {{ getStatusLabel(record.status) }}
-                </span>
+                <guiders-badge
+                  [text]="getStatusLabel(record.status)"
+                  [variant]="getStatusVariant(record.status)"
+                  size="small"
+                />
               </td>
               <td>{{ formatDate(record.lastSyncAt) }}</td>
               <td class="text-center">{{ record.retryCount }}</td>

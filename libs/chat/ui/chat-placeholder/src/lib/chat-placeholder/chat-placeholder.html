@@ -150,6 +150,6 @@
   </div>
 
   @if (messages.length > 0) {
-  <guiders-message-input [chatId]="selectedChat.chatId" [siteId]="siteId" (messageSent)="onMessageSent($event)" />
+  <guiders-message-input [chatId]="selectedChat.chatId" [siteId]="siteId" [mode]="'inbox'" (messageSent)="onMessageSent($event)" />
   }
 </div>

@@ -338,7 +338,7 @@
 
 .visitor-detail-panel__activity-stats {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: tokens.$spacing-sm;
 }
 
@@ -357,60 +357,68 @@
   padding: tokens.$spacing-xs tokens.$spacing-sm;
   font-family: tokens.$font-family-ui;
   font-size: tokens.$font-size-xs;
-  font-weight: 500;
-  border-radius: tokens.$border-radius-full;
+  font-weight: 600;
+  border-radius: tokens.$border-radius-md;
+  border: 1px solid transparent;
+  transition: all tokens.$duration-fast tokens.$easing-standard;
 
   &--lifecycle {
-    background: var(--wl-color-surface-secondary);
-    color: var(--wl-color-text-secondary);
-
     &[data-lifecycle="ANON"] {
-      background: var(--wl-color-surface-tertiary);
-      color: var(--wl-color-text-tertiary);
+      background: rgba(125, 211, 252, 0.15);
+      color: #0369a1;
+      border-color: rgba(125, 211, 252, 0.25);
     }
 
     &[data-lifecycle="ENGAGED"] {
-      background: var(--wl-color-surface-tertiary);
-      color: var(--wl-chart-info);
+      background: rgba(59, 130, 246, 0.1);
+      color: #2563eb;
+      border-color: rgba(59, 130, 246, 0.2);
     }
 
     &[data-lifecycle="LEAD"] {
-      background: var(--wl-color-surface-tertiary);
-      color: var(--wl-chart-warning);
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+      border-color: rgba(245, 158, 11, 0.2);
     }
 
     &[data-lifecycle="CONVERTED"] {
-      background: var(--wl-color-surface-tertiary);
-      color: var(--wl-chart-success);
+      background: rgba(16, 185, 129, 0.1);
+      color: #059669;
+      border-color: rgba(16, 185, 129, 0.2);
     }
   }
 
   &--new {
-    background: var(--wl-color-surface-tertiary);
-    color: var(--wl-chart-info);
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    border-color: rgba(59, 130, 246, 0.2);
   }
 
   &--active {
-    background: var(--wl-color-surface-tertiary);
-    color: var(--wl-chart-success);
+    background: rgba(16, 185, 129, 0.1);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.2);
   }
 
   &--tier {
     cursor: help;
 
     &[data-tier="cold"] {
-      background: var(--wl-color-surface-tertiary);
-      color: var(--wl-chart-info);
+      background: rgba(59, 130, 246, 0.1);
+      color: #2563eb;
+      border-color: rgba(59, 130, 246, 0.2);
     }
 
     &[data-tier="warm"] {
-      background: var(--wl-color-surface-tertiary);
-      color: var(--wl-chart-warning);
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+      border-color: rgba(245, 158, 11, 0.2);
     }
 
     &[data-tier="hot"] {
-      background: var(--wl-color-surface-tertiary);
-      color: tokens.$color-danger-500;
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+      border-color: rgba(239, 68, 68, 0.2);
     }
   }
 }

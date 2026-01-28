@@ -2,6 +2,7 @@ import { Component, input, output, computed, signal, HostListener, inject, Chang
 import { CommonModule } from '@angular/common';
 import { forkJoin } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { Badge } from '@guiders-frontend/badge';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
@@ -26,7 +27,7 @@ export interface VisitorListConfig {
 @Component({
   selector: 'lib-visitors-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Badge],
   templateUrl: './visitors-list.html',
   styleUrls: ['./visitors-list.scss']
 })

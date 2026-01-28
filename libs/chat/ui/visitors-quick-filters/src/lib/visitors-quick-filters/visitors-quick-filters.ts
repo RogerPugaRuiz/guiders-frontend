@@ -1,9 +1,10 @@
 import { Component, input, output, signal } from '@angular/core';
 import { QuickFilter, SavedFilter } from '@guiders-frontend/shared/types';
+import { Badge } from '@guiders-frontend/badge';
 
 @Component({
   selector: 'guiders-visitors-quick-filters',
-  imports: [],
+  imports: [Badge],
   templateUrl: './visitors-quick-filters.html',
   styleUrl: './visitors-quick-filters.scss',
 })

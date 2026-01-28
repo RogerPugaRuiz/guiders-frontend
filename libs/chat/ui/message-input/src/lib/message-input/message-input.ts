@@ -17,11 +17,12 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { PresenceService } from '@guiders-frontend/presence-service';
 import { ChatService } from '@guiders-frontend/chat-service';
+import { Badge } from '@guiders-frontend/badge';
 import { take } from 'rxjs';
 
 @Component({
   selector: 'guiders-message-input',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, Badge],
   templateUrl: './message-input.html',
   styleUrl: './message-input.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -39,6 +40,12 @@ export class MessageInput implements AfterViewInit, OnDestroy {
 
   // Input para el último mensaje del visitante (para sugerencias contextuales)
   readonly lastVisitorMessage = input<string | undefined>(undefined);
+
+  // Input para determinar el modo de visualización (inbox o widget)
+  readonly mode = input<'inbox' | 'widget'>('inbox');
+
+  // Computed para saber si mostrar características avanzadas
+  readonly showAdvancedFeatures = computed(() => this.mode() === 'inbox');
 
   messageText = ''; // Usar propiedad normal para mejor compatibilidad con ngModel
   readonly isSending = signal(false);
@@ -58,6 +65,19 @@ export class MessageInput implements AfterViewInit, OnDestroy {
 
   // Estado de mejora de texto
   readonly isImprovingText = signal(false);
+
+  // Estado de resumen del lead
+  readonly leadSummary = signal<string | null>(null);
+  readonly isLoadingLeadSummary = signal(false);
+  readonly showLeadSummary = signal(false);
+
+  // Estado de análisis de sentimiento
+  readonly sentimentAnalysis = signal<{sentiment: string; confidence: number} | null>(null);
+  readonly isLoadingSentiment = signal(false);
+  readonly showSentiment = signal(false);
+
+  // Mostrar/ocultar herramientas
+  readonly showTools = signal(false);
 
   // Computed para verificar si hay sugerencias disponibles
   readonly hasSuggestions = computed(() => this.suggestions().length > 0);
@@ -179,12 +199,15 @@ export class MessageInput implements AfterViewInit, OnDestroy {
       return;
     }
 
-    // Reset height para calcular scrollHeight correctamente
-    textarea.style.height = 'auto';
+    // Usar requestAnimationFrame para asegurar que el DOM esté actualizado
+    requestAnimationFrame(() => {
+      // Reset height para calcular scrollHeight correctamente
+      textarea.style.height = 'auto';
 
-    // Calcular altura necesaria (máximo 120px ~ 5 líneas)
-    const newHeight = Math.min(textarea.scrollHeight, 120);
-    textarea.style.height = `${newHeight}px`;
+      // Calcular altura necesaria (máximo 120px ~ 5 líneas)
+      const newHeight = Math.min(textarea.scrollHeight, 120);
+      textarea.style.height = `${newHeight}px`;
+    });
   }
 
   /**
@@ -302,5 +325,109 @@ export class MessageInput implements AfterViewInit, OnDestroy {
           this.isImprovingText.set(false);
         }
       });
+  }
+
+  /**
+   * Toggle visibility de las herramientas
+   */
+  toggleTools(): void {
+    this.showTools.update(val => !val);
+  }
+
+  /**
+   * Ocultar herramientas
+   */
+  hideTools(): void {
+    this.showTools.set(false);
+  }
+
+  /**
+   * Activar herramienta de sugerencias
+   */
+  activateSuggestionTool(): void {
+    this.loadSuggestions();
+    this.hideTools();
+  }
+
+  /**
+   * Activar herramienta de resumen del lead
+   */
+  activateLeadSummaryTool(): void {
+    const chatId = this.chatId();
+    const siteId = this.siteId();
+
+    if (!chatId || !siteId || this.isLoadingLeadSummary()) {
+      return;
+    }
+
+    this.isLoadingLeadSummary.set(true);
+    this.showLeadSummary.set(true);
+    this.hideTools();
+
+    // TODO: Implementar endpoint real cuando esté disponible
+    // Por ahora simulamos con timeout
+    setTimeout(() => {
+      this.leadSummary.set('Lead interesado en producto Premium. Ha visitado la página de precios 3 veces. Última interacción hace 2 horas.');
+      this.isLoadingLeadSummary.set(false);
+    }, 1500);
+  }
+
+  /**
+   * Activar herramienta de análisis de sentimiento
+   */
+  activateSentimentTool(): void {
+    const chatId = this.chatId();
+    const siteId = this.siteId();
+    const lastMessage = this.lastVisitorMessage();
+
+    if (!chatId || !siteId || !lastMessage || this.isLoadingSentiment()) {
+      return;
+    }
+
+    this.isLoadingSentiment.set(true);
+    this.showSentiment.set(true);
+    this.hideTools();
+
+    // TODO: Implementar endpoint real cuando esté disponible
+    // Por ahora simulamos con timeout
+    setTimeout(() => {
+      this.sentimentAnalysis.set({
+        sentiment: 'positivo',
+        confidence: 0.85
+      });
+      this.isLoadingSentiment.set(false);
+    }, 1500);
+  }
+
+  /**
+   * Cerrar resumen del lead
+   */
+  closeLeadSummary(): void {
+    this.showLeadSummary.set(false);
+  }
+
+  /**
+   * Cerrar análisis de sentimiento
+   */
+  closeSentiment(): void {
+    this.showSentiment.set(false);
+  }
+
+  /**
+   * Obtener variante del badge según el sentimiento
+   */
+  getSentimentVariant(sentiment: string): 'success' | 'warning' | 'danger' | 'default' {
+    switch (sentiment.toLowerCase()) {
+      case 'positivo':
+      case 'positive':
+        return 'success';
+      case 'neutral':
+        return 'warning';
+      case 'negativo':
+      case 'negative':
+        return 'danger';
+      default:
+        return 'default';
+    }
   }
 }

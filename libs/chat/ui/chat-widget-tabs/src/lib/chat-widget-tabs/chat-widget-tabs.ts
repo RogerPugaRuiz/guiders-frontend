@@ -1,9 +1,10 @@
 import { Component, input, output, computed, signal } from '@angular/core';
 import { ChatTab } from '@guiders-frontend/shared/types';
+import { Badge } from '@guiders-frontend/badge';
 
 @Component({
   selector: 'guiders-chat-widget-tabs',
-  imports: [],
+  imports: [Badge],
   templateUrl: './chat-widget-tabs.html',
   styleUrl: './chat-widget-tabs.scss',
 })
