@@ -20,9 +20,11 @@
   --user-menu-bg-hover: rgba(255, 255, 255, 0.05);
   --user-menu-name-color: #{tokens.$neutral-100};
   --user-menu-email-color: #{tokens.$neutral-300};
+  --user-menu-badge-border: #{tokens.$color-sidebar-dark-bg}; // #1a1a1a (negro carbón)
 
   &:hover {
     background-color: var(--user-menu-bg-hover);
+    // El badge mantiene el color del sidebar (no se redefine aquí)
   }
 
   // === TEMA LIGHT ===
@@ -30,6 +32,7 @@
     --user-menu-bg-hover: rgba(0, 0, 0, 0.05);
     --user-menu-name-color: #{tokens.$neutral-900};
     --user-menu-email-color: #{tokens.$neutral-800};
+    --user-menu-badge-border: #{tokens.$color-sidebar-light-bg}; // #f3f3f1 (neutral-100)
   }
 
   // Modo compacto (sidebar colapsado)
@@ -74,10 +77,10 @@
     width: 12px;
     height: 12px;
     border-radius: tokens.$border-radius-circle;
-    border: 2px solid rgba(255, 255, 255, 1); // Borde blanco sólido para separación visual
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); // Sombra para profundidad
+    border: 2px solid var(--user-menu-badge-border); // Usa el color de fondo del sidebar
     background-color: tokens.$color-neutral-500; // Estado neutral por defecto
-    transition: background-color tokens.$duration-fast tokens.$easing-standard;
+    transition: background-color tokens.$duration-fast tokens.$easing-standard,
+      border-color tokens.$duration-fast tokens.$easing-standard; // Transición suave del borde
 
     // Estado: Conectado y activo (verde)
     &--success {
