@@ -26,21 +26,11 @@
   transition: background-color tokens.$duration-fast tokens.$easing-standard;
 
   &:hover {
-    background: var(--wl-color-surface-hover);
-
-    // Ajustar colores de texto en hover según luminosidad de la marca blanca
-    .conversation-item__name,
-    .conversation-item__preview {
-      color: var(--wl-color-surface-text);
-    }
-
-    .conversation-item__time {
-      color: var(--wl-color-surface-text-muted);
-    }
+    background: #f5f5f5; // Gris neutro para hover
 
     // Cambiar el borde del indicador de presencia en hover
     ::ng-deep .guiders-avatar__presence-indicator {
-      border-color: var(--wl-color-surface-hover);
+      border-color: #f5f5f5;
     }
   }
 
@@ -150,7 +140,7 @@
   .conversation-item {
     border-bottom-width: 2px;
   }
-  
+
   .conversation-item--selected {
     background: tokens.$color-surface-primary;
     border: 2px solid tokens.$color-primary-500;
@@ -162,17 +152,17 @@
   .conversation-item {
     padding: tokens.$spacing-sm tokens.$spacing-md;
   }
-  
+
   .conversation-item__avatar {
     width: 40px;
     height: 40px;
     font-size: tokens.$font-size-lg;
   }
-  
+
   .conversation-item__name {
     @include tokens.typography('label-medium');
   }
-  
+
   .conversation-item__preview {
     @include tokens.typography('caption');
   }

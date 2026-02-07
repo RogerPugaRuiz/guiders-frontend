@@ -1,4 +1,12 @@
-import { Component, computed, inject, input, output, signal, effect } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  effect,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SidebarItem, SidebarConfig } from './sidebar.types';
@@ -6,7 +14,7 @@ import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Badge } from '@guiders-frontend/badge';
 import { UserMenu } from '@guiders-frontend/user-menu';
-import { ThemeService } from '@guiders-frontend/theme-service';
+import { ThemeService } from '@guiders-frontend/shared/data-access/theme';
 
 @Component({
   selector: 'guiders-sidebar',
@@ -18,20 +26,20 @@ export class Sidebar {
   private readonly router = inject(Router);
   private readonly themeService = inject(ThemeService);
 
-  // Logo y branding desde ThemeService
-  readonly logoUrl = this.themeService.logoUrl;
-  readonly brandName = this.themeService.brandName;
+  // Logo y branding configurables via inputs (con valores por defecto)
+  readonly logoUrl = input<string | null>(null);
+  readonly brandName = input<string>('Guiders');
 
   // Inputs usando signals API
   readonly items = input.required<SidebarItem[]>();
   readonly config = input<SidebarConfig>({
     collapsed: false,
     showToggle: true,
-    theme: 'light',
+    theme: 'dark',
     width: '280px',
-    collapsedWidth: '64px'
+    collapsedWidth: '64px',
   });
-  
+
   // Nuevos inputs para el user menu
   readonly userEmail = input<string | null>(null);
   readonly userName = input<string | null>(null);
@@ -47,46 +55,54 @@ export class Sidebar {
   readonly userLogout = output<void>();
   readonly userConfigureAccount = output<void>();
   readonly appSwitch = output<void>();
+  readonly themeChange = output<'light' | 'dark'>();
 
-    // Estado interno con signals
+  // Estado interno con signals
   readonly isCollapsed = signal(false);
+  // Use ThemeService signal directly for reactivity
+  readonly currentTheme = this.themeService.theme;
   private readonly expandedItems = signal<Set<string>>(new Set());
   private readonly popoverItem = signal<SidebarItem | null>(null);
   private elementPositions = new Map<string, DOMRect>();
   private currentPopoverItem: SidebarItem | null = null;
 
   // Computed values
-  readonly sidebarWidth = computed(() => 
+  readonly sidebarWidth = computed(() =>
     this.isCollapsed() ? this.config().collapsedWidth : this.config().width
   );
 
   readonly sidebarClasses = computed(() => ({
-    'sidebar': true,
+    sidebar: true,
     'sidebar--collapsed': this.isCollapsed(),
-    [`sidebar--${this.config().theme}`]: true
+    'sidebar--dark': this.currentTheme() === 'dark',
+    'sidebar--light': this.currentTheme() === 'light',
   }));
+
+  readonly isDarkTheme = computed(() => this.currentTheme() === 'dark');
 
   constructor() {
     // Effect para expandir automáticamente elementos padre cuando sus hijos están activos
     // SOLO se ejecuta en la inicialización, no interfiere con expansiones manuales
     let isInitialized = false;
-    
+
     effect(() => {
       const items = this.items();
-      
+
       // Solo auto-expandir en la primera carga o cuando cambian los items
       if (!isInitialized) {
         const expanded = new Set(this.expandedItems());
-        
-        items.forEach(item => {
+
+        items.forEach((item) => {
           if (item.children && item.children.length > 0) {
-            const hasActiveChild = item.children.some(child => this.isItemActive(child));
+            const hasActiveChild = item.children.some((child) =>
+              this.isItemActive(child)
+            );
             if (hasActiveChild) {
               expanded.add(item.id);
             }
           }
         });
-        
+
         this.expandedItems.set(expanded);
         isInitialized = true;
         console.log('Auto-expansión inicial completada:', Array.from(expanded));
@@ -94,7 +110,11 @@ export class Sidebar {
     });
   }
 
-
+  // Toggle tema
+  onToggleTheme(): void {
+    const newTheme = this.themeService.toggleTheme();
+    this.themeChange.emit(newTheme);
+  }
 
   // Métodos
   onItemClick(item: SidebarItem): void {
@@ -103,11 +123,11 @@ export class Sidebar {
       hasChildren: item.children && item.children.length > 0,
       hasRoute: !!item.route,
       isExpanded: this.isItemExpanded(item.id),
-      isActive: this.isItemActive(item)
+      isActive: this.isItemActive(item),
     });
-    
+
     this.itemClick.emit(item);
-    
+
     // Si el sidebar está colapsado y el item tiene hijos, mostrar popover
     if (this.isCollapsed() && item.children && item.children.length > 0) {
       console.log(`Mostrando popover para: ${item.label}`);
@@ -117,7 +137,7 @@ export class Sidebar {
       this.togglePopover(item);
       return;
     }
-    
+
     // Si el sidebar no está colapsado, manejar expansión/navegación
     if (item.children && item.children.length > 0) {
       // Si tiene hijos, expandir/contraer SIEMPRE
@@ -137,13 +157,13 @@ export class Sidebar {
   private captureElementPosition(item: SidebarItem): void {
     setTimeout(() => {
       // Buscar el elemento específico por su posición en la lista
-      const itemIndex = this.items().findIndex(i => i.id === item.id);
+      const itemIndex = this.items().findIndex((i) => i.id === item.id);
       const navItems = document.querySelectorAll('.sidebar__nav-item');
-      
+
       if (itemIndex >= 0 && navItems[itemIndex]) {
         const navItem = navItems[itemIndex];
         const button = navItem.querySelector('.sidebar__nav-link');
-        
+
         if (button) {
           const rect = button.getBoundingClientRect();
           this.elementPositions.set(item.id, rect);
@@ -152,7 +172,7 @@ export class Sidebar {
             bottom: rect.bottom,
             left: rect.left,
             right: rect.right,
-            height: rect.height
+            height: rect.height,
           });
         }
       }
@@ -162,7 +182,7 @@ export class Sidebar {
   toggleItemExpansion(itemId: string): void {
     const expanded = this.expandedItems();
     const newExpanded = new Set(expanded);
-    
+
     const wasExpanded = newExpanded.has(itemId);
     if (wasExpanded) {
       newExpanded.delete(itemId);
@@ -171,7 +191,7 @@ export class Sidebar {
       newExpanded.add(itemId);
       console.log(`Expandiendo item: ${itemId}`);
     }
-    
+
     console.log(`Estado expansión antes:`, Array.from(expanded));
     console.log(`Estado expansión después:`, Array.from(newExpanded));
     this.expandedItems.set(newExpanded);
@@ -211,21 +231,21 @@ export class Sidebar {
 
   onPopoverItemClick(item: SidebarItem, event?: Event): void {
     console.log(`Click en subelemento: ${item.label}`);
-    
+
     // Prevenir propagación del evento
     if (event) {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
     }
-    
+
     // Cerrar el popover inmediatamente
     this.closePopover();
-    
+
     // Ejecutar la lógica del item con un pequeño delay para asegurar que el popover se cierre
     setTimeout(() => {
       this.itemClick.emit(item);
-      
+
       if (item.route) {
         console.log(`Navegando a: ${item.route}`);
         this.navigateToRoute(item.route);
@@ -238,17 +258,17 @@ export class Sidebar {
   private navigateToRoute(route: string): void {
     // Parsear la ruta para separar path y query parameters
     const [path, queryString] = route.split('?');
-    
+
     if (queryString) {
       // Parsear query parameters
       const queryParams: { [key: string]: string } = {};
-      queryString.split('&').forEach(param => {
+      queryString.split('&').forEach((param) => {
         const [key, value] = param.split('=');
         if (key && value) {
           queryParams[decodeURIComponent(key)] = decodeURIComponent(value);
         }
       });
-      
+
       console.log('Navegando con queryParams:', { path, queryParams });
       this.router.navigate([path], { queryParams });
     } else {
@@ -273,35 +293,37 @@ export class Sidebar {
     if (item.route && this.router.url === item.route) {
       return true;
     }
-    
+
     if (item.isActive) {
       return true;
     }
-    
+
     // Si tiene hijos, verificar si alguno de sus hijos está activo
     if (item.children && item.children.length > 0) {
-      return item.children.some(child => this.isItemActive(child));
+      return item.children.some((child) => this.isItemActive(child));
     }
-    
+
     return false;
   }
 
   getItemAriaLabel(item: SidebarItem): string {
     let label = item.label;
-    
+
     if (item.badge) {
       label += ` (${item.badge.text})`;
     }
-    
+
     if (item.children && item.children.length > 0) {
-      const expandedState = this.isItemExpanded(item.id) ? 'expandido' : 'contraído';
+      const expandedState = this.isItemExpanded(item.id)
+        ? 'expandido'
+        : 'contraído';
       label += ` - Submenu ${expandedState}`;
     }
-    
+
     if (this.isItemActive(item)) {
       label += ' - Página actual';
     }
-    
+
     return label;
   }
 
@@ -314,29 +336,35 @@ export class Sidebar {
         console.log(`Usando posición capturada para ${item.label}:`, position);
         return { top: position };
       }
-      
+
       // Fallback: buscar el elemento en tiempo real
       const itemElements = document.querySelectorAll('.sidebar__nav-item');
-      const itemIndex = this.items().findIndex(i => i.id === item.id);
-      
+      const itemIndex = this.items().findIndex((i) => i.id === item.id);
+
       if (itemIndex >= 0 && itemElements[itemIndex]) {
-        const button = itemElements[itemIndex].querySelector('.sidebar__nav-link');
+        const button =
+          itemElements[itemIndex].querySelector('.sidebar__nav-link');
         if (button) {
           const rect = button.getBoundingClientRect();
           const position = rect.top; // Alinear con el top del elemento
-          console.log(`Posición calculada en tiempo real para ${item.label}:`, position);
+          console.log(
+            `Posición calculada en tiempo real para ${item.label}:`,
+            position
+          );
           return { top: position };
         }
       }
-      
+
       // Último fallback: cálculo matemático
       const headerHeight = 88; // Header + padding
-      const itemHeight = 52;   // Altura estimada por item
-      const calculatedTop = headerHeight + (itemIndex * itemHeight);
-      
-      console.log(`Usando cálculo matemático para ${item.label}:`, calculatedTop);
+      const itemHeight = 52; // Altura estimada por item
+      const calculatedTop = headerHeight + itemIndex * itemHeight;
+
+      console.log(
+        `Usando cálculo matemático para ${item.label}:`,
+        calculatedTop
+      );
       return { top: calculatedTop };
-      
     } catch (error) {
       console.error('Error calculating popover position:', error);
       return { top: 120 };

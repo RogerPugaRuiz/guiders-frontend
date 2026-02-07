@@ -132,19 +132,56 @@
     background-color: transparent;
     color: var(--color-brand);
     border-color: transparent;
+    padding: 8px !important; // Forzar padding para mantener tamaño de hit area
+    border-radius: tokens.$border-radius-sm !important;
     
     &:hover:not(:disabled) {
-      background-color: var(--color-surface-hover);
+      background-color: var(--sidebar-bg-hover);
       color: var(--color-brand-hover);
     }
     
     &:active:not(:disabled) {
-      background-color: var(--color-surface-active);
+      background-color: var(--sidebar-bg-hover);
     }
     
     &:disabled,
     &.guiders-button--disabled {
       color: var(--color-on-surface-disabled);
+    }
+  }
+  // Boton sin estilos - Útil para íconos o acciones sin importancia visual
+  &--unstyled {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-2);
+    cursor: pointer;
+    color: currentColor;
+    position: relative;
+    
+    // Hit area mínima accesible
+    min-height: var(--spacing-8); // 32px
+    min-width: var(--spacing-8);
+    
+    // Accesibilidad - focus visible (sin hover)
+    &:focus-visible {
+      outline: 2px solid var(--color-focus-ring, #{tokens.$color-info-500});
+      outline-offset: 2px;
+      border-radius: tokens.$border-radius-sm;
+    }
+    
+    // Sin transición ni efectos en hover/active
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      // Completamente sin estilos - solo el contenido
+    }
+    
+    &:disabled,
+    &.guiders-button--disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      pointer-events: none;
     }
   }
   
@@ -242,7 +279,6 @@
   justify-content: center;
   gap: inherit;
   transition: opacity var(--duration-fast) var(--easing-standard);
-  
   &--hidden {
     opacity: 0;
   }

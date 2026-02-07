@@ -169,6 +169,9 @@
       ],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
       "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],
+      "@guiders-frontend/shared/data-access/theme": [
+        "libs/shared/data-access/theme/src/index.ts"
+      ],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
       "@guiders-frontend/status-selector": [
@@ -177,9 +180,7 @@
       "@guiders-frontend/text-field": [
         "libs/shared/ui/text-field/src/index.ts"
       ],
-      "@guiders-frontend/theme-service": [
-        "libs/shared/data-access/theme-service/src/index.ts"
-      ],
+
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/typing-indicator": [
         "libs/chat/ui/typing-indicator/src/index.ts"
@@ -215,12 +216,6 @@
       ],
       "@guiders-frontend/visitors-quick-filters": [
         "libs/chat/ui/visitors-quick-filters/src/index.ts"
-      ],
-      "@guiders-frontend/white-label-config": [
-        "libs/admin/features/white-label-config/src/index.ts"
-      ],
-      "@guiders-frontend/white-label-service": [
-        "libs/admin/data-access/white-label-service/src/index.ts"
       ]
     }
   },

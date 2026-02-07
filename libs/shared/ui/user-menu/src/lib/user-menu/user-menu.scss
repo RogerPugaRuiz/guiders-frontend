@@ -16,8 +16,20 @@
   overflow: visible;
   cursor: pointer;
 
+  // === TEMA DARK (por defecto) ===
+  --user-menu-bg-hover: rgba(255, 255, 255, 0.05);
+  --user-menu-name-color: #{tokens.$neutral-100};
+  --user-menu-email-color: #{tokens.$neutral-300};
+
   &:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+    background-color: var(--user-menu-bg-hover);
+  }
+
+  // === TEMA LIGHT ===
+  &--light {
+    --user-menu-bg-hover: rgba(0, 0, 0, 0.05);
+    --user-menu-name-color: #{tokens.$neutral-900};
+    --user-menu-email-color: #{tokens.$neutral-800};
   }
 
   // Modo compacto (sidebar colapsado)
@@ -36,12 +48,16 @@
     // El color de fondo se asigna dinámicamente via [style.background-color]
     width: tokens.$spacing-8;
     height: tokens.$spacing-8;
+    min-width: tokens.$spacing-8; // Evitar compresión horizontal
+    max-width: tokens.$spacing-8; // Evitar expansión horizontal
     border-radius: tokens.$border-radius-circle;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    aspect-ratio: 1 / 1; // Mantener proporción cuadrada perfecta
     position: relative; // Para posicionar el badge
+    overflow: visible; // Permitir que el badge sea visible
   }
 
   &__initial {
@@ -53,13 +69,13 @@
   // Badge de estado de conexión
   &__status-badge {
     position: absolute;
-    bottom: 0;
-    right: 0;
+    bottom: -2px; // Posicionar ligeramente fuera para que sea completamente visible
+    right: -2px; // Posicionar ligeramente fuera para que sea completamente visible
     width: 12px;
     height: 12px;
     border-radius: tokens.$border-radius-circle;
-    border: 2px solid rgba(0, 0, 0, 0.15); // Borde oscuro sutil que funciona con el gradiente
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.2); // Anillo blanco exterior para mejor contraste
+    border: 2px solid rgba(255, 255, 255, 1); // Borde blanco sólido para separación visual
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); // Sombra para profundidad
     background-color: tokens.$color-neutral-500; // Estado neutral por defecto
     transition: background-color tokens.$duration-fast tokens.$easing-standard;
 
@@ -90,7 +106,7 @@
   &__name {
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-semibold;
-    color: var(--wl-color-surface-text, tokens.$color-text-primary);
+    color: var(--user-menu-name-color);
     line-height: tokens.$line-height-tight;
     white-space: nowrap;
     overflow: hidden;
@@ -100,7 +116,7 @@
   &__email {
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-regular;
-    color: var(--wl-color-surface-text, tokens.$color-text-secondary);
+    color: var(--user-menu-email-color);
     line-height: tokens.$line-height-tight;
     white-space: nowrap;
     overflow: hidden;
@@ -123,14 +139,22 @@
   // Contenedor del dropdown con posición fija
   &__dropdown {
     position: fixed;
-    background: tokens.$color-surface-primary;
     padding: tokens.$spacing-sm 0;
     border-radius: tokens.$border-radius-md;
     box-shadow: tokens.$shadow-lg;
     min-width: 200px;
-    border: 1px solid tokens.$color-border-default;
     z-index: 1201;
     animation: dropdown-enter 0.2s ease-out;
+
+    // === TEMA DARK (por defecto) ===
+    background: #{tokens.$color-surface-primary};
+    border: 1px solid #{tokens.$color-border-default};
+
+    // === TEMA LIGHT ===
+    &--light {
+      background: #{tokens.$neutral-50};
+      border: 1px solid #{tokens.$neutral-300};
+    }
   }
 
   &__dropdown-list {
@@ -143,10 +167,15 @@
     margin: 0;
 
     &--divider {
-      border-top: 1px solid tokens.$color-border-subtle;
+      border-top: 1px solid #{tokens.$color-border-subtle};
       margin-top: tokens.$spacing-xs;
       padding-top: tokens.$spacing-xs;
     }
+  }
+
+  // Ajuste de divider para light theme
+  &__dropdown--light &__dropdown-item--divider {
+    border-top-color: #{tokens.$neutral-300};
   }
 
   &__dropdown-button {
@@ -158,37 +187,67 @@
     cursor: pointer;
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
-    color: tokens.$color-text-secondary;
     transition: background-color tokens.$duration-fast tokens.$easing-standard;
     line-height: tokens.$line-height-tight;
 
+    // Colores por defecto (dark theme)
+    color: #{tokens.$color-text-secondary};
+
     &:hover {
-      background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-primary;
+      background: #{tokens.$color-surface-tertiary};
+      color: #{tokens.$color-text-primary};
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--ui-color-accent, tokens.$color-ui-accent);
       outline-offset: -2px;
     }
 
     // Variante para acciones peligrosas (logout)
     &--danger {
-      color: tokens.$color-error-600;
+      color: #{tokens.$color-error-600};
 
       &:hover {
-        background: tokens.$color-error-50;
-        color: tokens.$color-error-600;
+        background: #{tokens.$color-error-50};
+        color: #{tokens.$color-error-600};
       }
     }
 
-    // Variante para cambiar de app
+    // Variante para cambiar de app (usa colores neutros)
     &--switch {
-      color: tokens.$color-primary-600;
+      color: var(--ui-color-accent, tokens.$color-ui-accent);
 
       &:hover {
-        background: tokens.$color-primary-50;
-        color: tokens.$color-primary-700;
+        background: #{tokens.$color-surface-hover};
+        color: var(--ui-color-accent-active, tokens.$color-ui-accent-active);
+      }
+    }
+  }
+
+  // Ajustes para light theme en dropdown buttons
+  &__dropdown--light &__dropdown-button {
+    color: #{tokens.$neutral-700};
+
+    &:hover {
+      background: #{tokens.$neutral-100};
+      color: #{tokens.$neutral-900};
+    }
+
+    &--danger {
+      color: #{tokens.$color-error-600};
+
+      &:hover {
+        background: #{tokens.$color-error-50};
+        color: #{tokens.$color-error-700};
+      }
+    }
+
+    &--switch {
+      color: var(--ui-color-accent, tokens.$color-primary-600);
+
+      &:hover {
+        background: #{tokens.$neutral-100};
+        color: var(--ui-color-accent-active, tokens.$color-primary-700);
       }
     }
   }

@@ -18,23 +18,24 @@
   cursor: pointer;
   transition: all tokens.$duration-normal tokens.$easing-standard;
   text-decoration: none;
-  background: tokens.$color-primary-500;
-  color: tokens.$color-text-inverse;
+  // Usar colores neutros en lugar de colores de marca
+  background: var(--ui-color-accent, tokens.$color-ui-accent);
+  color: var(--ui-color-accent-text, tokens.$color-ui-accent-text);
   box-shadow: none;
-  
+
   &:hover {
-    background: tokens.$color-primary-600;
+    background: var(--ui-color-accent-hover, tokens.$color-ui-accent-hover);
   }
-  
+
   &:active {
-    background: tokens.$color-primary-700;
+    background: var(--ui-color-accent-active, tokens.$color-ui-accent-active);
   }
-  
+
   &:focus-visible {
-    outline: 2px solid tokens.$color-primary-500;
+    outline: 2px solid var(--ui-color-accent, tokens.$color-ui-accent);
     outline-offset: 2px;
   }
-  
+
   &:disabled {
     cursor: not-allowed;
     opacity: 0.6;

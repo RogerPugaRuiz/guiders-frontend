@@ -1,45 +1,196 @@
 /* === GUIDERS ADMIN - ESTILOS GLOBALES === */
 
+// Design Tokens - única fuente de verdad para estilos
 @use '../../../libs/shared/design-tokens/src/lib/tokens-vars.scss' as tokens;
 
+// Angular Material prebuilt theme
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 
-/* === WHITE LABEL CSS CUSTOM PROPERTIES === */
+/* ============================================================================
+   CSS CUSTOM PROPERTIES
+   Expone los design tokens como CSS custom properties para uso en componentes
+   ============================================================================ */
+
 :root {
-  /* Colores - Valores por defecto (sobrescritos dinámicamente por ThemeService) */
-  --wl-color-primary: #007bff;
-  --wl-color-secondary: #6c757d;
-  --wl-color-tertiary: #28a745;
-  --wl-color-background: #ffffff;
-  --wl-color-surface: #f8f9fa;
-  --wl-color-text: #212529;
-  --wl-color-text-muted: #6c757d;
+  // --- Superficies ---
+  --color-surface-primary: #{tokens.$color-surface-primary};
+  --color-surface-secondary: #{tokens.$color-surface-secondary};
+  --color-surface-tertiary: #{tokens.$color-surface-tertiary};
+  --color-surface-hover: #{tokens.$color-surface-hover};
+  --color-surface-selected: #{tokens.$color-surface-selected};
+  --color-surface-pressed: #{tokens.$color-surface-pressed};
+  --color-surface-disabled: #{tokens.$color-surface-disabled};
+  --color-surface-elevated: #{tokens.$color-surface-elevated};
+  --color-surface-overlay: #{tokens.$color-surface-overlay};
+  --color-surface-inverse: #{tokens.$color-surface-inverse};
 
-  /* Variantes de surface - generadas automáticamente por ThemeService según luminosidad */
-  --wl-color-surface-hover: #e9ecef;
-  --wl-color-surface-active: #dee2e6;
-  --wl-color-surface-text: #212529;
-  --wl-color-surface-text-muted: #6c757d;
+  // --- Texto ---
+  --color-text-primary: #{tokens.$color-text-primary};
+  --color-text-secondary: #{tokens.$color-text-secondary};
+  --color-text-tertiary: #{tokens.$color-text-tertiary};
+  --color-text-disabled: #{tokens.$color-text-disabled};
+  --color-text-placeholder: #{tokens.$color-text-placeholder};
+  --color-text-inverse: #{tokens.$color-text-inverse};
 
-  /* Tipografía */
-  --wl-font-family: 'Inter', sans-serif;
+  // --- Bordes ---
+  --color-border-subtle: #{tokens.$color-border-subtle};
+  --color-border-default: #{tokens.$color-border-default};
+  --color-border-strong: #{tokens.$color-border-strong};
+  --color-border-hover: #{tokens.$color-border-hover};
+  --color-border-focus: #{tokens.$color-border-focus};
+
+  // --- Acento / Interactivo ---
+  --color-accent: #{tokens.$color-accent};
+  --color-accent-hover: #{tokens.$color-accent-hover};
+  --color-accent-active: #{tokens.$color-accent-active};
+  --color-on-accent: #{tokens.$color-on-accent};
+
+  // --- Semánticos ---
+  --color-success: #{tokens.$success-500};
+  --color-warning: #{tokens.$warning-500};
+  --color-error: #{tokens.$error-500};
+  --color-info: #{tokens.$info-500};
+
+  // --- Status ---
+  --color-status-online: #{tokens.$color-status-online};
+  --color-status-away: #{tokens.$color-status-away};
+  --color-status-busy: #{tokens.$color-status-busy};
+  --color-status-offline: #{tokens.$color-status-offline};
+
+  // --- Sidebar Dark Mode ---
+  --color-sidebar-dark-bg: #{tokens.$color-sidebar-dark-bg};
+  --color-sidebar-dark-bg-hover: #{tokens.$color-sidebar-dark-bg-hover};
+  --color-sidebar-dark-bg-active: #{tokens.$color-sidebar-dark-bg-active};
+  --color-sidebar-dark-text: #{tokens.$color-sidebar-dark-text};
+  --color-sidebar-dark-text-muted: #{tokens.$color-sidebar-dark-text-muted};
+  --color-sidebar-dark-border: #{tokens.$color-sidebar-dark-border};
+
+  // --- Sidebar Light Mode ---
+  --color-sidebar-light-bg: #{tokens.$color-sidebar-light-bg};
+  --color-sidebar-light-bg-hover: #{tokens.$color-sidebar-light-bg-hover};
+  --color-sidebar-light-bg-active: #{tokens.$color-sidebar-light-bg-active};
+  --color-sidebar-light-text: #{tokens.$color-sidebar-light-text};
+  --color-sidebar-light-text-muted: #{tokens.$color-sidebar-light-text-muted};
+  --color-sidebar-light-border: #{tokens.$color-sidebar-light-border};
+
+  // --- Sidebar (Default - compatibilidad) ---
+  --color-sidebar-bg: #{tokens.$color-sidebar-bg};
+  --color-sidebar-bg-hover: #{tokens.$color-sidebar-bg-hover};
+  --color-sidebar-bg-active: #{tokens.$color-sidebar-bg-active};
+  --color-sidebar-text: #{tokens.$color-sidebar-text};
+  --color-sidebar-text-muted: #{tokens.$color-sidebar-text-muted};
+  --color-sidebar-border: #{tokens.$color-sidebar-border};
+
+  // --- Sombras ---
+  --shadow-xs: #{tokens.$shadow-xs};
+  --shadow-sm: #{tokens.$shadow-sm};
+  --shadow-md: #{tokens.$shadow-md};
+  --shadow-lg: #{tokens.$shadow-lg};
+  --shadow-xl: #{tokens.$shadow-xl};
+  --shadow-focus: #{tokens.$shadow-focus};
+
+  // --- Tipografía ---
+  --font-family-sans: #{tokens.$font-family-sans};
+  --font-family-mono: #{tokens.$font-family-mono};
+
+  // --- Border Radius ---
+  --radius-sm: #{tokens.$border-radius-sm};
+  --radius-md: #{tokens.$border-radius-md};
+  --radius-lg: #{tokens.$border-radius-lg};
+  --radius-full: #{tokens.$border-radius-full};
+
+  // --- Transiciones ---
+  --transition-fast: #{tokens.$transition-fast};
+  --transition-normal: #{tokens.$transition-normal};
+
+  // === ALIASES DE COMPATIBILIDAD ===
+
+  // Componentes que usan --color-brand (checkbox, radio, etc.)
+  --color-brand: #{tokens.$color-accent};
+  --color-brand-hover: #{tokens.$color-accent-hover};
+  --color-brand-active: #{tokens.$color-accent-active};
+  --color-brand-disabled: #{tokens.$color-accent-disabled};
+  --color-on-brand: #{tokens.$color-on-accent};
+
+  // Alias para ui-color-accent (select, pagination, etc.)
+  --ui-color-accent: #{tokens.$color-accent};
+  --ui-color-accent-hover: #{tokens.$color-accent-hover};
+  --ui-color-accent-active: #{tokens.$color-accent-active};
+  --ui-color-accent-text: #{tokens.$color-on-accent};
+
+  // Variables de sidebar anteriores
+  --sidebar-bg: #{tokens.$color-sidebar-bg};
+  --sidebar-bg-hover: #{tokens.$color-sidebar-bg-hover};
+  --sidebar-bg-active: #{tokens.$color-sidebar-bg-active};
+  --sidebar-text: #{tokens.$color-sidebar-text};
+  --sidebar-text-muted: #{tokens.$color-sidebar-text-muted};
+  --sidebar-border: #{tokens.$color-sidebar-border};
+
+  // === ALIASES --wl-* (White-Label Legacy) ===
+  // Compatibilidad temporal mientras se migran los componentes
+
+  // Colores primarios
+  --wl-color-primary: #{tokens.$color-accent};
+  --wl-color-primary-rgb: 26, 26, 26; // #1a1a1a (carbón)
+  --wl-color-tertiary: #{tokens.$neutral-600};
+
+  // Superficies
+  --wl-color-surface: #{tokens.$color-surface-secondary};
+  --wl-color-surface-hover: #{tokens.$color-surface-hover};
+  --wl-color-surface-selected: #{tokens.$color-surface-selected};
+  --wl-color-surface-text: #{tokens.$color-text-primary};
+  --wl-color-surface-text-muted: #{tokens.$color-text-secondary};
+
+  // Texto
+  --wl-color-text-primary: #{tokens.$color-text-primary};
+  --wl-color-text-secondary: #{tokens.$color-text-secondary};
+  --wl-color-text-tertiary: #{tokens.$color-text-tertiary};
+  --wl-color-text-inverse: #{tokens.$color-text-inverse};
+
+  // Status
+  --wl-status-online: #{tokens.$color-status-online};
+  --wl-status-away: #{tokens.$color-status-away};
+  --wl-status-busy: #{tokens.$color-status-busy};
+  --wl-status-offline: #{tokens.$color-status-offline};
+
+  // Badges
+  --wl-badge-danger: #{tokens.$color-badge-error};
+  --wl-badge-danger-text: #{tokens.$color-badge-error-text};
+
+  // Mensajes
+  --wl-message-visitor-bg: #{tokens.$color-message-visitor};
+  --wl-message-own-bg: #{tokens.$color-message-own};
+  --wl-message-own-text: #{tokens.$color-message-own-text};
+  --wl-message-meta: #{tokens.$color-message-meta};
+  --wl-message-ai-bg-start: #{tokens.$color-message-ai-bg-start};
+  --wl-message-ai-bg-end: #{tokens.$color-message-ai-bg-end};
+  --wl-message-ai-border: #{tokens.$color-message-ai-border};
+  --wl-message-ai-accent: #{tokens.$color-message-ai-accent};
+
+  // Scrollbar
+  --wl-scrollbar-thumb: #{tokens.$color-scrollbar-thumb};
+  --wl-scrollbar-thumb-hover: #{tokens.$color-scrollbar-thumb-hover};
+
+  // Gradientes
+  --wl-gradient-primary: #{tokens.$gradient-primary};
+
+  // Sombras
+  --wl-shadow-sm: #{tokens.$shadow-sm};
 }
 
-/* Tema oscuro */
-[data-theme="dark"] {
-  --wl-color-background: #1a1a2e;
-  --wl-color-surface: #16213e;
-  --wl-color-text: #eaeaea;
-  --wl-color-text-muted: #a0a0a0;
-}
+/* ============================================================================
+   RESET Y NORMALIZACIÓN
+   ============================================================================ */
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 html {
   font-size: 16px;
-  line-height: 1.5;
+  line-height: tokens.$line-height-normal;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -50,25 +201,31 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: var(--wl-font-family);
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--wl-color-text);
-  background-color: var(--wl-color-background);
+  font-family: tokens.$font-family-sans;
+  font-size: tokens.$font-size-base;
+  line-height: tokens.$line-height-normal;
+  color: tokens.$color-text-primary;
+  background-color: tokens.$color-surface-primary;
   height: 100%;
   min-height: 100vh;
   overflow: hidden;
   scroll-behavior: smooth;
 }
 
-app-root, admin-root, #root, .app-root {
+app-root,
+admin-root,
+#root,
+.app-root {
   height: 100%;
   min-height: 0;
   overflow: hidden;
 }
 
+// Accesibilidad - Reducir movimiento
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -79,54 +236,78 @@ app-root, admin-root, #root, .app-root {
   }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  margin: 0 0 1rem 0;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--wl-color-text);
+/* ============================================================================
+   TIPOGRAFÍA BASE
+   ============================================================================ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 tokens.$spacing-4 0;
+  font-weight: tokens.$font-weight-semibold;
+  line-height: tokens.$line-height-tight;
+  color: tokens.$color-text-primary;
 }
 
-h1 { font-size: 2rem; font-weight: 700; }
-h2 { font-size: 1.5rem; font-weight: 600; }
-h3 { font-size: 1.25rem; font-weight: 600; }
+h1 {
+  @include tokens.typography('heading-large');
+}
+
+h2 {
+  @include tokens.typography('heading-medium');
+}
+
+h3 {
+  @include tokens.typography('heading-small');
+}
 
 p {
-  margin: 0 0 1rem 0;
-  font-size: 1rem;
-  line-height: 1.5;
+  margin: 0 0 tokens.$spacing-4 0;
+  font-size: tokens.$font-size-base;
+  line-height: tokens.$line-height-relaxed;
 }
 
+/* ============================================================================
+   ENLACES
+   ============================================================================ */
+
 a {
-  color: var(--wl-color-primary);
+  color: tokens.$color-accent;
   text-decoration: none;
-  transition: color 0.15s ease;
+  transition: tokens.$transition-colors;
 
   &:hover {
-    color: var(--wl-color-primary);
-    filter: brightness(0.85);
+    color: tokens.$color-accent-hover;
     text-decoration: underline;
   }
 
   &:focus-visible {
-    outline: 2px solid var(--wl-color-primary);
-    outline-offset: 2px;
-    border-radius: 4px;
+    @include tokens.focus-ring;
+    border-radius: tokens.$border-radius-sm;
   }
 }
 
-code, pre {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
-  background-color: var(--wl-color-surface);
-  border-radius: 4px;
+/* ============================================================================
+   CÓDIGO
+   ============================================================================ */
+
+code,
+pre {
+  font-family: tokens.$font-family-mono;
+  font-size: tokens.$font-size-sm;
+  background-color: tokens.$color-surface-secondary;
+  border-radius: tokens.$border-radius-sm;
 }
 
 code {
-  padding: 2px 6px;
+  padding: tokens.$spacing-0-5 tokens.$spacing-1-5;
 }
 
 pre {
-  padding: 1rem;
+  padding: tokens.$spacing-4;
   overflow-x: auto;
 
   code {
@@ -135,30 +316,41 @@ pre {
   }
 }
 
-button, input, textarea, select {
+/* ============================================================================
+   FORMULARIOS
+   ============================================================================ */
+
+button,
+input,
+textarea,
+select {
   font-family: inherit;
   font-size: inherit;
 }
 
+/* ============================================================================
+   FOCUS MANAGEMENT
+   ============================================================================ */
+
 *:focus-visible {
-  outline: 2px solid var(--wl-color-primary);
+  outline: 2px solid tokens.$color-accent;
   outline-offset: 2px;
 }
 
+/* ============================================================================
+   UTILIDADES GLOBALES
+   ============================================================================ */
+
 .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  @include tokens.visually-hidden;
 }
 
+/* ============================================================================
+   ANGULAR MATERIAL SNACKBAR - ESTILOS PERSONALIZADOS
+   ============================================================================ */
+
 .snackbar-success {
-  --mdc-snackbar-container-color: #4caf50 !important;
+  --mdc-snackbar-container-color: #{tokens.$success-500} !important;
   --mdc-snackbar-supporting-text-color: #ffffff !important;
 
   .mat-mdc-button.mat-mdc-snack-bar-action {
@@ -167,7 +359,7 @@ button, input, textarea, select {
 }
 
 .snackbar-error {
-  --mdc-snackbar-container-color: #f44336 !important;
+  --mdc-snackbar-container-color: #{tokens.$error-500} !important;
   --mdc-snackbar-supporting-text-color: #ffffff !important;
 
   .mat-mdc-button.mat-mdc-snack-bar-action {
@@ -176,7 +368,7 @@ button, input, textarea, select {
 }
 
 .snackbar-warning {
-  --mdc-snackbar-container-color: #ff9800 !important;
+  --mdc-snackbar-container-color: #{tokens.$warning-500} !important;
   --mdc-snackbar-supporting-text-color: #ffffff !important;
 
   .mat-mdc-button.mat-mdc-snack-bar-action {
@@ -185,7 +377,7 @@ button, input, textarea, select {
 }
 
 .snackbar-info {
-  --mdc-snackbar-container-color: #2196f3 !important;
+  --mdc-snackbar-container-color: #{tokens.$info-500} !important;
   --mdc-snackbar-supporting-text-color: #ffffff !important;
 
   .mat-mdc-button.mat-mdc-snack-bar-action {

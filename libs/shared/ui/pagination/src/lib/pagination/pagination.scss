@@ -51,13 +51,13 @@
     transition: border-color tokens.$duration-normal tokens.$easing-standard;
 
     &:hover:not(:disabled) {
-      border-color: tokens.$color-border-primary;
+      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
     }
 
     &:focus {
-      outline: 2px solid tokens.$color-border-primary;
+      outline: 2px solid var(--ui-color-accent, tokens.$color-ui-accent);
       outline-offset: 1px;
-      border-color: tokens.$color-border-primary;
+      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
     }
 
     &:disabled {
@@ -93,8 +93,8 @@
 
     &:hover:not(:disabled) {
       background: tokens.$color-surface-hover;
-      border-color: tokens.$color-border-primary;
-      color: tokens.$color-brand-primary;
+      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
+      color: var(--ui-color-accent, tokens.$color-ui-accent);
     }
 
     &:active:not(:disabled) {
@@ -133,8 +133,8 @@
 
     &:hover:not(:disabled):not(&--active) {
       background: tokens.$color-surface-hover;
-      border-color: tokens.$color-border-primary;
-      color: tokens.$color-brand-primary;
+      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
+      color: var(--ui-color-accent, tokens.$color-ui-accent);
     }
 
     &:active:not(:disabled):not(&--active) {
@@ -142,15 +142,18 @@
     }
 
     &--active {
-      background: tokens.$color-brand-primary;
-      border-color: tokens.$color-brand-primary;
-      color: tokens.$color-text-inverse;
+      background: var(--ui-color-accent, tokens.$color-ui-accent);
+      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
+      color: var(--ui-color-accent-text, tokens.$color-ui-accent-text);
       font-weight: tokens.$font-weight-semibold;
       cursor: default;
 
       &:hover {
-        background: tokens.$color-primary-600;
-        border-color: tokens.$color-primary-600;
+        background: var(--ui-color-accent-hover, tokens.$color-ui-accent-hover);
+        border-color: var(
+          --ui-color-accent-hover,
+          tokens.$color-ui-accent-hover
+        );
       }
     }
 

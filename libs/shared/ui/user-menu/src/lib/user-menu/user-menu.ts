@@ -1,7 +1,18 @@
-import { ChangeDetectionStrategy, Component, ElementRef, input, output, signal, viewChild, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  input,
+  output,
+  signal,
+  viewChild,
+  effect,
+  inject,
+} from '@angular/core';
 import { getAvatarColor } from '@guiders-frontend/avatar-colors';
 import { UserService } from '@guiders-frontend/auth/data-access/session';
 import { CommercialStatusService } from '@guiders-frontend/commercial-status';
+import { ThemeService } from '@guiders-frontend/shared/data-access/theme';
 
 @Component({
   selector: 'guiders-user-menu',
@@ -12,7 +23,11 @@ import { CommercialStatusService } from '@guiders-frontend/commercial-status';
 })
 export class UserMenu {
   private readonly userService = inject(UserService);
+  private readonly themeService = inject(ThemeService);
   readonly statusService = inject(CommercialStatusService);
+
+  // Use ThemeService signal directly for reactivity
+  readonly currentTheme = this.themeService.theme;
 
   // Inputs
   userEmail = input.required<string>();
@@ -28,13 +43,14 @@ export class UserMenu {
   logout = output<void>();
   configureAccount = output<void>();
   switchApp = output<void>();
-  
+
   // Estado local
   isDropdownOpen = signal(false);
   dropdownPosition = signal<{ bottom: number; left: number } | null>(null);
-  
+
   // ViewChild para obtener la referencia del elemento
-  private readonly menuElement = viewChild<ElementRef<HTMLDivElement>>('menuElement');
+  private readonly menuElement =
+    viewChild<ElementRef<HTMLDivElement>>('menuElement');
 
   constructor() {
     // Effect para calcular la posición cuando se abre el dropdown
@@ -46,7 +62,7 @@ export class UserMenu {
   }
 
   toggleDropdown(): void {
-    this.isDropdownOpen.update(value => !value);
+    this.isDropdownOpen.update((value) => !value);
   }
 
   closeDropdown(): void {
@@ -63,11 +79,11 @@ export class UserMenu {
 
     // Calcular posición
     const bottom = window.innerHeight - rect.top + padding;
-    
+
     // Siempre alinear con el borde del contenedor padre + margen
     const parent = element.parentElement;
     let left = rect.left;
-    
+
     if (parent) {
       const parentRect = parent.getBoundingClientRect();
       // Usar el borde izquierdo del padre (footer) + margen
@@ -79,10 +95,10 @@ export class UserMenu {
 
   onLogout(): void {
     this.closeDropdown();
-    
+
     // Emitir evento antes de redirigir
     this.logout.emit();
-    
+
     // Redirigir al endpoint de logout del BFF
     // El navegador seguirá automáticamente el redirect 302 al login
     this.userService.logout('console');
@@ -108,11 +124,11 @@ export class UserMenu {
     if (name) {
       return name
         .split(' ')
-        .map(word => word.charAt(0).toUpperCase())
+        .map((word) => word.charAt(0).toUpperCase())
         .slice(0, 2)
         .join('');
     }
-    
+
     const email = this.userEmail();
     return email ? email.charAt(0).toUpperCase() : 'U';
   }

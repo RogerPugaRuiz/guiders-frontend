@@ -12,14 +12,14 @@
   display: block;
   height: 100%;
   font-family: tokens.$font-family-ui;
-  
+
   // Soporte para densidades según guía B2B
   &.compact {
     --sidebar-header-height: 48px;
     --sidebar-nav-item-height: #{tokens.$size-2xl}; // 32px
     --sidebar-nav-padding: #{tokens.$spacing-sm};
   }
-  
+
   &:not(.compact) {
     --sidebar-header-height: 64px;
     --sidebar-nav-item-height: 40px;
@@ -32,14 +32,35 @@
   display: flex;
   z-index: 1;
   flex-direction: column;
-  transition: width tokens.$duration-normal tokens.$easing-standard;
-  background: var(--wl-color-surface, tokens.$color-surface-secondary);
-  color: var(--wl-color-surface-text, tokens.$color-text-primary);
+  transition: width tokens.$duration-normal tokens.$easing-standard,
+    background-color tokens.$duration-normal tokens.$easing-standard;
   position: relative;
   overflow-x: hidden;
   overflow-y: visible;
-  // border-right: 1px solid tokens.$color-border-default;
-  // box-shadow: tokens.$shadow-lg;
+
+  // === TEMA DARK (por defecto) ===
+  --sidebar-bg: #{tokens.$color-sidebar-dark-bg};
+  --sidebar-bg-hover: #{tokens.$color-sidebar-dark-bg-hover};
+  --sidebar-bg-active: #{tokens.$color-sidebar-dark-bg-active};
+  --sidebar-text: #{tokens.$color-sidebar-dark-text};
+  --sidebar-text-active: #{tokens.$color-sidebar-dark-text-active};
+  --sidebar-text-muted: #{tokens.$color-sidebar-dark-text-muted};
+  --sidebar-border: #{tokens.$color-sidebar-dark-border};
+
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  border-right: 1px solid var(--sidebar-border);
+
+  // === TEMA LIGHT ===
+  &--light {
+    --sidebar-bg: #{tokens.$color-sidebar-light-bg};
+    --sidebar-bg-hover: #{tokens.$color-sidebar-light-bg-hover};
+    --sidebar-bg-active: #{tokens.$color-sidebar-light-bg-active};
+    --sidebar-text: #{tokens.$color-sidebar-light-text};
+    --sidebar-text-active: #{tokens.$color-sidebar-light-text-active};
+    --sidebar-text-muted: #{tokens.$color-sidebar-light-text-muted};
+    --sidebar-border: #{tokens.$color-sidebar-light-border};
+  }
 
   // Iconos de navegación - definición base
   .sidebar__nav-icon {
@@ -51,7 +72,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-
     // Aplicar mismo stroke-width que el toggle button
     ::ng-deep svg {
       stroke-width: 2 !important;
@@ -90,8 +110,6 @@
       display: none;
     }
   }
-
-  // Variantes de tema manejadas automáticamente por design tokens
 }
 
 // Header del sidebar
@@ -107,13 +125,12 @@
 
 .sidebar__toggle {
   flex-shrink: 0;
-  
+
   // Sobrescribir estilos del Button para layout específico del sidebar
   &.sidebar__toggle {
     min-width: auto;
     width: tokens.$size-xl;
     height: tokens.$size-xl;
-    padding: 0;
     font-size: tokens.$font-size-lg;
     font-weight: tokens.$font-weight-bold;
   }
@@ -130,7 +147,6 @@
 
 .sidebar__logo-icon {
   flex-shrink: 0;
-  color: var(--wl-color-surface-text, tokens.$color-text-primary);
   font-size: tokens.$font-size-xl;
   display: flex;
   align-items: center;
@@ -156,7 +172,7 @@
 .sidebar__logo-text {
   font-size: tokens.$font-size-xl;
   font-weight: tokens.$font-weight-bold;
-  color: var(--wl-color-surface-text, tokens.$color-text-primary);
+  color: var(--sidebar-text, #ffffff);
   line-height: tokens.$line-height-tight;
 }
 
@@ -199,19 +215,21 @@
   display: flex;
   align-items: center;
 
-  // Sobrescribir estilos del Button para layout específico
+  // Sobrescribir estilos del Button para layout específico del sidebar
+  // Usar alta especificidad para garantizar override sobre button--ghost
+  &.sidebar__nav-link.guiders-button--ghost,
   &.sidebar__nav-link {
     min-height: var(--sidebar-nav-item-height);
     padding: var(--sidebar-nav-padding) tokens.$spacing-md;
 
     // Remover estilos de Button y aplicar los del sidebar
-    background: transparent;
-    border: none;
-    color: var(--wl-color-surface-text, tokens.$color-text-primary);
+    background: transparent !important;
+    border: none !important;
+    color: var(--sidebar-text) !important;
 
     &:hover {
-      background: var(--wl-color-surface-hover, tokens.$color-surface-tertiary);
-      color: var(--wl-color-surface-text, tokens.$color-text-primary);
+      background: var(--sidebar-bg-hover) !important;
+      color: var(--sidebar-text-active, var(--sidebar-text)) !important;
     }
 
     &:focus-visible {
@@ -219,13 +237,49 @@
     }
   }
 
-  // Estado activo
-  &--active {
-    background: var(--wl-color-surface-active, tokens.$color-surface-pressed) !important;
-    color: var(--wl-color-surface-text, tokens.$color-text-primary) !important;
-    font-weight: tokens.$font-weight-semibold;
+  // Variante unstyled (colapsado) - sin hover effect
+  &.guiders-button--unstyled {
+    padding: 0 !important;
+    width: auto !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    border-radius: 0 !important;
+
+    &:hover {
+      background: transparent !important;
+      color: var(--sidebar-text) !important;
+    }
+
+    &:active {
+      background: transparent !important;
+    }
   }
-  
+
+  // Estado activo - texto más prominente y fondo sutil
+  &--active,
+  &--active.guiders-button--ghost {
+    background: var(--sidebar-bg-active) !important;
+    color: var(--sidebar-text-active) !important;
+    font-weight: tokens.$font-weight-semibold;
+
+    // Asegurar que el icono también use el color activo
+    .sidebar__nav-icon {
+      color: var(--sidebar-text-active) !important;
+    }
+  }
+
+  // Activo con unstyled (colapsado)
+  &--active.guiders-button--unstyled {
+    background: transparent !important;
+    color: var(--sidebar-text-active) !important;
+    opacity: 0.9;
+
+    // Asegurar que el icono también use el color activo
+    .sidebar__nav-icon {
+      color: var(--sidebar-text-active) !important;
+    }
+  }
+
   // Enlaces con children
   &--has-children {
     .sidebar__nav-arrow {
@@ -242,13 +296,14 @@
   font-size: tokens.$font-size-base;
   font-weight: tokens.$font-weight-medium;
   line-height: tokens.$line-height-tight;
+  color: inherit; // Heredar color del enlace padre
 }
 
 .sidebar__nav-arrow {
   font-size: tokens.$font-size-sm;
   transition: transform tokens.$duration-fast tokens.$easing-standard;
   margin-left: tokens.$spacing-sm;
-  color: var(--wl-color-surface-text, tokens.$color-text-primary);
+  color: var(--sidebar-text-muted, #a1a1aa);
 
   // Aplicar mismo stroke-width que el toggle button
   ::ng-deep svg {
@@ -257,7 +312,7 @@
 
   &--expanded {
     transform: rotate(180deg);
-    color: var(--wl-color-surface-text, tokens.$color-text-primary);
+    color: var(--sidebar-text, #ffffff);
   }
 }
 
@@ -298,28 +353,31 @@
   border-radius: 0;
 
   // Sobrescribir estilos del Button para submenu
+  // Usar alta especificidad para garantizar override sobre button--ghost
+  &.sidebar__submenu-link.guiders-button--ghost,
   &.sidebar__submenu-link {
     min-height: tokens.$size-2xl;
     padding: tokens.$spacing-sm tokens.$spacing-md;
 
-    background: transparent;
-    border: none;
-    color: var(--wl-color-surface-text, tokens.$color-text-primary);
+    background: transparent !important;
+    border: none !important;
+    color: var(--sidebar-text-muted, #a1a1aa) !important;
 
     &:hover {
-      background: var(--wl-color-surface-hover, tokens.$color-surface-tertiary);
-      color: var(--wl-color-surface-text, tokens.$color-text-primary);
+      background: var(--sidebar-bg-hover, #27272a) !important;
+      color: var(--sidebar-text, #ffffff) !important;
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--wl-color-primary, #007bff);
       outline-offset: 1px;
     }
   }
 
   // Estado activo para submenu
-  &--active {
-    color: var(--wl-color-surface-text, tokens.$color-text-primary) !important;
+  &--active,
+  &--active.guiders-button--ghost {
+    color: var(--sidebar-text, #ffffff) !important;
   }
 }
 
@@ -390,7 +448,7 @@
       transform: translateX(0);
     }
   }
-  
+
   // Overlay para cerrar sidebar en móvil
   .sidebar::after {
     content: '';
@@ -405,7 +463,7 @@
     pointer-events: none;
     transition: opacity tokens.$duration-normal;
   }
-  
+
   .sidebar:not(.sidebar--collapsed)::after {
     opacity: 1;
     pointer-events: auto;
@@ -416,28 +474,29 @@
   .sidebar {
     width: 260px !important;
   }
-  
+
   .sidebar__header {
     padding: tokens.$spacing-md;
     min-height: 56px;
   }
-  
+
   .sidebar__nav {
     padding: tokens.$spacing-md 0;
   }
-  
+
   .sidebar__nav-link.sidebar__nav-link {
     margin: 0 tokens.$spacing-xs;
     padding: tokens.$spacing-md;
     min-height: tokens.$size-2xl;
   }
-  
+
   .sidebar__nav-text {
     font-size: tokens.$font-size-sm;
   }
-  
+
   .sidebar__submenu-link.sidebar__submenu-link {
-    padding: tokens.$spacing-xs tokens.$spacing-md tokens.$spacing-xs tokens.$spacing-2xl;
+    padding: tokens.$spacing-xs tokens.$spacing-md tokens.$spacing-xs
+      tokens.$spacing-2xl;
   }
 }
 
@@ -447,35 +506,36 @@
     min-height: 48px;
     padding: tokens.$spacing-sm tokens.$spacing-md;
   }
-  
+
   .sidebar__logo-icon {
     font-size: tokens.$font-size-lg;
   }
-  
+
   .sidebar__logo-text {
     font-size: tokens.$font-size-lg;
   }
-  
+
   .sidebar__nav {
     padding: tokens.$spacing-md 0;
   }
-  
+
   .sidebar__nav-item {
     margin-bottom: tokens.$spacing-xs;
   }
-  
+
   .sidebar__nav-link.sidebar__nav-link {
     min-height: tokens.$size-2xl;
     padding: tokens.$spacing-sm tokens.$spacing-md;
   }
-  
+
   .sidebar__nav-text {
     font-size: tokens.$font-size-sm;
   }
-  
+
   .sidebar__submenu-link.sidebar__submenu-link {
     min-height: tokens.$size-lg;
-    padding: tokens.$spacing-xs tokens.$spacing-md tokens.$spacing-xs tokens.$spacing-2xl;
+    padding: tokens.$spacing-xs tokens.$spacing-md tokens.$spacing-xs
+      tokens.$spacing-2xl;
   }
 }
 
@@ -512,14 +572,14 @@
 // Header del popover
 .sidebar__popover-header {
   padding: tokens.$spacing-md tokens.$spacing-lg;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  background: var(--wl-color-surface, tokens.$color-surface-secondary);
+  border-bottom: 1px solid var(--sidebar-border, #27272a);
+  background: var(--sidebar-bg-hover, #27272a);
 }
 
 .sidebar__popover-title {
   font-size: tokens.$font-size-base;
   font-weight: tokens.$font-weight-semibold;
-  color: var(--wl-color-surface-text, tokens.$color-text-primary);
+  color: var(--sidebar-text, #ffffff);
   line-height: tokens.$line-height-tight;
 }
 
@@ -550,7 +610,7 @@
   font-weight: tokens.$font-weight-medium;
   color: tokens.$color-text-primary;
   transition: background-color tokens.$duration-fast tokens.$easing-standard,
-              color tokens.$duration-fast tokens.$easing-standard;
+    color tokens.$duration-fast tokens.$easing-standard;
   line-height: tokens.$line-height-tight;
   min-height: 40px;
 
@@ -631,13 +691,64 @@
 // Footer con user menu
 .sidebar__footer {
   margin-top: auto; // Empujar al final
-  border-top: 1px solid rgba(128, 128, 128, 0.2); // Border sutil que se mezcla con cualquier fondo
+  border-top: 1px solid var(--sidebar-border);
   background: transparent;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+}
+
+// === THEME TOGGLE ===
+.sidebar__theme-toggle {
+  padding: tokens.$spacing-xs 0;
+  margin-bottom: tokens.$spacing-xs;
+}
+
+.sidebar__theme-button {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  width: 100%;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  border: none;
+  border-radius: tokens.$border-radius-md;
+  background: transparent;
+  color: var(--sidebar-text-muted);
+  font-family: tokens.$font-family-sans;
+  font-size: tokens.$font-size-sm;
+  font-weight: tokens.$font-weight-medium;
+  cursor: pointer;
+  transition: background-color tokens.$duration-fast tokens.$easing-standard,
+    color tokens.$duration-fast tokens.$easing-standard;
+
+  &:hover {
+    background: var(--sidebar-bg-hover);
+    color: var(--sidebar-text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--sidebar-text);
+    outline-offset: -2px;
+    border-radius: tokens.$border-radius-md;
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+.sidebar__theme-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 // Ajustes para modo colapsado
 .sidebar--collapsed {
   .sidebar__footer {
+    padding: tokens.$spacing-sm;
+  }
+
+  .sidebar__theme-button {
+    justify-content: center;
     padding: tokens.$spacing-sm;
   }
 }

@@ -137,8 +137,7 @@
     }
 
     &:hover {
-      background: var(--wl-color-surface-hover);
-      color: var(--wl-color-surface-text);
+      background: #f5f5f5; // Gris neutro para hover
     }
 
     &:active {
@@ -386,7 +385,11 @@
 
   // Estilos para mensajes de IA
   &__message-body--ai {
-    background: linear-gradient(135deg, var(--wl-message-ai-bg-start) 0%, var(--wl-message-ai-bg-end) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--wl-message-ai-bg-start) 0%,
+      var(--wl-message-ai-bg-end) 100%
+    );
     border: 1px solid var(--wl-message-ai-border);
     border-bottom-left-radius: 2px;
     position: relative;
@@ -483,11 +486,11 @@
       padding: tokens.$spacing-sm tokens.$spacing-md;
       min-height: 56px;
     }
-    
+
     &__title {
       font-size: tokens.$font-size-base;
     }
-    
+
     &__content {
       min-height: 0;
     }

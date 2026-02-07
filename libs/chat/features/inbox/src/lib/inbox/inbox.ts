@@ -8,7 +8,6 @@ import {
   DestroyRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
 import {
@@ -53,7 +52,6 @@ import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
   standalone: true,
   imports: [
     CommonModule,
-    HttpClientModule,
     GuidersInboxSidebarComponent,
     GuidersChatWelcomeStateComponent,
     GuidersChatPlaceholderComponent,

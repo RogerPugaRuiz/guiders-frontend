@@ -1,284 +1,823 @@
-/* Design Tokens - Variables SASS */
+// ============================================================================
+// GUIDERS DESIGN TOKENS
+// Sistema de tokens unificado basado en la paleta "Hormigón y Sombra"
+// ============================================================================
 
-// === COLORES ===
-// Surface colors
-$color-surface-primary: #ffffff;
-$color-surface-secondary: #f8f9fa;
-$color-surface-tertiary: #f1f3f4;
-$color-surface-hover: #f1f3f4;
-$color-surface-selected: #e7f3ff;
-$color-surface-disabled: #f1f3f4;
-$color-surface-pressed: #e9ecef;
-$color-surface-elevated: #ffffff; // Para cards/modales elevados
+// ============================================================================
+// 1. PALETA DE COLORES PRIMITIVOS
+// Escala neutral sofisticada: desde negro carbón hasta blanco hueso
+// ============================================================================
 
-// Primary variant colors
-$color-primary-50: #e7f3ff;
+// --- Escala Neutral Principal ---
+// Basada en la paleta "Hormigón y Sombra" con grises fríos y un greige cálido
 
-// Info colors
-$color-info-50: #e3f2fd;
+$color-carbon: #1a1a1a; // Negro Carbón - ancla oscura, no puro
+$color-slate-dark: #363636; // Gris Pizarra Oscuro - tono serio
+$color-steel: #707276; // Gris Acero Medio - equilibrio frío
+$color-greige: #a8a39d; // Greige Topo - puente cálido (gris + beige)
+$color-mist: #dcdcdc; // Gris Niebla Claro - luz suave
+$color-bone: #f8f8f6; // Blanco Hueso - contraste final, cálido
 
-// Warning colors 
-$color-warning-50: #fff8e1;
+// --- Escala Neutral Extendida (para más granularidad) ---
+$neutral-50: $color-bone; // #f8f8f6 - Más claro
+$neutral-100: #f3f3f1; // Ligeramente más oscuro que bone
+$neutral-200: $color-mist; // #dcdcdc
+$neutral-300: #c4c4c4; // Gris claro medio
+$neutral-400: $color-greige; // #a8a39d - Greige cálido
+$neutral-500: #8a8a8a; // Gris medio puro
+$neutral-600: $color-steel; // #707276 - Acero
+$neutral-700: #525252; // Gris oscuro medio
+$neutral-800: $color-slate-dark; // #363636 - Pizarra
+$neutral-900: #262626; // Casi negro
+$neutral-950: $color-carbon; // #1a1a1a - Carbón
 
-// Text colors
-$color-text-primary: #212529;
-$color-text-secondary: #495057;
-$color-text-tertiary: #6c757d;
-$color-text-disabled: #ced4da;
-$color-text-inverse: #ffffff;
+// --- Colores Semánticos ---
 
-// Brand colors
-$color-brand-primary: #007bff;
-$color-primary-500: #007bff;
-$color-primary-600: #0066cc;
-$color-primary-700: #004d99;
+// Success (Verde - Acciones exitosas, estados positivos)
+$success-50: #f0fdf4;
+$success-100: #dcfce7;
+$success-200: #bbf7d0;
+$success-300: #86efac;
+$success-400: #4ade80;
+$success-500: #22c55e;
+$success-600: #16a34a;
+$success-700: #15803d;
 
-// Secondary colors (neutral)
-$color-secondary-500: #6c757d;
-$color-secondary-600: #5a6268;
-$color-secondary-700: #495057;
+// Warning (Ámbar - Alertas, precauciones)
+$warning-50: #fffbeb;
+$warning-100: #fef3c7;
+$warning-200: #fde68a;
+$warning-300: #fcd34d;
+$warning-400: #fbbf24;
+$warning-500: #f59e0b;
+$warning-600: #d97706;
+$warning-700: #b45309;
 
-// Success colors
-$color-success-500: #28a745;
-$color-success-600: #10b981;
-$color-success-700: #0f9d58;
+// Error/Danger (Rojo - Errores, acciones destructivas)
+$error-50: #fef2f2;
+$error-100: #fee2e2;
+$error-200: #fecaca;
+$error-300: #fca5a5;
+$error-400: #f87171;
+$error-500: #ef4444;
+$error-600: #dc2626;
+$error-700: #b91c1c;
 
-// Warning colors
-$color-warning-500: #ffc107;
-$color-warning-600: #f59e0b;
-$color-warning-700: #d97706;
+// Info (Azul - Información, enlaces)
+$info-50: #eff6ff;
+$info-100: #dbeafe;
+$info-200: #bfdbfe;
+$info-300: #93c5fd;
+$info-400: #60a5fa;
+$info-500: #3b82f6;
+$info-600: #2563eb;
+$info-700: #1d4ed8;
 
-// Info colors
-$color-info-500: #17a2b8;
-$color-info-600: #3b82f6;
-$color-info-700: #0c7b93;
+// ============================================================================
+// 2. TOKENS SEMÁNTICOS - SUPERFICIES
+// ============================================================================
 
-// Neutral colors
-$color-neutral-500: #adb5bd;
-$color-neutral-600: #6c757d;
-$color-neutral-900: #1f2937;
-$color-neutral-950: #030712;
+// Fondos principales
+$color-surface-primary: $neutral-50; // Fondo principal (blanco hueso)
+$color-surface-secondary: $neutral-100; // Fondo secundario (secciones)
+$color-surface-tertiary: $neutral-200; // Fondo terciario (áreas destacadas)
 
-// Danger/Error colors
-$color-danger-500: #dc3545;
-$color-danger-600: #b02a37;
-$color-danger-700: #842029;
-$color-error-50: #fdf2f2;
-$color-error-200: #f5b7b1;
-$color-error-600: #dc3545;
+// Estados de superficie
+$color-surface-hover: $neutral-200; // Hover sobre elementos
+$color-surface-selected: $neutral-300; // Elemento seleccionado
+$color-surface-pressed: $neutral-300; // Estado pressed/active
+$color-surface-disabled: $neutral-100; // Elementos deshabilitados
 
-// Borders
-$color-border-light: #f1f3f5; // Border más claro para divisiones sutiles
-$color-border-subtle: #dee2e6;
-$color-border-default: #ced4da;
-$color-border-primary: #007bff;
-$color-border-secondary: #e9ecef;
-$color-border-strong: #6c757d;
+// Superficies elevadas
+$color-surface-elevated: #ffffff; // Cards, modales (blanco puro)
+$color-surface-overlay: rgba($color-carbon, 0.6); // Backdrop de modales
 
-// Overlay
-$color-overlay-backdrop: rgba(0, 0, 0, 0.5);
+// Superficie invertida (para sidebars, headers oscuros)
+$color-surface-inverse: $neutral-950; // Fondo oscuro
+$color-surface-inverse-hover: $neutral-800;
+$color-surface-inverse-selected: $neutral-700;
 
-// === ESPACIADO ===
-$spacing-2xs: 2px;
-$spacing-xs: 4px;
-$spacing-sm: 8px;
-$spacing-md: 16px;
-$spacing-lg: 24px;
-$spacing-xl: 32px;
-$spacing-2xl: 48px;
-$spacing-3xl: 64px;
-$spacing-8: 32px; // 8 * 4px base
+// ============================================================================
+// 3. TOKENS SEMÁNTICOS - TEXTO
+// ============================================================================
 
-// Spacing extended (4px scale para compatibilidad)
-$spacing-1: 4px;
-$spacing-2: 8px;
-$spacing-3: 12px;
-$spacing-4: 16px;
-$spacing-5: 20px;
-$spacing-6: 24px;
-$spacing-10: 40px;
-$spacing-12: 48px;
+// Texto sobre superficies claras
+$color-text-primary: $neutral-950; // Texto principal (carbón)
+$color-text-secondary: $neutral-600; // Texto secundario (acero)
+$color-text-tertiary: $neutral-500; // Texto terciario (gris medio)
+$color-text-disabled: $neutral-400; // Texto deshabilitado (greige)
+$color-text-placeholder: $neutral-400; // Placeholders
 
-// === TAMAÑOS ===
-$size-sm: 12px;
-$size-md: 20px;
-$size-lg: 28px;
-$size-xl: 32px;
-$size-2xl: 32px;
-$size-3xl: 48px;
+// Texto sobre superficies oscuras
+$color-text-inverse: $neutral-50; // Texto sobre fondo oscuro
+$color-text-inverse-secondary: $neutral-400;
+$color-text-inverse-muted: $neutral-500;
 
-// === TIPOGRAFÍA ===
-$font-family-ui: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-$font-family-body: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-$font-family-mono: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+// Texto semántico
+$color-text-success: $success-700;
+$color-text-warning: $warning-700;
+$color-text-error: $error-600;
+$color-text-info: $info-700;
 
-$font-size-xs: 10px;
+// ============================================================================
+// 4. TOKENS SEMÁNTICOS - BORDES
+// ============================================================================
+
+$color-border-subtle: $neutral-200; // Bordes muy sutiles (divisores)
+$color-border-default: $neutral-300; // Bordes estándar (inputs)
+$color-border-strong: $neutral-500; // Bordes enfatizados
+$color-border-hover: $neutral-600; // Hover en inputs
+$color-border-focus: $neutral-950; // Focus ring (carbón)
+$color-border-disabled: $neutral-200; // Bordes deshabilitados
+
+// Bordes semánticos
+$color-border-success: $success-500;
+$color-border-warning: $warning-500;
+$color-border-error: $error-500;
+$color-border-info: $info-500;
+
+// ============================================================================
+// 5. TOKENS SEMÁNTICOS - INTERACTIVOS
+// ============================================================================
+
+// Acento principal (para botones primarios, enlaces, focus)
+$color-accent: $neutral-950; // Carbón como acento principal
+$color-accent-hover: $neutral-800; // Pizarra para hover
+$color-accent-active: $color-carbon; // Carbón puro para active
+$color-accent-disabled: $neutral-400; // Greige para disabled
+$color-on-accent: $neutral-50; // Texto sobre acento (bone)
+
+// Acento secundario (botones secundarios)
+$color-accent-secondary: $neutral-200;
+$color-accent-secondary-hover: $neutral-300;
+$color-accent-secondary-active: $neutral-400;
+$color-on-accent-secondary: $neutral-950;
+
+// Estados de interacción genéricos
+$color-interactive-hover: rgba($neutral-950, 0.04);
+$color-interactive-active: rgba($neutral-950, 0.08);
+$color-interactive-selected: rgba($neutral-950, 0.12);
+
+// ============================================================================
+// 6. TOKENS SEMÁNTICOS - COMPONENTES ESPECÍFICOS
+// ============================================================================
+
+// --- Sidebar Dark Mode ---
+$color-sidebar-dark-bg: $neutral-950;
+$color-sidebar-dark-bg-hover: rgba(
+  $neutral-50,
+  0.08
+); // Sutil hover claro sobre oscuro
+$color-sidebar-dark-bg-active: rgba(
+  $neutral-50,
+  0.12
+); // Activo un poco más visible
+$color-sidebar-dark-text: $neutral-200; // #dcdcdc - Texto normal menos brillante para mejor contraste
+$color-sidebar-dark-text-muted: $neutral-500; // #8a8a8a - Muted más apagado para jerarquía visual
+$color-sidebar-dark-text-active: $neutral-50; // #f8f8f6 - Activo muy brillante (blanco hueso)
+$color-sidebar-dark-border: $neutral-800;
+
+// --- Sidebar Light Mode ---
+$color-sidebar-light-bg: $neutral-100;
+$color-sidebar-light-bg-hover: rgba($neutral-950, 0.04); // Hover muy sutil
+$color-sidebar-light-bg-active: rgba($neutral-950, 0.08); // Activo sutil
+$color-sidebar-light-text: $neutral-500; // #8a8a8a - Texto normal más claro para mejor contraste
+$color-sidebar-light-text-muted: $neutral-400; // #a8a39d - Muted greige cálido
+$color-sidebar-light-text-active: $neutral-950; // #1a1a1a - Activo muy oscuro (carbón)
+$color-sidebar-light-border: $neutral-200;
+
+// --- Sidebar (Default - Dark para compatibilidad) ---
+$color-sidebar-bg: $color-sidebar-dark-bg;
+$color-sidebar-bg-hover: $color-sidebar-dark-bg-hover;
+$color-sidebar-bg-active: $color-sidebar-dark-bg-active;
+$color-sidebar-text: $color-sidebar-dark-text;
+$color-sidebar-text-muted: $color-sidebar-dark-text-muted;
+$color-sidebar-border: $color-sidebar-dark-border;
+
+// --- Badges y Estados ---
+$color-badge-neutral: $neutral-200;
+$color-badge-neutral-text: $neutral-700;
+$color-badge-success: $success-100;
+$color-badge-success-text: $success-700;
+$color-badge-warning: $warning-100;
+$color-badge-warning-text: $warning-700;
+$color-badge-error: $error-100;
+$color-badge-error-text: $error-700;
+$color-badge-info: $info-100;
+$color-badge-info-text: $info-700;
+
+// --- Status Indicators ---
+$color-status-online: $success-500;
+$color-status-away: $warning-500;
+$color-status-busy: $error-500;
+$color-status-offline: $neutral-400;
+
+// --- Mensajes (Chat) ---
+$color-message-visitor: $neutral-200;
+$color-message-visitor-text: $neutral-950;
+$color-message-own: $neutral-100;
+$color-message-own-text: $neutral-950;
+$color-message-system: $info-50;
+$color-message-system-text: $info-700;
+$color-message-meta: $neutral-500; // Timestamps, metadata
+
+// --- Mensajes AI (Chat) ---
+$color-message-ai-bg-start: $info-50;
+$color-message-ai-bg-end: $neutral-100;
+$color-message-ai-border: $info-200;
+$color-message-ai-accent: $info-500;
+$color-message-ai-text: $neutral-950;
+
+// --- Gradientes ---
+$gradient-primary: linear-gradient(135deg, $neutral-950 0%, $neutral-700 100%);
+$gradient-ai: linear-gradient(135deg, $info-50 0%, $neutral-100 100%);
+
+// --- Scrollbar ---
+$color-scrollbar-track: transparent;
+$color-scrollbar-thumb: rgba($neutral-950, 0.2);
+$color-scrollbar-thumb-hover: rgba($neutral-950, 0.3);
+
+// ============================================================================
+// 7. ESPACIADO (Escala de 4px)
+// ============================================================================
+
+$spacing-0: 0;
+$spacing-px: 1px;
+$spacing-0-5: 2px; // 0.5 * 4
+$spacing-1: 4px; // 1 * 4
+$spacing-1-5: 6px; // 1.5 * 4
+$spacing-2: 8px; // 2 * 4
+$spacing-2-5: 10px; // 2.5 * 4
+$spacing-3: 12px; // 3 * 4
+$spacing-3-5: 14px; // 3.5 * 4
+$spacing-4: 16px; // 4 * 4
+$spacing-5: 20px; // 5 * 4
+$spacing-6: 24px; // 6 * 4
+$spacing-7: 28px; // 7 * 4
+$spacing-8: 32px; // 8 * 4
+$spacing-9: 36px; // 9 * 4
+$spacing-10: 40px; // 10 * 4
+$spacing-11: 44px; // 11 * 4
+$spacing-12: 48px; // 12 * 4
+$spacing-14: 56px; // 14 * 4
+$spacing-16: 64px; // 16 * 4
+$spacing-20: 80px; // 20 * 4
+$spacing-24: 96px; // 24 * 4
+
+// Aliases semánticos
+$spacing-2xs: $spacing-0-5; // 2px
+$spacing-xs: $spacing-1; // 4px
+$spacing-sm: $spacing-2; // 8px
+$spacing-md: $spacing-4; // 16px
+$spacing-lg: $spacing-6; // 24px
+$spacing-xl: $spacing-8; // 32px
+$spacing-2xl: $spacing-12; // 48px
+$spacing-3xl: $spacing-16; // 64px
+
+// ============================================================================
+// 8. TIPOGRAFÍA
+// ============================================================================
+
+// Font families
+$font-family-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont,
+  'Segoe UI', Roboto, sans-serif;
+$font-family-mono: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Menlo', monospace;
+
+// Aliases para compatibilidad
+$font-family-ui: $font-family-sans;
+$font-family-body: $font-family-sans;
+
+// Font sizes (escala modular)
+$font-size-2xs: 10px;
+$font-size-xs: 11px;
 $font-size-sm: 12px;
 $font-size-base: 13px;
-$font-size-lg: 18px;
-$font-size-xl: 20px;
-$font-size-2xl: 24px;
+$font-size-md: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+$font-size-2xl: 20px;
+$font-size-3xl: 24px;
+$font-size-4xl: 30px;
+$font-size-5xl: 36px;
 
+// Font weights
 $font-weight-light: 300;
 $font-weight-regular: 400;
 $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-bold: 700;
 
+// Line heights
+$line-height-none: 1;
 $line-height-tight: 1.25;
+$line-height-snug: 1.375;
 $line-height-normal: 1.5;
 $line-height-relaxed: 1.625;
+$line-height-loose: 2;
 
-// === BORDES ===
+// Letter spacing
+$letter-spacing-tighter: -0.05em;
+$letter-spacing-tight: -0.025em;
+$letter-spacing-normal: 0;
+$letter-spacing-wide: 0.025em;
+$letter-spacing-wider: 0.05em;
+
+// ============================================================================
+// 9. BORDES Y RADIOS
+// ============================================================================
+
+$border-width-0: 0;
+$border-width-1: 1px;
+$border-width-2: 2px;
+$border-width-4: 4px;
+
+$border-radius-none: 0;
 $border-radius-xs: 2px;
 $border-radius-sm: 4px;
 $border-radius-base: 6px;
 $border-radius-md: 8px;
 $border-radius-lg: 12px;
 $border-radius-xl: 16px;
+$border-radius-2xl: 24px;
 $border-radius-full: 9999px;
 $border-radius-circle: 50%;
 
-// === SOMBRAS ===
-$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+// ============================================================================
+// 10. SOMBRAS
+// ============================================================================
 
-// === MOVIMIENTO ===
-$duration-instant: 50ms;
+$shadow-xs: 0 1px 2px 0 rgba($color-carbon, 0.05);
+$shadow-sm: 0 1px 3px 0 rgba($color-carbon, 0.1),
+  0 1px 2px -1px rgba($color-carbon, 0.1);
+$shadow-md: 0 4px 6px -1px rgba($color-carbon, 0.1),
+  0 2px 4px -2px rgba($color-carbon, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba($color-carbon, 0.1),
+  0 4px 6px -4px rgba($color-carbon, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba($color-carbon, 0.1),
+  0 8px 10px -6px rgba($color-carbon, 0.1);
+$shadow-2xl: 0 25px 50px -12px rgba($color-carbon, 0.25);
+$shadow-inner: inset 0 2px 4px 0 rgba($color-carbon, 0.05);
+$shadow-none: none;
+
+// Focus ring shadow
+$shadow-focus: 0 0 0 3px rgba($neutral-950, 0.15);
+$shadow-focus-error: 0 0 0 3px rgba($error-500, 0.25);
+
+// ============================================================================
+// 11. ANIMACIÓN Y TRANSICIONES
+// ============================================================================
+
+// Duraciones
+$duration-instant: 0ms;
+$duration-fastest: 50ms;
 $duration-fast: 100ms;
 $duration-normal: 150ms;
-$duration-slow: 300ms;
-$duration-slower: 500ms;
-$easing-standard: cubic-bezier(0.2, 0, 0, 1);
-$easing-entrance: cubic-bezier(0, 0, 0.2, 1);
+$duration-slow: 200ms;
+$duration-slower: 300ms;
+$duration-slowest: 500ms;
 
-// Transiciones comunes
+// Easings
+$easing-linear: linear;
+$easing-in: cubic-bezier(0.4, 0, 1, 1);
+$easing-out: cubic-bezier(0, 0, 0.2, 1);
+$easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$easing-standard: cubic-bezier(0.2, 0, 0, 1); // Material standard
+$easing-entrance: cubic-bezier(0, 0, 0.2, 1); // Entrada suave
+$easing-exit: cubic-bezier(0.4, 0, 1, 1); // Salida rápida
+$easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+// Transiciones predefinidas
+$transition-none: none;
+$transition-all: all $duration-normal $easing-standard;
 $transition-fast: all $duration-fast $easing-standard;
 $transition-normal: all $duration-normal $easing-standard;
-$transition-all: all $duration-normal $easing-standard;
+$transition-slow: all $duration-slow $easing-standard;
+$transition-colors: color $duration-normal $easing-standard,
+  background-color $duration-normal $easing-standard,
+  border-color $duration-normal $easing-standard;
+$transition-opacity: opacity $duration-normal $easing-standard;
+$transition-transform: transform $duration-normal $easing-standard;
 
-// === Z-INDEX ===
+// ============================================================================
+// 12. Z-INDEX
+// ============================================================================
+
+$z-index-deep: -1;
+$z-index-base: 0;
+$z-index-elevated: 1;
 $z-index-dropdown: 50;
 $z-index-sticky: 100;
-$z-index-tooltip: 1100;
-$z-index-modal: 1300;
-$z-modal: 1300; // Alias para compatibilidad
+$z-index-overlay: 1000;
+$z-index-modal-backdrop: 1100;
+$z-index-modal: 1200;
+$z-index-popover: 1300;
+$z-index-tooltip: 1400;
+$z-index-toast: 1500;
 
-// === BREAKPOINTS ===
+// Alias para compatibilidad
+$z-modal: $z-index-modal;
+
+// ============================================================================
+// 13. BREAKPOINTS
+// ============================================================================
+
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 $breakpoint-2xl: 1440px;
+$breakpoint-3xl: 1920px;
 
-// === MIXINS ===
+// ============================================================================
+// 14. TAMAÑOS DE COMPONENTES
+// ============================================================================
 
-@mixin typography($size) {
-  @if $size == 'heading-3xl' {
-    font-size: $font-size-2xl;
+$size-xs: 16px;
+$size-sm: 20px;
+$size-md: 24px;
+$size-lg: 32px;
+$size-xl: 40px;
+$size-2xl: 48px;
+$size-3xl: 64px;
+
+// Icon sizes
+$icon-size-xs: 12px;
+$icon-size-sm: 16px;
+$icon-size-md: 20px;
+$icon-size-lg: 24px;
+$icon-size-xl: 32px;
+
+// Avatar sizes
+$avatar-size-xs: 24px;
+$avatar-size-sm: 32px;
+$avatar-size-md: 40px;
+$avatar-size-lg: 48px;
+$avatar-size-xl: 64px;
+
+// ============================================================================
+// 15. MIXINS UTILITARIOS
+// ============================================================================
+
+// Typography presets
+@mixin typography($preset) {
+  font-family: $font-family-sans;
+
+  @if $preset == 'display-large' {
+    font-size: $font-size-5xl;
     font-weight: $font-weight-bold;
     line-height: $line-height-tight;
-  } @else if $size == 'heading-2xl' {
+    letter-spacing: $letter-spacing-tight;
+  } @else if $preset == 'display-medium' {
+    font-size: $font-size-4xl;
+    font-weight: $font-weight-bold;
+    line-height: $line-height-tight;
+    letter-spacing: $letter-spacing-tight;
+  } @else if
+    $preset ==
+    'heading-large' or
+    $preset ==
+    'heading-3xl' or
+    $preset ==
+    'h1'
+  {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-tight;
+  } @else if $preset == 'heading-medium' or $preset == 'heading-2xl' {
+    font-size: $font-size-2xl;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-tight;
+  } @else if $preset == 'heading-small' {
     font-size: $font-size-xl;
     font-weight: $font-weight-semibold;
-    line-height: $line-height-tight;
-  } @else if $size == 'heading-small' {
+    line-height: $line-height-snug;
+  } @else if $preset == 'title-large' {
     font-size: $font-size-lg;
     font-weight: $font-weight-semibold;
-    line-height: $line-height-tight;
-  } @else if $size == 'label-large' {
+    line-height: $line-height-snug;
+  } @else if $preset == 'title-medium' {
+    font-size: $font-size-md;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-snug;
+  } @else if $preset == 'title-small' {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-snug;
+  } @else if $preset == 'label-large' {
     font-size: $font-size-base;
     font-weight: $font-weight-medium;
     line-height: $line-height-tight;
-  } @else if $size == 'label-medium' {
+  } @else if $preset == 'label-medium' {
     font-size: $font-size-sm;
     font-weight: $font-weight-medium;
-    line-height: $line-height-relaxed;
-  } @else if $size == 'body-medium' {
-    font-size: $font-size-base;
-    font-weight: $font-weight-regular;
-    line-height: $line-height-relaxed;
-  } @else if $size == 'body-small' {
-    font-size: $font-size-sm;
-    font-weight: $font-weight-regular;
-    line-height: $line-height-relaxed;
-  } @else if $size == 'caption' {
+    line-height: $line-height-tight;
+  } @else if $preset == 'label-small' {
     font-size: $font-size-xs;
     font-weight: $font-weight-medium;
     line-height: $line-height-tight;
-  } @else if $size == 'h1' {
-    font-size: $font-size-2xl;
-    font-weight: $font-weight-bold;
-    line-height: $line-height-tight;
+  } @else if $preset == 'body-large' {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-relaxed;
+  } @else if $preset == 'body-medium' {
+    font-size: $font-size-md;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-relaxed;
+  } @else if $preset == 'body-base' {
+    font-size: $font-size-base;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-relaxed;
+  } @else if $preset == 'body-small' {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-relaxed;
+  } @else if $preset == 'caption' {
+    font-size: $font-size-xs;
+    font-weight: $font-weight-regular;
+    line-height: $line-height-normal;
+  } @else if $preset == 'overline' {
+    font-size: $font-size-2xs;
+    font-weight: $font-weight-semibold;
+    line-height: $line-height-normal;
+    letter-spacing: $letter-spacing-wider;
+    text-transform: uppercase;
   } @else {
+    // Default: body-base
     font-size: $font-size-base;
     font-weight: $font-weight-regular;
     line-height: $line-height-relaxed;
   }
-  font-family: $font-family-ui;
 }
 
+// Focus ring
+@mixin focus-ring($color: $neutral-950, $offset: 2px) {
+  outline: 2px solid $color;
+  outline-offset: $offset;
+}
+
+@mixin focus-ring-inset($color: $neutral-950) {
+  outline: 2px solid $color;
+  outline-offset: -2px;
+}
+
+// Button base
 @mixin button-base {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-sm $spacing-md;
-  border: 1px solid $color-border-default;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-4;
+  border: $border-width-1 solid transparent;
   border-radius: $border-radius-md;
-  font-family: $font-family-ui;
+  font-family: $font-family-sans;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
   line-height: $line-height-tight;
-  cursor: pointer;
-  transition: all $duration-normal $easing-standard;
   text-decoration: none;
-  background: $color-surface-primary;
-  color: $color-text-primary;
-  
-  &:hover {
-    background: $color-surface-hover;
-  }
-  
+  cursor: pointer;
+  transition: $transition-colors, box-shadow $duration-normal $easing-standard;
+
   &:focus-visible {
-    outline: 2px solid $color-primary-500;
-    outline-offset: 2px;
+    @include focus-ring;
   }
-  
+
   &:disabled {
     cursor: not-allowed;
-    opacity: 0.6;
-    background: $color-surface-disabled;
-    color: $color-text-disabled;
+    opacity: 0.5;
   }
 }
 
-@mixin loading-spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid $color-border-subtle;
-  border-radius: $border-radius-full;
-  border-top-color: $color-primary-500;
-  animation: spin 1s ease-in-out infinite;
-}
-
-@mixin focus-ring {
-  outline: 2px solid $color-primary-500;
-  outline-offset: 2px;
-}
-
+// Button reset
 @mixin button-reset {
-  background: none;
+  appearance: none;
+  background: transparent;
   border: none;
   padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
-  font-family: inherit;
 }
 
+// Input base
+@mixin input-base {
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  border: $border-width-1 solid $color-border-default;
+  border-radius: $border-radius-md;
+  background-color: $color-surface-primary;
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+  color: $color-text-primary;
+  transition: $transition-colors;
+
+  &::placeholder {
+    color: $color-text-placeholder;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: $color-border-hover;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-border-focus;
+    box-shadow: $shadow-focus;
+  }
+
+  &:disabled {
+    background-color: $color-surface-disabled;
+    color: $color-text-disabled;
+    cursor: not-allowed;
+  }
+}
+
+// Card
+@mixin card($elevated: false) {
+  background-color: if(
+    $elevated,
+    $color-surface-elevated,
+    $color-surface-primary
+  );
+  border: $border-width-1 solid $color-border-subtle;
+  border-radius: $border-radius-lg;
+  @if $elevated {
+    box-shadow: $shadow-md;
+  }
+}
+
+// Truncate text
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Line clamp
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Scrollbar styling
+@mixin custom-scrollbar(
+  $width: 8px,
+  $track: transparent,
+  $thumb: $color-scrollbar-thumb
+) {
+  scrollbar-width: thin;
+  scrollbar-color: $thumb $track;
+
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb;
+    border-radius: $border-radius-full;
+
+    &:hover {
+      background-color: $color-scrollbar-thumb-hover;
+    }
+  }
+}
+
+// Visually hidden (accessible hiding)
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Loading spinner
+@mixin loading-spinner($size: 20px, $color: $color-accent) {
+  display: inline-block;
+  width: $size;
+  height: $size;
+  border: 2px solid $color-border-subtle;
+  border-radius: $border-radius-full;
+  border-top-color: $color;
+  animation: spin 0.8s ease-in-out infinite;
+}
+
+// Keyframes
 @keyframes spin {
   to {
     transform: rotate(360deg);
   }
 }
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ============================================================================
+// 16. ALIASES DE COMPATIBILIDAD (para migración gradual)
+// ============================================================================
+
+// Los siguientes aliases permiten que el código existente siga funcionando
+// mientras se migra gradualmente al nuevo sistema de tokens
+
+// Surface aliases
+$color-surface-selected: $color-surface-pressed;
+
+// Primary color aliases (ahora apuntan a neutral/accent)
+$color-primary-50: $info-50;
+$color-primary-500: $color-accent;
+$color-primary-600: $color-accent-hover;
+$color-primary-700: $color-accent-active;
+$color-brand-primary: $color-accent;
+
+// Border aliases
+$color-border-light: $color-border-subtle;
+$color-border-primary: $color-border-focus;
+$color-border-secondary: $color-border-subtle;
+
+// Old semantic color names
+$color-secondary-500: $neutral-500;
+$color-secondary-600: $neutral-600;
+$color-secondary-700: $neutral-700;
+$color-success-500: $success-500;
+$color-success-600: $success-600;
+$color-success-700: $success-700;
+$color-warning-500: $warning-500;
+$color-warning-600: $warning-600;
+$color-warning-700: $warning-700;
+$color-info-500: $info-500;
+$color-info-600: $info-600;
+$color-info-700: $info-700;
+$color-info-50: $info-50;
+$color-warning-50: $warning-50;
+$color-danger-500: $error-500;
+$color-danger-600: $error-600;
+$color-danger-700: $error-700;
+$color-error-50: $error-50;
+$color-error-200: $error-200;
+$color-error-600: $error-600;
+$color-error-700: $error-700;
+$color-neutral-500: $neutral-500;
+$color-neutral-600: $neutral-600;
+$color-neutral-900: $neutral-900;
+$color-neutral-950: $neutral-950;
+
+// Overlay
+$color-overlay-backdrop: $color-surface-overlay;
+
+// Old UI accent aliases (ya no necesarios pero mantenidos para compatibilidad)
+$color-ui-accent: $color-accent;
+$color-ui-accent-hover: $color-accent-hover;
+$color-ui-accent-active: $color-accent-active;
+$color-ui-accent-light: $neutral-100;
+$color-ui-accent-text: $color-on-accent;
