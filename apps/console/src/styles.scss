@@ -16,8 +16,8 @@
   --color-surface-primary: #{tokens.$color-surface-primary};
   --color-surface-secondary: #{tokens.$color-surface-secondary};
   --color-surface-tertiary: #{tokens.$color-surface-tertiary};
-  --color-surface-hover: #{tokens.$color-surface-hover};
-  --color-surface-selected: #{tokens.$color-surface-selected};
+  --color-surface-hover: #eeeeec; // Más sutil que selected
+  --color-surface-selected: #e8e8e6; // Intermedio: más visible que neutral-100, menos que neutral-200
   --color-surface-pressed: #{tokens.$color-surface-pressed};
   --color-surface-disabled: #{tokens.$color-surface-disabled};
   --color-surface-elevated: #{tokens.$color-surface-elevated};
@@ -50,6 +50,23 @@
   --color-warning: #{tokens.$warning-500};
   --color-error: #{tokens.$error-500};
   --color-info: #{tokens.$info-500};
+
+  // --- Semánticos - Backgrounds y Textos (para badges, tags, etc.) ---
+  --color-success-bg: #d1fae5;
+  --color-success-text: #065f46;
+  --color-success-hover: #059669;
+  --color-warning-bg: #fef3c7;
+  --color-warning-text: #92400e;
+  --color-warning-hover: #d97706;
+  --color-error-bg: #fee2e2;
+  --color-error-text: #991b1b;
+  --color-error-hover: #dc2626;
+  --color-info-bg: #dbeafe;
+  --color-info-text: #1e40af;
+  --color-info-hover: #2563eb;
+  --color-purple-bg: #f3e8ff;
+  --color-purple-text: #7c3aed;
+  --color-purple: #8b5cf6;
 
   // --- Status ---
   --color-status-online: #{tokens.$color-status-online};
@@ -159,8 +176,8 @@
 
   // Superficies
   --wl-color-surface: #{tokens.$color-surface-secondary};
-  --wl-color-surface-hover: #{tokens.$color-surface-hover};
-  --wl-color-surface-selected: #{tokens.$color-surface-selected};
+  --wl-color-surface-hover: #eeeeec; // Más sutil que selected
+  --wl-color-surface-selected: #e8e8e6; // Intermedio: más visible que neutral-100, menos que neutral-200
   --wl-color-surface-text: #{tokens.$color-text-primary};
   --wl-color-surface-text-muted: #{tokens.$color-text-secondary};
 
@@ -182,7 +199,14 @@
 
   // Mensajes
   --wl-message-visitor-bg: #{tokens.$color-message-visitor};
+  --wl-message-visitor-bg-start: #{tokens.$neutral-200};
+  --wl-message-visitor-bg-end: #{tokens.$neutral-100};
+  --wl-message-visitor-border: #{tokens.$neutral-300};
+  --wl-message-visitor-text: #{tokens.$neutral-900};
   --wl-message-own-bg: #{tokens.$color-message-own};
+  --wl-message-own-bg-start: #{tokens.$neutral-100};
+  --wl-message-own-bg-end: #{tokens.$neutral-50};
+  --wl-message-own-border: #{tokens.$neutral-200};
   --wl-message-own-text: #{tokens.$color-message-own-text};
   --wl-message-meta: #{tokens.$color-message-meta};
   --wl-message-ai-bg-start: #{tokens.$color-message-ai-bg-start};
@@ -199,6 +223,113 @@
 
   // Sombras
   --wl-shadow-sm: #{tokens.$shadow-sm};
+}
+
+/* ============================================================================
+   DARK MODE - THEME OVERRIDES
+   Las siguientes variables se redefinen cuando body tiene clase .theme-dark
+   ============================================================================ */
+
+.theme-dark {
+  // --- Superficies (Dark Mode) ---
+  --color-surface-primary: #{tokens.$color-content-dark-bg};
+  --color-surface-secondary: #{tokens.$color-content-dark-bg-secondary};
+  --color-surface-tertiary: #{tokens.$color-content-dark-bg-tertiary};
+  --color-surface-hover: #{tokens.$color-content-dark-bg-hover};
+  --color-surface-selected: #{tokens.$color-content-dark-bg-selected};
+  --color-surface-pressed: #{tokens.$color-content-dark-bg-selected};
+  --color-surface-disabled: #{tokens.$color-content-dark-bg-secondary};
+  --color-surface-elevated: #{tokens.$color-content-dark-bg-elevated};
+  --color-surface-inverse: #{tokens.$color-surface-primary};
+
+  // --- Texto (Dark Mode) ---
+  --color-text-primary: #{tokens.$color-content-dark-text-primary};
+  --color-text-secondary: #{tokens.$color-content-dark-text-secondary};
+  --color-text-tertiary: #{tokens.$color-content-dark-text-tertiary};
+  --color-text-disabled: #{tokens.$color-content-dark-text-disabled};
+  --color-text-placeholder: #{tokens.$color-content-dark-text-placeholder};
+  --color-text-inverse: #{tokens.$color-text-primary};
+
+  // --- Bordes (Dark Mode) ---
+  --color-border-subtle: #{tokens.$color-content-dark-border-subtle};
+  --color-border-default: #{tokens.$color-content-dark-border-default};
+  --color-border-strong: #{tokens.$color-content-dark-border-strong};
+  --color-border-hover: #{tokens.$color-content-dark-border-strong};
+  --color-border-focus: #{tokens.$color-content-dark-text-primary};
+
+  // --- Acento (Dark Mode) ---
+  --color-accent: #{tokens.$color-content-dark-accent};
+  --color-accent-hover: #{tokens.$color-content-dark-accent-hover};
+  --color-on-accent: #{tokens.$color-content-dark-on-accent};
+
+  // --- Scrollbar (Dark Mode) ---
+  --color-scrollbar-thumb: #{tokens.$color-content-dark-scrollbar-thumb};
+  --color-scrollbar-thumb-hover: #{tokens.$color-content-dark-scrollbar-thumb-hover};
+
+  // --- Semánticos - Backgrounds y Textos (Dark Mode) ---
+  --color-success-bg: rgba(16, 185, 129, 0.2);
+  --color-success-text: #6ee7b7;
+  --color-success-hover: #34d399;
+  --color-warning-bg: rgba(245, 158, 11, 0.2);
+  --color-warning-text: #fcd34d;
+  --color-warning-hover: #fbbf24;
+  --color-error-bg: rgba(239, 68, 68, 0.2);
+  --color-error-text: #fca5a5;
+  --color-error-hover: #f87171;
+  --color-info-bg: rgba(59, 130, 246, 0.2);
+  --color-info-text: #93c5fd;
+  --color-info-hover: #60a5fa;
+  --color-purple-bg: rgba(139, 92, 246, 0.2);
+  --color-purple-text: #c4b5fd;
+  --color-purple: #a78bfa;
+
+  // --- Aliases para compatibilidad (Dark Mode) ---
+  --color-brand: #{tokens.$color-content-dark-accent};
+  --color-brand-hover: #{tokens.$color-content-dark-accent-hover};
+  --color-on-brand: #{tokens.$color-content-dark-on-accent};
+
+  --wl-color-surface: #{tokens.$color-content-dark-bg-secondary};
+  --wl-color-surface-hover: #{tokens.$color-content-dark-bg-hover};
+  --wl-color-surface-selected: #{tokens.$color-content-dark-bg-selected};
+  --wl-color-surface-text: #{tokens.$color-content-dark-text-primary};
+  --wl-color-surface-text-muted: #{tokens.$color-content-dark-text-secondary};
+
+  --wl-color-text-primary: #{tokens.$color-content-dark-text-primary};
+  --wl-color-text-secondary: #{tokens.$color-content-dark-text-secondary};
+  --wl-color-text-tertiary: #{tokens.$color-content-dark-text-tertiary};
+
+  --wl-scrollbar-thumb: #{tokens.$color-content-dark-scrollbar-thumb};
+  --wl-scrollbar-thumb-hover: #{tokens.$color-content-dark-scrollbar-thumb-hover};
+
+  // --- Mensajes (Dark Mode) ---
+  // Visitante: tonos grises neutros
+  --wl-message-visitor-bg: #{tokens.$neutral-700};
+  --wl-message-visitor-bg-start: rgba(74, 74, 69, 0.95);
+  --wl-message-visitor-bg-end: rgba(74, 74, 69, 0.75);
+  --wl-message-visitor-border: rgba(107, 107, 99, 0.4);
+  --wl-message-visitor-text: #{tokens.$neutral-100};
+
+  // Propios: tonos más claros/cálidos
+  --wl-message-own-bg: #{tokens.$neutral-600};
+  --wl-message-own-bg-start: rgba(107, 107, 99, 0.95);
+  --wl-message-own-bg-end: rgba(107, 107, 99, 0.75);
+  --wl-message-own-border: rgba(138, 138, 128, 0.4);
+  --wl-message-own-text: #{tokens.$neutral-100};
+
+  --wl-message-meta: #{tokens.$neutral-400};
+
+  // IA: tonos índigo/púrpura
+  --wl-message-ai-bg-start: rgba(99, 102, 241, 0.15);
+  --wl-message-ai-bg-end: rgba(99, 102, 241, 0.08);
+  --wl-message-ai-border: rgba(99, 102, 241, 0.3);
+  --wl-message-ai-accent: #818cf8;
+
+  --color-message-visitor: #{tokens.$neutral-700};
+  --color-message-visitor-text: #{tokens.$neutral-100};
+  --color-message-own: #{tokens.$neutral-600};
+  --color-message-own-text: #{tokens.$neutral-100};
+  --color-message-system: #{tokens.$neutral-700};
+  --color-message-system-text: #{tokens.$neutral-300};
 }
 
 /* ============================================================================

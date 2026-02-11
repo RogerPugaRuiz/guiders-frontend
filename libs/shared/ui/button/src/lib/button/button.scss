@@ -12,7 +12,7 @@
 
 .guiders-button {
   @include tokens.button-base;
-  
+
   // Estados base
   position: relative;
   display: inline-flex;
@@ -28,16 +28,16 @@
   transition: all var(--duration-fast) var(--easing-standard);
   white-space: nowrap;
   overflow: hidden;
-  
+
   // Accesibilidad - área mínima de hit
   min-height: var(--spacing-8); // 32px mínimo
   min-width: var(--spacing-8);
-  
+
   &:focus-visible {
     outline: none;
     box-shadow: var(--shadow-focus-brand);
   }
-  
+
   &:disabled,
   &--disabled {
     cursor: not-allowed;
@@ -45,27 +45,39 @@
   }
 
   // === VARIANTES ===
-  
+
   // Primary - Acción principal con degradado sutil
   &--primary {
-    background: linear-gradient(135deg, var(--color-brand) 0%, color-mix(in srgb, var(--color-brand) 90%, black) 100%);
+    background: linear-gradient(
+      135deg,
+      var(--color-brand) 0%,
+      color-mix(in srgb, var(--color-brand) 90%, black) 100%
+    );
     color: var(--color-on-brand);
     border-color: var(--color-brand);
-    
+
     &:hover:not(:disabled) {
-      background: linear-gradient(135deg, var(--color-brand-hover) 0%, color-mix(in srgb, var(--color-brand-hover) 85%, black) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-brand-hover) 0%,
+        color-mix(in srgb, var(--color-brand-hover) 85%, black) 100%
+      );
       border-color: var(--color-brand-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
-    
+
     &:active:not(:disabled) {
-      background: linear-gradient(135deg, var(--color-brand-active) 0%, color-mix(in srgb, var(--color-brand-active) 80%, black) 100%);
+      background: linear-gradient(
+        135deg,
+        var(--color-brand-active) 0%,
+        color-mix(in srgb, var(--color-brand-active) 80%, black) 100%
+      );
       border-color: var(--color-brand-active);
       transform: translateY(0);
       box-shadow: var(--shadow-sm);
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       background-color: var(--color-brand-disabled);
@@ -73,26 +85,26 @@
       border-color: var(--color-brand-disabled);
     }
   }
-  
+
   // Secondary - Acción secundaria
   &--secondary {
     background-color: var(--color-surface-secondary);
     color: var(--color-on-surface);
     border-color: var(--color-border);
-    
+
     &:hover:not(:disabled) {
       background-color: var(--color-surface-hover);
       border-color: var(--color-border-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
-    
+
     &:active:not(:disabled) {
       background-color: var(--color-surface-active);
       transform: translateY(0);
       box-shadow: var(--shadow-sm);
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       background-color: var(--color-surface-disabled);
@@ -100,33 +112,33 @@
       border-color: var(--color-border-disabled);
     }
   }
-  
+
   // Outline - Botón con borde
   &--outline {
     background-color: transparent;
     color: var(--color-brand);
     border-color: var(--color-brand);
-    
+
     &:hover:not(:disabled) {
       background-color: var(--color-brand);
       color: var(--color-on-brand);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
-    
+
     &:active:not(:disabled) {
       background-color: var(--color-brand-active);
       border-color: var(--color-brand-active);
       transform: translateY(0);
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       color: var(--color-on-surface-disabled);
       border-color: var(--color-border-disabled);
     }
   }
-  
+
   // Ghost - Botón sin fondo
   &--ghost {
     background-color: transparent;
@@ -134,21 +146,46 @@
     border-color: transparent;
     padding: 8px !important; // Forzar padding para mantener tamaño de hit area
     border-radius: tokens.$border-radius-sm !important;
-    
+
     &:hover:not(:disabled) {
       background-color: var(--sidebar-bg-hover);
       color: var(--color-brand-hover);
     }
-    
+
     &:active:not(:disabled) {
       background-color: var(--sidebar-bg-hover);
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       color: var(--color-on-surface-disabled);
     }
   }
+  // Sidebar - Botón específico para uso en sidebar (solo color, sin efectos de hover/active)
+  // Los efectos de hover/active se gestionan desde el componente padre (sidebar.scss)
+  &--sidebar {
+    background-color: transparent;
+    color: var(--sidebar-text);
+    border-color: transparent;
+
+    // Sin efectos de hover/active - el padre los gestiona
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      background-color: transparent;
+    }
+
+    &:disabled,
+    &.guiders-button--disabled {
+      color: var(--sidebar-text-muted);
+      opacity: 0.5;
+    }
+
+    // Estado activo - solo cambia el color del texto
+    &.guiders-button--active {
+      color: var(--sidebar-text-active);
+    }
+  }
+
   // Boton sin estilos - Útil para íconos o acciones sin importancia visual
   &--unstyled {
     all: unset;
@@ -159,24 +196,24 @@
     cursor: pointer;
     color: currentColor;
     position: relative;
-    
+
     // Hit area mínima accesible
     min-height: var(--spacing-8); // 32px
     min-width: var(--spacing-8);
-    
+
     // Accesibilidad - focus visible (sin hover)
     &:focus-visible {
       outline: 2px solid var(--color-focus-ring, #{tokens.$color-info-500});
       outline-offset: 2px;
       border-radius: tokens.$border-radius-sm;
     }
-    
+
     // Sin transición ni efectos en hover/active
     &:hover:not(:disabled),
     &:active:not(:disabled) {
       // Completamente sin estilos - solo el contenido
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       cursor: not-allowed;
@@ -184,25 +221,25 @@
       pointer-events: none;
     }
   }
-  
+
   // Danger - Acciones destructivas
   &--danger {
     background-color: var(--color-danger);
     color: var(--color-on-danger);
     border-color: var(--color-danger);
-    
+
     &:hover:not(:disabled) {
       background-color: color-mix(in srgb, var(--color-danger) 85%, black);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
-    
+
     &:active:not(:disabled) {
       background-color: color-mix(in srgb, var(--color-danger) 70%, black);
       transform: translateY(0);
       box-shadow: var(--shadow-sm);
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       background-color: var(--color-brand-disabled);
@@ -210,26 +247,26 @@
       border-color: var(--color-brand-disabled);
     }
   }
-  
+
   // Cancel - Botón de cancelar con estilo rojo outline
   &--cancel {
     background-color: transparent;
     color: var(--color-danger);
     border-color: var(--color-danger);
-    
+
     &:hover:not(:disabled) {
       background-color: var(--color-danger);
       color: var(--color-on-danger);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
-    
+
     &:active:not(:disabled) {
       background-color: color-mix(in srgb, var(--color-danger) 85%, black);
       transform: translateY(0);
       box-shadow: var(--shadow-sm);
     }
-    
+
     &:disabled,
     &.guiders-button--disabled {
       color: var(--color-on-surface-disabled);
@@ -238,21 +275,21 @@
   }
 
   // === TAMAÑOS ===
-  
+
   &--small {
     @include tokens.typography('button-small');
     min-height: var(--spacing-8); // 32px
     padding: var(--spacing-1) var(--spacing-3); // 4px 12px
     gap: var(--spacing-1);
   }
-  
+
   &--medium {
     @include tokens.typography('button-medium');
     min-height: var(--spacing-10); // 40px
     padding: var(--spacing-2) var(--spacing-4); // 8px 16px
     gap: var(--spacing-2);
   }
-  
+
   &--large {
     @include tokens.typography('button-large');
     min-height: var(--spacing-12); // 48px
@@ -261,11 +298,11 @@
   }
 
   // === MODIFICADORES ===
-  
+
   &--full-width {
     width: 100%;
   }
-  
+
   &--loading {
     pointer-events: none;
   }
@@ -312,22 +349,22 @@
 @media (prefers-reduced-motion: reduce) {
   .guiders-button {
     transition-duration: var(--duration-instant);
-    
+
     &:hover:not(:disabled) {
       transform: none;
     }
-    
+
     &:active:not(:disabled) {
       transform: none;
     }
   }
-  
+
   .guiders-button__spinner {
     animation: none;
     border: 2px solid currentColor;
     border-right-color: transparent;
   }
-  
+
   // Mostrar texto alternativo para loading en motion reducido
   .guiders-button--loading .guiders-button__content::after {
     content: ' (Cargando...)';

@@ -23,7 +23,7 @@
     </div>
     } @if (config().showToggle) {
     <guiders-button
-      variant="ghost"
+      variant="sidebar"
       size="medium"
       (click)="onToggleSidebar()"
       [ariaLabel]="isCollapsed() ? 'Expandir navegación' : 'Contraer navegación'"
@@ -73,9 +73,9 @@
       @for (item of items(); track item.id) {
       <li class="sidebar__nav-item" role="listitem">
         <guiders-button
-          [variant]="'unstyled'"
+          variant="sidebar"
           size="medium"
-          [class.sidebar__nav-link--active]="isItemActive(item)"
+          [active]="isItemActive(item)"
           [class.sidebar__nav-link--has-children]="item.children && item.children.length > 0"
           (click)="onItemClick(item)"
           [ariaLabel]="getItemAriaLabel(item)"
@@ -125,9 +125,9 @@
           @for (child of item.children; track child.id) {
           <li class="sidebar__submenu-item" role="listitem">
             <guiders-button
-              variant="ghost"
+              variant="sidebar"
               size="small"
-              [class.sidebar__submenu-link--active]="isItemActive(child)"
+              [active]="isItemActive(child)"
               (click)="onItemClick(child)"
               [ariaLabel]="getItemAriaLabel(child)"
               [ariaCurrent]="isItemActive(child) ? 'page' : undefined"

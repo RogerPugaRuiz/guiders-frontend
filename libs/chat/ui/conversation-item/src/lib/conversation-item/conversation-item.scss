@@ -25,12 +25,48 @@
   border-radius: tokens.$border-radius-md;
   transition: background-color tokens.$duration-fast tokens.$easing-standard;
 
-  &:hover {
-    background: #f5f5f5; // Gris neutro para hover
+  // === DEFAULT STATE - Aplicar borde del fondo del sidebar ===
+  ::ng-deep .guiders-avatar__presence-indicator {
+    border-color: var(--color-surface-primary);
+    transition: border-color tokens.$duration-fast tokens.$easing-standard;
+  }
 
-    // Cambiar el borde del indicador de presencia en hover
+  // En dark mode, el fondo por defecto es el sidebar oscuro
+  :host-context(.theme-dark) & {
     ::ng-deep .guiders-avatar__presence-indicator {
-      border-color: #f5f5f5;
+      border-color: #{tokens.$color-sidebar-dark-bg}; // #1a1a1a
+    }
+  }
+
+  // === HOVER STATE ===
+  &:hover:not(&--selected) {
+    background: var(--color-surface-hover);
+
+    ::ng-deep .guiders-avatar__presence-indicator {
+      // En light mode: #eeeeec
+      border-color: #eeeeec;
+    }
+  }
+
+  // En dark mode, el hover sobre el sidebar oscuro
+  :host-context(.theme-dark) &:hover:not(&--selected) {
+    ::ng-deep .guiders-avatar__presence-indicator {
+      border-color: #272727; // #1a1a1a + rgba(white, 0.06) aproximado
+    }
+  }
+
+  // === ACTIVE STATE ===
+  &:active:not(&--selected) {
+    background: var(--color-surface-pressed, var(--color-surface-hover));
+
+    ::ng-deep .guiders-avatar__presence-indicator {
+      border-color: var(--color-surface-pressed, var(--color-surface-hover));
+    }
+  }
+
+  :host-context(.theme-dark) &:active:not(&--selected) {
+    ::ng-deep .guiders-avatar__presence-indicator {
+      border-color: #2d2d2d;
     }
   }
 
@@ -39,8 +75,14 @@
     outline-offset: -2px;
   }
 
+  // === SELECTED STATE ===
   &--selected {
     background: var(--wl-color-surface-selected);
+
+    ::ng-deep .guiders-avatar__presence-indicator {
+      // En light mode, usar el nuevo color selected (#e8e8e6)
+      border-color: #e8e8e6;
+    }
 
     .conversation-item__name {
       font-weight: tokens.$font-weight-semibold;
@@ -54,10 +96,28 @@
     .conversation-item__time {
       color: var(--wl-color-surface-text-muted);
     }
+  }
 
-    // Cambiar el borde del indicador de presencia al mismo color que el background
+  // En dark mode, el selected sobre el sidebar oscuro
+  :host-context(.theme-dark) &--selected {
     ::ng-deep .guiders-avatar__presence-indicator {
-      border-color: var(--wl-color-surface-selected);
+      border-color: #333333; // #1a1a1a + rgba(white, 0.1) aproximado
+    }
+  }
+
+  // === SELECTED + HOVER STATE ===
+  &--selected:hover {
+    background: var(--wl-color-surface-selected);
+
+    ::ng-deep .guiders-avatar__presence-indicator {
+      // En light mode: mismo que selected (#e8e8e6)
+      border-color: #e8e8e6;
+    }
+  }
+
+  :host-context(.theme-dark) &--selected:hover {
+    ::ng-deep .guiders-avatar__presence-indicator {
+      border-color: #3a3a3a;
     }
   }
 
@@ -117,8 +177,8 @@
 
 .conversation-item__badge {
   @include tokens.typography('caption');
-  background: tokens.$color-primary-500;
-  color: tokens.$color-text-inverse;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   padding: 2px tokens.$spacing-xs;
   border-radius: tokens.$border-radius-full;
   min-width: 20px;
@@ -132,6 +192,10 @@
 @media (prefers-reduced-motion: reduce) {
   .conversation-item {
     transition: none;
+
+    ::ng-deep .guiders-avatar__presence-indicator {
+      transition: none;
+    }
   }
 }
 
@@ -142,8 +206,8 @@
   }
 
   .conversation-item--selected {
-    background: tokens.$color-surface-primary;
-    border: 2px solid tokens.$color-primary-500;
+    background: var(--color-surface-primary);
+    border: 2px solid var(--color-accent);
   }
 }
 

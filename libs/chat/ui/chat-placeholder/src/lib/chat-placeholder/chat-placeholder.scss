@@ -20,7 +20,7 @@
   height: 100%;
   width: 100%;
   min-height: 0; // Crítico para que overflow funcione en flexbox
-  background-color: tokens.$color-surface-primary;
+  background-color: var(--color-surface-primary);
   border-radius: tokens.$border-radius-md;
   box-shadow: tokens.$shadow-sm;
   position: relative;
@@ -39,7 +39,7 @@
     align-items: center;
     justify-content: space-between;
     padding: tokens.$spacing-md tokens.$spacing-lg;
-    border-bottom: 1px solid tokens.$color-border-default;
+    border-bottom: 1px solid var(--color-border-default);
     min-height: 72px;
     flex-shrink: 0;
   }
@@ -137,7 +137,7 @@
     }
 
     &:hover {
-      background: #f5f5f5; // Gris neutro para hover
+      background: var(--color-surface-hover);
     }
 
     &:active {
@@ -146,8 +146,8 @@
     }
 
     &--close:hover {
-      background: rgba(239, 68, 68, 0.1);
-      color: var(--wl-status-busy);
+      background: var(--color-error-bg);
+      color: var(--color-error-text);
     }
   }
 
@@ -155,7 +155,7 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    background-color: tokens.$color-surface-secondary;
+    background-color: var(--color-surface-secondary);
     min-height: 0;
     position: relative;
   }
@@ -180,7 +180,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: tokens.$color-surface-primary;
+    background: var(--color-surface-primary);
   }
 
   &__messages {
@@ -227,7 +227,7 @@
     align-items: center;
     justify-content: center;
     padding: tokens.$spacing-xs tokens.$spacing-md;
-    background-color: tokens.$color-surface-tertiary;
+    background-color: var(--color-surface-tertiary);
     border-radius: tokens.$border-radius-sm;
     margin: 0 auto;
     max-width: fit-content;
@@ -252,8 +252,8 @@
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid tokens.$color-border-default;
-    border-top-color: tokens.$color-primary-500;
+    border: 2px solid var(--color-border-default);
+    border-top-color: var(--color-accent);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }
@@ -288,7 +288,7 @@
   &__date-separator-text {
     display: inline-block;
     padding: tokens.$spacing-xs tokens.$spacing-md;
-    background-color: tokens.$color-surface-tertiary;
+    background-color: var(--color-surface-tertiary);
     color: var(--wl-color-surface-text-muted);
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-medium;
@@ -321,7 +321,7 @@
   }
 
   &__message-author--own {
-    color: tokens.$color-primary-600;
+    color: var(--color-accent);
     align-self: flex-end;
   }
 
@@ -329,18 +329,27 @@
     display: block;
     padding: tokens.$spacing-sm tokens.$spacing-md;
     border-radius: 8px;
-    background: var(--wl-message-visitor-bg);
-    color: var(--wl-color-text-primary);
+    background: linear-gradient(
+      135deg,
+      var(--wl-message-visitor-bg-start) 0%,
+      var(--wl-message-visitor-bg-end) 100%
+    );
+    border: 1px solid var(--wl-message-visitor-border);
+    color: var(--wl-message-visitor-text);
     line-height: 1.5;
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
-    box-shadow: var(--wl-shadow-sm);
     position: relative;
     max-width: 100%;
 
     // Visitor messages - sharp corner on bottom-left
     border-bottom-left-radius: 2px;
+
+    .guiders-chat-placeholder__message-meta {
+      color: var(--wl-message-meta);
+      opacity: 0.8;
+    }
   }
 
   &__message-content {
@@ -361,7 +370,12 @@
   }
 
   &__message-body--own {
-    background: var(--wl-message-own-bg);
+    background: linear-gradient(
+      135deg,
+      var(--wl-message-own-bg-start) 0%,
+      var(--wl-message-own-bg-end) 100%
+    );
+    border: 1px solid var(--wl-message-own-border);
     color: var(--wl-message-own-text);
 
     // Own messages - sharp corner on bottom-right
@@ -370,12 +384,13 @@
 
     .guiders-chat-placeholder__message-meta {
       color: var(--wl-message-meta);
+      opacity: 0.8;
     }
   }
 
   &__message-body--system {
     display: flex;
-    background: tokens.$color-surface-tertiary;
+    background: var(--color-surface-tertiary);
     color: var(--wl-color-surface-text-muted);
     text-align: center;
     align-items: center;
@@ -467,9 +482,9 @@
   &__debug {
     margin-top: tokens.$spacing-md;
     padding: tokens.$spacing-sm tokens.$spacing-md;
-    background-color: tokens.$color-surface-tertiary;
+    background-color: var(--color-surface-tertiary);
     border-radius: tokens.$border-radius-sm;
-    border: 1px solid tokens.$color-border-subtle;
+    border: 1px solid var(--color-border-subtle);
   }
 
   &__debug-text {

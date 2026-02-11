@@ -12,8 +12,8 @@
 
   // Estilos para sugerencias de IA
   &__suggestions {
-    background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-    border: 1px solid #e9d5ff;
+    background: var(--color-purple-bg);
+    border: 1px solid var(--color-purple);
     border-radius: 12px;
     margin-bottom: tokens.$spacing-sm;
     overflow: hidden;
@@ -25,7 +25,7 @@
     justify-content: space-between;
     padding: tokens.$spacing-xs tokens.$spacing-sm;
     background: rgba(139, 92, 246, 0.08);
-    border-bottom: 1px solid #e9d5ff;
+    border-bottom: 1px solid var(--color-purple);
   }
 
   &__suggestions-title {
@@ -34,7 +34,7 @@
     gap: tokens.$spacing-xs;
     font-size: 12px;
     font-weight: 600;
-    color: #7c3aed;
+    color: var(--color-purple-text);
   }
 
   &__suggestions-close {
@@ -46,14 +46,14 @@
     padding: 0;
     background: transparent;
     border: none;
-    color: #a78bfa;
+    color: var(--color-purple);
     cursor: pointer;
     border-radius: 4px;
     transition: all 0.15s ease;
 
     &:hover {
       background: rgba(139, 92, 246, 0.15);
-      color: #7c3aed;
+      color: var(--color-purple-text);
     }
   }
 
@@ -64,15 +64,15 @@
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-md;
     font-size: 13px;
-    color: #7c3aed;
+    color: var(--color-purple-text);
   }
 
   &__suggestions-spinner {
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid #e9d5ff;
-    border-top-color: #8b5cf6;
+    border: 2px solid var(--color-purple-bg);
+    border-top-color: var(--color-purple);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }
@@ -80,7 +80,7 @@
   &__suggestions-empty {
     padding: tokens.$spacing-md;
     font-size: 13px;
-    color: #a78bfa;
+    color: var(--color-purple);
     text-align: center;
   }
 
@@ -97,10 +97,10 @@
     padding: tokens.$spacing-sm tokens.$spacing-md;
     font-size: 13px;
     line-height: 1.5;
-    color: #374151;
+    color: var(--color-text-primary);
     text-align: left;
-    background: white;
-    border: 1px solid #e9d5ff;
+    background: var(--color-surface-primary);
+    border: 1px solid var(--color-purple);
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -109,14 +109,14 @@
     word-wrap: break-word;
 
     &:hover {
-      background: #f5f3ff;
-      border-color: #c4b5fd;
+      background: var(--color-purple-bg);
+      border-color: var(--color-purple);
       transform: translateX(2px);
     }
 
     &:active {
       transform: translateX(0);
-      background: #ede9fe;
+      background: var(--color-purple-bg);
     }
   }
 
@@ -140,7 +140,7 @@
     border-radius: 20px;
     cursor: pointer;
     transition: all 0.2s ease;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--color-surface-primary);
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 
@@ -163,35 +163,35 @@
 
     // Variantes de color
     &--suggestion {
-      border-color: #c4b5fd;
-      color: #7c3aed;
-      background: linear-gradient(135deg, rgba(250, 245, 255, 0.98), rgba(243, 232, 255, 0.98));
+      border-color: var(--color-purple);
+      color: var(--color-purple-text);
+      background: var(--color-purple-bg);
 
       &:hover:not(:disabled) {
-        border-color: #a78bfa;
-        background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+        border-color: var(--color-purple);
+        background: var(--color-purple-bg);
       }
     }
 
     &--lead {
-      border-color: #fca5a5;
-      color: #dc2626;
-      background: linear-gradient(135deg, rgba(254, 242, 242, 0.98), rgba(254, 226, 226, 0.98));
+      border-color: var(--color-error);
+      color: var(--color-error-text);
+      background: var(--color-error-bg);
 
       &:hover:not(:disabled) {
-        border-color: #f87171;
-        background: linear-gradient(135deg, #fef2f2, #fee2e2);
+        border-color: var(--color-error-hover);
+        background: var(--color-error-bg);
       }
     }
 
     &--sentiment {
-      border-color: #6ee7b7;
-      color: #059669;
-      background: linear-gradient(135deg, rgba(240, 253, 244, 0.98), rgba(209, 250, 229, 0.98));
+      border-color: var(--color-success);
+      color: var(--color-success-text);
+      background: var(--color-success-bg);
 
       &:hover:not(:disabled) {
-        border-color: #34d399;
-        background: linear-gradient(135deg, #f0fdf4, #d1fae5);
+        border-color: var(--color-success-hover);
+        background: var(--color-success-bg);
       }
     }
   }
@@ -205,7 +205,7 @@
     width: 32px;
     height: 32px;
     padding: 0;
-    color: #a78bfa;
+    color: var(--color-purple);
     background: transparent;
     border: none;
     border-radius: 8px;
@@ -213,8 +213,8 @@
     transition: all 0.15s ease;
 
     &:hover:not(:disabled) {
-      background: #f5f3ff;
-      color: #7c3aed;
+      background: var(--color-purple-bg);
+      color: var(--color-purple-text);
     }
 
     &:disabled {
@@ -223,15 +223,15 @@
     }
 
     &--active {
-      background: #ede9fe;
-      color: #7c3aed;
+      background: var(--color-purple-bg);
+      color: var(--color-purple-text);
     }
   }
 
   // Resumen del Lead
   &__lead-summary {
-    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-    border: 1px solid #fca5a5;
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-error);
     border-radius: 12px;
     margin-bottom: tokens.$spacing-sm;
     overflow: hidden;
@@ -241,13 +241,13 @@
     padding: tokens.$spacing-md;
     font-size: 13px;
     line-height: 1.6;
-    color: #7c2d12;
+    color: var(--color-error-text);
   }
 
   // Análisis de Sentimiento
   &__sentiment {
-    background: linear-gradient(135deg, #f0fdf4 0%, #d1fae5 100%);
-    border: 1px solid #6ee7b7;
+    background: var(--color-success-bg);
+    border: 1px solid var(--color-success);
     border-radius: 12px;
     margin-bottom: tokens.$spacing-sm;
     overflow: hidden;
@@ -262,20 +262,20 @@
 
   &__sentiment-confidence {
     font-size: 12px;
-    color: #065f46;
+    color: var(--color-success-text);
     font-weight: 500;
   }
 
   &__input-wrapper {
     flex: 1;
-    background: #ffffff;
+    background: var(--color-surface-primary);
     border-radius: 20px;
     transition: all 0.2s ease;
-    border: 1px solid #e4e4e7;
- 
+    border: 1px solid var(--color-border-default);
+
     &:focus-within {
-      background: #ffffff;
-      border-color: #d4d4d8;
+      background: var(--color-surface-primary);
+      border-color: var(--color-border-strong);
       box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
     }
 
@@ -304,7 +304,7 @@
     font-family: tokens.$font-family-ui;
     font-size: 15px;
     line-height: 1.5;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     background: transparent;
     border: none;
     resize: none;
@@ -335,12 +335,12 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      background: #d4d4d8;
+      background: var(--color-scrollbar-thumb);
       border-radius: 2px;
     }
 
     &::placeholder {
-      color: #a1a1aa;
+      color: var(--color-text-placeholder);
       font-weight: 400;
     }
 
@@ -380,17 +380,17 @@
     background: transparent;
     border: none;
     border-radius: 6px;
-    color: #71717a;
+    color: var(--color-text-tertiary);
     cursor: pointer;
     transition: all 0.15s ease;
 
     &:hover {
-      background: #f4f4f5;
-      color: #18181b;
+      background: var(--color-surface-hover);
+      color: var(--color-text-primary);
     }
 
     &:active {
-      background: #e4e4e7;
+      background: var(--color-surface-pressed);
     }
 
     svg {
@@ -404,8 +404,8 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-    color: white;
-    background: #18181b;
+    color: var(--color-on-accent);
+    background: var(--color-accent);
     border: none;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -425,7 +425,7 @@
     }
 
     &:hover:not(.message-input__send-button--disabled) {
-      background: #27272a;
+      background: var(--color-accent-hover);
       transform: scale(1.05);
     }
 
@@ -442,8 +442,8 @@
       opacity: 0.3;
       cursor: not-allowed;
       transform: none;
-      background: #d4d4d8;
-      color: #71717a;
+      background: var(--color-surface-disabled);
+      color: var(--color-text-disabled);
     }
 
     svg {

@@ -5,7 +5,7 @@ import {
   PLATFORM_ID,
   inject,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 
 export type SidebarTheme = 'light' | 'dark';
 
@@ -13,12 +13,14 @@ const THEME_STORAGE_KEY = 'guiders-sidebar-theme';
 const DEFAULT_THEME: SidebarTheme = 'dark';
 
 /**
- * Service for managing sidebar theme persistence in localStorage.
+ * Service for managing app-wide theme persistence in localStorage.
+ * Applies theme class to document.body for global CSS inheritance.
  * Loads the saved theme before app initialization to prevent flash of wrong theme.
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly document = inject(DOCUMENT);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
   // Internal signal for theme state
@@ -30,6 +32,11 @@ export class ThemeService {
   // Computed for convenience
   readonly isDarkTheme = computed(() => this._theme() === 'dark');
   readonly isLightTheme = computed(() => this._theme() === 'light');
+
+  constructor() {
+    // Apply initial theme class to body
+    this.applyThemeClass(this._theme());
+  }
 
   /**
    * Load theme from localStorage synchronously.
@@ -61,6 +68,7 @@ export class ThemeService {
   setTheme(theme: SidebarTheme): void {
     this._theme.set(theme);
     this.saveThemeToStorage(theme);
+    this.applyThemeClass(theme);
   }
 
   /**
@@ -70,6 +78,26 @@ export class ThemeService {
     const newTheme = this._theme() === 'dark' ? 'light' : 'dark';
     this.setTheme(newTheme);
     return newTheme;
+  }
+
+  /**
+   * Apply theme class to document.body for global CSS inheritance.
+   * Removes previous theme class and adds the new one.
+   */
+  private applyThemeClass(theme: SidebarTheme): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
+    const body = this.document.body;
+    if (!body) {
+      return;
+    }
+
+    // Remove existing theme classes
+    body.classList.remove('theme-dark', 'theme-light');
+    // Add new theme class
+    body.classList.add(`theme-${theme}`);
   }
 
   /**

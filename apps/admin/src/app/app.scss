@@ -1,10 +1,8 @@
-@use '../../../../libs/shared/design-tokens/src/lib/tokens-vars' as tokens;
-
 .admin-app {
   display: flex;
   height: 100vh;
   overflow: hidden;
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
 }
 
 .admin-main {
@@ -21,7 +19,7 @@
   flex-direction: column;
   min-height: 0;
   overflow: auto;
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   padding: 0;
 }
 

@@ -172,7 +172,7 @@ $color-sidebar-dark-bg-active: rgba(
   $neutral-50,
   0.12
 ); // Activo un poco más visible
-$color-sidebar-dark-text: $neutral-200; // #dcdcdc - Texto normal menos brillante para mejor contraste
+$color-sidebar-dark-text: $neutral-400; // #a8a39d - Texto normal más tenue para diferenciarse del activo
 $color-sidebar-dark-text-muted: $neutral-500; // #8a8a8a - Muted más apagado para jerarquía visual
 $color-sidebar-dark-text-active: $neutral-50; // #f8f8f6 - Activo muy brillante (blanco hueso)
 $color-sidebar-dark-border: $neutral-800;
@@ -193,6 +193,40 @@ $color-sidebar-bg-active: $color-sidebar-dark-bg-active;
 $color-sidebar-text: $color-sidebar-dark-text;
 $color-sidebar-text-muted: $color-sidebar-dark-text-muted;
 $color-sidebar-border: $color-sidebar-dark-border;
+
+// ============================================================================
+// 6.1 TOKENS SEMÁNTICOS - DARK MODE GLOBAL (Content Area)
+// ============================================================================
+
+// --- Content Dark Mode ---
+// Superficies para el área de contenido en modo oscuro
+$color-content-dark-bg: $neutral-900; // #262626 - Fondo principal oscuro (no tan oscuro como sidebar)
+$color-content-dark-bg-secondary: $neutral-800; // #363636 - Fondo secundario
+$color-content-dark-bg-tertiary: $neutral-700; // #525252 - Fondo terciario
+$color-content-dark-bg-elevated: $neutral-800; // #363636 - Cards, modales
+$color-content-dark-bg-hover: rgba($neutral-50, 0.06); // Hover sutil
+$color-content-dark-bg-selected: rgba($neutral-50, 0.1); // Selección sutil
+
+// Texto para el área de contenido en modo oscuro
+$color-content-dark-text-primary: $neutral-50; // #f8f8f6 - Texto principal
+$color-content-dark-text-secondary: $neutral-300; // #c4c4c4 - Texto secundario
+$color-content-dark-text-tertiary: $neutral-400; // #a8a39d - Texto terciario
+$color-content-dark-text-disabled: $neutral-500; // #8a8a8a - Texto deshabilitado
+$color-content-dark-text-placeholder: $neutral-500; // #8a8a8a - Placeholders
+
+// Bordes para el área de contenido en modo oscuro
+$color-content-dark-border-subtle: $neutral-700; // Bordes muy sutiles
+$color-content-dark-border-default: $neutral-600; // Bordes estándar
+$color-content-dark-border-strong: $neutral-500; // Bordes enfatizados
+
+// Acento en modo oscuro (mismo que light pero ajustado para contraste)
+$color-content-dark-accent: $neutral-50; // Acento invertido para dark
+$color-content-dark-accent-hover: $neutral-200;
+$color-content-dark-on-accent: $neutral-950; // Texto sobre acento en dark
+
+// Scrollbar en modo oscuro
+$color-content-dark-scrollbar-thumb: rgba($neutral-50, 0.2);
+$color-content-dark-scrollbar-thumb-hover: rgba($neutral-50, 0.3);
 
 // --- Badges y Estados ---
 $color-badge-neutral: $neutral-200;

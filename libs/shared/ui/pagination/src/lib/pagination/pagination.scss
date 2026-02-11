@@ -6,7 +6,7 @@
   justify-content: space-between;
   gap: tokens.$spacing-lg;
   padding: tokens.$spacing-md;
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   font-family: tokens.$font-family-ui;
 
   &__info {
@@ -15,7 +15,7 @@
 
   &__text {
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     font-weight: tokens.$font-weight-medium;
   }
 
@@ -35,35 +35,35 @@
 
   &__label {
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     font-weight: tokens.$font-weight-medium;
   }
 
   &__select {
     padding: tokens.$spacing-xs tokens.$spacing-sm;
-    border: 1px solid tokens.$color-border-default;
+    border: 1px solid var(--color-border-default);
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-surface-primary;
-    color: tokens.$color-text-primary;
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
     font-size: tokens.$font-size-sm;
     font-family: tokens.$font-family-ui;
     cursor: pointer;
     transition: border-color tokens.$duration-normal tokens.$easing-standard;
 
     &:hover:not(:disabled) {
-      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
+      border-color: var(--color-accent);
     }
 
     &:focus {
-      outline: 2px solid var(--ui-color-accent, tokens.$color-ui-accent);
+      outline: 2px solid var(--color-accent);
       outline-offset: 1px;
-      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
+      border-color: var(--color-accent);
     }
 
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-      background: tokens.$color-surface-disabled;
+      background: var(--color-surface-disabled);
     }
   }
 
@@ -80,10 +80,10 @@
     min-width: 32px;
     height: 32px;
     padding: tokens.$spacing-xs;
-    border: 1px solid tokens.$color-border-default;
+    border: 1px solid var(--color-border-default);
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-surface-primary;
-    color: tokens.$color-text-secondary;
+    background: var(--color-surface-primary);
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all tokens.$duration-normal tokens.$easing-standard;
 
@@ -92,20 +92,20 @@
     }
 
     &:hover:not(:disabled) {
-      background: tokens.$color-surface-hover;
-      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
-      color: var(--ui-color-accent, tokens.$color-ui-accent);
+      background: var(--color-surface-hover);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
     }
 
     &:active:not(:disabled) {
-      background: tokens.$color-surface-pressed;
+      background: var(--color-surface-pressed);
     }
 
     &:disabled {
       opacity: 0.4;
       cursor: not-allowed;
-      background: tokens.$color-surface-disabled;
-      color: tokens.$color-text-disabled;
+      background: var(--color-surface-disabled);
+      color: var(--color-text-disabled);
     }
   }
 
@@ -122,46 +122,55 @@
     min-width: 32px;
     height: 32px;
     padding: 0 tokens.$spacing-sm;
-    border: 1px solid tokens.$color-border-default;
+    border: 1px solid var(--color-border-default);
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-surface-primary;
-    color: tokens.$color-text-primary;
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     cursor: pointer;
     transition: all tokens.$duration-normal tokens.$easing-standard;
 
     &:hover:not(:disabled):not(&--active) {
-      background: tokens.$color-surface-hover;
-      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
-      color: var(--ui-color-accent, tokens.$color-ui-accent);
+      background: var(--color-surface-hover);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
     }
 
     &:active:not(:disabled):not(&--active) {
-      background: tokens.$color-surface-pressed;
+      background: var(--color-surface-pressed);
     }
 
     &--active {
-      background: var(--ui-color-accent, tokens.$color-ui-accent);
-      border-color: var(--ui-color-accent, tokens.$color-ui-accent);
-      color: var(--ui-color-accent-text, tokens.$color-ui-accent-text);
+      background: tokens.$neutral-200;
+      border-color: tokens.$neutral-300;
+      color: tokens.$neutral-900;
       font-weight: tokens.$font-weight-semibold;
       cursor: default;
 
       &:hover {
-        background: var(--ui-color-accent-hover, tokens.$color-ui-accent-hover);
-        border-color: var(
-          --ui-color-accent-hover,
-          tokens.$color-ui-accent-hover
-        );
+        background: tokens.$neutral-300;
+        border-color: tokens.$neutral-400;
+      }
+
+      // Dark mode
+      :host-context(.theme-dark) & {
+        background: tokens.$neutral-700;
+        border-color: tokens.$neutral-600;
+        color: white;
+
+        &:hover {
+          background: tokens.$neutral-600;
+          border-color: tokens.$neutral-500;
+        }
       }
     }
 
     &:disabled {
       opacity: 0.4;
       cursor: not-allowed;
-      background: tokens.$color-surface-disabled;
-      color: tokens.$color-text-disabled;
+      background: var(--color-surface-disabled);
+      color: var(--color-text-disabled);
     }
   }
 
@@ -171,7 +180,7 @@
     justify-content: center;
     min-width: 32px;
     height: 32px;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     user-select: none;

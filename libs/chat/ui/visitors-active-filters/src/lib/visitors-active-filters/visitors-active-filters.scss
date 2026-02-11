@@ -16,23 +16,23 @@
     align-items: center;
     gap: tokens.$spacing-2xs;
     padding: tokens.$spacing-2xs tokens.$spacing-sm;
-    border: 1px solid tokens.$color-border-subtle;
+    border: 1px solid var(--color-border-subtle);
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-surface-primary;
-    color: tokens.$color-text-secondary;
+    background: var(--color-surface-primary);
+    color: var(--color-text-secondary);
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: tokens.$color-surface-secondary;
-      border-color: tokens.$color-border-default;
-      color: tokens.$color-text-primary;
+      background: var(--color-surface-secondary);
+      border-color: var(--color-border-default);
+      color: var(--color-text-primary);
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--color-accent);
       outline-offset: 2px;
     }
 
@@ -54,18 +54,26 @@
     gap: tokens.$spacing-2xs;
     padding: tokens.$spacing-2xs tokens.$spacing-xs;
     border-radius: tokens.$border-radius-sm;
-    background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 12%, white);
+    background: color-mix(
+      in srgb,
+      var(--wl-color-primary, var(--color-accent)) 12%,
+      var(--color-surface-primary)
+    );
     font-size: tokens.$font-size-sm;
     line-height: 1;
   }
 
   &__chip-label {
-    color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-700) 70%, tokens.$color-text-secondary);
+    color: color-mix(
+      in srgb,
+      var(--wl-color-primary, var(--color-accent)) 70%,
+      var(--color-text-secondary)
+    );
     font-weight: tokens.$font-weight-medium;
   }
 
   &__chip-value {
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     max-width: 150px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -82,17 +90,17 @@
     border: none;
     border-radius: tokens.$border-radius-full;
     background: transparent;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-primary;
+      background: var(--color-surface-tertiary);
+      color: var(--color-text-primary);
     }
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--color-accent);
       outline-offset: 1px;
     }
   }
@@ -102,19 +110,27 @@
     border: none;
     border-radius: tokens.$border-radius-sm;
     background: transparent;
-    color: var(--wl-color-primary, tokens.$color-primary-500);
+    color: var(--wl-color-primary, var(--color-accent));
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 10%, white);
-      color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
+      background: color-mix(
+        in srgb,
+        var(--wl-color-primary, var(--color-accent)) 10%,
+        var(--color-surface-primary)
+      );
+      color: color-mix(
+        in srgb,
+        var(--wl-color-primary, var(--color-accent)) 85%,
+        black
+      );
     }
 
     &:focus-visible {
-      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
+      outline: 2px solid var(--wl-color-primary, var(--color-accent));
       outline-offset: 2px;
     }
   }

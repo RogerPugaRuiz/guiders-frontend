@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   overflow: hidden;
 
   // === HEADER ===
@@ -13,8 +13,8 @@
     align-items: flex-start;
     justify-content: space-between;
     padding: tokens.$spacing-2xl tokens.$spacing-2xl tokens.$spacing-lg;
-    border-bottom: 1px solid tokens.$color-border-light;
-    background: tokens.$color-surface-primary;
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--color-surface-primary);
   }
 
   &__header-content {
@@ -23,7 +23,7 @@
 
   &__title {
     @include tokens.typography('heading-2xl');
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 tokens.$spacing-xs;
     font-weight: tokens.$font-weight-bold;
     display: flex;
@@ -38,8 +38,8 @@
     min-width: 28px;
     height: 28px;
     padding: 0 tokens.$spacing-sm;
-    background: tokens.$color-warning-500;
-    color: tokens.$color-text-inverse;
+    background: var(--color-warning);
+    color: var(--color-text-inverse);
     border-radius: tokens.$border-radius-full;
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-semibold;
@@ -47,7 +47,7 @@
 
   &__subtitle {
     @include tokens.typography('body-medium');
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     margin: 0;
   }
 
@@ -58,8 +58,8 @@
     gap: tokens.$spacing-xs;
     padding: tokens.$spacing-sm tokens.$spacing-md;
     background: transparent;
-    color: tokens.$color-text-secondary;
-    border: 1px solid tokens.$color-border-default;
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-default);
     border-radius: tokens.$border-radius-md;
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
@@ -71,9 +71,9 @@
     }
 
     &:hover {
-      background: tokens.$color-surface-hover;
-      color: tokens.$color-text-primary;
-      border-color: tokens.$color-border-default;
+      background: var(--color-surface-hover);
+      color: var(--color-text-primary);
+      border-color: var(--color-border-default);
     }
 
     &:active {
@@ -100,21 +100,21 @@
   }
 
   &__empty-icon {
-    color: tokens.$color-success-500;
+    color: var(--color-success);
     margin-bottom: tokens.$spacing-xl;
     opacity: 0.8;
   }
 
   &__empty-title {
     @include tokens.typography('heading-xl');
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 tokens.$spacing-sm;
     font-weight: tokens.$font-weight-semibold;
   }
 
   &__empty-description {
     @include tokens.typography('body-medium');
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     margin: 0;
     max-width: 420px;
     line-height: tokens.$line-height-relaxed;
@@ -132,8 +132,8 @@
 .escalation-card {
   display: flex;
   gap: tokens.$spacing-md;
-  background: tokens.$color-surface-elevated;
-  border: 1px solid tokens.$color-border-light;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-subtle);
   border-radius: tokens.$border-radius-lg;
   padding: tokens.$spacing-lg;
   transition: all tokens.$duration-normal tokens.$easing-standard;
@@ -148,13 +148,13 @@
     left: 0;
     width: 4px;
     height: 100%;
-    background: tokens.$color-warning-500;
+    background: var(--color-warning);
     transition: width tokens.$duration-fast tokens.$easing-standard;
   }
 
   &:hover {
-    border-color: tokens.$color-border-default;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: var(--color-border-default);
+    box-shadow: var(--shadow-md);
     transform: translateY(-2px);
 
     &::before {
@@ -192,14 +192,14 @@
 
   &__time {
     @include tokens.typography('body-small');
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
     font-weight: tokens.$font-weight-medium;
     white-space: nowrap;
   }
 
   &__message {
     @include tokens.typography('body-medium');
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     margin: 0 0 tokens.$spacing-md;
     line-height: tokens.$line-height-relaxed;
   }
@@ -210,20 +210,20 @@
     align-items: center;
     gap: tokens.$spacing-xs;
     padding: tokens.$spacing-xs tokens.$spacing-sm;
-    background: tokens.$color-surface-secondary;
+    background: var(--color-surface-secondary);
     border-radius: tokens.$border-radius-sm;
     margin-bottom: tokens.$spacing-md;
 
     svg {
-      color: tokens.$color-text-tertiary;
+      color: var(--color-text-tertiary);
       flex-shrink: 0;
     }
   }
 
   &__chat-id {
     @include tokens.typography('body-small');
-    color: tokens.$color-text-secondary;
-    font-family: tokens.$font-family-mono;
+    color: var(--color-text-secondary);
+    font-family: var(--font-family-mono);
     font-size: 11px;
   }
 
@@ -256,34 +256,34 @@
     }
 
     &--primary {
-      background: tokens.$color-primary-500;
-      color: tokens.$color-text-inverse;
+      background: var(--color-accent);
+      color: var(--color-on-accent);
       flex: 1;
 
       &:hover {
-        background: tokens.$color-primary-600;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+        background: var(--color-accent-hover);
+        box-shadow: var(--shadow-sm);
       }
 
       &:focus-visible {
-        outline: 2px solid tokens.$color-primary-500;
+        outline: 2px solid var(--color-accent);
         outline-offset: 2px;
       }
     }
 
     &--secondary {
       background: transparent;
-      color: tokens.$color-text-secondary;
-      border-color: tokens.$color-border-default;
+      color: var(--color-text-secondary);
+      border-color: var(--color-border-default);
 
       &:hover {
-        background: tokens.$color-surface-hover;
-        color: tokens.$color-text-primary;
-        border-color: tokens.$color-border-default;
+        background: var(--color-surface-hover);
+        color: var(--color-text-primary);
+        border-color: var(--color-border-default);
       }
 
       &:focus-visible {
-        outline: 2px solid tokens.$color-border-default;
+        outline: 2px solid var(--color-border-default);
         outline-offset: 2px;
       }
     }

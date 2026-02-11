@@ -5,6 +5,8 @@
  *
  * Badge para mostrar contador de mensajes no leídos con animaciones
  * y variantes de color/tamaño.
+ *
+ * Usa CSS variables para soporte de dark mode via clase .theme-dark
  */
 
 // ===== BASE =====
@@ -19,58 +21,74 @@
   text-align: center;
   white-space: nowrap;
   transition: all tokens.$duration-normal tokens.$easing-standard;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1); // Sombra más suave y moderna
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
 
   // ===== TAMAÑOS =====
 
   &--small {
     min-width: 16px;
     height: 16px;
-    padding: 0 tokens.$spacing-xs; // 4px
+    padding: 0 tokens.$spacing-xs;
     font-size: 10px;
   }
 
   &--medium {
     min-width: 20px;
     height: 20px;
-    padding: 0 tokens.$spacing-xs; // 4px
-    font-size: tokens.$font-size-xs; // 10px
+    padding: 0 tokens.$spacing-xs;
+    font-size: tokens.$font-size-xs;
   }
 
   &--large {
     min-width: 24px;
     height: 24px;
-    padding: 0 tokens.$spacing-sm; // 8px
-    font-size: tokens.$font-size-sm; // 12px
+    padding: 0 tokens.$spacing-sm;
+    font-size: tokens.$font-size-sm;
   }
 
   // ===== VARIANTES DE COLOR =====
+  // Usando CSS variables para soporte de dark mode
 
   &--primary {
-    background-color: #007bff; // Primary blue
-    color: #ffffff;
+    background-color: var(--color-info);
+    color: var(--color-text-inverse);
+
+    :host-context(.theme-dark) & {
+      background-color: var(--color-info-hover);
+    }
   }
 
   &--danger {
-    // Usar el mismo tono suave que el badge del sidebar
-    background-color: #ef4444; // Rojo suave y moderno
-    color: #ffffff;
+    background-color: var(--color-error);
+    color: var(--color-text-inverse);
+
+    :host-context(.theme-dark) & {
+      background-color: var(--color-error-hover);
+    }
   }
 
   &--warning {
-    background-color: #f59e0b; // Warning amber
-    color: #000000;
+    background-color: var(--color-warning);
+    color: var(--color-surface-primary);
+
+    :host-context(.theme-dark) & {
+      background-color: var(--color-warning-hover);
+      color: var(--color-surface-inverse);
+    }
   }
 
   &--success {
-    background-color: #10b981; // Success green
-    color: #ffffff;
+    background-color: var(--color-success);
+    color: var(--color-text-inverse);
+
+    :host-context(.theme-dark) & {
+      background-color: var(--color-success-hover);
+    }
   }
 
   // ===== ANIMACIÓN PULSE =====
 
   &--pulse {
-    // Animación más suave y sutil
     animation: badge-pulse 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 }
@@ -78,12 +96,12 @@
 // ===== KEYFRAMES =====
 
 @keyframes badge-pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
   50% {
-    // Escala más sutil y sin cambio de opacidad para efecto más profesional
     transform: scale(1.08);
     opacity: 0.95;
   }
@@ -101,7 +119,7 @@
 
 // Badge inline (dentro de un contenedor flex)
 .unread-badge-inline {
-  margin-left: tokens.$spacing-sm; // 8px
+  margin-left: tokens.$spacing-sm;
 }
 
 // ===== ACCESIBILIDAD =====
@@ -117,30 +135,6 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border-width: 0;
-}
-
-// ===== TEMA OSCURO =====
-
-@media (prefers-color-scheme: dark) {
-  .unread-badge {
-    // Ajustar colores para mejor visibilidad en modo oscuro
-
-    &--danger {
-      background-color: #f87171; // Rojo más brillante para modo oscuro
-    }
-
-    &--primary {
-      background-color: #3b82f6; // Azul más brillante para modo oscuro
-    }
-
-    &--success {
-      background-color: #34d399; // Verde más brillante para modo oscuro
-    }
-
-    &--warning {
-      background-color: #fbbf24; // Amarillo más brillante para modo oscuro
-    }
-  }
 }
 
 // ===== REDUCCIÓN DE MOVIMIENTO =====

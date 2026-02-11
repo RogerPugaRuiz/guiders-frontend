@@ -1,7 +1,21 @@
-import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  output,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'cancel' | 'unstyled';
+export type ButtonVariant =
+  | 'primary'
+  | 'secondary'
+  | 'outline'
+  | 'ghost'
+  | 'danger'
+  | 'cancel'
+  | 'unstyled'
+  | 'sidebar';
 export type ButtonSize = 'small' | 'medium' | 'large';
 export type ButtonType = 'button' | 'submit' | 'reset';
 
@@ -20,6 +34,7 @@ export class Button {
   readonly disabled = input<boolean>(false);
   readonly loading = input<boolean>(false);
   readonly fullWidth = input<boolean>(false);
+  readonly active = input<boolean>(false);
   readonly ariaLabel = input<string>();
   readonly ariaExpanded = input<boolean | undefined>();
   readonly ariaCurrent = input<boolean | string | undefined>();
@@ -35,6 +50,7 @@ export class Button {
     'guiders-button--disabled': this.disabled(),
     'guiders-button--loading': this.loading(),
     'guiders-button--full-width': this.fullWidth(),
+    'guiders-button--active': this.active(),
   }));
 
   // Computed para determinar si el botón está interactivo

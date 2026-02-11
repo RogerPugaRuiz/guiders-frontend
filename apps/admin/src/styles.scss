@@ -51,6 +51,23 @@
   --color-error: #{tokens.$error-500};
   --color-info: #{tokens.$info-500};
 
+  // --- Semánticos - Backgrounds y Textos (para badges, tags, etc.) ---
+  --color-success-bg: #d1fae5;
+  --color-success-text: #065f46;
+  --color-success-hover: #059669;
+  --color-warning-bg: #fef3c7;
+  --color-warning-text: #92400e;
+  --color-warning-hover: #d97706;
+  --color-error-bg: #fee2e2;
+  --color-error-text: #991b1b;
+  --color-error-hover: #dc2626;
+  --color-info-bg: #dbeafe;
+  --color-info-text: #1e40af;
+  --color-info-hover: #2563eb;
+  --color-purple-bg: #f3e8ff;
+  --color-purple-text: #7c3aed;
+  --color-purple: #8b5cf6;
+
   // --- Status ---
   --color-status-online: #{tokens.$color-status-online};
   --color-status-away: #{tokens.$color-status-away};
@@ -176,6 +193,83 @@
 
   // Sombras
   --wl-shadow-sm: #{tokens.$shadow-sm};
+}
+
+/* ============================================================================
+   DARK MODE - THEME OVERRIDES
+   Las siguientes variables se redefinen cuando body tiene clase .theme-dark
+   ============================================================================ */
+
+.theme-dark {
+  // --- Superficies (Dark Mode) ---
+  --color-surface-primary: #{tokens.$color-content-dark-bg};
+  --color-surface-secondary: #{tokens.$color-content-dark-bg-secondary};
+  --color-surface-tertiary: #{tokens.$color-content-dark-bg-tertiary};
+  --color-surface-hover: #{tokens.$color-content-dark-bg-hover};
+  --color-surface-selected: #{tokens.$color-content-dark-bg-selected};
+  --color-surface-pressed: #{tokens.$color-content-dark-bg-selected};
+  --color-surface-disabled: #{tokens.$color-content-dark-bg-secondary};
+  --color-surface-elevated: #{tokens.$color-content-dark-bg-elevated};
+  --color-surface-inverse: #{tokens.$color-surface-primary};
+
+  // --- Texto (Dark Mode) ---
+  --color-text-primary: #{tokens.$color-content-dark-text-primary};
+  --color-text-secondary: #{tokens.$color-content-dark-text-secondary};
+  --color-text-tertiary: #{tokens.$color-content-dark-text-tertiary};
+  --color-text-disabled: #{tokens.$color-content-dark-text-disabled};
+  --color-text-placeholder: #{tokens.$color-content-dark-text-placeholder};
+  --color-text-inverse: #{tokens.$color-text-primary};
+
+  // --- Bordes (Dark Mode) ---
+  --color-border-subtle: #{tokens.$color-content-dark-border-subtle};
+  --color-border-default: #{tokens.$color-content-dark-border-default};
+  --color-border-strong: #{tokens.$color-content-dark-border-strong};
+  --color-border-hover: #{tokens.$color-content-dark-border-strong};
+  --color-border-focus: #{tokens.$color-content-dark-text-primary};
+
+  // --- Acento (Dark Mode) ---
+  --color-accent: #{tokens.$color-content-dark-accent};
+  --color-accent-hover: #{tokens.$color-content-dark-accent-hover};
+  --color-on-accent: #{tokens.$color-content-dark-on-accent};
+
+  // --- Scrollbar (Dark Mode) ---
+  --color-scrollbar-thumb: #{tokens.$color-content-dark-scrollbar-thumb};
+  --color-scrollbar-thumb-hover: #{tokens.$color-content-dark-scrollbar-thumb-hover};
+
+  // --- Semánticos - Backgrounds y Textos (Dark Mode) ---
+  --color-success-bg: rgba(16, 185, 129, 0.2);
+  --color-success-text: #6ee7b7;
+  --color-success-hover: #34d399;
+  --color-warning-bg: rgba(245, 158, 11, 0.2);
+  --color-warning-text: #fcd34d;
+  --color-warning-hover: #fbbf24;
+  --color-error-bg: rgba(239, 68, 68, 0.2);
+  --color-error-text: #fca5a5;
+  --color-error-hover: #f87171;
+  --color-info-bg: rgba(59, 130, 246, 0.2);
+  --color-info-text: #93c5fd;
+  --color-info-hover: #60a5fa;
+  --color-purple-bg: rgba(139, 92, 246, 0.2);
+  --color-purple-text: #c4b5fd;
+  --color-purple: #a78bfa;
+
+  // --- Aliases para compatibilidad (Dark Mode) ---
+  --color-brand: #{tokens.$color-content-dark-accent};
+  --color-brand-hover: #{tokens.$color-content-dark-accent-hover};
+  --color-on-brand: #{tokens.$color-content-dark-on-accent};
+
+  --wl-color-surface: #{tokens.$color-content-dark-bg-secondary};
+  --wl-color-surface-hover: #{tokens.$color-content-dark-bg-hover};
+  --wl-color-surface-selected: #{tokens.$color-content-dark-bg-selected};
+  --wl-color-surface-text: #{tokens.$color-content-dark-text-primary};
+  --wl-color-surface-text-muted: #{tokens.$color-content-dark-text-secondary};
+
+  --wl-color-text-primary: #{tokens.$color-content-dark-text-primary};
+  --wl-color-text-secondary: #{tokens.$color-content-dark-text-secondary};
+  --wl-color-text-tertiary: #{tokens.$color-content-dark-text-tertiary};
+
+  --wl-scrollbar-thumb: #{tokens.$color-content-dark-scrollbar-thumb};
+  --wl-scrollbar-thumb-hover: #{tokens.$color-content-dark-scrollbar-thumb-hover};
 }
 
 /* ============================================================================

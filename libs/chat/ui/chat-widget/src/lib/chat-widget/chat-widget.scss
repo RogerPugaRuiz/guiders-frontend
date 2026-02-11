@@ -6,7 +6,7 @@
   right: 0;
   z-index: 9999;
   transition: all 0.3s ease-in-out;
-	margin-right: tokens.$spacing-md;
+  margin-right: tokens.$spacing-md;
 
   &--hidden {
     display: none;
@@ -20,19 +20,18 @@
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-md;
     width: 380px;
-    background: #FFFFFF;
-    color: #000000;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: var(--color-surface-primary);
+    color: var(--color-text-primary);
+    box-shadow: var(--shadow-lg);
     cursor: pointer;
     transition: all 0.2s ease;
-    /* Same border-radius as chat container - only top corners */
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
 
     &:hover {
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+      box-shadow: var(--shadow-xl);
       transform: translateY(-2px);
     }
   }
@@ -43,7 +42,7 @@
     gap: tokens.$spacing-sm;
     font-size: tokens.$font-size-sm;
     font-weight: 500;
-    color: #000000;
+    color: var(--color-text-primary);
   }
 
   &__close-btn {
@@ -53,13 +52,13 @@
     padding: tokens.$spacing-xs;
     background: transparent;
     border: none;
-    color: #000000;
+    color: var(--color-text-primary);
     cursor: pointer;
     border-radius: 50%;
     transition: background 0.2s ease;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.1);
+      background: var(--color-surface-hover);
     }
   }
 
@@ -67,17 +66,20 @@
   &__container {
     width: 380px;
     height: 600px;
-    background: tokens.$color-surface-primary;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    background: var(--color-surface-primary);
+    box-shadow: var(--shadow-lg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     animation: slideUp 0.3s ease-out;
-    /* Rounded only on the top corners as requested */
     border-top-left-radius: 12px;
     border-top-right-radius: 12px;
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
+
+    :host-context(.theme-dark) & {
+      border: 1px solid var(--color-border-subtle);
+    }
   }
 
   // Header - Modern design with avatar
@@ -86,8 +88,8 @@
     align-items: center;
     justify-content: space-between;
     padding: tokens.$spacing-md tokens.$spacing-lg;
-    background: tokens.$color-surface-primary;
-    border-bottom: 1px solid tokens.$color-border-light;
+    background: var(--color-surface-primary);
+    border-bottom: 1px solid var(--color-border-subtle);
     min-height: 72px;
   }
 
@@ -113,7 +115,7 @@
     font-size: 15px;
     font-weight: 600;
     line-height: 1.4;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -128,37 +130,24 @@
     gap: 6px;
 
     // Color según estado
-    &[data-status='success'] {
-      color: #10b981;
-    }
-
-    &[data-status='warning'] {
-      color: #f59e0b;
-    }
-
-    &[data-status='danger'] {
-      color: #ef4444;
-    }
-
-    &[data-status='neutral'] {
-      color: tokens.$color-text-tertiary;
-    }
-
-    // Backward compatibility
+    &[data-status='success'],
     &[data-status='green'] {
-      color: #10b981;
+      color: var(--color-success);
     }
 
+    &[data-status='warning'],
     &[data-status='yellow'] {
-      color: #f59e0b;
+      color: var(--color-warning);
     }
 
+    &[data-status='danger'],
     &[data-status='red'] {
-      color: #ef4444;
+      color: var(--color-error);
     }
 
+    &[data-status='neutral'],
     &[data-status='gray'] {
-      color: tokens.$color-text-tertiary;
+      color: var(--color-text-tertiary);
     }
 
     // Dot indicator antes del texto
@@ -189,25 +178,25 @@
     padding: 0;
     background: transparent;
     border: none;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
     cursor: pointer;
     border-radius: tokens.$border-radius-sm;
     transition: all 0.15s ease;
     flex-shrink: 0;
 
     &:hover {
-      background: tokens.$color-surface-secondary;
-      color: tokens.$color-text-secondary;
+      background: var(--color-surface-secondary);
+      color: var(--color-text-secondary);
     }
 
     &:active {
       transform: scale(0.96);
-      background: tokens.$color-surface-tertiary;
+      background: var(--color-surface-tertiary);
     }
 
     &--close:hover {
-      background: rgba(239, 68, 68, 0.1);
-      color: #ef4444;
+      background: var(--color-error-bg);
+      color: var(--color-error);
     }
 
     svg {
@@ -218,7 +207,7 @@
   // Body (área de mensajes)
   &__body {
     flex: 1;
-    min-height: 0; // Crítico para que overflow funcione en flexbox
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -228,10 +217,10 @@
 
   &__messages {
     flex: 1;
-    min-height: 0; // Crítico para que overflow funcione en flexbox
+    min-height: 0;
     margin-bottom: 20px;
     padding: tokens.$spacing-md;
-    padding-bottom: 80px; // Espacio para el input flotante
+    padding-bottom: 80px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
@@ -247,11 +236,11 @@
     }
 
     &::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
+      background: var(--wl-scrollbar-thumb);
       border-radius: 3px;
 
       &:hover {
-        background: rgba(0, 0, 0, 0.3);
+        background: var(--wl-scrollbar-thumb-hover);
       }
     }
   }
@@ -265,8 +254,8 @@
       align-self: flex-end;
 
       .chat-widget__message-content {
-        background: tokens.$color-brand-primary;
-        color: tokens.$color-text-inverse;
+        background: var(--color-accent);
+        color: var(--color-on-accent);
         border-bottom-right-radius: 4px;
       }
     }
@@ -275,18 +264,18 @@
       align-self: flex-start;
 
       .chat-widget__message-content {
-        background: tokens.$color-surface-primary;
-        color: tokens.$color-text-primary;
+        background: var(--color-surface-primary);
+        color: var(--color-text-primary);
         border-bottom-left-radius: 4px;
       }
     }
   }
 
   &__message-content {
-		padding-right: 0;
+    padding-right: 0;
     border-radius: 12px;
     word-wrap: break-word;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
 
     p {
       margin: 0;
@@ -315,7 +304,7 @@
     gap: tokens.$spacing-md;
     padding: tokens.$spacing-2xl;
     text-align: center;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
 
     svg {
       opacity: 0.5;
@@ -331,15 +320,15 @@
     .loading-spinner {
       width: 40px;
       height: 40px;
-      border: 3px solid tokens.$color-border-subtle;
-      border-top-color: tokens.$color-brand-primary;
+      border: 3px solid var(--color-border-subtle);
+      border-top-color: var(--color-accent);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
   }
 
   &__error {
-    color: tokens.$color-danger-600;
+    color: var(--color-error);
 
     svg {
       opacity: 0.7;
@@ -368,22 +357,22 @@
     justify-content: center;
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-md;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
   }
 
   &__loading-spinner {
     display: inline-block;
     width: 16px;
     height: 16px;
-    border: 2px solid tokens.$color-border-default;
-    border-top-color: tokens.$color-primary-500;
+    border: 2px solid var(--color-border-default);
+    border-top-color: var(--color-accent);
     border-radius: 50%;
     animation: spin 0.6s linear infinite;
   }
 
   &__loading-text {
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
   }
 
   // Separadores de fecha
@@ -398,12 +387,12 @@
   &__date-separator-text {
     display: inline-block;
     padding: tokens.$spacing-xs tokens.$spacing-md;
-    background-color: tokens.$color-surface-tertiary;
-    color: tokens.$color-text-secondary;
+    background-color: var(--color-surface-tertiary);
+    color: var(--color-text-secondary);
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-medium;
     border-radius: tokens.$border-radius-full;
-    box-shadow: tokens.$shadow-sm;
+    box-shadow: var(--shadow-sm);
     text-transform: capitalize;
     letter-spacing: 0.3px;
   }
@@ -433,10 +422,10 @@
   &__message-author {
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-medium;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
 
     &--own {
-      color: tokens.$color-primary-600;
+      color: var(--color-info);
       align-self: flex-end;
     }
   }
@@ -445,13 +434,13 @@
     display: block;
     padding: tokens.$spacing-sm tokens.$spacing-md;
     border-radius: 8px;
-    background: #F1F3F4;
-    color: tokens.$color-text-primary;
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
     line-height: 1.5;
     word-wrap: break-word;
     overflow-wrap: break-word;
     word-break: break-word;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
     position: relative;
     max-width: 100%;
 
@@ -459,29 +448,33 @@
     border-bottom-left-radius: 2px;
 
     &--own {
-      background: #E3F2FD;
-      color: #000000;
+      background: var(--color-info-bg);
+      color: var(--color-text-primary);
 
       // Own messages - sharp corner on bottom-right
       border-bottom-left-radius: 8px;
       border-bottom-right-radius: 2px;
 
       .chat-widget__message-meta {
-        color: rgba(0, 0, 0, 0.5);
+        color: var(--color-text-secondary);
+      }
+
+      :host-context(.theme-dark) & {
+        background: rgba(59, 130, 246, 0.2);
       }
     }
 
     &--visitor {
-      background: #F1F3F4;
-      color: tokens.$color-text-primary;
+      background: var(--color-surface-secondary);
+      color: var(--color-text-primary);
       border-bottom-left-radius: 2px;
       border-bottom-right-radius: 8px;
     }
 
     &--system {
       display: flex;
-      background: tokens.$color-surface-tertiary;
-      color: tokens.$color-text-secondary;
+      background: var(--color-surface-tertiary);
+      color: var(--color-text-secondary);
       text-align: center;
       align-items: center;
       justify-content: center;
@@ -490,13 +483,17 @@
 
     // Estilos para mensajes de IA
     &--ai {
-      background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 100%);
-      border: 1px solid #ddd6fe;
+      background: var(--color-purple-bg);
+      border: 1px solid var(--wl-message-ai-border, rgba(139, 92, 246, 0.3));
       border-bottom-left-radius: 2px;
 
       .chat-widget__message-meta {
-        color: #7c3aed;
+        color: var(--color-purple-text);
         opacity: 0.7;
+      }
+
+      :host-context(.theme-dark) & {
+        background: var(--wl-message-ai-bg-start);
       }
     }
   }
@@ -505,7 +502,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: #8b5cf6;
+    color: var(--color-purple);
     margin-right: 4px;
 
     svg {
@@ -525,7 +522,7 @@
   // Spacer invisible que reserva espacio para la hora (técnica WhatsApp)
   &__message-meta-spacer {
     float: right;
-    height: 1.5em; // Altura para que el texto fluya alrededor
+    height: 1.5em;
     padding-left: tokens.$spacing-md;
     margin-left: tokens.$spacing-xs;
     font-size: 11px;
@@ -539,7 +536,7 @@
     right: tokens.$spacing-sm;
     bottom: tokens.$spacing-xs;
     font-size: 11px;
-    color: rgba(0, 0, 0, 0.5);
+    color: var(--color-text-tertiary);
     line-height: 1.2;
     white-space: nowrap;
     display: inline-flex;
@@ -582,6 +579,22 @@
   }
 }
 
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+  .chat-widget {
+    transition: none;
+
+    &__container,
+    &__message,
+    &__minimized,
+    &__close-btn,
+    &__action-btn {
+      animation: none;
+      transition: none;
+    }
+  }
+}
+
 // Responsive
 @media (max-width: 480px) {
   .chat-widget {
@@ -592,7 +605,6 @@
     &__container {
       width: 100%;
       height: 100vh;
-      /* On mobile keep the top radii but ensure the widget covers full width */
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
       border-bottom-left-radius: 0;
@@ -601,7 +613,6 @@
 
     &__minimized {
       width: 100%;
-      /* On mobile minimized button matches full width, keeps top radii */
       border-top-left-radius: 12px;
       border-top-right-radius: 12px;
       border-bottom-left-radius: 0;

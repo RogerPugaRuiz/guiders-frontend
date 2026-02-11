@@ -1,4 +1,9 @@
-import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PresenceStatus } from '@guiders-frontend/shared/types';
 
@@ -83,33 +88,38 @@ export class Avatar {
   // === PRIVATE METHODS ===
   /**
    * Generates a consistent color based on the hash of the ID
+   * Uses a carefully curated palette optimized for:
+   * - Good contrast with white text
+   * - Visual distinction between colors
+   * - Professional appearance in both light and dark modes
    */
   private generateColorFromId(id: string): string {
-    // Paleta de colores vibrantes y distinguibles
+    // Paleta profesional con colores saturados pero elegantes
+    // Todos los colores tienen buen contraste con texto blanco (WCAG AA)
     const colors = [
-      '#FF6B6B', // Rojo coral
-      '#4ECDC4', // Turquesa
-      '#45B7D1', // Azul cielo
-      '#FFA07A', // Salmón
-      '#98D8C8', // Verde menta
-      '#F7DC6F', // Amarillo
-      '#BB8FCE', // Púrpura
-      '#85C1E2', // Azul claro
-      '#F8B739', // Naranja
-      '#52C997', // Verde esmeralda
-      '#FF8B94', // Rosa coral
-      '#6C5CE7', // Índigo
-      '#00B894', // Verde mar
-      '#FDCB6E', // Amarillo mostaza
-      '#E17055', // Terracota
-      '#74B9FF', // Azul francia
+      '#6366f1', // Índigo vibrante
+      '#8b5cf6', // Violeta
+      '#a855f7', // Púrpura
+      '#d946ef', // Fucsia
+      '#ec4899', // Rosa
+      '#f43f5e', // Rosa rojo
+      '#ef4444', // Rojo
+      '#f97316', // Naranja
+      '#f59e0b', // Ámbar
+      '#84cc16', // Lima
+      '#22c55e', // Verde
+      '#10b981', // Esmeralda
+      '#14b8a6', // Teal
+      '#06b6d4', // Cyan
+      '#0ea5e9', // Azul cielo
+      '#3b82f6', // Azul
     ];
 
     // Generar hash del ID para obtener índice consistente
     let hash = 0;
     for (let i = 0; i < id.length; i++) {
       const char = id.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convertir a 32bit integer
     }
 

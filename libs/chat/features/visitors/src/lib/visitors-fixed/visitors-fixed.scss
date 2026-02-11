@@ -19,24 +19,24 @@
 }
 
 .filter-tab {
-  background: tokens.$color-surface-tertiary;
+  background: var(--color-surface-tertiary);
   padding: tokens.$spacing-sm tokens.$spacing-md;
   border-radius: tokens.$border-radius-md;
   cursor: pointer;
   transition: all tokens.$duration-normal tokens.$easing-standard;
-  box-shadow: tokens.$shadow-sm;
+  box-shadow: var(--shadow-sm);
   border: none;
   @include tokens.typography('body-small');
-  color: tokens.$color-text-primary;
+  color: var(--color-text-primary);
 
   &:hover {
-    background: tokens.$color-surface-hover;
+    background: var(--color-surface-hover);
   }
 
   &.active {
-    background: tokens.$color-primary-500;
-    color: tokens.$color-surface-primary;
-    border-color: tokens.$color-primary-500;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
+    border-color: var(--color-accent);
   }
 }
 
@@ -54,14 +54,15 @@
   padding: tokens.$spacing-sm;
   border-radius: tokens.$border-radius-md;
   @include tokens.typography('body-base');
-  box-shadow: tokens.$shadow-sm;
-  border: 1px solid tokens.$color-border-subtle;
-  color: tokens.$color-text-primary;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+  background: var(--color-surface-primary);
 
   &:focus {
     outline: none;
-    border-color: tokens.$color-primary-500;
-    box-shadow: 0 0 0 2px rgba(tokens.$color-primary-500, 0.2);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-focus);
   }
 }
 
@@ -73,45 +74,49 @@
 }
 
 .stat-card {
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   border-radius: tokens.$border-radius-md;
   padding: tokens.$spacing-md;
   text-align: center;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+
+  :host-context(.theme-dark) & {
+    border: 1px solid var(--color-border-subtle);
+  }
 }
 
 .stat-number {
   display: block;
   @include tokens.typography('h3');
   font-weight: tokens.$font-weight-bold;
-  color: tokens.$color-primary-500;
+  color: var(--color-accent);
 }
 
 .stat-label {
   @include tokens.typography('caption');
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
-.loading-section, 
-.error-section, 
+.loading-section,
+.error-section,
 .empty-section {
   text-align: center;
   padding: tokens.$spacing-2xl;
-  background: tokens.$color-surface-secondary;
+  background: var(--color-surface-secondary);
   border-radius: tokens.$border-radius-md;
   margin: tokens.$spacing-lg 0;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .error-section {
-  background: #fef2f2;
-  color: #991b1b;
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
 }
 
-.retry-btn, 
+.retry-btn,
 .clear-btn {
-  background: tokens.$color-primary-500;
-  color: tokens.$color-surface-primary;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   border: none;
   padding: tokens.$spacing-sm tokens.$spacing-md;
   border-radius: tokens.$border-radius-sm;
@@ -121,11 +126,11 @@
   transition: background tokens.$duration-normal tokens.$easing-standard;
 
   &:hover {
-    background: tokens.$color-primary-600;
+    background: var(--color-accent-hover);
   }
 
   &:active {
-    background: tokens.$color-primary-700;
+    background: var(--color-accent-active);
   }
 }
 
@@ -136,15 +141,19 @@
 }
 
 .visitor-card {
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   border-radius: tokens.$border-radius-md;
   padding: tokens.$spacing-md;
   cursor: pointer;
   transition: all tokens.$duration-normal tokens.$easing-standard;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
+
+  :host-context(.theme-dark) & {
+    border: 1px solid var(--color-border-subtle);
+  }
 
   &:hover {
-    box-shadow: 3px 3px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow-md);
   }
 }
 
@@ -157,8 +166,8 @@
 .visitor-avatar {
   width: 40px;
   height: 40px;
-  background: tokens.$color-primary-500;
-  color: tokens.$color-surface-primary;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -174,13 +183,13 @@
 .visitor-name {
   font-weight: tokens.$font-weight-medium;
   margin-bottom: 2px;
-  color: tokens.$color-text-primary;
+  color: var(--color-text-primary);
   @include tokens.typography('body-medium');
 }
 
 .visitor-email {
   @include tokens.typography('body-small');
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .visitor-status {
@@ -190,18 +199,18 @@
   font-weight: tokens.$font-weight-medium;
 
   &.status-online {
-    background: #dcfce7;
-    color: #166534;
+    background: var(--color-success-bg);
+    color: var(--color-success-text);
   }
 
   &.status-idle {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
   }
 
   &.status-offline {
-    background: tokens.$color-surface-tertiary;
-    color: tokens.$color-text-primary;
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-primary);
   }
 }
 
@@ -217,12 +226,12 @@
 }
 
 .detail-label {
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .detail-value {
   font-weight: tokens.$font-weight-medium;
-  color: tokens.$color-text-primary;
+  color: var(--color-text-primary);
 }
 
 .visitor-actions {
@@ -240,20 +249,20 @@
   transition: background tokens.$duration-normal tokens.$easing-standard;
 
   &.primary {
-    background: tokens.$color-primary-500;
-    color: tokens.$color-surface-primary;
+    background: var(--color-accent);
+    color: var(--color-on-accent);
 
     &:hover {
-      background: tokens.$color-primary-600;
+      background: var(--color-accent-hover);
     }
   }
 
   &.secondary {
-    background: tokens.$color-surface-tertiary;
-    color: tokens.$color-text-primary;
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-primary);
 
     &:hover {
-      background: tokens.$color-surface-hover;
+      background: var(--color-surface-hover);
     }
   }
 }

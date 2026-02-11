@@ -41,17 +41,17 @@
   &__title {
     font-size: tokens.$font-size-lg;
     font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     margin: 0;
     line-height: tokens.$line-height-tight;
   }
 
   &__new-chat-btn {
     flex-shrink: 0;
-    
+
     // Focus visible state
     &:focus-visible {
-      outline: 2px solid tokens.$color-surface-hover;
+      outline: 2px solid var(--color-surface-hover);
       outline-offset: 2px;
     }
     // Prevent movement and shadow on hover — only darken background
@@ -59,7 +59,7 @@
     transform: none;
     box-shadow: none;
     &:hover {
-      background-color: tokens.$color-surface-hover;
+      background-color: var(--color-surface-hover);
       transform: none;
       box-shadow: none;
     }
@@ -81,11 +81,11 @@
       padding: tokens.$spacing-sm tokens.$spacing-md;
       min-height: 56px;
     }
-    
+
     &__title {
       font-size: tokens.$font-size-base;
     }
-    
+
     &__conversations {
       padding: 0 tokens.$spacing-sm;
     }

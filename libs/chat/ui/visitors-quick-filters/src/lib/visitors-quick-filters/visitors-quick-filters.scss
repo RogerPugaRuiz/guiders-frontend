@@ -16,10 +16,10 @@
     align-items: center;
     gap: tokens.$spacing-xs;
     padding: tokens.$spacing-xs tokens.$spacing-md;
-    border: 1px solid tokens.$color-border-subtle;
+    border: 1px solid var(--color-border-subtle);
     border-radius: tokens.$border-radius-full;
-    background: tokens.$color-surface-primary;
-    color: tokens.$color-text-secondary;
+    background: var(--color-surface-primary);
+    color: var(--color-text-secondary);
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     cursor: pointer;
@@ -29,9 +29,9 @@
     // Estilos mejorados para el badge cuando no está activo
     ::ng-deep guiders-badge {
       .guiders-badge {
-        background: tokens.$color-surface-tertiary;
-        color: tokens.$color-text-secondary;
-        border-color: tokens.$color-border-default;
+        background: var(--color-surface-tertiary);
+        color: var(--color-text-secondary);
+        border-color: var(--color-border-default);
         font-weight: tokens.$font-weight-semibold;
         min-width: 20px;
         transition: all tokens.$duration-fast tokens.$easing-standard;
@@ -39,34 +39,34 @@
     }
 
     &:hover {
-      background: tokens.$color-surface-secondary;
-      border-color: tokens.$color-border-default;
-      color: tokens.$color-text-primary;
+      background: var(--color-surface-secondary);
+      border-color: var(--color-border-default);
+      color: var(--color-text-primary);
 
       ::ng-deep guiders-badge {
         .guiders-badge {
-          background: tokens.$color-surface-primary;
-          color: tokens.$color-text-primary;
-          border-color: tokens.$color-border-default;
+          background: var(--color-surface-primary);
+          color: var(--color-text-primary);
+          border-color: var(--color-border-default);
         }
       }
     }
 
     &:focus-visible {
-      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
+      outline: 2px solid var(--wl-color-primary, var(--color-accent));
       outline-offset: 2px;
     }
 
     &--active {
-      background: var(--wl-color-primary, tokens.$color-primary-500);
-      border-color: var(--wl-color-primary, tokens.$color-primary-500);
-      color: tokens.$color-text-inverse;
+      background: var(--wl-color-primary, var(--color-accent));
+      border-color: var(--wl-color-primary, var(--color-accent));
+      color: var(--color-text-inverse);
 
       // Estilos mejorados para el badge cuando está activo
       ::ng-deep guiders-badge {
         .guiders-badge {
           background: rgba(255, 255, 255, 0.25);
-          color: tokens.$color-text-inverse;
+          color: var(--color-text-inverse);
           border-color: rgba(255, 255, 255, 0.35);
           font-weight: tokens.$font-weight-bold;
           backdrop-filter: blur(4px);
@@ -74,9 +74,17 @@
       }
 
       &:hover {
-        background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
-        border-color: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
-        color: tokens.$color-text-inverse;
+        background: color-mix(
+          in srgb,
+          var(--wl-color-primary, var(--color-accent)) 85%,
+          black
+        );
+        border-color: color-mix(
+          in srgb,
+          var(--wl-color-primary, var(--color-accent)) 85%,
+          black
+        );
+        color: var(--color-text-inverse);
 
         ::ng-deep guiders-badge {
           .guiders-badge {
@@ -100,8 +108,8 @@
     height: 20px;
     padding: 0 tokens.$spacing-2xs;
     border-radius: tokens.$border-radius-full;
-    background: tokens.$color-surface-tertiary;
-    color: tokens.$color-text-secondary;
+    background: var(--color-surface-tertiary);
+    color: var(--color-text-secondary);
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-semibold;
     line-height: 1;
@@ -116,14 +124,14 @@
     width: 80px;
     height: 32px;
     border-radius: tokens.$border-radius-full;
-    background: tokens.$color-surface-secondary;
+    background: var(--color-surface-secondary);
     animation: pulse 1.5s ease-in-out infinite;
   }
 
   &__divider {
     width: 1px;
     height: 24px;
-    background: tokens.$color-border-subtle;
+    background: var(--color-border-subtle);
     margin: 0 tokens.$spacing-xs;
   }
 
@@ -139,19 +147,27 @@
   }
 
   &__chip--saved {
-    background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 10%, white);
-    border-color: tokens.$color-border-subtle;
-    color: var(--wl-color-primary, tokens.$color-primary-700);
+    background: color-mix(
+      in srgb,
+      var(--wl-color-primary, var(--color-accent)) 10%,
+      var(--color-surface-primary)
+    );
+    border-color: var(--color-border-subtle);
+    color: var(--wl-color-primary, var(--color-accent));
     position: relative;
     padding-right: tokens.$spacing-xl;
 
     .quick-filters__icon {
-      color: var(--wl-color-primary, tokens.$color-primary-500);
+      color: var(--wl-color-primary, var(--color-accent));
     }
 
     &:hover {
-      background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 15%, white);
-      border-color: tokens.$color-border-default;
+      background: color-mix(
+        in srgb,
+        var(--wl-color-primary, var(--color-accent)) 15%,
+        var(--color-surface-primary)
+      );
+      border-color: var(--color-border-default);
 
       .quick-filters__delete {
         opacity: 1;
@@ -159,12 +175,12 @@
     }
 
     &.quick-filters__chip--active {
-      background: var(--wl-color-primary, tokens.$color-primary-500);
-      border-color: var(--wl-color-primary, tokens.$color-primary-500);
-      color: tokens.$color-text-inverse;
+      background: var(--wl-color-primary, var(--color-accent));
+      border-color: var(--wl-color-primary, var(--color-accent));
+      color: var(--color-text-inverse);
 
       .quick-filters__icon {
-        color: tokens.$color-text-inverse;
+        color: var(--color-text-inverse);
         opacity: 1;
       }
 
@@ -172,7 +188,7 @@
         color: rgba(255, 255, 255, 0.8);
 
         &:hover {
-          color: tokens.$color-text-inverse;
+          color: var(--color-text-inverse);
           background: rgba(255, 255, 255, 0.2);
         }
       }
@@ -193,19 +209,19 @@
     border: none;
     border-radius: tokens.$border-radius-full;
     background: transparent;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
     cursor: pointer;
     opacity: 0;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: tokens.$color-surface-tertiary;
-      color: #ef4444;
+      background: var(--color-surface-tertiary);
+      color: var(--color-error);
     }
 
     &:focus-visible {
       opacity: 1;
-      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
+      outline: 2px solid var(--wl-color-primary, var(--color-accent));
       outline-offset: 1px;
     }
   }
@@ -224,12 +240,12 @@
   }
 
   &__modal {
-    background: tokens.$color-surface-primary;
+    background: var(--color-surface-primary);
     border-radius: tokens.$border-radius-lg;
     padding: tokens.$spacing-lg;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-xl);
   }
 
   &__modal-header {
@@ -239,25 +255,25 @@
     margin-bottom: tokens.$spacing-md;
 
     svg {
-      color: #f59e0b;
+      color: var(--color-warning);
     }
 
     h4 {
       margin: 0;
       font-size: tokens.$font-size-lg;
       font-weight: tokens.$font-weight-semibold;
-      color: tokens.$color-text-primary;
+      color: var(--color-text-primary);
     }
   }
 
   &__modal-message {
     margin: 0 0 tokens.$spacing-lg;
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     line-height: 1.5;
 
     strong {
-      color: tokens.$color-text-primary;
+      color: var(--color-text-primary);
     }
   }
 
@@ -276,29 +292,29 @@
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &--cancel {
-      background: tokens.$color-surface-secondary;
-      border: 1px solid tokens.$color-border-default;
-      color: tokens.$color-text-secondary;
+      background: var(--color-surface-secondary);
+      border: 1px solid var(--color-border-default);
+      color: var(--color-text-secondary);
 
       &:hover {
-        background: tokens.$color-surface-tertiary;
-        color: tokens.$color-text-primary;
+        background: var(--color-surface-tertiary);
+        color: var(--color-text-primary);
       }
     }
 
     &--confirm {
-      background: #ef4444;
-      border: 1px solid #ef4444;
+      background: var(--color-error);
+      border: 1px solid var(--color-error);
       color: white;
 
       &:hover {
-        background: #dc2626;
-        border-color: #dc2626;
+        background: var(--color-error-hover);
+        border-color: var(--color-error-hover);
       }
     }
 
     &:focus-visible {
-      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
+      outline: 2px solid var(--wl-color-primary, var(--color-accent));
       outline-offset: 2px;
     }
   }
