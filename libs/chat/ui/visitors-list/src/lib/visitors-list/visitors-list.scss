@@ -562,6 +562,10 @@
   gap: tokens.$spacing-xs;
 }
 
+.new-badge {
+  color: var(--color-text-primary);
+}
+
 .tag {
   display: inline-flex;
   align-items: center;

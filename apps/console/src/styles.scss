@@ -324,6 +324,10 @@
   --wl-message-ai-border: rgba(99, 102, 241, 0.3);
   --wl-message-ai-accent: #818cf8;
 
+  // --- Badges (Dark Mode) ---
+  --wl-badge-danger: rgba(239, 68, 68, 0.25);
+  --wl-badge-danger-text: #fca5a5;
+
   --color-message-visitor: #{tokens.$neutral-700};
   --color-message-visitor-text: #{tokens.$neutral-100};
   --color-message-own: #{tokens.$neutral-600};

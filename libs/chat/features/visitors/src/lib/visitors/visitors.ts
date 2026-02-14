@@ -1,4 +1,17 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, ElementRef, ChangeDetectorRef, ViewChild, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject,
+  signal,
+  computed,
+  effect,
+  untracked,
+  ElementRef,
+  ChangeDetectorRef,
+  ViewChild,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
 import { catchError, of, finalize, switchMap } from 'rxjs';
@@ -17,7 +30,10 @@ import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { VisitorsQuickFilters } from '@guiders-frontend/visitors-quick-filters';
 import { VisitorsActiveFilters } from '@guiders-frontend/visitors-active-filters';
 import { VisitorsAdvancedFilters } from '@guiders-frontend/visitors-advanced-filters';
-import { SaveFilterDialog, SaveFilterData } from '@guiders-frontend/save-filter-dialog';
+import {
+  SaveFilterDialog,
+  SaveFilterData,
+} from '@guiders-frontend/save-filter-dialog';
 import {
   Visitor,
   VisitorFilters,
@@ -34,10 +50,13 @@ import {
   VisitorSearchRequest,
   VisitorSortField,
   SortDirection,
-  Chat
+  Chat,
 } from '@guiders-frontend/shared/types';
 import { PresenceChangedEvent } from '@guiders-frontend/shared/types';
-import { getMockVisitorsResponse, getMockVisitorStats } from './visitors-mock-data';
+import {
+  getMockVisitorsResponse,
+  getMockVisitorStats,
+} from './visitors-mock-data';
 
 // Tipo parcial para respuestas de asignación de chat
 // El backend puede devolver distintas formas; declaramos los campos que nos interesan
@@ -60,7 +79,7 @@ type AssignChatResponse = {
     VisitorsQuickFilters,
     VisitorsActiveFilters,
     VisitorsAdvancedFilters,
-    SaveFilterDialog
+    SaveFilterDialog,
   ],
   templateUrl: './visitors.html',
   styleUrls: ['./visitors.scss'],
@@ -81,7 +100,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly unreadMessagesService = inject(UnreadMessagesService);
 
   // Referencia al componente hijo de la lista de visitantes
-  @ViewChild(VisitorsListComponent) visitorsListComponent?: VisitorsListComponent;
+  @ViewChild(VisitorsListComponent)
+  visitorsListComponent?: VisitorsListComponent;
 
   // Variable para guardar la posición del scroll
   private savedScrollPosition = 0;
@@ -140,7 +160,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     { label: '10 segundos', value: 10000 },
     { label: '30 segundos', value: 30000 },
     { label: '1 minuto', value: 60000 },
-    { label: '5 minutos', value: 300000 }
+    { label: '5 minutos', value: 300000 },
   ];
 
   // Intervalo de auto-refresh seleccionado (cargar desde localStorage si existe)
@@ -152,19 +172,19 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     selectedVisitor: null,
     filters: {
       includeOffline: true,
-      hasActiveChat: false
+      hasActiveChat: false,
     },
     sort: { field: 'firstVisit', direction: 'desc' }, // Cambiar a firstVisit (createdAt) descendente
     pagination: {
       limit: this.loadPageSize(),
       offset: 0,
       totalCount: 0,
-      currentPage: 1
+      currentPage: 1,
     },
     loading: false,
     error: null,
     stats: null,
-    searchQuery: ''
+    searchQuery: '',
   });
 
   // Filtros predefinidos para diferentes vistas
@@ -175,7 +195,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       icon: '👥',
       description: 'Visitantes sin chat activo',
       filters: { hasActiveChat: false, includeOffline: true } as VisitorFilters,
-      count: 0
+      count: 0,
     },
     {
       id: 'online',
@@ -183,7 +203,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       icon: '🟢',
       description: 'Visitantes conectados actualmente',
       filters: { status: ['online'], includeOffline: false } as VisitorFilters,
-      count: 0
+      count: 0,
     },
     {
       id: 'active-chats',
@@ -191,7 +211,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       icon: '💬',
       description: 'Visitantes con conversación en curso',
       filters: { hasActiveChat: true } as VisitorFilters,
-      count: 0
+      count: 0,
     },
     {
       id: 'leads',
@@ -199,7 +219,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       icon: '📧',
       description: 'Visitantes que han proporcionado información',
       filters: { lifecycle: ['LEAD', 'CONVERTED'] } as VisitorFilters,
-      count: 0
+      count: 0,
     },
     {
       id: 'mine',
@@ -207,15 +227,19 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       icon: '👤',
       description: 'Visitantes asignados a mi usuario',
       filters: { hasActiveChat: true, includeOffline: true } as VisitorFilters,
-      count: 0
+      count: 0,
     },
     {
       id: 'queue',
       label: 'En Cola',
       icon: '⏳',
       description: 'Visitantes esperando atención prioritaria',
-      filters: { hasActiveChat: false, status: ['online'], includeOffline: false } as VisitorFilters,
-      count: 0
+      filters: {
+        hasActiveChat: false,
+        status: ['online'],
+        includeOffline: false,
+      } as VisitorFilters,
+      count: 0,
     },
     {
       id: 'all',
@@ -223,8 +247,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       icon: '📊',
       description: 'Todos los visitantes del sitio',
       filters: { includeOffline: true } as VisitorFilters,
-      count: 0
-    }
+      count: 0,
+    },
   ]);
 
   readonly selectedFilterId = signal<string>('unassigned');
@@ -234,48 +258,64 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   readonly savedFilters = signal<SavedFilter[]>([]);
   readonly selectedSavedFilterId = signal<string | null>(null);
   readonly activeSearchFilters = signal<VisitorSearchFilters>({});
-  readonly activeSearchSort = signal<VisitorSearchSort>({ field: 'lastActivity', direction: 'DESC' });
+  readonly activeSearchSort = signal<VisitorSearchSort>({
+    field: 'lastActivity',
+    direction: 'DESC',
+  });
   readonly advancedFiltersOpen = signal<boolean>(false);
   readonly saveDialogOpen = signal<boolean>(false);
-  readonly pendingFilterToSave = signal<{ filters: VisitorSearchFilters; sort?: VisitorSearchSort } | null>(null);
+  readonly pendingFilterToSave = signal<{
+    filters: VisitorSearchFilters;
+    sort?: VisitorSearchSort;
+  } | null>(null);
   readonly useNewFiltersApi = signal<boolean>(true); // Flag para usar nueva API
 
   // Computed values
   readonly currentFilter = computed(() => {
     const filterId = this.selectedFilterId();
-    return this.filterPresets().find(f => f.id === filterId) || this.filterPresets()[0];
+    return (
+      this.filterPresets().find((f) => f.id === filterId) ||
+      this.filterPresets()[0]
+    );
   });
 
   readonly filteredVisitors = computed(() => {
     const state = this.state();
     const currentFilter = this.currentFilter();
-    
+
     let visitors = state.visitors;
     const filters = { ...currentFilter.filters, ...state.filters };
 
     // Aplicar filtros
     if (filters.status?.length) {
-      visitors = visitors.filter(v => filters.status?.includes(v.status) ?? false);
+      visitors = visitors.filter(
+        (v) => filters.status?.includes(v.status) ?? false
+      );
     }
 
     if (filters.lifecycle?.length) {
-      visitors = visitors.filter(v => filters.lifecycle?.includes(v.lifecycle) ?? false);
+      visitors = visitors.filter(
+        (v) => filters.lifecycle?.includes(v.lifecycle) ?? false
+      );
     }
 
     if (filters.hasActiveChat !== undefined) {
-      visitors = visitors.filter(v => v.hasActiveChat === filters.hasActiveChat);
+      visitors = visitors.filter(
+        (v) => v.hasActiveChat === filters.hasActiveChat
+      );
     }
 
     if (filters.includeOffline === false) {
-      visitors = visitors.filter(v => v.status !== 'offline');
+      visitors = visitors.filter((v) => v.status !== 'offline');
     }
 
     if (state.searchQuery) {
       const query = state.searchQuery.toLowerCase();
-      visitors = visitors.filter(v =>
-        v.name?.toLowerCase().includes(query) ||
-        v.email?.toLowerCase().includes(query) ||
-        v.domain.toLowerCase().includes(query)
+      visitors = visitors.filter(
+        (v) =>
+          v.name?.toLowerCase().includes(query) ||
+          v.email?.toLowerCase().includes(query) ||
+          v.domain.toLowerCase().includes(query)
       );
     }
 
@@ -284,16 +324,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   readonly visitorStats = computed(() => {
     const visitors = this.state().visitors;
-    const online = visitors.filter(v => v.status === 'online').length;
-    const withChat = visitors.filter(v => v.hasActiveChat).length;
-    const newVisitors = visitors.filter(v => v.isNewVisitor).length;
+    const online = visitors.filter((v) => v.status === 'online').length;
+    const withChat = visitors.filter((v) => v.hasActiveChat).length;
+    const newVisitors = visitors.filter((v) => v.isNewVisitor).length;
 
     return {
       total: visitors.length,
       online,
       withActiveChat: withChat,
       newVisitors,
-      leads: visitors.filter(v => ['LEAD', 'CONVERTED'].includes(v.lifecycle)).length
+      leads: visitors.filter((v) => ['LEAD', 'CONVERTED'].includes(v.lifecycle))
+        .length,
     };
   });
 
@@ -304,7 +345,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     showActions: true,
     allowMultiSelect: this.selectedFilterId() === 'unassigned',
     showStats: true,
-    pageSize: this.state().pagination.limit
+    pageSize: this.state().pagination.limit,
   }));
 
   constructor() {
@@ -313,9 +354,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       const visitors = this.state().visitors; // dependencia rastreada
       untracked(() => {
         this.filterPresets.update((presets) => {
-          const updated = presets.map(preset => ({
+          const updated = presets.map((preset) => ({
             ...preset,
-            count: this.getFilterCount(visitors, preset.filters)
+            count: this.getFilterCount(visitors, preset.filters),
           }));
 
           // Solo actualizar si cambian los counts para no crear bucles innecesarios
@@ -331,7 +372,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     // Leer query parameters de la URL
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       // Solo cambiar filtro si es diferente al actual (evita doble carga)
       if (params['filter'] && params['filter'] !== this.selectedFilterId()) {
         this.onFilterPresetChange(params['filter']);
@@ -342,7 +383,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       if (params['page']) {
         const pageNumber = parseInt(params['page'], 10);
         const currentPage = this.state().pagination.currentPage || 1;
-        if (!isNaN(pageNumber) && pageNumber > 0 && pageNumber !== currentPage) {
+        if (
+          !isNaN(pageNumber) &&
+          pageNumber > 0 &&
+          pageNumber !== currentPage
+        ) {
           // Actualizar el estado con la página desde la URL
           const currentState = this.state();
           const offset = (pageNumber - 1) * currentState.pagination.limit;
@@ -350,79 +395,93 @@ export class VisitorsComponent implements OnInit, OnDestroy {
             pagination: {
               ...currentState.pagination,
               currentPage: pageNumber,
-              offset
-            }
+              offset,
+            },
           });
         }
       }
     });
 
     // Obtener sitios de la empresa usando el endpoint correcto /api/companies/{companyId}/sites
-    this.visitorsService.getCompanySites()
+    this.visitorsService
+      .getCompanySites()
       .pipe(
         catchError((error: Error) => {
           console.error('Error obteniendo sitios de la empresa:', error);
-          
+
           // No usar fallback con método deprecated - manejar error directamente
-          this.updateState({ error: 'No se pudieron obtener los sitios de la empresa.' });
+          this.updateState({
+            error: 'No se pudieron obtener los sitios de la empresa.',
+          });
           return of(null);
         })
       )
-      .subscribe((response: {
-        sites: Array<{
-          siteId: string;
-          companyId: string;
-          siteName: string;
-          domain: string;
-          isActive: boolean;
-        }>;
-        companyId: string;
-        companyName: string;
-        totalSites: number;
-      } | null) => {
-        if (!response) {
-          return; // Error ya manejado en catchError
+      .subscribe(
+        (
+          response: {
+            sites: Array<{
+              siteId: string;
+              companyId: string;
+              siteName: string;
+              domain: string;
+              isActive: boolean;
+            }>;
+            companyId: string;
+            companyName: string;
+            totalSites: number;
+          } | null
+        ) => {
+          if (!response) {
+            return; // Error ya manejado en catchError
+          }
+
+          // La respuesta viene de getCompanySites() que tiene el formato { sites: [], companyId: "", ... }
+          if (!response.sites || !response.sites.length) {
+            this.updateState({
+              error: 'No se encontraron sitios activos para esta empresa.',
+            });
+            return;
+          }
+
+          // Buscar el sitio que coincida con el hostname actual o usar el primero activo
+          const hostname = this.document.location.hostname;
+          let selectedSite = response.sites.find(
+            (site) =>
+              site.domain.toLowerCase() === hostname.toLowerCase() ||
+              site.domain.toLowerCase().includes(hostname.toLowerCase())
+          );
+
+          // Si no se encuentra coincidencia por dominio, usar el primer sitio activo
+          if (!selectedSite) {
+            selectedSite = response.sites.find((site) => site.isActive);
+          }
+
+          if (!selectedSite) {
+            this.updateState({
+              error: 'No se encontró un sitio activo disponible.',
+            });
+            return;
+          }
+
+          console.log(
+            `[Visitors] Usando sitio: ${selectedSite.siteName} (${selectedSite.companyId}) de la empresa: ${response.companyName}`
+          );
+          this.companyId.set(selectedSite.companyId);
+
+          this.loadVisitors();
+          this.loadStats();
+
+          // Cargar filtros para el nuevo sistema
+          this.loadQuickFilters();
+          this.loadSavedFilters();
+
+          // Cargar chats del comercial para badges de mensajes no leídos
+          this.loadCommercialChatsForBadges();
+
+          // Configurar auto-refresh inicial
+          this.setupAutoRefresh();
         }
-
-        // La respuesta viene de getCompanySites() que tiene el formato { sites: [], companyId: "", ... }
-        if (!response.sites || !response.sites.length) {
-          this.updateState({ error: 'No se encontraron sitios activos para esta empresa.' });
-          return;
-        }
-
-        // Buscar el sitio que coincida con el hostname actual o usar el primero activo
-        const hostname = this.document.location.hostname;
-        let selectedSite = response.sites.find(site => 
-          site.domain.toLowerCase() === hostname.toLowerCase() || 
-          site.domain.toLowerCase().includes(hostname.toLowerCase())
-        );
-
-        // Si no se encuentra coincidencia por dominio, usar el primer sitio activo
-        if (!selectedSite) {
-          selectedSite = response.sites.find(site => site.isActive);
-        }
-
-        if (!selectedSite) {
-          this.updateState({ error: 'No se encontró un sitio activo disponible.' });
-          return;
-        }
-
-        console.log(`[Visitors] Usando sitio: ${selectedSite.siteName} (${selectedSite.companyId}) de la empresa: ${response.companyName}`);
-        this.companyId.set(selectedSite.companyId);
-
-        this.loadVisitors();
-        this.loadStats();
-
-        // Cargar filtros para el nuevo sistema
-        this.loadQuickFilters();
-        this.loadSavedFilters();
-
-        // Cargar chats del comercial para badges de mensajes no leídos
-        this.loadCommercialChatsForBadges();
-
-        // Configurar auto-refresh inicial
-        this.setupAutoRefresh();
-      });
+      );
 
     // Configurar intervalo para actualizar el tiempo transcurrido cada minuto
     this.setupTimeUpdateInterval();
@@ -439,13 +498,16 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     this.presenceService.presenceChanged$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((event: PresenceChangedEvent) => {
-        console.log('[Visitors] 🔔 Evento de presencia recibido en tiempo real:', {
-          userId: event.userId,
-          userType: event.userType,
-          status: event.status,
-          previousStatus: event.previousStatus,
-          timestamp: event.timestamp
-        });
+        console.log(
+          '[Visitors] 🔔 Evento de presencia recibido en tiempo real:',
+          {
+            userId: event.userId,
+            userType: event.userType,
+            status: event.status,
+            previousStatus: event.previousStatus,
+            timestamp: event.timestamp,
+          }
+        );
 
         // Solo procesar eventos de visitantes
         if (event.userType !== 'visitor') {
@@ -456,10 +518,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         const currentState = this.state();
         const visitors = currentState.visitors;
 
-        const visitorIndex = visitors.findIndex(v => v.id === event.userId);
+        const visitorIndex = visitors.findIndex((v) => v.id === event.userId);
 
         if (visitorIndex === -1) {
-          console.log('[Visitors] ⚠️ Visitante no encontrado en la lista actual, omitiendo actualización');
+          console.log(
+            '[Visitors] ⚠️ Visitante no encontrado en la lista actual, omitiendo actualización'
+          );
           return;
         }
 
@@ -467,18 +531,21 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         const updatedVisitors = [...visitors];
         updatedVisitors[visitorIndex] = {
           ...updatedVisitors[visitorIndex],
-          connectionStatus: event.status as ConnectionStatus
+          connectionStatus: event.status as ConnectionStatus,
         };
 
-        console.log('[Visitors] ✅ Estado del visitante actualizado en tiempo real:', {
-          visitorId: event.userId,
-          previousStatus: event.previousStatus,
-          newStatus: event.status
-        });
+        console.log(
+          '[Visitors] ✅ Estado del visitante actualizado en tiempo real:',
+          {
+            visitorId: event.userId,
+            previousStatus: event.previousStatus,
+            newStatus: event.status,
+          }
+        );
 
         // Actualizar el estado con los visitantes modificados
         this.updateState({
-          visitors: updatedVisitors
+          visitors: updatedVisitors,
         });
 
         // Forzar detección de cambios para que Angular actualice la vista
@@ -510,7 +577,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         }
       }
     } catch (error) {
-      console.error('Error loading auto-refresh interval from localStorage:', error);
+      console.error(
+        'Error loading auto-refresh interval from localStorage:',
+        error
+      );
     }
     return 30000; // Default: 30 segundos
   }
@@ -536,7 +606,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     try {
       localStorage.setItem(this.STORAGE_KEY_AUTO_REFRESH, interval.toString());
     } catch (error) {
-      console.error('Error saving auto-refresh interval to localStorage:', error);
+      console.error(
+        'Error saving auto-refresh interval to localStorage:',
+        error
+      );
     }
   }
 
@@ -580,7 +653,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // Actualizar cada segundo (1000ms)
     this.timeUpdateIntervalId = window.setInterval(() => {
       // Incrementar el trigger para forzar actualización del template
-      this.timeUpdateTrigger.update(v => v + 1);
+      this.timeUpdateTrigger.update((v) => v + 1);
     }, 1000);
   }
 
@@ -595,19 +668,25 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     let filtered = visitors;
 
     if (filters.status?.length) {
-      filtered = filtered.filter(v => filters.status?.includes(v.status) ?? false);
+      filtered = filtered.filter(
+        (v) => filters.status?.includes(v.status) ?? false
+      );
     }
 
     if (filters.lifecycle?.length) {
-      filtered = filtered.filter(v => filters.lifecycle?.includes(v.lifecycle) ?? false);
+      filtered = filtered.filter(
+        (v) => filters.lifecycle?.includes(v.lifecycle) ?? false
+      );
     }
 
     if (filters.hasActiveChat !== undefined) {
-      filtered = filtered.filter(v => v.hasActiveChat === filters.hasActiveChat);
+      filtered = filtered.filter(
+        (v) => v.hasActiveChat === filters.hasActiveChat
+      );
     }
 
     if (filters.includeOffline === false) {
-      filtered = filtered.filter(v => v.status !== 'offline');
+      filtered = filtered.filter((v) => v.status !== 'offline');
     }
 
     return filtered.length;
@@ -646,9 +725,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           error: null,
           pagination: {
             ...currentState.pagination,
-            totalCount: mockResponse.total
+            totalCount: mockResponse.total,
           },
-          loading: false
+          loading: false,
         });
 
         // Actualizar timestamp de última carga
@@ -666,12 +745,14 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
       // Mapear los campos de sort internos a los del backend
       const sortFieldMap: Record<string, VisitorSortField> = {
-        'firstVisit': 'createdAt',
-        'lastVisit': 'lastActivity'
+        firstVisit: 'createdAt',
+        lastVisit: 'lastActivity',
       };
 
       // Usar filtros activos del sistema de búsqueda
-      const searchFilters: VisitorSearchFilters = { ...this.activeSearchFilters() };
+      const searchFilters: VisitorSearchFilters = {
+        ...this.activeSearchFilters(),
+      };
 
       // Mantener compatibilidad con búsqueda del sistema antiguo
       if (currentState.searchQuery && !searchFilters.currentUrlContains) {
@@ -682,13 +763,18 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         filters: searchFilters,
         sort: {
           field: sortFieldMap[currentSort.field] || 'createdAt',
-          direction: currentSort.direction.toUpperCase() as SortDirection
+          direction: currentSort.direction.toUpperCase() as SortDirection,
         },
-        page: Math.floor((currentState.pagination.offset || 0) / currentState.pagination.limit) + 1,
-        limit: currentState.pagination.limit
+        page:
+          Math.floor(
+            (currentState.pagination.offset || 0) /
+              currentState.pagination.limit
+          ) + 1,
+        limit: currentState.pagination.limit,
       };
 
-      this.visitorsService.searchVisitors(companyId, request)
+      this.visitorsService
+        .searchVisitors(companyId, request)
         .pipe(
           catchError((error: Error) => {
             console.error('Error loading visitors:', error);
@@ -700,25 +786,27 @@ export class VisitorsComponent implements OnInit, OnDestroy {
                 limit: currentState.pagination.limit,
                 totalPages: 0,
                 hasNextPage: false,
-                hasPreviousPage: false
-              }
+                hasPreviousPage: false,
+              },
             });
           }),
           finalize(() => {
             this.updateState({ loading: false });
           })
         )
-        .subscribe(response => {
+        .subscribe((response) => {
           // Mapear VisitorSearchResult a Visitor
-          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
+          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(
+            response.visitors
+          );
 
           this.updateState({
             visitors: mappedVisitors,
             error: null,
             pagination: {
               ...currentState.pagination,
-              totalCount: response.pagination.total
-            }
+              totalCount: response.pagination.total,
+            },
           });
 
           // Actualizar timestamp de última carga
@@ -746,7 +834,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       }, 300); // Simular latencia de red
     } else {
       // USAR SERVICIO REAL
-      this.visitorsService.getVisitorStats(companyId)
+      this.visitorsService
+        .getVisitorStats(companyId)
         .pipe(
           catchError((error: Error) => {
             console.error('Error loading visitor stats:', error);
@@ -764,7 +853,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private refreshVisitors(): void {
     // NO refrescar si hay una actualización optimista en progreso
     if (this.optimisticUpdateInProgress) {
-      console.log('⏸️ Auto-refresh pausado - actualización optimista en progreso');
+      console.log(
+        '⏸️ Auto-refresh pausado - actualización optimista en progreso'
+      );
       return;
     }
 
@@ -800,8 +891,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           visitors: mockResponse.visitors,
           pagination: {
             ...currentState.pagination,
-            totalCount: mockResponse.total
-          }
+            totalCount: mockResponse.total,
+          },
         });
 
         // Actualizar timestamp de última carga
@@ -819,12 +910,14 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
       // Mapear los campos de sort internos a los del backend
       const sortFieldMap: Record<string, VisitorSortField> = {
-        'firstVisit': 'createdAt',
-        'lastVisit': 'lastActivity'
+        firstVisit: 'createdAt',
+        lastVisit: 'lastActivity',
       };
 
       // Usar filtros activos del sistema de búsqueda
-      const searchFilters: VisitorSearchFilters = { ...this.activeSearchFilters() };
+      const searchFilters: VisitorSearchFilters = {
+        ...this.activeSearchFilters(),
+      };
 
       // Mantener compatibilidad con búsqueda del sistema antiguo
       if (currentState.searchQuery && !searchFilters.currentUrlContains) {
@@ -835,40 +928,49 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         filters: searchFilters,
         sort: {
           field: sortFieldMap[currentSort.field] || 'createdAt',
-          direction: currentSort.direction.toUpperCase() as SortDirection
+          direction: currentSort.direction.toUpperCase() as SortDirection,
         },
-        page: Math.floor((currentState.pagination.offset || 0) / currentState.pagination.limit) + 1,
-        limit: currentState.pagination.limit
+        page:
+          Math.floor(
+            (currentState.pagination.offset || 0) /
+              currentState.pagination.limit
+          ) + 1,
+        limit: currentState.pagination.limit,
       };
 
-      this.visitorsService.searchVisitors(companyId, request)
+      this.visitorsService
+        .searchVisitors(companyId, request)
         .pipe(
-          catchError(() => of({
-            visitors: [],
-            pagination: {
-              total: 0,
-              page: 1,
-              limit: currentState.pagination.limit,
-              totalPages: 0,
-              hasNextPage: false,
-              hasPreviousPage: false
-            }
-          })),
+          catchError(() =>
+            of({
+              visitors: [],
+              pagination: {
+                total: 0,
+                page: 1,
+                limit: currentState.pagination.limit,
+                totalPages: 0,
+                hasNextPage: false,
+                hasPreviousPage: false,
+              },
+            })
+          ),
           finalize(() => {
             // Desactivar flag de refreshing
             this.isRefreshing.set(false);
           })
         )
-        .subscribe(response => {
+        .subscribe((response) => {
           // Mapear VisitorSearchResult a Visitor
-          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
+          const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(
+            response.visitors
+          );
 
           this.updateState({
             visitors: mappedVisitors,
             pagination: {
               ...currentState.pagination,
-              totalCount: response.pagination.total
-            }
+              totalCount: response.pagination.total,
+            },
           });
 
           // Actualizar timestamp de última carga
@@ -889,9 +991,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const companyId = this.companyId();
     if (!companyId) return;
 
-    this.visitorsService.getQuickFilters(companyId)
+    this.visitorsService
+      .getQuickFilters(companyId)
       .pipe(catchError(() => of({ filters: [] })))
-      .subscribe(response => {
+      .subscribe((response) => {
         this.quickFilters.set(response.filters);
       });
   }
@@ -901,9 +1004,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const companyId = this.companyId();
     if (!companyId) return;
 
-    this.visitorsService.getSavedFilters(companyId)
+    this.visitorsService
+      .getSavedFilters(companyId)
       .pipe(catchError(() => of({ filters: [], total: 0 })))
-      .subscribe(response => {
+      .subscribe((response) => {
         this.savedFilters.set(response.filters);
       });
   }
@@ -911,7 +1015,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   /** Manejar selección de filtro rápido */
   onQuickFilterSelect(filterId: string): void {
     // Buscar el filtro rápido seleccionado
-    const filter = this.quickFilters().find(f => f.id === filterId);
+    const filter = this.quickFilters().find((f) => f.id === filterId);
     if (!filter) return;
 
     // Actualizar el filtro seleccionado para mostrar estado activo en UI
@@ -926,27 +1030,30 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       pagination: {
         ...currentState.pagination,
         currentPage: 1,
-        offset: 0
-      }
+        offset: 0,
+      },
     });
 
     // Actualizar la URL para reflejar la página 1
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: 1 },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
 
     // Aplicar filtro según el ID (mapear a filtros de búsqueda)
     const filterMapping: Record<string, VisitorSearchFilters> = {
-      'online': { connectionStatus: ['online', 'chatting'] },
-      'leads': { lifecycle: ['LEAD', 'CONVERTED'] },
-      'today': { lastActivityFrom: new Date().toISOString().split('T')[0] + 'T00:00:00.000Z' },
-      'this_week': { lastActivityFrom: this.getStartOfWeek().toISOString() },
-      'active': { hasActiveSessions: true },
-      'high_intent': { lifecycle: ['LEAD', 'CONVERTED'] },
-      'new_visitors': { maxTotalSessionsCount: 1 }, // Nuevos = 1 sesión
-      'returning': { minTotalSessionsCount: 2 } // Recurrentes = más de 1 sesión
+      online: { connectionStatus: ['online', 'chatting'] },
+      leads: { lifecycle: ['LEAD', 'CONVERTED'] },
+      today: {
+        lastActivityFrom:
+          new Date().toISOString().split('T')[0] + 'T00:00:00.000Z',
+      },
+      this_week: { lastActivityFrom: this.getStartOfWeek().toISOString() },
+      active: { hasActiveSessions: true },
+      high_intent: { lifecycle: ['LEAD', 'CONVERTED'] },
+      new_visitors: { maxTotalSessionsCount: 1 }, // Nuevos = 1 sesión
+      returning: { minTotalSessionsCount: 2 }, // Recurrentes = más de 1 sesión
     };
 
     const searchFilters = filterMapping[filterId] || {};
@@ -967,15 +1074,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       pagination: {
         ...currentState.pagination,
         currentPage: 1,
-        offset: 0
-      }
+        offset: 0,
+      },
     });
 
     // Actualizar la URL para reflejar la página 1
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: 1 },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
 
     // Aplicar los filtros y ordenamiento del filtro guardado
@@ -992,45 +1099,51 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const companyId = this.companyId();
     if (!companyId) return;
 
-    this.visitorsService.deleteFilter(companyId, filterId).pipe(
-      catchError(error => {
-        console.error('Error al eliminar filtro:', error);
-        throw error;
-      })
-    ).subscribe({
-      next: () => {
-        // Si el filtro eliminado estaba seleccionado, limpiar selección
-        if (this.selectedSavedFilterId() === filterId) {
-          this.selectedSavedFilterId.set(null);
-          this.activeSearchFilters.set({});
-          this.searchVisitorsWithFilters();
-        }
-        // Recargar lista de filtros guardados
-        this.loadSavedFilters();
-      },
-      error: (error) => {
-        console.error('Error al eliminar filtro:', error);
-      }
-    });
+    this.visitorsService
+      .deleteFilter(companyId, filterId)
+      .pipe(
+        catchError((error) => {
+          console.error('Error al eliminar filtro:', error);
+          throw error;
+        })
+      )
+      .subscribe({
+        next: () => {
+          // Si el filtro eliminado estaba seleccionado, limpiar selección
+          if (this.selectedSavedFilterId() === filterId) {
+            this.selectedSavedFilterId.set(null);
+            this.activeSearchFilters.set({});
+            this.searchVisitorsWithFilters();
+          }
+          // Recargar lista de filtros guardados
+          this.loadSavedFilters();
+        },
+        error: (error) => {
+          console.error('Error al eliminar filtro:', error);
+        },
+      });
   }
 
   /** Aplicar filtros avanzados */
-  onAdvancedFiltersApply(event: { filters: VisitorSearchFilters; sort?: VisitorSearchSort }): void {
+  onAdvancedFiltersApply(event: {
+    filters: VisitorSearchFilters;
+    sort?: VisitorSearchSort;
+  }): void {
     // Resetear paginación a la página 1
     const currentState = this.state();
     this.updateState({
       pagination: {
         ...currentState.pagination,
         currentPage: 1,
-        offset: 0
-      }
+        offset: 0,
+      },
     });
 
     // Actualizar la URL para reflejar la página 1
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: 1 },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
 
     this.activeSearchFilters.set(event.filters);
@@ -1048,13 +1161,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
     // Mapeo de claves de filtro a IDs de filtros rápidos que las usan
     const filterKeyToQuickFilterIds: Record<string, string[]> = {
-      'connectionStatus': ['online'],
-      'lifecycle': ['leads', 'high_intent'],
-      'lastActivity': ['today', 'this_week'],
-      'hasActiveSessions': ['active'],
-      'maxTotalSessionsCount': ['new_visitors'],
-      'minTotalSessionsCount': ['returning'],
-      'sessionCount': ['new_visitors', 'returning']
+      connectionStatus: ['online'],
+      lifecycle: ['leads', 'high_intent'],
+      lastActivity: ['today', 'this_week'],
+      hasActiveSessions: ['active'],
+      maxTotalSessionsCount: ['new_visitors'],
+      minTotalSessionsCount: ['returning'],
+      sessionCount: ['new_visitors', 'returning'],
     };
 
     // Si el filtro eliminado corresponde a un filtro rápido seleccionado, deseleccionarlo
@@ -1126,15 +1239,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       pagination: {
         ...currentState.pagination,
         currentPage: 1,
-        offset: 0
-      }
+        offset: 0,
+      },
     });
 
     // Actualizar la URL para reflejar la página 1
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: 1 },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
 
     this.activeSearchFilters.set(updatedFilters);
@@ -1153,15 +1266,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       pagination: {
         ...currentState.pagination,
         currentPage: 1,
-        offset: 0
-      }
+        offset: 0,
+      },
     });
 
     // Actualizar la URL para reflejar la página 1
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: 1 },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
 
     this.activeSearchFilters.set({});
@@ -1179,7 +1292,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   /** Solicitar guardar filtro (abre diálogo) */
-  onRequestSaveFilter(event: { filters: VisitorSearchFilters; sort?: VisitorSearchSort }): void {
+  onRequestSaveFilter(event: {
+    filters: VisitorSearchFilters;
+    sort?: VisitorSearchSort;
+  }): void {
     // Guardar filtros pendientes sin aplicarlos todavía
     this.pendingFilterToSave.set(event);
     this.advancedFiltersOpen.set(false);
@@ -1196,15 +1312,18 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       name: data.name,
       description: data.description,
       filters: pending.filters,
-      sort: pending.sort || this.activeSearchSort()
+      sort: pending.sort || this.activeSearchSort(),
     };
 
-    this.visitorsService.saveFilter(companyId, request)
-      .pipe(catchError(error => {
-        console.error('Error saving filter:', error);
-        return of(null);
-      }))
-      .subscribe(response => {
+    this.visitorsService
+      .saveFilter(companyId, request)
+      .pipe(
+        catchError((error) => {
+          console.error('Error saving filter:', error);
+          return of(null);
+        })
+      )
+      .subscribe((response) => {
         if (response) {
           this.saveDialogOpen.set(false);
           this.pendingFilterToSave.set(null);
@@ -1231,12 +1350,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       filters: this.activeSearchFilters(),
       sort: this.activeSearchSort(),
       page: currentState.pagination.currentPage || 1,
-      limit: currentState.pagination.limit
+      limit: currentState.pagination.limit,
     };
 
-    this.visitorsService.searchVisitors(companyId, request)
+    this.visitorsService
+      .searchVisitors(companyId, request)
       .pipe(
-        catchError(error => {
+        catchError((error) => {
           console.error('Error searching visitors:', error);
           return of({
             visitors: [],
@@ -1246,22 +1366,24 @@ export class VisitorsComponent implements OnInit, OnDestroy {
               limit: 20,
               totalPages: 0,
               hasNextPage: false,
-              hasPreviousPage: false
-            }
+              hasPreviousPage: false,
+            },
           });
         }),
         finalize(() => this.updateState({ loading: false }))
       )
-      .subscribe(response => {
+      .subscribe((response) => {
         // Mapear VisitorSearchResult a Visitor
-        const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(response.visitors);
+        const mappedVisitors: Visitor[] = this.mapSearchResultsToVisitors(
+          response.visitors
+        );
 
         this.updateState({
           visitors: mappedVisitors,
           pagination: {
             ...currentState.pagination,
-            totalCount: response.pagination.total
-          }
+            totalCount: response.pagination.total,
+          },
         });
 
         this.lastRefreshTime.set(new Date());
@@ -1270,24 +1392,28 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   /** Mapear array de resultados de búsqueda a Visitors */
-  private mapSearchResultsToVisitors(results: VisitorSearchResult[]): Visitor[] {
-    return results.map(result => this.mapSearchResultToVisitor(result));
+  private mapSearchResultsToVisitors(
+    results: VisitorSearchResult[]
+  ): Visitor[] {
+    return results.map((result) => this.mapSearchResultToVisitor(result));
   }
 
   /** Mapear resultado de búsqueda a Visitor */
   private mapSearchResultToVisitor(result: VisitorSearchResult): Visitor {
-    const status = result.connectionStatus === 'online' || result.connectionStatus === 'chatting'
-      ? 'online' as const
-      : result.connectionStatus === 'away'
-        ? 'idle' as const
-        : 'offline' as const;
+    const status =
+      result.connectionStatus === 'online' ||
+      result.connectionStatus === 'chatting'
+        ? ('online' as const)
+        : result.connectionStatus === 'away'
+        ? ('idle' as const)
+        : ('offline' as const);
 
     // Debug: verificar isMe
     if (result.isMe) {
       console.log('🔍 Visitante isMe detectado:', {
         id: result.id,
         isMe: result.isMe,
-        fingerprint: result.fingerprint
+        fingerprint: result.fingerprint,
       });
     }
 
@@ -1314,7 +1440,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       totalChats: result.totalChatsCount || 0,
       pendingChatIds: result.pendingChatIds || [],
       isMe: result.isMe,
-      isInternal: result.isInternal
+      isInternal: result.isInternal,
     };
   }
 
@@ -1329,7 +1455,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Métodos auxiliares para mantener la posición del scroll
   private saveScrollPosition(): void {
     // Buscar el contenedor con scroll (ya no es :host, es .visitors-panel__list-container)
-    const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
+    const scrollContainer = this.elementRef.nativeElement.querySelector(
+      '.visitors-panel__list-container'
+    ) as HTMLElement;
     if (scrollContainer) {
       this.savedScrollPosition = scrollContainer.scrollTop;
     }
@@ -1337,7 +1465,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   private restoreScrollPosition(): void {
     // Buscar el contenedor con scroll (ya no es :host, es .visitors-panel__list-container)
-    const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
+    const scrollContainer = this.elementRef.nativeElement.querySelector(
+      '.visitors-panel__list-container'
+    ) as HTMLElement;
     if (scrollContainer) {
       // Usar requestAnimationFrame para asegurar que el DOM se haya renderizado completamente
       requestAnimationFrame(() => {
@@ -1353,7 +1483,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   private scrollToTop(): void {
     // Hacer scroll al top del contenedor de la lista
-    const scrollContainer = this.elementRef.nativeElement.querySelector('.visitors-panel__list-container') as HTMLElement;
+    const scrollContainer = this.elementRef.nativeElement.querySelector(
+      '.visitors-panel__list-container'
+    ) as HTMLElement;
     if (scrollContainer) {
       setTimeout(() => {
         scrollContainer.scrollTop = 0;
@@ -1362,7 +1494,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   private updateState(updates: Partial<VisitorState>): void {
-    this.state.update(current => ({ ...current, ...updates }));
+    this.state.update((current) => ({ ...current, ...updates }));
     // CRÍTICO: Forzar detección de cambios con OnPush
     // Esto garantiza que la UI se actualice cuando cambia el estado
     this.cdr.markForCheck();
@@ -1389,13 +1521,16 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     console.log('[Visitors] Creando chat con visitante:', request.visitorId);
 
     // Buscar el visitante en el estado actual
-    const visitor = this.state().visitors.find(v => v.id === request.visitorId);
+    const visitor = this.state().visitors.find(
+      (v) => v.id === request.visitorId
+    );
     if (!visitor) {
       console.error('Visitor not found:', request.visitorId);
       return;
     }
 
-    this.visitorsService.createChatWithVisitor(request)
+    this.visitorsService
+      .createChatWithVisitor(request)
       .pipe(
         catchError((error: Error) => {
           console.error('Error creating chat:', error);
@@ -1414,7 +1549,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         }
       });
   }
-
 
   onSearchChange(query: string): void {
     this.updateState({ searchQuery: query });
@@ -1439,15 +1573,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       pagination: {
         ...currentState.pagination,
         currentPage: page,
-        offset
-      }
+        offset,
+      },
     });
 
     // Actualizar la URL con el parámetro de página
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page },
-      queryParamsHandling: 'merge' // Mantener otros parámetros como 'filter'
+      queryParamsHandling: 'merge', // Mantener otros parámetros como 'filter'
     });
 
     this.loadVisitors({ scrollToTop: true });
@@ -1460,8 +1594,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         limit: pageSize,
         offset: 0,
         currentPage: 1,
-        totalCount: this.state().pagination.totalCount
-      }
+        totalCount: this.state().pagination.totalCount,
+      },
     });
 
     // Guardar en localStorage
@@ -1471,7 +1605,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { page: 1 },
-      queryParamsHandling: 'merge'
+      queryParamsHandling: 'merge',
     });
 
     this.loadVisitors({ scrollToTop: true });
@@ -1491,8 +1625,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   nextPage(): void {
     const currentState = this.state();
     const currentPage = currentState.pagination.currentPage || 1;
-    const totalPages = Math.ceil((currentState.pagination.totalCount || 0) / currentState.pagination.limit);
-    
+    const totalPages = Math.ceil(
+      (currentState.pagination.totalCount || 0) / currentState.pagination.limit
+    );
+
     if (currentPage < totalPages) {
       this.onPageChange(currentPage + 1);
     }
@@ -1500,24 +1636,34 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   lastPage(): void {
     const currentState = this.state();
-    const totalPages = Math.ceil((currentState.pagination.totalCount || 0) / currentState.pagination.limit);
+    const totalPages = Math.ceil(
+      (currentState.pagination.totalCount || 0) / currentState.pagination.limit
+    );
     this.onPageChange(totalPages);
   }
 
   // Métodos de utilidad
   getFilterIcon(filterId: string): string {
-    const filter = this.filterPresets().find(f => f.id === filterId);
+    const filter = this.filterPresets().find((f) => f.id === filterId);
     return filter?.icon || '📊';
   }
 
   getFilterDescription(filterId: string): string {
-    const filter = this.filterPresets().find(f => f.id === filterId);
+    const filter = this.filterPresets().find((f) => f.id === filterId);
     return filter?.description || '';
   }
 
   // Pending chats handler - abre el primer chat pendiente en el widget
-  onViewPendingChats(data: {visitor: Visitor, pendingChatIds: string[]}): void {
-    console.log('[Visitors] Ver chats pendientes para visitante:', data.visitor.id, 'chats:', data.pendingChatIds);
+  onViewPendingChats(data: {
+    visitor: Visitor;
+    pendingChatIds: string[];
+  }): void {
+    console.log(
+      '[Visitors] Ver chats pendientes para visitante:',
+      data.visitor.id,
+      'chats:',
+      data.pendingChatIds
+    );
 
     if (data.pendingChatIds.length === 0) {
       console.log('[Visitors] No hay chats pendientes para este visitante');
@@ -1530,13 +1676,25 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
     // Log si hay más chats pendientes
     if (data.pendingChatIds.length > 1) {
-      console.log(`[Visitors] Mostrando 1 de ${data.pendingChatIds.length} chats pendientes`);
+      console.log(
+        `[Visitors] Mostrando 1 de ${data.pendingChatIds.length} chats pendientes`
+      );
     }
   }
 
-  onTakePendingChatAutomatically(data: {visitor: Visitor, chatId: string}): void {
-    console.log('👁️ Abriendo chat pendiente para previsualización:', data.chatId, 'visitante:', data.visitor.id);
-    console.log('📌 El chat se asignará cuando el comercial envíe su primer mensaje');
+  onTakePendingChatAutomatically(data: {
+    visitor: Visitor;
+    chatId: string;
+  }): void {
+    console.log(
+      '👁️ Abriendo chat pendiente para previsualización:',
+      data.chatId,
+      'visitante:',
+      data.visitor.id
+    );
+    console.log(
+      '📌 El chat se asignará cuando el comercial envíe su primer mensaje'
+    );
 
     // 🎯 Solo abrir el widget en modo pendiente (sin asignar)
     // El chat se asignará automáticamente cuando el comercial envíe su primer mensaje
@@ -1545,7 +1703,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // Limpiar estado de procesamiento
     this.visitorsListComponent?.markAsCompleted(data.visitor.id);
   }
-
 
   // Método para limpiar el estado de procesamiento cuando una operación termina
   onOperationCompleted(visitorId: string): void {
@@ -1560,64 +1717,86 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     // this.updateState({ loading: true });
 
     // Primero obtener el usuario actual de la sesión
-    this.sessionService.ensureSession$().pipe(
-      switchMap(user => {
-        if (!user?.sub) {
-          throw new Error('No se pudo obtener el ID del usuario actual');
-        }
-
-        console.log('Assigning chat', chatId, 'to user', user.sub);
-
-        // Usar el método del servicio para asignar el chat al comercial actual
-        return this.visitorsService.assignChatToCommercial(chatId, user.sub);
-      }),
-      catchError((error: Error) => {
-        console.error('Error al tomar el chat:', error);
-        this.updateState({
-          error: 'Error al tomar el chat. Inténtalo de nuevo.'
-        });
-        return of(null);
-      })
-    ).subscribe((response: { success: boolean; assignedAt: string } | null) => {
-      if (response?.success) {
-        console.log('Chat asignado exitosamente:', response);
-
-        // Mostrar mensaje de éxito (opcional)
-        // this.updateState({ successMessage: 'Chat asignado exitosamente' });
-
-        // Refrescar la lista de visitantes SIN loading
-        this.refreshVisitorsSilently();
-
-        // Opcionalmente, navegar al chat asignado
-        // this.router.navigate(['/chat', chatId]);
-      }
-    });
-  }
-
-  onTransferPendingChat(data: {chatId: string, targetUserId: string}): void {
-    console.log('Transferring pending chat:', data.chatId, 'to user:', data.targetUserId);
-
-    // NO activar loading - operación silenciosa
-    // this.updateState({ loading: true });
-
-    this.visitorsService.assignChatToCommercial(data.chatId, data.targetUserId)
+    this.sessionService
+      .ensureSession$()
       .pipe(
+        switchMap((user) => {
+          if (!user?.sub) {
+            throw new Error('No se pudo obtener el ID del usuario actual');
+          }
+
+          console.log('Assigning chat', chatId, 'to user', user.sub);
+
+          // Usar el método del servicio para asignar el chat al comercial actual
+          return this.visitorsService.assignChatToCommercial(chatId, user.sub);
+        }),
         catchError((error: Error) => {
-          console.error('Error al transferir el chat:', error);
+          console.error('Error al tomar el chat:', error);
           this.updateState({
-            error: 'Error al transferir el chat. Inténtalo de nuevo.'
+            error: 'Error al tomar el chat. Inténtalo de nuevo.',
           });
           return of(null);
         })
       )
-      .subscribe((response: { success: boolean; assignedAt: string } | null) => {
-        if (response?.success) {
-          console.log('Chat transferido exitosamente:', response);
+      .subscribe(
+        (response: { success: boolean; assignedAt: string } | null) => {
+          if (response?.success) {
+            console.log('Chat asignado exitosamente:', response);
 
-          // Refrescar la lista de visitantes SIN loading
-          this.refreshVisitorsSilently();
+            // 🔥 BUGFIX: Unirse a la sala de WebSocket para recibir notificaciones
+            // Cuando el agente toma un chat pendiente, debemos suscribirnos
+            // a su sala de WebSocket para recibir mensajes nuevos del visitante
+            console.log(
+              '[Visitors] 🔌 Uniéndose a sala de WebSocket para notificaciones:',
+              chatId
+            );
+            this.chatService.webSocketService.joinRoom(chatId);
+
+            // Mostrar mensaje de éxito (opcional)
+            // this.updateState({ successMessage: 'Chat asignado exitosamente' });
+
+            // Refrescar la lista de visitantes SIN loading
+            this.refreshVisitorsSilently();
+
+            // Opcionalmente, navegar al chat asignado
+            // this.router.navigate(['/chat', chatId]);
+          }
         }
-      });
+      );
+  }
+
+  onTransferPendingChat(data: { chatId: string; targetUserId: string }): void {
+    console.log(
+      'Transferring pending chat:',
+      data.chatId,
+      'to user:',
+      data.targetUserId
+    );
+
+    // NO activar loading - operación silenciosa
+    // this.updateState({ loading: true });
+
+    this.visitorsService
+      .assignChatToCommercial(data.chatId, data.targetUserId)
+      .pipe(
+        catchError((error: Error) => {
+          console.error('Error al transferir el chat:', error);
+          this.updateState({
+            error: 'Error al transferir el chat. Inténtalo de nuevo.',
+          });
+          return of(null);
+        })
+      )
+      .subscribe(
+        (response: { success: boolean; assignedAt: string } | null) => {
+          if (response?.success) {
+            console.log('Chat transferido exitosamente:', response);
+
+            // Refrescar la lista de visitantes SIN loading
+            this.refreshVisitorsSilently();
+          }
+        }
+      );
   }
 
   /**
@@ -1626,38 +1805,50 @@ export class VisitorsComponent implements OnInit, OnDestroy {
    * Este método se debe llamar al inicializar la página de visitantes.
    */
   private loadCommercialChatsForBadges(): void {
-    console.log('[Visitors] 🔄 Cargando chats del comercial para badges de mensajes no leídos...');
+    console.log(
+      '[Visitors] 🔄 Cargando chats del comercial para badges de mensajes no leídos...'
+    );
 
-    this.sessionService.ensureSession$().pipe(
-      switchMap(user => {
-        if (!user?.sub) {
-          console.warn('[Visitors] ⚠️ No se pudo obtener el ID del comercial actual');
+    this.sessionService
+      .ensureSession$()
+      .pipe(
+        switchMap((user) => {
+          if (!user?.sub) {
+            console.warn(
+              '[Visitors] ⚠️ No se pudo obtener el ID del comercial actual'
+            );
+            return of([]);
+          }
+
+          console.log('[Visitors] 👤 Comercial ID:', user.sub);
+          return this.chatService.getCommercialChats(user.sub);
+        }),
+        catchError((error: Error) => {
+          console.error(
+            '[Visitors] ❌ Error al cargar chats del comercial:',
+            error
+          );
           return of([]);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe((chats: Chat[]) => {
+        if (chats.length === 0) {
+          console.log('[Visitors] 📭 No hay chats para registrar');
+          return;
         }
 
-        console.log('[Visitors] 👤 Comercial ID:', user.sub);
-        return this.chatService.getCommercialChats(user.sub);
-      }),
-      catchError((error: Error) => {
-        console.error('[Visitors] ❌ Error al cargar chats del comercial:', error);
-        return of([]);
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe((chats: Chat[]) => {
-      if (chats.length === 0) {
-        console.log('[Visitors] 📭 No hay chats para registrar');
-        return;
-      }
+        // Registrar las relaciones chat-visitor para el servicio de mensajes no leídos
+        const chatsToRegister = chats.map((chat) => ({
+          chatId: chat.chatId,
+          visitorId: chat.visitorId,
+        }));
 
-      // Registrar las relaciones chat-visitor para el servicio de mensajes no leídos
-      const chatsToRegister = chats.map(chat => ({
-        chatId: chat.chatId,
-        visitorId: chat.visitorId
-      }));
-
-      console.log(`[Visitors] 📝 Registrando ${chatsToRegister.length} relaciones chat-visitor para badges`);
-      this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
-      console.log('[Visitors] ✅ Relaciones registradas exitosamente');
-    });
+        console.log(
+          `[Visitors] 📝 Registrando ${chatsToRegister.length} relaciones chat-visitor para badges`
+        );
+        this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
+        console.log('[Visitors] ✅ Relaciones registradas exitosamente');
+      });
   }
 }
