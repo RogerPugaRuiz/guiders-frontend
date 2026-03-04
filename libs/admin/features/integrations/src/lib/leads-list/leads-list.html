@@ -181,8 +181,7 @@
                 <span class="visitor-info__email"
                   >{{ record.contactData?.email }}</span
                 >
-                } @if (!record.contactData?.email &&
-                record.contactData?.telefono) {
+                } @else if (record.contactData?.telefono) {
                 <span class="visitor-info__email"
                   >{{ record.contactData?.telefono }}</span
                 >
@@ -281,21 +280,15 @@
                     >
                   </div>
                   <div class="detail-field">
-                    <span class="detail-field__label">Móvil</span>
+                    <span class="detail-field__label">DNI</span>
                     <span class="detail-field__value"
-                      >{{ record.contactData?.movil || '—' }}</span
+                      >{{ record.contactData?.dni || '—' }}</span
                     >
                   </div>
                   <div class="detail-field">
-                    <span class="detail-field__label">CP</span>
+                    <span class="detail-field__label">Población</span>
                     <span class="detail-field__value"
-                      >{{ record.contactData?.cp || '—' }}</span
-                    >
-                  </div>
-                  <div class="detail-field">
-                    <span class="detail-field__label">Provincia</span>
-                    <span class="detail-field__value"
-                      >{{ record.contactData?.provincia || '—' }}</span
+                      >{{ record.contactData?.poblacion || '—' }}</span
                     >
                   </div>
                 </div>
