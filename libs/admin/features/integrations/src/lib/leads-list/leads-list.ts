@@ -10,11 +10,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
-import {
-  CrmSyncRecord,
-  SyncStatus,
-  CrmType,
-} from '@guiders-frontend/shared/types';
+import { LeadCarsSyncRecord, SyncStatus } from '@guiders-frontend/shared/types';
 import { Badge } from '@guiders-frontend/badge';
 
 type LeadFilter = 'all' | SyncStatus;
@@ -30,7 +26,7 @@ export class LeadsList implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   // State
-  readonly records = signal<CrmSyncRecord[]>([]);
+  readonly records = signal<LeadCarsSyncRecord[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly activeFilter = signal<LeadFilter>('all');
@@ -119,14 +115,14 @@ export class LeadsList implements OnInit {
   }
 
   // Helpers
-  getDisplayName(record: CrmSyncRecord): string {
+  getDisplayName(record: LeadCarsSyncRecord): string {
     const cd = record.contactData;
     if (!cd) return '-';
     const parts = [cd.nombre, cd.apellidos].filter(Boolean);
     return parts.length > 0 ? parts.join(' ') : '-';
   }
 
-  getInitials(record: CrmSyncRecord): string {
+  getInitials(record: LeadCarsSyncRecord): string {
     const cd = record.contactData;
     if (!cd) return '?';
     const nombre = cd.nombre?.[0] ?? '';
@@ -134,7 +130,7 @@ export class LeadsList implements OnInit {
     return (nombre + apellido).toUpperCase() || '?';
   }
 
-  hasContactData(record: CrmSyncRecord): boolean {
+  hasContactData(record: LeadCarsSyncRecord): boolean {
     const cd = record.contactData;
     return !!(cd && (cd.nombre || cd.email || cd.telefono));
   }
@@ -177,17 +173,13 @@ export class LeadsList implements OnInit {
     return temp ?? '-';
   }
 
-  getTemperature(record: CrmSyncRecord): string | undefined {
+  getTemperature(record: LeadCarsSyncRecord): string | undefined {
     return record.metadata?.['temperature'] as string | undefined;
   }
 
-  getCrmTypeLabel(type: CrmType): string {
-    const map: Record<CrmType, string> = {
-      leadcars: 'LeadCars',
-      hubspot: 'HubSpot',
-      salesforce: 'Salesforce',
-    };
-    return map[type] || type;
+  getCrmTypeLabel(type: string): string {
+    if (type === 'leadcars') return 'LeadCars';
+    return type;
   }
 
   formatDate(date: string | undefined): string {

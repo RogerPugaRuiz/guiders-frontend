@@ -3,11 +3,10 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, catchError, of, tap } from 'rxjs';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import {
-  CrmCompanyConfig,
-  CrmSyncRecord,
-  CreateCrmConfigRequest,
+  LeadCarsCompanyConfig,
+  LeadCarsSyncRecord,
+  CreateLeadCarsConfigRequest,
   TestConnectionResponse,
-  CrmType,
   LeadCarsConcesionario,
   LeadCarsSede,
   LeadCarsCampana,
@@ -23,16 +22,15 @@ export class LeadsService {
   private readonly baseUrl = `${this.environment.api.baseUrl}/v1/leads/admin`;
 
   // BehaviorSubjects para estado reactivo
-  private readonly configSubject = new BehaviorSubject<CrmCompanyConfig | null>(
-    null
-  );
+  private readonly configSubject =
+    new BehaviorSubject<LeadCarsCompanyConfig | null>(null);
   private readonly loadingSubject = new BehaviorSubject<boolean>(false);
   private readonly savingSubject = new BehaviorSubject<boolean>(false);
   private readonly errorSubject = new BehaviorSubject<string | null>(null);
-  private readonly syncRecordsSubject = new BehaviorSubject<CrmSyncRecord[]>(
-    []
-  );
-  private readonly supportedCrmTypesSubject = new BehaviorSubject<CrmType[]>(
+  private readonly syncRecordsSubject = new BehaviorSubject<
+    LeadCarsSyncRecord[]
+  >([]);
+  private readonly supportedCrmTypesSubject = new BehaviorSubject<'leadcars'[]>(
     []
   );
 
@@ -80,9 +78,12 @@ export class LeadsService {
    * Obtener tipos de CRM soportados
    * GET /api/v1/leads/admin/supported-crms
    */
-  getSupportedCrmTypes(): Observable<CrmType[]> {
+  getSupportedCrmTypes(): Observable<'leadcars'[]> {
     return this.http
-      .get<CrmType[]>(`${this.baseUrl}/supported-crms`, this.getHttpOptions())
+      .get<'leadcars'[]>(
+        `${this.baseUrl}/supported-crms`,
+        this.getHttpOptions()
+      )
       .pipe(
         tap((types) => this.supportedCrmTypesSubject.next(types)),
         catchError((error) => {
@@ -93,22 +94,25 @@ export class LeadsService {
   }
 
   /**
-   * Obtener configuracion de CRM para la empresa
+   * Obtener configuracion de LeadCars para la empresa
    * GET /api/v1/leads/admin/config
    */
-  getConfig(): Observable<CrmCompanyConfig | null> {
+  getConfig(): Observable<LeadCarsCompanyConfig | null> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.http
-      .get<CrmCompanyConfig>(`${this.baseUrl}/config`, this.getHttpOptions())
+      .get<LeadCarsCompanyConfig>(
+        `${this.baseUrl}/config`,
+        this.getHttpOptions()
+      )
       .pipe(
         tap((config) => {
           this.configSubject.next(config);
           this.loadingSubject.next(false);
         }),
         catchError((error) => {
-          console.error('Error al obtener configuracion CRM:', error);
+          console.error('Error al obtener configuracion LeadCars:', error);
 
           // Si no existe configuracion, devolver null
           if (error.status === 404) {
@@ -117,7 +121,9 @@ export class LeadsService {
             return of(null);
           }
 
-          this.errorSubject.next('Error al cargar la configuracion de CRM');
+          this.errorSubject.next(
+            'Error al cargar la configuracion de LeadCars'
+          );
           this.loadingSubject.next(false);
           throw error;
         })
@@ -125,15 +131,17 @@ export class LeadsService {
   }
 
   /**
-   * Crear o actualizar configuracion de CRM
+   * Crear o actualizar configuracion de LeadCars
    * POST /api/v1/leads/admin/config
    */
-  saveConfig(request: CreateCrmConfigRequest): Observable<CrmCompanyConfig> {
+  saveConfig(
+    request: CreateLeadCarsConfigRequest
+  ): Observable<LeadCarsCompanyConfig> {
     this.savingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.http
-      .post<CrmCompanyConfig>(
+      .post<LeadCarsCompanyConfig>(
         `${this.baseUrl}/config`,
         request,
         this.getHttpOptions()
@@ -144,7 +152,7 @@ export class LeadsService {
           this.savingSubject.next(false);
         }),
         catchError((error) => {
-          console.error('Error al guardar configuracion CRM:', error);
+          console.error('Error al guardar configuracion LeadCars:', error);
           this.errorSubject.next('Error al guardar la configuracion');
           this.savingSubject.next(false);
           throw error;
@@ -207,7 +215,9 @@ export class LeadsService {
    * Obtener registros de sincronizacion
    * GET /api/v1/leads/admin/sync-records
    */
-  getSyncRecords(onlyFailed: boolean = false): Observable<CrmSyncRecord[]> {
+  getSyncRecords(
+    onlyFailed: boolean = false
+  ): Observable<LeadCarsSyncRecord[]> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
@@ -215,33 +225,35 @@ export class LeadsService {
       ? `${this.baseUrl}/sync-records/failed`
       : `${this.baseUrl}/sync-records`;
 
-    return this.http.get<CrmSyncRecord[]>(endpoint, this.getHttpOptions()).pipe(
-      tap((records) => {
-        this.syncRecordsSubject.next(records);
-        this.loadingSubject.next(false);
-      }),
-      catchError((error) => {
-        console.error('Error al obtener registros de sincronizacion:', error);
-        this.errorSubject.next(
-          'Error al cargar los registros de sincronizacion'
-        );
-        this.loadingSubject.next(false);
-        return of([]);
-      })
-    );
+    return this.http
+      .get<LeadCarsSyncRecord[]>(endpoint, this.getHttpOptions())
+      .pipe(
+        tap((records) => {
+          this.syncRecordsSubject.next(records);
+          this.loadingSubject.next(false);
+        }),
+        catchError((error) => {
+          console.error('Error al obtener registros de sincronizacion:', error);
+          this.errorSubject.next(
+            'Error al cargar los registros de sincronizacion'
+          );
+          this.loadingSubject.next(false);
+          return of([]);
+        })
+      );
   }
 
   /**
    * Obtener configuracion actual del cache
    */
-  getCurrentConfig(): CrmCompanyConfig | null {
+  getCurrentConfig(): LeadCarsCompanyConfig | null {
     return this.configSubject.value;
   }
 
   /**
    * Obtener registros actuales del cache
    */
-  getCurrentSyncRecords(): CrmSyncRecord[] {
+  getCurrentSyncRecords(): LeadCarsSyncRecord[] {
     return this.syncRecordsSubject.value;
   }
 

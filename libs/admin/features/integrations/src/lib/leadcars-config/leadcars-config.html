@@ -1,8 +1,8 @@
-<div class="crm-config">
+<div class="leadcars-config">
   <div class="section-header">
-    <h2>Configuración de CRM</h2>
+    <h2>Configuración de LeadCars</h2>
     <p>
-      Configura la integración con tu CRM para sincronizar leads
+      Configura la integración con LeadCars para sincronizar leads
       automáticamente.
     </p>
   </div>
@@ -35,19 +35,6 @@
   }
 
   <form [formGroup]="form" (ngSubmit)="onSave()" class="config-form">
-    <!-- CRM Type Selection -->
-    <div class="form-section">
-      <h3>Tipo de CRM</h3>
-      <div class="form-group">
-        <label for="crmType">Selecciona tu CRM</label>
-        <select id="crmType" formControlName="crmType" class="form-control">
-          @for (type of supportedCrmTypes(); track type) {
-          <option [value]="type">{{ getCrmTypeLabel(type) }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
     <!-- General Settings -->
     <div class="form-section">
       <h3>Configuración General</h3>
@@ -106,7 +93,6 @@
     </div>
 
     <!-- LeadCars Configuration -->
-    @if (isLeadCars()) {
     <div class="form-section">
       <h3>Configuración de LeadCars</h3>
 
@@ -298,7 +284,6 @@
         </p>
       </div>
     </div>
-    }
 
     <!-- Actions -->
     <div class="form-actions">

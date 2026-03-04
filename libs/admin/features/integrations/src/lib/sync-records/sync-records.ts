@@ -1,9 +1,16 @@
-import { Component, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
-import { CrmSyncRecord, SyncStatus, CrmType } from '@guiders-frontend/shared/types';
+import { LeadCarsSyncRecord, SyncStatus } from '@guiders-frontend/shared/types';
 import { Badge } from '@guiders-frontend/badge';
 
 @Component({
@@ -17,7 +24,7 @@ export class SyncRecords implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   // Estado reactivo
-  readonly records = signal<CrmSyncRecord[]>([]);
+  readonly records = signal<LeadCarsSyncRecord[]>([]);
   readonly loading = signal<boolean>(false);
   readonly error = signal<string | null>(null);
   readonly onlyFailed = signal<boolean>(false);
@@ -25,14 +32,14 @@ export class SyncRecords implements OnInit {
   // Computed
   readonly hasRecords = computed(() => this.records().length > 0);
   readonly totalRecords = computed(() => this.records().length);
-  readonly failedCount = computed(() =>
-    this.records().filter(r => r.status === 'failed').length
+  readonly failedCount = computed(
+    () => this.records().filter((r) => r.status === 'failed').length
   );
-  readonly syncedCount = computed(() =>
-    this.records().filter(r => r.status === 'synced').length
+  readonly syncedCount = computed(
+    () => this.records().filter((r) => r.status === 'synced').length
   );
-  readonly pendingCount = computed(() =>
-    this.records().filter(r => r.status === 'pending').length
+  readonly pendingCount = computed(
+    () => this.records().filter((r) => r.status === 'pending').length
   );
 
   ngOnInit(): void {
@@ -43,19 +50,20 @@ export class SyncRecords implements OnInit {
   private subscribeToObservables(): void {
     this.leadsService.loading$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(loading => this.loading.set(loading));
+      .subscribe((loading) => this.loading.set(loading));
 
     this.leadsService.error$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(error => this.error.set(error));
+      .subscribe((error) => this.error.set(error));
 
     this.leadsService.syncRecords$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(records => this.records.set(records));
+      .subscribe((records) => this.records.set(records));
   }
 
   loadRecords(): void {
-    this.leadsService.getSyncRecords(this.onlyFailed())
+    this.leadsService
+      .getSyncRecords(this.onlyFailed())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
@@ -88,8 +96,13 @@ export class SyncRecords implements OnInit {
     return classes[status] || '';
   }
 
-  getStatusVariant(status: SyncStatus): 'success' | 'warning' | 'danger' | 'info' {
-    const variants: Record<SyncStatus, 'success' | 'warning' | 'danger' | 'info'> = {
+  getStatusVariant(
+    status: SyncStatus
+  ): 'success' | 'warning' | 'danger' | 'info' {
+    const variants: Record<
+      SyncStatus,
+      'success' | 'warning' | 'danger' | 'info'
+    > = {
       pending: 'warning',
       synced: 'success',
       failed: 'danger',
@@ -98,13 +111,9 @@ export class SyncRecords implements OnInit {
     return variants[status] || 'info';
   }
 
-  getCrmTypeLabel(type: CrmType): string {
-    const labels: Record<CrmType, string> = {
-      leadcars: 'LeadCars',
-      hubspot: 'HubSpot',
-      salesforce: 'Salesforce',
-    };
-    return labels[type] || type;
+  getCrmTypeLabel(type: string): string {
+    if (type === 'leadcars') return 'LeadCars';
+    return type;
   }
 
   formatDate(dateString: string | undefined): string {

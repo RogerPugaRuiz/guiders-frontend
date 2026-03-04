@@ -16,9 +16,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import {
-  CrmType,
-  CrmCompanyConfig,
-  CreateCrmConfigRequest,
+  LeadCarsCompanyConfig,
+  CreateLeadCarsConfigRequest,
   LeadCarsConfig,
   AVAILABLE_TRIGGER_EVENTS,
   LEADCARS_CONFIG_DEFAULTS,
@@ -31,18 +30,18 @@ import {
 } from '@guiders-frontend/shared/types';
 
 @Component({
-  selector: 'lib-crm-config',
+  selector: 'lib-leadcars-config',
   imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './crm-config.html',
-  styleUrl: './crm-config.scss',
+  templateUrl: './leadcars-config.html',
+  styleUrl: './leadcars-config.scss',
 })
-export class CrmConfig implements OnInit {
+export class LeadCarsConfigComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly leadsService = inject(LeadsService);
   private readonly destroyRef = inject(DestroyRef);
 
   // Estado reactivo
-  readonly config = signal<CrmCompanyConfig | null>(null);
+  readonly config = signal<LeadCarsCompanyConfig | null>(null);
   readonly loading = signal<boolean>(false);
   readonly saving = signal<boolean>(false);
   readonly testing = signal<boolean>(false);
@@ -50,13 +49,9 @@ export class CrmConfig implements OnInit {
   readonly testResult = signal<{ success: boolean; message: string } | null>(
     null
   );
-  readonly supportedCrmTypes = signal<CrmType[]>([]);
 
   // Computed
   readonly hasConfig = computed(() => this.config() !== null);
-  readonly isLeadCars = computed(
-    () => this.form.get('crmType')?.value === 'leadcars'
-  );
 
   // Estado para datos de LeadCars (selectores dinámicos)
   readonly concesionarios = signal<LeadCarsConcesionario[]>([]);
@@ -74,7 +69,6 @@ export class CrmConfig implements OnInit {
 
   // Formulario
   form: FormGroup = this.fb.group({
-    crmType: ['leadcars', Validators.required],
     enabled: [true],
     syncChatConversations: [true],
     triggerEvents: this.fb.group({
@@ -95,7 +89,6 @@ export class CrmConfig implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadSupportedCrmTypes();
     this.loadConfig();
     this.subscribeToObservables();
     this.setupConcesionarioChangeListener();
@@ -122,10 +115,6 @@ export class CrmConfig implements OnInit {
           this.populateForm(config);
         }
       });
-
-    this.leadsService.supportedCrmTypes$
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((types) => this.supportedCrmTypes.set(types));
 
     // Suscribirse a datos de LeadCars
     this.leadsService.concesionarios$
@@ -162,13 +151,6 @@ export class CrmConfig implements OnInit {
           this.loadSedesYCampanas(concesionarioId);
         }
       });
-  }
-
-  private loadSupportedCrmTypes(): void {
-    this.leadsService
-      .getSupportedCrmTypes()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
   }
 
   private loadConfig(): void {
@@ -218,11 +200,10 @@ export class CrmConfig implements OnInit {
       .subscribe();
   }
 
-  private populateForm(config: CrmCompanyConfig): void {
+  private populateForm(config: LeadCarsCompanyConfig): void {
     const leadCarsConfig = config.config as LeadCarsConfig;
 
     this.form.patchValue({
-      crmType: config.crmType,
       enabled: config.enabled,
       syncChatConversations: config.syncChatConversations,
       triggerEvents: {
@@ -254,18 +235,16 @@ export class CrmConfig implements OnInit {
         LEADCARS_CONFIG_DEFAULTS.includeComentario,
     });
 
-    // Si es LeadCars, cargar datos dinámicos
-    if (config.crmType === 'leadcars') {
-      this.loadLeadCarsData();
+    // Cargar datos dinámicos de LeadCars
+    this.loadLeadCarsData();
 
-      // Si hay concesionario, cargar sus sedes y campañas
-      if (leadCarsConfig.concesionarioId) {
-        this.loadSedesYCampanas(leadCarsConfig.concesionarioId);
-      }
+    // Si hay concesionario, cargar sus sedes y campañas
+    if (leadCarsConfig.concesionarioId) {
+      this.loadSedesYCampanas(leadCarsConfig.concesionarioId);
     }
   }
 
-  private buildRequest(): CreateCrmConfigRequest {
+  private buildRequest(): CreateLeadCarsConfigRequest {
     const formValue = this.form.value;
 
     // Construir array de trigger events
@@ -296,7 +275,7 @@ export class CrmConfig implements OnInit {
     };
 
     return {
-      crmType: formValue.crmType,
+      crmType: 'leadcars',
       enabled: formValue.enabled,
       syncChatConversations: formValue.syncChatConversations,
       triggerEvents,
@@ -355,7 +334,9 @@ export class CrmConfig implements OnInit {
     if (!configId) return;
 
     if (
-      !confirm('¿Estás seguro de que deseas eliminar la configuración de CRM?')
+      !confirm(
+        '¿Estás seguro de que deseas eliminar la configuración de LeadCars?'
+      )
     ) {
       return;
     }
@@ -366,7 +347,6 @@ export class CrmConfig implements OnInit {
       .subscribe({
         next: () => {
           this.form.reset({
-            crmType: 'leadcars',
             enabled: true,
             syncChatConversations: true,
             triggerEvents: {
@@ -382,15 +362,6 @@ export class CrmConfig implements OnInit {
           });
         },
       });
-  }
-
-  getCrmTypeLabel(type: CrmType): string {
-    const labels: Record<CrmType, string> = {
-      leadcars: 'LeadCars',
-      hubspot: 'HubSpot',
-      salesforce: 'Salesforce',
-    };
-    return labels[type] || type;
   }
 
   getTriggerEventLabel(event: string): string {

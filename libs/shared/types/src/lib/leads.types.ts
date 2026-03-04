@@ -39,14 +39,11 @@ export interface SaveContactDataRequest {
   extractedFromChatId?: string;
 }
 
-// Tipos de CRM soportados
-export type CrmType = 'leadcars' | 'hubspot' | 'salesforce';
-
-// Configuración de CRM por empresa
-export interface CrmCompanyConfig {
+// Configuración de la integración LeadCars por empresa
+export interface LeadCarsCompanyConfig {
   id: string;
   companyId: string;
-  crmType: CrmType;
+  crmType: 'leadcars';
   enabled: boolean;
   syncChatConversations: boolean;
   triggerEvents: string[];
@@ -104,9 +101,9 @@ export interface LeadCarsConfig {
   includeComentario?: boolean; // Incluir resumen de conversación como comentario
 }
 
-// Request para crear/actualizar configuración CRM
-export interface CreateCrmConfigRequest {
-  crmType: CrmType;
+// Request para crear/actualizar configuración LeadCars
+export interface CreateLeadCarsConfigRequest {
+  crmType: 'leadcars';
   enabled: boolean;
   syncChatConversations: boolean;
   triggerEvents: string[];
@@ -116,8 +113,8 @@ export interface CreateCrmConfigRequest {
 // Estados de sincronización
 export type SyncStatus = 'pending' | 'synced' | 'failed' | 'partial';
 
-// Contact data embedded in sync records (returned by backend via ContactDataDto)
-export interface CrmSyncRecordContactData {
+// Contact data embedded en los sync records (devuelto por el backend via ContactDataDto)
+export interface LeadCarsSyncRecordContactData {
   nombre?: string;
   apellidos?: string;
   email?: string;
@@ -127,19 +124,19 @@ export interface CrmSyncRecordContactData {
   additionalData?: Record<string, unknown>;
 }
 
-// Registro de sincronización
-export interface CrmSyncRecord {
+// Registro de sincronización con LeadCars
+export interface LeadCarsSyncRecord {
   id: string;
   visitorId: string;
   companyId: string;
-  crmType: CrmType;
+  crmType: 'leadcars';
   externalLeadId?: string;
   status: SyncStatus;
   lastSyncAt?: string;
   lastError?: string;
   retryCount: number;
   chatsSynced: string[];
-  contactData?: CrmSyncRecordContactData;
+  contactData?: LeadCarsSyncRecordContactData;
   metadata?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
@@ -149,11 +146,6 @@ export interface CrmSyncRecord {
 export interface TestConnectionResponse {
   success: boolean;
   message: string;
-}
-
-// Respuesta de tipos CRM soportados
-export interface SupportedCrmTypesResponse {
-  supportedCrmTypes: CrmType[];
 }
 
 // Valores por defecto para LeadCars
