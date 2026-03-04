@@ -1,6 +1,18 @@
-import { Component, OnInit, inject, signal, computed, DestroyRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  inject,
+  signal,
+  computed,
+  DestroyRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import {
@@ -10,6 +22,12 @@ import {
   LeadCarsConfig,
   AVAILABLE_TRIGGER_EVENTS,
   LEADCARS_CONFIG_DEFAULTS,
+  LEAD_TEMPERATURES,
+  LEAD_TYPES,
+  LeadCarsConcesionario,
+  LeadCarsSede,
+  LeadCarsCampana,
+  LeadCarsTipoLead,
 } from '@guiders-frontend/shared/types';
 
 @Component({
@@ -29,15 +47,30 @@ export class CrmConfig implements OnInit {
   readonly saving = signal<boolean>(false);
   readonly testing = signal<boolean>(false);
   readonly error = signal<string | null>(null);
-  readonly testResult = signal<{ success: boolean; message: string } | null>(null);
+  readonly testResult = signal<{ success: boolean; message: string } | null>(
+    null
+  );
   readonly supportedCrmTypes = signal<CrmType[]>([]);
 
   // Computed
   readonly hasConfig = computed(() => this.config() !== null);
-  readonly isLeadCars = computed(() => this.form.get('crmType')?.value === 'leadcars');
+  readonly isLeadCars = computed(
+    () => this.form.get('crmType')?.value === 'leadcars'
+  );
+
+  // Estado para datos de LeadCars (selectores dinámicos)
+  readonly concesionarios = signal<LeadCarsConcesionario[]>([]);
+  readonly sedes = signal<LeadCarsSede[]>([]);
+  readonly campanas = signal<LeadCarsCampana[]>([]);
+  readonly tiposLead = signal<LeadCarsTipoLead[]>([]);
+  readonly loadingLeadCarsData = signal<boolean>(false);
 
   // Eventos de trigger disponibles
   readonly availableTriggerEvents = AVAILABLE_TRIGGER_EVENTS;
+
+  // Tipos de lead y temperaturas disponibles
+  readonly leadTypes = LEAD_TYPES;
+  readonly leadTemperatures = LEAD_TEMPERATURES;
 
   // Formulario
   form: FormGroup = this.fb.group({
@@ -56,30 +89,34 @@ export class CrmConfig implements OnInit {
     sedeId: [null],
     campanaId: [null],
     tipoLeadDefault: [LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault],
+    temperatureDefault: [LEADCARS_CONFIG_DEFAULTS.temperatureDefault],
+    includeUrlOrigen: [LEADCARS_CONFIG_DEFAULTS.includeUrlOrigen],
+    includeComentario: [LEADCARS_CONFIG_DEFAULTS.includeComentario],
   });
 
   ngOnInit(): void {
     this.loadSupportedCrmTypes();
     this.loadConfig();
     this.subscribeToObservables();
+    this.setupConcesionarioChangeListener();
   }
 
   private subscribeToObservables(): void {
     this.leadsService.loading$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(loading => this.loading.set(loading));
+      .subscribe((loading) => this.loading.set(loading));
 
     this.leadsService.saving$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(saving => this.saving.set(saving));
+      .subscribe((saving) => this.saving.set(saving));
 
     this.leadsService.error$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(error => this.error.set(error));
+      .subscribe((error) => this.error.set(error));
 
     this.leadsService.config$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(config => {
+      .subscribe((config) => {
         this.config.set(config);
         if (config) {
           this.populateForm(config);
@@ -88,17 +125,95 @@ export class CrmConfig implements OnInit {
 
     this.leadsService.supportedCrmTypes$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(types => this.supportedCrmTypes.set(types));
+      .subscribe((types) => this.supportedCrmTypes.set(types));
+
+    // Suscribirse a datos de LeadCars
+    this.leadsService.concesionarios$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => this.concesionarios.set(data));
+
+    this.leadsService.sedes$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => this.sedes.set(data));
+
+    this.leadsService.campanas$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => this.campanas.set(data));
+
+    this.leadsService.tiposLead$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => this.tiposLead.set(data));
+  }
+
+  /**
+   * Escucha cambios en el concesionario seleccionado para cargar sedes y campañas
+   */
+  private setupConcesionarioChangeListener(): void {
+    this.form
+      .get('concesionarioId')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((concesionarioId: number | null) => {
+        // Limpiar sedes y campañas previas
+        this.form.patchValue({ sedeId: null, campanaId: null });
+        this.leadsService.clearSedesYCampanas();
+
+        // Si hay concesionario seleccionado, cargar sedes y campañas
+        if (concesionarioId) {
+          this.loadSedesYCampanas(concesionarioId);
+        }
+      });
   }
 
   private loadSupportedCrmTypes(): void {
-    this.leadsService.getSupportedCrmTypes()
+    this.leadsService
+      .getSupportedCrmTypes()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
 
   private loadConfig(): void {
-    this.leadsService.getConfig()
+    this.leadsService
+      .getConfig()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+  }
+
+  /**
+   * Cargar datos de LeadCars (concesionarios y tipos de lead)
+   */
+  loadLeadCarsData(): void {
+    if (this.concesionarios().length > 0) {
+      return; // Ya están cargados
+    }
+
+    this.loadingLeadCarsData.set(true);
+
+    // Cargar concesionarios y tipos de lead en paralelo
+    this.leadsService
+      .getConcesionarios()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        complete: () => this.loadingLeadCarsData.set(false),
+        error: () => this.loadingLeadCarsData.set(false),
+      });
+
+    this.leadsService
+      .getTiposLead()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+  }
+
+  /**
+   * Cargar sedes y campañas de un concesionario
+   */
+  private loadSedesYCampanas(concesionarioId: number): void {
+    this.leadsService
+      .getSedes(concesionarioId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+
+    this.leadsService
+      .getCampanas(concesionarioId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
@@ -111,17 +226,43 @@ export class CrmConfig implements OnInit {
       enabled: config.enabled,
       syncChatConversations: config.syncChatConversations,
       triggerEvents: {
-        lifecycle_changed_to_lead: config.triggerEvents.includes('lifecycle_changed_to_lead'),
+        lifecycle_changed_to_lead: config.triggerEvents.includes(
+          'lifecycle_changed_to_lead'
+        ),
         chat_closed: config.triggerEvents.includes('chat_closed'),
-        contact_data_updated: config.triggerEvents.includes('contact_data_updated'),
+        contact_data_updated: config.triggerEvents.includes(
+          'contact_data_updated'
+        ),
       },
       clienteToken: leadCarsConfig.clienteToken || '',
-      useSandbox: leadCarsConfig.useSandbox ?? LEADCARS_CONFIG_DEFAULTS.useSandbox,
+      useSandbox:
+        leadCarsConfig.useSandbox ?? LEADCARS_CONFIG_DEFAULTS.useSandbox,
       concesionarioId: leadCarsConfig.concesionarioId || null,
       sedeId: leadCarsConfig.sedeId || null,
       campanaId: leadCarsConfig.campanaId || null,
-      tipoLeadDefault: leadCarsConfig.tipoLeadDefault || LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
+      tipoLeadDefault:
+        leadCarsConfig.tipoLeadDefault ||
+        LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
+      temperatureDefault:
+        leadCarsConfig.temperatureDefault ||
+        LEADCARS_CONFIG_DEFAULTS.temperatureDefault,
+      includeUrlOrigen:
+        leadCarsConfig.includeUrlOrigen ??
+        LEADCARS_CONFIG_DEFAULTS.includeUrlOrigen,
+      includeComentario:
+        leadCarsConfig.includeComentario ??
+        LEADCARS_CONFIG_DEFAULTS.includeComentario,
     });
+
+    // Si es LeadCars, cargar datos dinámicos
+    if (config.crmType === 'leadcars') {
+      this.loadLeadCarsData();
+
+      // Si hay concesionario, cargar sus sedes y campañas
+      if (leadCarsConfig.concesionarioId) {
+        this.loadSedesYCampanas(leadCarsConfig.concesionarioId);
+      }
+    }
   }
 
   private buildRequest(): CreateCrmConfigRequest {
@@ -143,10 +284,15 @@ export class CrmConfig implements OnInit {
     const leadCarsConfig: LeadCarsConfig = {
       clienteToken: formValue.clienteToken,
       useSandbox: formValue.useSandbox,
-      ...(formValue.concesionarioId && { concesionarioId: formValue.concesionarioId }),
+      tipoLeadDefault: formValue.tipoLeadDefault,
+      temperatureDefault: formValue.temperatureDefault,
+      includeUrlOrigen: formValue.includeUrlOrigen,
+      includeComentario: formValue.includeComentario,
+      ...(formValue.concesionarioId && {
+        concesionarioId: formValue.concesionarioId,
+      }),
       ...(formValue.sedeId && { sedeId: formValue.sedeId }),
       ...(formValue.campanaId && { campanaId: formValue.campanaId }),
-      ...(formValue.tipoLeadDefault && { tipoLeadDefault: formValue.tipoLeadDefault }),
     };
 
     return {
@@ -169,7 +315,8 @@ export class CrmConfig implements OnInit {
 
     const request = this.buildRequest();
 
-    this.leadsService.saveConfig(request)
+    this.leadsService
+      .saveConfig(request)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         error: () => {
@@ -189,7 +336,8 @@ export class CrmConfig implements OnInit {
     this.testResult.set(null);
     this.error.set(null);
 
-    this.leadsService.testConnection(configId)
+    this.leadsService
+      .testConnection(configId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
@@ -206,11 +354,14 @@ export class CrmConfig implements OnInit {
     const configId = this.config()?.id;
     if (!configId) return;
 
-    if (!confirm('¿Estás seguro de que deseas eliminar la configuración de CRM?')) {
+    if (
+      !confirm('¿Estás seguro de que deseas eliminar la configuración de CRM?')
+    ) {
       return;
     }
 
-    this.leadsService.deleteConfig(configId)
+    this.leadsService
+      .deleteConfig(configId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
@@ -225,6 +376,9 @@ export class CrmConfig implements OnInit {
             },
             useSandbox: LEADCARS_CONFIG_DEFAULTS.useSandbox,
             tipoLeadDefault: LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
+            temperatureDefault: LEADCARS_CONFIG_DEFAULTS.temperatureDefault,
+            includeUrlOrigen: LEADCARS_CONFIG_DEFAULTS.includeUrlOrigen,
+            includeComentario: LEADCARS_CONFIG_DEFAULTS.includeComentario,
           });
         },
       });

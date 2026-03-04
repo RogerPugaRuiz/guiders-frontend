@@ -8,6 +8,10 @@ import {
   CreateCrmConfigRequest,
   TestConnectionResponse,
   CrmType,
+  LeadCarsConcesionario,
+  LeadCarsSede,
+  LeadCarsCampana,
+  LeadCarsTipoLead,
 } from '@guiders-frontend/shared/types';
 
 @Injectable({
@@ -19,12 +23,28 @@ export class LeadsService {
   private readonly baseUrl = `${this.environment.api.baseUrl}/v1/leads/admin`;
 
   // BehaviorSubjects para estado reactivo
-  private readonly configSubject = new BehaviorSubject<CrmCompanyConfig | null>(null);
+  private readonly configSubject = new BehaviorSubject<CrmCompanyConfig | null>(
+    null
+  );
   private readonly loadingSubject = new BehaviorSubject<boolean>(false);
   private readonly savingSubject = new BehaviorSubject<boolean>(false);
   private readonly errorSubject = new BehaviorSubject<string | null>(null);
-  private readonly syncRecordsSubject = new BehaviorSubject<CrmSyncRecord[]>([]);
-  private readonly supportedCrmTypesSubject = new BehaviorSubject<CrmType[]>([]);
+  private readonly syncRecordsSubject = new BehaviorSubject<CrmSyncRecord[]>(
+    []
+  );
+  private readonly supportedCrmTypesSubject = new BehaviorSubject<CrmType[]>(
+    []
+  );
+
+  // BehaviorSubjects para datos de LeadCars
+  private readonly concesionariosSubject = new BehaviorSubject<
+    LeadCarsConcesionario[]
+  >([]);
+  private readonly sedesSubject = new BehaviorSubject<LeadCarsSede[]>([]);
+  private readonly campanasSubject = new BehaviorSubject<LeadCarsCampana[]>([]);
+  private readonly tiposLeadSubject = new BehaviorSubject<LeadCarsTipoLead[]>(
+    []
+  );
 
   // Observables publicos
   readonly config$ = this.configSubject.asObservable();
@@ -33,6 +53,12 @@ export class LeadsService {
   readonly error$ = this.errorSubject.asObservable();
   readonly syncRecords$ = this.syncRecordsSubject.asObservable();
   readonly supportedCrmTypes$ = this.supportedCrmTypesSubject.asObservable();
+
+  // Observables de LeadCars
+  readonly concesionarios$ = this.concesionariosSubject.asObservable();
+  readonly sedes$ = this.sedesSubject.asObservable();
+  readonly campanas$ = this.campanasSubject.asObservable();
+  readonly tiposLead$ = this.tiposLeadSubject.asObservable();
 
   private getHttpOptions(): { headers: HttpHeaders; withCredentials: boolean } {
     let headers = new HttpHeaders({
@@ -74,26 +100,28 @@ export class LeadsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    return this.http.get<CrmCompanyConfig>(`${this.baseUrl}/config`, this.getHttpOptions()).pipe(
-      tap((config) => {
-        this.configSubject.next(config);
-        this.loadingSubject.next(false);
-      }),
-      catchError((error) => {
-        console.error('Error al obtener configuracion CRM:', error);
-
-        // Si no existe configuracion, devolver null
-        if (error.status === 404) {
-          this.configSubject.next(null);
+    return this.http
+      .get<CrmCompanyConfig>(`${this.baseUrl}/config`, this.getHttpOptions())
+      .pipe(
+        tap((config) => {
+          this.configSubject.next(config);
           this.loadingSubject.next(false);
-          return of(null);
-        }
+        }),
+        catchError((error) => {
+          console.error('Error al obtener configuracion CRM:', error);
 
-        this.errorSubject.next('Error al cargar la configuracion de CRM');
-        this.loadingSubject.next(false);
-        throw error;
-      })
-    );
+          // Si no existe configuracion, devolver null
+          if (error.status === 404) {
+            this.configSubject.next(null);
+            this.loadingSubject.next(false);
+            return of(null);
+          }
+
+          this.errorSubject.next('Error al cargar la configuracion de CRM');
+          this.loadingSubject.next(false);
+          throw error;
+        })
+      );
   }
 
   /**
@@ -105,7 +133,11 @@ export class LeadsService {
     this.errorSubject.next(null);
 
     return this.http
-      .post<CrmCompanyConfig>(`${this.baseUrl}/config`, request, this.getHttpOptions())
+      .post<CrmCompanyConfig>(
+        `${this.baseUrl}/config`,
+        request,
+        this.getHttpOptions()
+      )
       .pipe(
         tap((config) => {
           this.configSubject.next(config);
@@ -129,7 +161,11 @@ export class LeadsService {
     this.errorSubject.next(null);
 
     return this.http
-      .post<TestConnectionResponse>(`${this.baseUrl}/config/${configId}/test`, {}, this.getHttpOptions())
+      .post<TestConnectionResponse>(
+        `${this.baseUrl}/config/${configId}/test`,
+        {},
+        this.getHttpOptions()
+      )
       .pipe(
         tap(() => {
           this.savingSubject.next(false);
@@ -151,18 +187,20 @@ export class LeadsService {
     this.savingSubject.next(true);
     this.errorSubject.next(null);
 
-    return this.http.delete<void>(`${this.baseUrl}/config/${configId}`, this.getHttpOptions()).pipe(
-      tap(() => {
-        this.configSubject.next(null);
-        this.savingSubject.next(false);
-      }),
-      catchError((error) => {
-        console.error('Error al eliminar configuracion CRM:', error);
-        this.errorSubject.next('Error al eliminar la configuracion');
-        this.savingSubject.next(false);
-        throw error;
-      })
-    );
+    return this.http
+      .delete<void>(`${this.baseUrl}/config/${configId}`, this.getHttpOptions())
+      .pipe(
+        tap(() => {
+          this.configSubject.next(null);
+          this.savingSubject.next(false);
+        }),
+        catchError((error) => {
+          console.error('Error al eliminar configuracion CRM:', error);
+          this.errorSubject.next('Error al eliminar la configuracion');
+          this.savingSubject.next(false);
+          throw error;
+        })
+      );
   }
 
   /**
@@ -173,7 +211,9 @@ export class LeadsService {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
-    const endpoint = onlyFailed ? `${this.baseUrl}/sync-records/failed` : `${this.baseUrl}/sync-records`;
+    const endpoint = onlyFailed
+      ? `${this.baseUrl}/sync-records/failed`
+      : `${this.baseUrl}/sync-records`;
 
     return this.http.get<CrmSyncRecord[]>(endpoint, this.getHttpOptions()).pipe(
       tap((records) => {
@@ -182,7 +222,9 @@ export class LeadsService {
       }),
       catchError((error) => {
         console.error('Error al obtener registros de sincronizacion:', error);
-        this.errorSubject.next('Error al cargar los registros de sincronizacion');
+        this.errorSubject.next(
+          'Error al cargar los registros de sincronizacion'
+        );
         this.loadingSubject.next(false);
         return of([]);
       })
@@ -212,5 +254,99 @@ export class LeadsService {
     this.errorSubject.next(null);
     this.loadingSubject.next(false);
     this.savingSubject.next(false);
+    this.concesionariosSubject.next([]);
+    this.sedesSubject.next([]);
+    this.campanasSubject.next([]);
+    this.tiposLeadSubject.next([]);
+  }
+
+  // ============================================
+  // Métodos para datos de LeadCars API
+  // ============================================
+
+  /**
+   * Obtener concesionarios de LeadCars
+   * GET /api/v1/leads/admin/leadcars/concesionarios
+   */
+  getConcesionarios(): Observable<LeadCarsConcesionario[]> {
+    return this.http
+      .get<LeadCarsConcesionario[]>(
+        `${this.baseUrl}/leadcars/concesionarios`,
+        this.getHttpOptions()
+      )
+      .pipe(
+        tap((concesionarios) =>
+          this.concesionariosSubject.next(concesionarios)
+        ),
+        catchError((error) => {
+          console.error('Error al obtener concesionarios:', error);
+          return of([]);
+        })
+      );
+  }
+
+  /**
+   * Obtener sedes de un concesionario
+   * GET /api/v1/leads/admin/leadcars/sedes/:concesionarioId
+   */
+  getSedes(concesionarioId: number): Observable<LeadCarsSede[]> {
+    return this.http
+      .get<LeadCarsSede[]>(
+        `${this.baseUrl}/leadcars/sedes/${concesionarioId}`,
+        this.getHttpOptions()
+      )
+      .pipe(
+        tap((sedes) => this.sedesSubject.next(sedes)),
+        catchError((error) => {
+          console.error('Error al obtener sedes:', error);
+          return of([]);
+        })
+      );
+  }
+
+  /**
+   * Obtener campañas de un concesionario
+   * GET /api/v1/leads/admin/leadcars/campanas/:concesionarioId
+   */
+  getCampanas(concesionarioId: number): Observable<LeadCarsCampana[]> {
+    return this.http
+      .get<LeadCarsCampana[]>(
+        `${this.baseUrl}/leadcars/campanas/${concesionarioId}`,
+        this.getHttpOptions()
+      )
+      .pipe(
+        tap((campanas) => this.campanasSubject.next(campanas)),
+        catchError((error) => {
+          console.error('Error al obtener campañas:', error);
+          return of([]);
+        })
+      );
+  }
+
+  /**
+   * Obtener tipos de lead de LeadCars
+   * GET /api/v1/leads/admin/leadcars/tipos
+   */
+  getTiposLead(): Observable<LeadCarsTipoLead[]> {
+    return this.http
+      .get<LeadCarsTipoLead[]>(
+        `${this.baseUrl}/leadcars/tipos`,
+        this.getHttpOptions()
+      )
+      .pipe(
+        tap((tipos) => this.tiposLeadSubject.next(tipos)),
+        catchError((error) => {
+          console.error('Error al obtener tipos de lead:', error);
+          return of([]);
+        })
+      );
+  }
+
+  /**
+   * Limpiar sedes y campañas (cuando cambia el concesionario)
+   */
+  clearSedesYCampanas(): void {
+    this.sedesSubject.next([]);
+    this.campanasSubject.next([]);
   }
 }

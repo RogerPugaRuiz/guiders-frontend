@@ -539,7 +539,7 @@
 
 .visitor-info__email {
   @include tokens.typography('caption');
-  color: tokens.$color-text-secondary;
+  color: tokens.$color-text-secondary;  
 }
 
 .visitor-info__new-badge {

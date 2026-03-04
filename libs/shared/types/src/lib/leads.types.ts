@@ -5,12 +5,18 @@ export interface LeadContactData {
   id: string;
   visitorId: string;
   companyId: string;
+  // Campos principales (mapean a LeadCars)
   nombre?: string;
   apellidos?: string;
   email?: string;
-  telefono?: string;
+  telefono?: string; // Teléfono principal, formato E.164
+  movil?: string; // Teléfono móvil adicional, formato E.164
+  // Datos de ubicación
   dni?: string;
+  cp?: string; // Código postal
+  provincia?: string;
   poblacion?: string;
+  // Campos adicionales
   additionalData?: Record<string, unknown>;
   extractedFromChatId?: string;
   extractedAt: string;
@@ -23,8 +29,11 @@ export interface SaveContactDataRequest {
   nombre?: string;
   apellidos?: string;
   email?: string;
-  telefono?: string;
+  telefono?: string; // Formato E.164: +34XXXXXXXXX
+  movil?: string; // Formato E.164: +34XXXXXXXXX
   dni?: string;
+  cp?: string;
+  provincia?: string;
   poblacion?: string;
   additionalData?: Record<string, unknown>;
   extractedFromChatId?: string;
@@ -46,14 +55,53 @@ export interface CrmCompanyConfig {
   updatedAt: string;
 }
 
+// Temperaturas de lead disponibles en LeadCars
+export type LeadTemperature = 'cold' | 'warm' | 'hot';
+
+export const LEAD_TEMPERATURES: { value: LeadTemperature; label: string }[] = [
+  { value: 'cold', label: 'Frío' },
+  { value: 'warm', label: 'Templado' },
+  { value: 'hot', label: 'Caliente' },
+];
+
+// Tipos de lead por defecto en LeadCars
+export type LeadType = 'WEB' | 'TELEFONO' | 'PRESENCIAL';
+
+export const LEAD_TYPES: { value: LeadType; label: string }[] = [
+  { value: 'WEB', label: 'Web' },
+  { value: 'TELEFONO', label: 'Teléfono' },
+  { value: 'PRESENCIAL', label: 'Presencial' },
+];
+
+// Estado del lead para LeadCars
+export interface LeadCarsEstado {
+  id: string;
+  motivos?: string[];
+  texto?: string;
+}
+
 // Configuración específica de LeadCars
 export interface LeadCarsConfig {
+  // Autenticación (requerido)
   clienteToken: string;
+
+  // Entorno
   useSandbox?: boolean;
+
+  // IDs de configuración
   concesionarioId?: number;
   sedeId?: number;
   campanaId?: number;
-  tipoLeadDefault?: string;
+
+  // Tipo de lead por defecto (requerido en API)
+  tipoLeadDefault?: LeadType;
+
+  // Temperatura por defecto para nuevos leads
+  temperatureDefault?: LeadTemperature;
+
+  // Campos adicionales para mapeo
+  includeUrlOrigen?: boolean; // Incluir URL de origen del chat
+  includeComentario?: boolean; // Incluir resumen de conversación como comentario
 }
 
 // Request para crear/actualizar configuración CRM
@@ -100,7 +148,39 @@ export interface SupportedCrmTypesResponse {
 export const LEADCARS_CONFIG_DEFAULTS: Partial<LeadCarsConfig> = {
   useSandbox: false,
   tipoLeadDefault: 'WEB',
+  temperatureDefault: 'warm',
+  includeUrlOrigen: true,
+  includeComentario: true,
 };
+
+// URLs de la API de LeadCars
+export const LEADCARS_API_URLS = {
+  production: 'https://api.leadcars.es/api/v2',
+  sandbox: 'https://apisandbox.leadcars.es/api/v2',
+} as const;
+
+// Mapeo de campos entre Guiders y LeadCars API
+export interface LeadCarsLeadPayload {
+  // Campos requeridos
+  nombre: string;
+  apellidos?: string;
+  telefono: string; // Formato E.164: +34915715135
+  concesionario: number;
+  tipo_lead: number;
+
+  // Campos opcionales
+  movil?: string; // Formato E.164
+  email?: string;
+  cp?: string;
+  provincia?: string;
+  comentario?: string;
+  url_origen?: string;
+  sede?: number;
+  campana?: string;
+  custom?: Record<string, string | number | boolean>;
+  estado?: LeadCarsEstado;
+  temperature?: LeadTemperature;
+}
 
 // Eventos de trigger disponibles
 export const AVAILABLE_TRIGGER_EVENTS = [
@@ -110,3 +190,54 @@ export const AVAILABLE_TRIGGER_EVENTS = [
 ] as const;
 
 export type TriggerEvent = (typeof AVAILABLE_TRIGGER_EVENTS)[number];
+
+// ============================================
+// Tipos para endpoints de LeadCars API
+// ============================================
+
+// Concesionario de LeadCars (GET /concesionarios)
+export interface LeadCarsConcesionario {
+  id: number;
+  nombre: string;
+}
+
+// Sede de LeadCars (GET /sedes/:concesionario)
+export interface LeadCarsSede {
+  id: number;
+  nombre: string;
+  concesionarioId: number;
+}
+
+// Campaña de LeadCars (GET /campanas/:concesionario)
+export interface LeadCarsCampana {
+  id: number;
+  nombre: string;
+  codigo: string;
+  concesionarioId: number;
+}
+
+// Tipo de lead de LeadCars (GET /tipos)
+export interface LeadCarsTipoLead {
+  id: number;
+  nombre: string;
+}
+
+// Estado de lead de LeadCars (GET /listStates)
+export interface LeadCarsEstadoField {
+  name: string;
+  type: 'checkbox' | 'text' | 'textarea';
+  title: string;
+  required: boolean;
+  options?: string[];
+}
+
+export interface LeadCarsEstadoConfig {
+  id: number;
+  group: string;
+  fields: LeadCarsEstadoField[];
+}
+
+// Respuestas de la API de LeadCars
+export interface LeadCarsListStatesResponse {
+  [estadoName: string]: LeadCarsEstadoConfig;
+}
