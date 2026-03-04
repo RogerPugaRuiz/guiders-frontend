@@ -1,8 +1,7 @@
-.integrations-page {
+.leads-page {
   padding: 24px;
   height: 100%;
   overflow: auto;
-  background: var(--color-surface-primary);
 }
 
 .page-header {
@@ -39,7 +38,6 @@
     &:hover {
       background: var(--color-surface-hover);
       color: var(--color-text-primary);
-      text-decoration: none;
     }
 
     &.active {
@@ -49,7 +47,7 @@
   }
 }
 
-.integrations-content {
+.leads-content {
   background: var(--color-surface-elevated, var(--color-surface-primary));
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;

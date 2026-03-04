@@ -17,13 +17,13 @@
     h2 {
       font-size: 24px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: var(--color-text-primary);
       margin: 0 0 8px 0;
     }
 
     p {
       font-size: 14px;
-      color: #666;
+      color: var(--color-text-secondary);
       margin: 0;
     }
   }
@@ -46,8 +46,8 @@
 }
 
 .stat-card {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-elevated, var(--color-surface-primary));
+  border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
   padding: 20px;
   text-align: center;
@@ -56,48 +56,48 @@
     display: block;
     font-size: 32px;
     font-weight: 700;
-    color: #1a1a1a;
+    color: var(--color-text-primary);
     line-height: 1;
     margin-bottom: 8px;
   }
 
   &__label {
     font-size: 13px;
-    color: #666;
+    color: var(--color-text-secondary);
   }
 
   &--success {
-    border-color: #c3e6cb;
-    background: #f8fff9;
+    border-color: var(--color-success-text);
+    background: var(--color-success-bg);
 
     .stat-card__value {
-      color: #28a745;
+      color: var(--color-success-text);
     }
   }
 
   &--warning {
-    border-color: #ffeeba;
-    background: #fffdf5;
+    border-color: var(--color-warning-text);
+    background: var(--color-warning-bg);
 
     .stat-card__value {
-      color: #f0ad4e;
+      color: var(--color-warning-text);
     }
   }
 
   &--error {
-    border-color: #f5c6cb;
-    background: #fff8f8;
+    border-color: var(--color-error-text);
+    background: var(--color-error-bg);
 
     .stat-card__value {
-      color: #dc3545;
+      color: var(--color-error-text);
     }
   }
 }
 
 // Filter Bar
 .filter-bar {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-elevated, var(--color-surface-primary));
+  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 24px;
@@ -120,9 +120,9 @@
     position: relative;
     width: 18px;
     height: 18px;
-    border: 2px solid #ccc;
+    border: 2px solid var(--color-border-default);
     border-radius: 4px;
-    background: #fff;
+    background: var(--color-surface-elevated, var(--color-surface-primary));
     flex-shrink: 0;
     transition: border-color 0.2s, background 0.2s;
 
@@ -133,7 +133,7 @@
       left: 5px;
       width: 5px;
       height: 9px;
-      border: solid #fff;
+      border: solid var(--color-on-accent);
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
       opacity: 0;
@@ -142,8 +142,8 @@
   }
 
   .checkbox-input:checked + .checkbox-box {
-    background: #007bff;
-    border-color: #007bff;
+    background: var(--color-accent);
+    border-color: var(--color-accent);
 
     &::after {
       opacity: 1;
@@ -152,7 +152,7 @@
 
   .checkbox-text {
     font-size: 14px;
-    color: #333;
+    color: var(--color-text-primary);
   }
 }
 
@@ -168,15 +168,15 @@
   .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid #e5e5e5;
-    border-top-color: #007bff;
+    border: 3px solid var(--color-border-subtle);
+    border-top-color: var(--color-accent);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
 
   span {
     font-size: 14px;
-    color: #666;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -194,8 +194,8 @@
   justify-content: center;
   padding: 64px 24px;
   text-align: center;
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-elevated, var(--color-surface-primary));
+  border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
 
   &__icon {
@@ -206,13 +206,13 @@
   &__title {
     font-size: 18px;
     font-weight: 600;
-    color: #1a1a1a;
+    color: var(--color-text-primary);
     margin: 0 0 8px 0;
   }
 
   &__description {
     font-size: 14px;
-    color: #666;
+    color: var(--color-text-secondary);
     margin: 0;
     max-width: 320px;
   }
@@ -229,16 +229,16 @@
   font-size: 14px;
 
   &--error {
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    color: #721c24;
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-error-text);
   }
 }
 
 // Table
 .table-container {
-  background: #fff;
-  border: 1px solid #e5e5e5;
+  background: var(--color-surface-elevated, var(--color-surface-primary));
+  border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
   overflow: hidden;
 }
@@ -248,16 +248,17 @@
   border-collapse: collapse;
   font-size: 13px;
 
-  th, td {
+  th,
+  td {
     padding: 12px 16px;
     text-align: left;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   th {
-    background: #f8f9fa;
+    background: var(--color-surface-secondary);
     font-weight: 600;
-    color: #333;
+    color: var(--color-text-primary);
     white-space: nowrap;
   }
 
@@ -265,7 +266,7 @@
     transition: background 0.2s;
 
     &:hover {
-      background: #f8f9fa;
+      background: var(--color-surface-hover);
     }
 
     &:last-child td {
@@ -273,16 +274,17 @@
     }
 
     &.row--error {
-      background: #fff8f8;
+      background: var(--color-error-bg);
 
       &:hover {
-        background: #fff0f0;
+        background: var(--color-error-bg);
+        filter: brightness(0.97);
       }
     }
   }
 
   td {
-    color: #444;
+    color: var(--color-text-primary);
     vertical-align: middle;
   }
 }
@@ -290,14 +292,14 @@
 .id-cell {
   font-family: 'Monaco', 'Menlo', monospace;
   font-size: 12px;
-  color: #666;
-  background: #f5f5f5;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-secondary);
   padding: 2px 6px;
   border-radius: 4px;
 }
 
 .text-muted {
-  color: #999;
+  color: var(--color-text-tertiary, var(--color-text-secondary));
 }
 
 .text-center {
@@ -306,7 +308,7 @@
 
 .error-message {
   font-size: 12px;
-  color: #dc3545;
+  color: var(--color-error-text);
 }
 
 // Status Badge
@@ -330,12 +332,12 @@
   }
 
   &--secondary {
-    background: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-subtle);
 
     &:hover:not(:disabled) {
-      background: #e5e5e5;
+      background: var(--color-surface-hover);
     }
   }
 }

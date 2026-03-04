@@ -9,27 +9,29 @@
       margin: 0;
       font-size: 18px;
       font-weight: 600;
+      color: var(--color-text-primary);
     }
   }
 }
 
 .btn-primary {
-  background: #007bff;
-  color: white;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 500;
   cursor: pointer;
   font-size: 14px;
+  transition: background 0.2s;
 
   &:hover {
-    background: #0056b3;
+    background: var(--color-accent-hover);
   }
 }
 
 .table-container {
-  border: 1px solid #e9ecef;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -38,23 +40,34 @@ table {
   width: 100%;
   border-collapse: collapse;
 
-  th, td {
+  th,
+  td {
     padding: 12px 16px;
     text-align: left;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   th {
-    background: #f8f9fa;
+    background: var(--color-surface-secondary);
     font-weight: 600;
     font-size: 12px;
     text-transform: uppercase;
-    color: #6c757d;
+    color: var(--color-text-secondary);
+  }
+
+  tbody tr {
+    &:hover {
+      background: var(--color-surface-hover);
+    }
+
+    &:last-child td {
+      border-bottom: none;
+    }
   }
 
   .empty-state {
     text-align: center;
     padding: 32px;
-    color: #6c757d;
+    color: var(--color-text-secondary);
   }
 }

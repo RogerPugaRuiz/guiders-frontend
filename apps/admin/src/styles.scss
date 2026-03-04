@@ -16,8 +16,8 @@
   --color-surface-primary: #{tokens.$color-surface-primary};
   --color-surface-secondary: #{tokens.$color-surface-secondary};
   --color-surface-tertiary: #{tokens.$color-surface-tertiary};
-  --color-surface-hover: #{tokens.$color-surface-hover};
-  --color-surface-selected: #{tokens.$color-surface-selected};
+  --color-surface-hover: #eeeeec; // Más sutil que selected
+  --color-surface-selected: #e8e8e6; // Intermedio: más visible que neutral-100, menos que neutral-200
   --color-surface-pressed: #{tokens.$color-surface-pressed};
   --color-surface-disabled: #{tokens.$color-surface-disabled};
   --color-surface-elevated: #{tokens.$color-surface-elevated};
@@ -67,6 +67,20 @@
   --color-purple-bg: #f3e8ff;
   --color-purple-text: #7c3aed;
   --color-purple: #8b5cf6;
+
+  // --- Badge ---
+  --color-badge-neutral: #{tokens.$color-badge-neutral};
+  --color-badge-neutral-text: #{tokens.$color-badge-neutral-text};
+  --color-badge-error: #{tokens.$color-badge-error};
+  --color-badge-error-text: #{tokens.$color-badge-error-text};
+  --color-badge-success: #{tokens.$color-badge-success};
+  --color-badge-success-text: #{tokens.$color-badge-success-text};
+  --color-badge-warning: #{tokens.$color-badge-warning};
+  --color-badge-warning-text: #{tokens.$color-badge-warning-text};
+
+  // --- Scrollbar ---
+  --color-scrollbar-thumb: #{tokens.$color-scrollbar-thumb};
+  --color-scrollbar-thumb-hover: #{tokens.$color-scrollbar-thumb-hover};
 
   // --- Status ---
   --color-status-online: #{tokens.$color-status-online};
@@ -153,8 +167,8 @@
 
   // Superficies
   --wl-color-surface: #{tokens.$color-surface-secondary};
-  --wl-color-surface-hover: #{tokens.$color-surface-hover};
-  --wl-color-surface-selected: #{tokens.$color-surface-selected};
+  --wl-color-surface-hover: #eeeeec; // Más sutil que selected
+  --wl-color-surface-selected: #e8e8e6; // Intermedio: más visible que neutral-100, menos que neutral-200
   --wl-color-surface-text: #{tokens.$color-text-primary};
   --wl-color-surface-text-muted: #{tokens.$color-text-secondary};
 
@@ -176,7 +190,14 @@
 
   // Mensajes
   --wl-message-visitor-bg: #{tokens.$color-message-visitor};
+  --wl-message-visitor-bg-start: #{tokens.$neutral-200};
+  --wl-message-visitor-bg-end: #{tokens.$neutral-100};
+  --wl-message-visitor-border: #{tokens.$neutral-300};
+  --wl-message-visitor-text: #{tokens.$neutral-900};
   --wl-message-own-bg: #{tokens.$color-message-own};
+  --wl-message-own-bg-start: #{tokens.$neutral-100};
+  --wl-message-own-bg-end: #{tokens.$neutral-50};
+  --wl-message-own-border: #{tokens.$neutral-200};
   --wl-message-own-text: #{tokens.$color-message-own-text};
   --wl-message-meta: #{tokens.$color-message-meta};
   --wl-message-ai-bg-start: #{tokens.$color-message-ai-bg-start};
@@ -187,6 +208,14 @@
   // Scrollbar
   --wl-scrollbar-thumb: #{tokens.$color-scrollbar-thumb};
   --wl-scrollbar-thumb-hover: #{tokens.$color-scrollbar-thumb-hover};
+
+  // --- Mensajes (Chat) ---
+  --color-message-visitor: #{tokens.$color-message-visitor};
+  --color-message-visitor-text: #{tokens.$color-message-visitor-text};
+  --color-message-own: #{tokens.$color-message-own};
+  --color-message-own-text: #{tokens.$color-message-own-text};
+  --color-message-system: #{tokens.$color-message-system};
+  --color-message-system-text: #{tokens.$color-message-system-text};
 
   // Gradientes
   --wl-gradient-primary: #{tokens.$gradient-primary};
@@ -270,6 +299,40 @@
 
   --wl-scrollbar-thumb: #{tokens.$color-content-dark-scrollbar-thumb};
   --wl-scrollbar-thumb-hover: #{tokens.$color-content-dark-scrollbar-thumb-hover};
+
+  // --- Mensajes (Dark Mode) ---
+  // Visitante: tonos grises neutros
+  --wl-message-visitor-bg: #{tokens.$neutral-700};
+  --wl-message-visitor-bg-start: rgba(74, 74, 69, 0.95);
+  --wl-message-visitor-bg-end: rgba(74, 74, 69, 0.75);
+  --wl-message-visitor-border: rgba(107, 107, 99, 0.4);
+  --wl-message-visitor-text: #{tokens.$neutral-100};
+
+  // Propios: tonos más claros/cálidos
+  --wl-message-own-bg: #{tokens.$neutral-600};
+  --wl-message-own-bg-start: rgba(107, 107, 99, 0.95);
+  --wl-message-own-bg-end: rgba(107, 107, 99, 0.75);
+  --wl-message-own-border: rgba(138, 138, 128, 0.4);
+  --wl-message-own-text: #{tokens.$neutral-100};
+
+  --wl-message-meta: #{tokens.$neutral-400};
+
+  // IA: tonos índigo/púrpura
+  --wl-message-ai-bg-start: rgba(99, 102, 241, 0.15);
+  --wl-message-ai-bg-end: rgba(99, 102, 241, 0.08);
+  --wl-message-ai-border: rgba(99, 102, 241, 0.3);
+  --wl-message-ai-accent: #818cf8;
+
+  // --- Badges (Dark Mode) ---
+  --wl-badge-danger: rgba(239, 68, 68, 0.25);
+  --wl-badge-danger-text: #fca5a5;
+
+  --color-message-visitor: #{tokens.$neutral-700};
+  --color-message-visitor-text: #{tokens.$neutral-100};
+  --color-message-own: #{tokens.$neutral-600};
+  --color-message-own-text: #{tokens.$neutral-100};
+  --color-message-system: #{tokens.$neutral-700};
+  --color-message-system-text: #{tokens.$neutral-300};
 }
 
 /* ============================================================================
@@ -437,6 +500,23 @@ select {
 
 .sr-only {
   @include tokens.visually-hidden;
+}
+
+// Skip link para accesibilidad
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: tokens.$spacing-1-5;
+  background: tokens.$color-accent;
+  color: tokens.$color-on-accent;
+  padding: tokens.$spacing-2 tokens.$spacing-4;
+  border-radius: tokens.$border-radius-sm;
+  text-decoration: none;
+  z-index: tokens.$z-index-modal;
+
+  &:focus {
+    top: tokens.$spacing-1-5;
+  }
 }
 
 /* ============================================================================

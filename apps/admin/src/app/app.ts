@@ -1,8 +1,15 @@
 import { Component, signal, inject, computed } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
-import { UserService, UserProfile, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
-import { ProfileModalComponent, AvatarUpdateRequest } from '@guiders-frontend/profile-modal';
+import {
+  UserService,
+  UserProfile,
+  ENVIRONMENT_TOKEN,
+} from '@guiders-frontend/auth/data-access/session';
+import {
+  ProfileModalComponent,
+  AvatarUpdateRequest,
+} from '@guiders-frontend/profile-modal';
 import { ProfileService } from '@guiders-frontend/profile-service';
 import { RedirectConfirm } from '@guiders-frontend/redirect-confirm';
 
@@ -23,8 +30,8 @@ export class App {
   readonly currentUser = this.userService.currentUser;
 
   // App Switcher - solo visible para admins
-  readonly isAdmin = computed(() =>
-    this.currentUser()?.roles?.includes('admin') ?? false
+  readonly isAdmin = computed(
+    () => this.currentUser()?.roles?.includes('admin') ?? false
   );
   readonly consoleUrl = this.environment.consoleUrl ?? '';
 
@@ -37,7 +44,7 @@ export class App {
     showToggle: true,
     theme: 'dark',
     width: '280px',
-    collapsedWidth: '64px'
+    collapsedWidth: '64px',
   });
 
   readonly sidebarItems = signal<SidebarItem[]>([
@@ -45,13 +52,13 @@ export class App {
       id: 'dashboard',
       label: 'Dashboard',
       icon: 'bar-chart',
-      route: '/dashboard'
+      route: '/dashboard',
     },
     {
       id: 'users',
       label: 'Usuarios',
       icon: 'users',
-      route: '/users'
+      route: '/users',
     },
     {
       id: 'integrations',
@@ -63,28 +70,48 @@ export class App {
           id: 'api-keys',
           label: 'API Keys',
           icon: 'lock',
-          route: '/integrations/api-keys'
+          route: '/integrations/api-keys',
         },
         {
           id: 'sites',
           label: 'Sitios',
           icon: 'globe',
-          route: '/integrations/sites'
-        }
-      ]
+          route: '/integrations/sites',
+        },
+      ],
+    },
+    {
+      id: 'leads',
+      label: 'Leads',
+      icon: 'users',
+      route: '/leads',
+      children: [
+        {
+          id: 'leads-list',
+          label: 'Lista de Leads',
+          icon: 'users',
+          route: '/leads/list',
+        },
+        {
+          id: 'sync-records',
+          label: 'Sincronizaciones',
+          icon: 'activity',
+          route: '/leads/sync-records',
+        },
+      ],
     },
     {
       id: 'ai',
       label: 'Configuracion IA',
       icon: 'activity',
-      route: '/ai'
+      route: '/ai',
     },
     {
       id: 'branding',
       label: 'Marca Blanca',
       icon: 'layers',
-      route: '/branding'
-    }
+      route: '/branding',
+    },
   ]);
 
   onSidebarItemClick(item: SidebarItem): void {
@@ -92,9 +119,9 @@ export class App {
   }
 
   onSidebarToggle(collapsed: boolean): void {
-    this.sidebarConfig.update(config => ({
+    this.sidebarConfig.update((config) => ({
       ...config,
-      collapsed
+      collapsed,
     }));
   }
 
@@ -115,7 +142,7 @@ export class App {
       },
       error: (error: Error) => {
         console.error('Error al cargar perfil del usuario:', error);
-      }
+      },
     });
   }
 
@@ -136,7 +163,7 @@ export class App {
         if (currentProfile) {
           this.userProfile.set({
             ...currentProfile,
-            avatarUrl: response.avatarUrl
+            avatarUrl: response.avatarUrl,
           });
         }
 
@@ -147,7 +174,7 @@ export class App {
           },
           error: (error: Error) => {
             console.error('Error al actualizar perfil:', error);
-          }
+          },
         });
 
         this.isUploadingAvatar.set(false);
@@ -156,7 +183,7 @@ export class App {
       error: (error: Error) => {
         console.error('Error al actualizar avatar:', error);
         this.isUploadingAvatar.set(false);
-      }
+      },
     });
   }
 }

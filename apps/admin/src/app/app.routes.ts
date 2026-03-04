@@ -24,6 +24,12 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'leads',
+    loadChildren: () =>
+      import('@guiders-frontend/leads').then((m) => m.leadsRoutes),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'ai',
     loadChildren: () =>
       import('@guiders-frontend/ai-config').then((m) => m.aiConfigRoutes),
