@@ -1,0 +1,359 @@
+<div class="leads-list">
+  <!-- Header -->
+  <div class="section-header">
+    <div class="section-header__content">
+      <h2>Leads</h2>
+      <p>
+        Leads capturados por Guiders y su estado de sincronización con el CRM.
+      </p>
+    </div>
+    <div class="section-header__actions">
+      <button
+        class="btn btn--secondary"
+        (click)="loadRecords()"
+        [disabled]="loading()"
+      >
+        @if (loading()) {
+        <span class="btn-spinner"></span>
+        } @else {
+        <span class="refresh-icon">↻</span>
+        } Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-cards">
+    <div
+      class="stat-card"
+      [class.stat-card--active]="activeFilter() === 'all'"
+      (click)="setFilter('all')"
+    >
+      <span class="stat-card__value">{{ totalCount() }}</span>
+      <span class="stat-card__label">Total leads</span>
+    </div>
+    <div
+      class="stat-card stat-card--success"
+      [class.stat-card--active]="activeFilter() === 'synced'"
+      (click)="setFilter('synced')"
+    >
+      <span class="stat-card__icon">✓</span>
+      <span class="stat-card__value">{{ syncedCount() }}</span>
+      <span class="stat-card__label">En LeadCars</span>
+    </div>
+    <div
+      class="stat-card stat-card--warning"
+      [class.stat-card--active]="activeFilter() === 'pending'"
+      (click)="setFilter('pending')"
+    >
+      <span class="stat-card__value">{{ pendingCount() }}</span>
+      <span class="stat-card__label">Pendientes</span>
+    </div>
+    <div
+      class="stat-card stat-card--error"
+      [class.stat-card--active]="activeFilter() === 'failed'"
+      (click)="setFilter('failed')"
+    >
+      <span class="stat-card__value">{{ failedCount() }}</span>
+      <span class="stat-card__label">Fallidos</span>
+    </div>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <div class="filter-bar__tabs">
+      <button
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'all'"
+        (click)="setFilter('all')"
+      >
+        Todos
+        <span class="filter-tab__count">{{ totalCount() }}</span>
+      </button>
+      <button
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'synced'"
+        (click)="setFilter('synced')"
+      >
+        Sincronizados
+        <span class="filter-tab__count filter-tab__count--success"
+          >{{ syncedCount() }}</span
+        >
+      </button>
+      <button
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'pending'"
+        (click)="setFilter('pending')"
+      >
+        Pendientes
+        <span class="filter-tab__count filter-tab__count--warning"
+          >{{ pendingCount() }}</span
+        >
+      </button>
+      <button
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'failed'"
+        (click)="setFilter('failed')"
+      >
+        Fallidos
+        <span class="filter-tab__count filter-tab__count--error"
+          >{{ failedCount() }}</span
+        >
+      </button>
+    </div>
+    <div class="filter-bar__search">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Buscar por nombre, email, teléfono..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="onSearch($event)"
+      />
+    </div>
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+  <div class="alert alert--error">
+    <span class="alert__icon">⚠</span>
+    <span class="alert__message">{{ error() }}</span>
+  </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <span>Cargando leads...</span>
+  </div>
+  } @else if (!hasRecords()) {
+  <!-- Empty -->
+  <div class="empty-state">
+    <span class="empty-state__icon">👤</span>
+    <p class="empty-state__title">
+      @if (searchQuery() || activeFilter() !== 'all') { No hay leads con estos
+      filtros } @else { No hay leads todavía }
+    </p>
+    <p class="empty-state__description">
+      @if (searchQuery() || activeFilter() !== 'all') { Prueba a cambiar los
+      filtros o el término de búsqueda. } @else { Cuando Guiders capture el
+      primer lead, aparecerá aquí. }
+    </p>
+  </div>
+  } @else {
+  <!-- Table -->
+  <div class="table-container">
+    <table class="leads-table">
+      <thead>
+        <tr>
+          <th>Visitante</th>
+          <th>LeadCars ID</th>
+          <th>Estado</th>
+          <th>Temperatura</th>
+          <th>Última sync</th>
+          <th>Reintentos</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (record of filteredRecords(); track record.id) {
+        <!-- Main row -->
+        <tr
+          class="lead-row"
+          [class.lead-row--expanded]="isExpanded(record.id)"
+          [class.lead-row--failed]="record.status === 'failed'"
+          (click)="toggleRow(record.id)"
+        >
+          <!-- Visitante -->
+          <td>
+            <div class="visitor-cell">
+              <div
+                class="visitor-avatar"
+                [class.visitor-avatar--empty]="!hasContactData(record)"
+              >
+                {{ getInitials(record) }}
+              </div>
+              <div class="visitor-info">
+                <span class="visitor-info__name"
+                  >{{ getDisplayName(record) }}</span
+                >
+                @if (record.contactData?.email) {
+                <span class="visitor-info__email"
+                  >{{ record.contactData?.email }}</span
+                >
+                } @if (!record.contactData?.email &&
+                record.contactData?.telefono) {
+                <span class="visitor-info__email"
+                  >{{ record.contactData?.telefono }}</span
+                >
+                }
+              </div>
+            </div>
+          </td>
+
+          <!-- LeadCars ID -->
+          <td>
+            @if (record.externalLeadId) {
+            <div class="external-id">
+              <span class="external-id__dot"></span>
+              <span class="id-cell" [title]="record.externalLeadId">
+                #{{ record.externalLeadId }}
+              </span>
+            </div>
+            } @else {
+            <span class="text-muted">—</span>
+            }
+          </td>
+
+          <!-- Estado -->
+          <td>
+            <guiders-badge
+              [text]="getStatusLabel(record.status)"
+              [variant]="getStatusVariant(record.status)"
+              size="small"
+              shape="pill"
+            />
+          </td>
+
+          <!-- Temperatura -->
+          <td>
+            @if (getTemperature(record)) {
+            <guiders-badge
+              [text]="getTemperatureLabel(getTemperature(record))"
+              [variant]="getTemperatureVariant(getTemperature(record))"
+              size="small"
+              shape="pill"
+              [outline]="true"
+            />
+            } @else {
+            <span class="text-muted">—</span>
+            }
+          </td>
+
+          <!-- Última sync -->
+          <td class="date-cell">{{ formatDate(record.lastSyncAt) }}</td>
+
+          <!-- Reintentos -->
+          <td class="text-center">
+            @if (record.retryCount > 0) {
+            <span class="retry-count">{{ record.retryCount }}</span>
+            } @else {
+            <span class="text-muted">—</span>
+            }
+          </td>
+
+          <!-- Expand toggle -->
+          <td class="expand-cell">
+            <span
+              class="expand-icon"
+              [class.expand-icon--open]="isExpanded(record.id)"
+            >
+              ›
+            </span>
+          </td>
+        </tr>
+
+        <!-- Expanded row -->
+        @if (isExpanded(record.id)) {
+        <tr class="detail-row">
+          <td colspan="7">
+            <div class="detail-panel">
+              <!-- Contact data -->
+              <div class="detail-section">
+                <h4 class="detail-section__title">Datos de contacto</h4>
+                <div class="detail-grid">
+                  <div class="detail-field">
+                    <span class="detail-field__label">Nombre</span>
+                    <span class="detail-field__value"
+                      >{{ getDisplayName(record) }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Email</span>
+                    <span class="detail-field__value"
+                      >{{ record.contactData?.email || '—' }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Teléfono</span>
+                    <span class="detail-field__value"
+                      >{{ record.contactData?.telefono || '—' }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Móvil</span>
+                    <span class="detail-field__value"
+                      >{{ record.contactData?.movil || '—' }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">CP</span>
+                    <span class="detail-field__value"
+                      >{{ record.contactData?.cp || '—' }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Provincia</span>
+                    <span class="detail-field__value"
+                      >{{ record.contactData?.provincia || '—' }}</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sync info -->
+              <div class="detail-section">
+                <h4 class="detail-section__title">Sincronización</h4>
+                <div class="detail-grid">
+                  <div class="detail-field">
+                    <span class="detail-field__label">CRM</span>
+                    <span class="detail-field__value"
+                      >{{ getCrmTypeLabel(record.crmType) }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">ID externo</span>
+                    <span class="detail-field__value">
+                      @if (record.externalLeadId) {
+                      <span class="id-cell">#{{ record.externalLeadId }}</span>
+                      } @else { — }
+                    </span>
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Creado</span>
+                    <span class="detail-field__value"
+                      >{{ formatDate(record.createdAt) }}</span
+                    >
+                  </div>
+                  <div class="detail-field">
+                    <span class="detail-field__label">Última sync</span>
+                    <span class="detail-field__value"
+                      >{{ formatDate(record.lastSyncAt) }}</span
+                    >
+                  </div>
+                  @if (record.chatsSynced.length > 0) {
+                  <div class="detail-field detail-field--full">
+                    <span class="detail-field__label">Chats sincronizados</span>
+                    <span class="detail-field__value"
+                      >{{ record.chatsSynced.length }} chat(s)</span
+                    >
+                  </div>
+                  } @if (record.lastError) {
+                  <div class="detail-field detail-field--full">
+                    <span class="detail-field__label">Último error</span>
+                    <span class="detail-field__value detail-field__value--error"
+                      >{{ record.lastError }}</span
+                    >
+                  </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+        } }
+      </tbody>
+    </table>
+  </div>
+  }
+</div>
