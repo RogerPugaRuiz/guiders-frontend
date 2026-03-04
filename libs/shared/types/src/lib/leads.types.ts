@@ -116,15 +116,15 @@ export interface CreateCrmConfigRequest {
 // Estados de sincronización
 export type SyncStatus = 'pending' | 'synced' | 'failed' | 'partial';
 
-// Contact data embedded in sync records (returned by backend)
+// Contact data embedded in sync records (returned by backend via ContactDataDto)
 export interface CrmSyncRecordContactData {
   nombre?: string;
   apellidos?: string;
   email?: string;
   telefono?: string;
-  movil?: string;
-  cp?: string;
-  provincia?: string;
+  dni?: string;
+  poblacion?: string;
+  additionalData?: Record<string, unknown>;
 }
 
 // Registro de sincronización
