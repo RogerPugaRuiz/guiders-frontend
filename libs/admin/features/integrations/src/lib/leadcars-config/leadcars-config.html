@@ -129,12 +129,13 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="concesionarioId">Concesionario</label>
+          <label for="concesionarioId">Concesionario *</label>
           @if (concesionarios().length > 0) {
           <select
             id="concesionarioId"
             formControlName="concesionarioId"
             class="form-control"
+            [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
           >
             <option [ngValue]="null">-- Seleccionar --</option>
             @for (conc of concesionarios(); track conc.id) {
@@ -148,12 +149,16 @@
             formControlName="concesionarioId"
             class="form-control"
             placeholder="ID del concesionario"
+            [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
           />
           <p class="form-hint">
             <button type="button" class="btn-link" (click)="loadLeadCarsData()">
               Cargar lista de concesionarios
             </button>
           </p>
+          } @if (form.get('concesionarioId')?.invalid &&
+          form.get('concesionarioId')?.touched) {
+          <span class="form-error">El concesionario es obligatorio</span>
           }
         </div>
 
@@ -238,50 +243,6 @@
           </button>
         </p>
         }
-      </div>
-
-      <div class="form-group">
-        <label for="temperatureDefault">Temperatura por Defecto</label>
-        <select
-          id="temperatureDefault"
-          formControlName="temperatureDefault"
-          class="form-control"
-        >
-          @for (temp of leadTemperatures; track temp.value) {
-          <option [value]="temp.value">{{ temp.label }}</option>
-          }
-        </select>
-        <p class="form-hint">Temperatura inicial asignada a los nuevos leads</p>
-      </div>
-
-      <div class="form-group form-group--toggle">
-        <label class="toggle-label">
-          <input
-            type="checkbox"
-            formControlName="includeUrlOrigen"
-            class="toggle-input"
-          />
-          <span class="toggle-switch"></span>
-          <span class="toggle-text">Incluir URL de origen</span>
-        </label>
-        <p class="form-hint">
-          Envía la URL de la página donde se inició el chat
-        </p>
-      </div>
-
-      <div class="form-group form-group--toggle">
-        <label class="toggle-label">
-          <input
-            type="checkbox"
-            formControlName="includeComentario"
-            class="toggle-input"
-          />
-          <span class="toggle-switch"></span>
-          <span class="toggle-text">Incluir resumen de conversación</span>
-        </label>
-        <p class="form-hint">
-          Añade un resumen del chat como comentario del lead
-        </p>
       </div>
     </div>
 

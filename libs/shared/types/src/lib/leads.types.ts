@@ -62,12 +62,21 @@ export const LEAD_TEMPERATURES: { value: LeadTemperature; label: string }[] = [
 ];
 
 // Tipos de lead por defecto en LeadCars
-export type LeadType = 'WEB' | 'TELEFONO' | 'PRESENCIAL';
+export type LeadType =
+  | 'COMPRA'
+  | 'VENTA'
+  | 'FINANCIACION'
+  | 'TALLER'
+  | 'RECAMBIOS'
+  | 'OTRO';
 
 export const LEAD_TYPES: { value: LeadType; label: string }[] = [
-  { value: 'WEB', label: 'Web' },
-  { value: 'TELEFONO', label: 'Teléfono' },
-  { value: 'PRESENCIAL', label: 'Presencial' },
+  { value: 'COMPRA', label: 'Compra' },
+  { value: 'VENTA', label: 'Venta' },
+  { value: 'FINANCIACION', label: 'Financiación' },
+  { value: 'TALLER', label: 'Taller' },
+  { value: 'RECAMBIOS', label: 'Recambios' },
+  { value: 'OTRO', label: 'Otro' },
 ];
 
 // Estado del lead para LeadCars
@@ -82,27 +91,23 @@ export interface LeadCarsConfig {
   // Autenticación (requerido)
   clienteToken: string;
 
+  // Concesionario (requerido, ≥1)
+  concesionarioId: number;
+
   // Entorno
   useSandbox?: boolean;
 
-  // IDs de configuración
-  concesionarioId?: number;
+  // IDs opcionales
   sedeId?: number;
   campanaId?: number;
 
-  // Tipo de lead por defecto (requerido en API)
+  // Tipo de lead por defecto
   tipoLeadDefault?: LeadType;
-
-  // Temperatura por defecto para nuevos leads
-  temperatureDefault?: LeadTemperature;
-
-  // Campos adicionales para mapeo
-  includeUrlOrigen?: boolean; // Incluir URL de origen del chat
-  includeComentario?: boolean; // Incluir resumen de conversación como comentario
 }
 
 // Request para crear/actualizar configuración LeadCars
 export interface CreateLeadCarsConfigRequest {
+  companyId: string;
   crmType: 'leadcars';
   enabled: boolean;
   syncChatConversations: boolean;
@@ -151,10 +156,7 @@ export interface TestConnectionResponse {
 // Valores por defecto para LeadCars
 export const LEADCARS_CONFIG_DEFAULTS: Partial<LeadCarsConfig> = {
   useSandbox: false,
-  tipoLeadDefault: 'WEB',
-  temperatureDefault: 'warm',
-  includeUrlOrigen: true,
-  includeComentario: true,
+  tipoLeadDefault: 'COMPRA',
 };
 
 // URLs de la API de LeadCars
@@ -188,7 +190,7 @@ export interface LeadCarsLeadPayload {
 
 // Eventos de trigger disponibles
 export const AVAILABLE_TRIGGER_EVENTS = [
-  'lifecycle_changed_to_lead',
+  'lifecycle_to_lead',
   'chat_closed',
   'contact_data_updated',
 ] as const;

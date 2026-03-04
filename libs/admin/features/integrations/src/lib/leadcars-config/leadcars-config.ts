@@ -15,13 +15,13 @@ import {
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
+import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import {
   LeadCarsCompanyConfig,
   CreateLeadCarsConfigRequest,
   LeadCarsConfig,
   AVAILABLE_TRIGGER_EVENTS,
   LEADCARS_CONFIG_DEFAULTS,
-  LEAD_TEMPERATURES,
   LEAD_TYPES,
   LeadCarsConcesionario,
   LeadCarsSede,
@@ -38,6 +38,7 @@ import {
 export class LeadCarsConfigComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly leadsService = inject(LeadsService);
+  private readonly sessionService = inject(SessionService);
   private readonly destroyRef = inject(DestroyRef);
 
   // Estado reactivo
@@ -63,29 +64,25 @@ export class LeadCarsConfigComponent implements OnInit {
   // Eventos de trigger disponibles
   readonly availableTriggerEvents = AVAILABLE_TRIGGER_EVENTS;
 
-  // Tipos de lead y temperaturas disponibles
+  // Tipos de lead disponibles
   readonly leadTypes = LEAD_TYPES;
-  readonly leadTemperatures = LEAD_TEMPERATURES;
 
   // Formulario
   form: FormGroup = this.fb.group({
     enabled: [true],
-    syncChatConversations: [true],
+    syncChatConversations: [false],
     triggerEvents: this.fb.group({
-      lifecycle_changed_to_lead: [true],
+      lifecycle_to_lead: [true],
       chat_closed: [false],
       contact_data_updated: [false],
     }),
     // Configuración específica de LeadCars
     clienteToken: ['', Validators.required],
     useSandbox: [LEADCARS_CONFIG_DEFAULTS.useSandbox],
-    concesionarioId: [null],
+    concesionarioId: [null, [Validators.required, Validators.min(1)]],
     sedeId: [null],
     campanaId: [null],
     tipoLeadDefault: [LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault],
-    temperatureDefault: [LEADCARS_CONFIG_DEFAULTS.temperatureDefault],
-    includeUrlOrigen: [LEADCARS_CONFIG_DEFAULTS.includeUrlOrigen],
-    includeComentario: [LEADCARS_CONFIG_DEFAULTS.includeComentario],
   });
 
   ngOnInit(): void {
@@ -207,9 +204,7 @@ export class LeadCarsConfigComponent implements OnInit {
       enabled: config.enabled,
       syncChatConversations: config.syncChatConversations,
       triggerEvents: {
-        lifecycle_changed_to_lead: config.triggerEvents.includes(
-          'lifecycle_changed_to_lead'
-        ),
+        lifecycle_to_lead: config.triggerEvents.includes('lifecycle_to_lead'),
         chat_closed: config.triggerEvents.includes('chat_closed'),
         contact_data_updated: config.triggerEvents.includes(
           'contact_data_updated'
@@ -224,15 +219,6 @@ export class LeadCarsConfigComponent implements OnInit {
       tipoLeadDefault:
         leadCarsConfig.tipoLeadDefault ||
         LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
-      temperatureDefault:
-        leadCarsConfig.temperatureDefault ||
-        LEADCARS_CONFIG_DEFAULTS.temperatureDefault,
-      includeUrlOrigen:
-        leadCarsConfig.includeUrlOrigen ??
-        LEADCARS_CONFIG_DEFAULTS.includeUrlOrigen,
-      includeComentario:
-        leadCarsConfig.includeComentario ??
-        LEADCARS_CONFIG_DEFAULTS.includeComentario,
     });
 
     // Cargar datos dinámicos de LeadCars
@@ -246,11 +232,12 @@ export class LeadCarsConfigComponent implements OnInit {
 
   private buildRequest(): CreateLeadCarsConfigRequest {
     const formValue = this.form.value;
+    const companyId = this.sessionService.getCurrentUser()?.companyId ?? '';
 
     // Construir array de trigger events
     const triggerEvents: string[] = [];
-    if (formValue.triggerEvents.lifecycle_changed_to_lead) {
-      triggerEvents.push('lifecycle_changed_to_lead');
+    if (formValue.triggerEvents.lifecycle_to_lead) {
+      triggerEvents.push('lifecycle_to_lead');
     }
     if (formValue.triggerEvents.chat_closed) {
       triggerEvents.push('chat_closed');
@@ -260,21 +247,20 @@ export class LeadCarsConfigComponent implements OnInit {
     }
 
     // Construir configuración específica de LeadCars
+    // Solo incluir campos que el backend acepta
     const leadCarsConfig: LeadCarsConfig = {
       clienteToken: formValue.clienteToken,
+      concesionarioId: Number(formValue.concesionarioId),
       useSandbox: formValue.useSandbox,
       tipoLeadDefault: formValue.tipoLeadDefault,
-      temperatureDefault: formValue.temperatureDefault,
-      includeUrlOrigen: formValue.includeUrlOrigen,
-      includeComentario: formValue.includeComentario,
-      ...(formValue.concesionarioId && {
-        concesionarioId: formValue.concesionarioId,
+      ...(formValue.sedeId != null && { sedeId: Number(formValue.sedeId) }),
+      ...(formValue.campanaId != null && {
+        campanaId: Number(formValue.campanaId),
       }),
-      ...(formValue.sedeId && { sedeId: formValue.sedeId }),
-      ...(formValue.campanaId && { campanaId: formValue.campanaId }),
     };
 
     return {
+      companyId,
       crmType: 'leadcars',
       enabled: formValue.enabled,
       syncChatConversations: formValue.syncChatConversations,
@@ -348,17 +334,14 @@ export class LeadCarsConfigComponent implements OnInit {
         next: () => {
           this.form.reset({
             enabled: true,
-            syncChatConversations: true,
+            syncChatConversations: false,
             triggerEvents: {
-              lifecycle_changed_to_lead: true,
+              lifecycle_to_lead: true,
               chat_closed: false,
               contact_data_updated: false,
             },
             useSandbox: LEADCARS_CONFIG_DEFAULTS.useSandbox,
             tipoLeadDefault: LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
-            temperatureDefault: LEADCARS_CONFIG_DEFAULTS.temperatureDefault,
-            includeUrlOrigen: LEADCARS_CONFIG_DEFAULTS.includeUrlOrigen,
-            includeComentario: LEADCARS_CONFIG_DEFAULTS.includeComentario,
           });
         },
       });
@@ -366,7 +349,7 @@ export class LeadCarsConfigComponent implements OnInit {
 
   getTriggerEventLabel(event: string): string {
     const labels: Record<string, string> = {
-      lifecycle_changed_to_lead: 'Cuando el visitante se convierte en lead',
+      lifecycle_to_lead: 'Cuando el visitante se convierte en lead',
       chat_closed: 'Cuando se cierra una conversación',
       contact_data_updated: 'Cuando se actualizan datos de contacto',
     };
