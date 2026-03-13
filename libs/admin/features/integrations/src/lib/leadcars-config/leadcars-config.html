@@ -160,46 +160,59 @@
         </p>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label for="concesionarioId">Concesionario *</label>
-          @if (concesionarios().length > 0) {
-          <select
-            id="concesionarioId"
-            formControlName="concesionarioId"
-            class="form-control"
-            [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
-          >
-            <option [ngValue]="null">-- Seleccionar --</option>
-            @for (conc of concesionarios(); track conc.id) {
-            <option [ngValue]="conc.id">{{ conc.nombre }}</option>
-            }
-          </select>
-          } @else {
-          <input
-            type="number"
-            id="concesionarioId"
-            formControlName="concesionarioId"
-            class="form-control"
-            placeholder="ID del concesionario"
-            [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
-          />
-          <p class="form-hint">
-            <button type="button" class="btn-link" (click)="loadLeadCarsData()">
-              Cargar lista de concesionarios
-            </button>
-          </p>
-          } @if (form.get('concesionarioId')?.invalid &&
-          form.get('concesionarioId')?.touched) {
-          <span class="form-error">El concesionario es obligatorio</span>
+      <!-- Concesionario — obligatorio -->
+      <div class="form-group">
+        <label for="concesionarioId"
+          >Concesionario <span class="field-required">*</span></label
+        >
+        @if (concesionarios().length > 0) {
+        <select
+          id="concesionarioId"
+          formControlName="concesionarioId"
+          class="form-control"
+          [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
+        >
+          <option [ngValue]="null">-- Seleccionar concesionario --</option>
+          @for (conc of concesionarios(); track conc.id) {
+          <option [ngValue]="conc.id">{{ conc.nombre }}</option>
           }
-        </div>
+        </select>
+        } @else {
+        <input
+          type="number"
+          id="concesionarioId"
+          formControlName="concesionarioId"
+          class="form-control"
+          placeholder="ID del concesionario"
+          [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
+        />
+        <p class="form-hint">
+          <button type="button" class="btn-link" (click)="loadLeadCarsData()">
+            Cargar lista de concesionarios
+          </button>
+        </p>
+        } @if (form.get('concesionarioId')?.invalid &&
+        form.get('concesionarioId')?.touched) {
+        <span class="form-error">El concesionario es obligatorio</span>
+        }
+        <p class="form-hint">
+          El concesionario al que se asignarán los leads sincronizados.
+        </p>
+      </div>
 
-        <div class="form-group">
-          <label for="sedeId">Sede</label>
+      <!-- Sede y Campaña — opcionales, dependen del concesionario -->
+      <div class="form-row form-row--optional-fields">
+        <div
+          class="form-group"
+          [class.form-group--disabled]="!form.get('concesionarioId')?.value"
+        >
+          <label for="sedeId">
+            Sede
+            <span class="field-optional">(opcional)</span>
+          </label>
           @if (sedes().length > 0) {
           <select id="sedeId" formControlName="sedeId" class="form-control">
-            <option [ngValue]="null">-- Seleccionar --</option>
+            <option [ngValue]="null">-- Sin sede específica --</option>
             @for (sede of sedes(); track sede.id) {
             <option [ngValue]="sede.id">{{ sede.nombre }}</option>
             }
@@ -213,20 +226,33 @@
             placeholder="ID de sede"
             [attr.disabled]="!form.get('concesionarioId')?.value ? true : null"
           />
-          @if (!form.get('concesionarioId')?.value) {
-          <p class="form-hint">Selecciona un concesionario primero</p>
-          } }
+          } @if (!form.get('concesionarioId')?.value) {
+          <p class="form-hint">
+            Selecciona primero un concesionario para ver sus sedes.
+          </p>
+          } @else {
+          <p class="form-hint">
+            Si no se indica sede, el lead se asigna a la sede por defecto del
+            concesionario.
+          </p>
+          }
         </div>
 
-        <div class="form-group">
-          <label for="campanaId">Campaña</label>
+        <div
+          class="form-group"
+          [class.form-group--disabled]="!form.get('concesionarioId')?.value"
+        >
+          <label for="campanaId">
+            Campaña
+            <span class="field-optional">(opcional)</span>
+          </label>
           @if (campanas().length > 0) {
           <select
             id="campanaId"
             formControlName="campanaId"
             class="form-control"
           >
-            <option [ngValue]="null">-- Seleccionar --</option>
+            <option [ngValue]="null">-- Sin campaña específica --</option>
             @for (camp of campanas(); track camp.id) {
             <option [ngValue]="camp.id">
               {{ camp.nombre }} ({{ camp.codigo }})
@@ -242,9 +268,15 @@
             placeholder="ID de campaña"
             [attr.disabled]="!form.get('concesionarioId')?.value ? true : null"
           />
-          @if (!form.get('concesionarioId')?.value) {
-          <p class="form-hint">Selecciona un concesionario primero</p>
-          } }
+          } @if (!form.get('concesionarioId')?.value) {
+          <p class="form-hint">
+            Selecciona primero un concesionario para ver sus campañas.
+          </p>
+          } @else {
+          <p class="form-hint">
+            Asocia los leads a una campaña de marketing específica en LeadCars.
+          </p>
+          }
         </div>
       </div>
 

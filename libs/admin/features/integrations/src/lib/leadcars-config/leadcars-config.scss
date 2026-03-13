@@ -168,6 +168,33 @@
   @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
+
+  &--optional-fields {
+    grid-template-columns: repeat(2, 1fr);
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Required / optional field label indicators
+.field-required {
+  color: var(--color-error-text);
+  margin-left: 2px;
+}
+
+.field-optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: 4px;
+}
+
+// Disabled field group (sede/campaña sin concesionario)
+.form-group--disabled {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 // Toggle Switch
