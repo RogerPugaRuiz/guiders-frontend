@@ -112,15 +112,14 @@ export class LeadsService {
           this.loadingSubject.next(false);
         }),
         catchError((error) => {
-          console.error('Error al obtener configuracion LeadCars:', error);
-
-          // Si no existe configuracion, devolver null
+          // Si no existe configuracion, devolver null (estado valido: empresa sin CRM configurado)
           if (error.status === 404) {
             this.configSubject.next(null);
             this.loadingSubject.next(false);
             return of(null);
           }
 
+          console.error('Error al obtener configuracion LeadCars:', error);
           this.errorSubject.next(
             'Error al cargar la configuracion de LeadCars'
           );

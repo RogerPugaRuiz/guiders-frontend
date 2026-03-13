@@ -126,6 +126,22 @@
     <div class="spinner"></div>
     <span>Cargando leads...</span>
   </div>
+  } @else if (crmConfigLoaded() && !hasCrmConfig()) {
+  <!-- CRM Not Configured -->
+  <div class="empty-state empty-state--crm">
+    <span class="empty-state__icon">🔗</span>
+    <p class="empty-state__title">CRM no configurado</p>
+    <p class="empty-state__description">
+      Para ver los leads sincronizados, primero configura tu integración CRM.
+    </p>
+    <button
+      type="button"
+      class="btn btn--primary btn--sm"
+      (click)="goToCrmSetup()"
+    >
+      Ir a configuración
+    </button>
+  </div>
   } @else if (!hasRecords()) {
   <!-- Empty -->
   <div class="empty-state">

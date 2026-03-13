@@ -13,6 +13,39 @@
     <div class="spinner"></div>
     <span>Cargando configuración...</span>
   </div>
+  } @else if (showOnboarding()) {
+  <!-- Empty State: No CRM configured -->
+  <div class="onboarding-panel">
+    <div class="onboarding-panel__icon">
+      <svg
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path
+          d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+        />
+      </svg>
+    </div>
+    <h3 class="onboarding-panel__title">No tienes CRM configurado</h3>
+    <p class="onboarding-panel__description">
+      Configura tu integración CRM para sincronizar automáticamente los leads
+      capturados por Guiders con tu sistema de gestión.
+    </p>
+    <button
+      type="button"
+      class="btn btn--primary"
+      (click)="showSetupForm.set(true)"
+    >
+      Configurar CRM
+    </button>
+  </div>
   } @else {
   <!-- Error Alert -->
   @if (error()) {

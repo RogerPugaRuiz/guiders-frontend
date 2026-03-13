@@ -5,13 +5,16 @@
       <p>Monitorea el estado de sincronización de leads con el CRM.</p>
     </div>
     <div class="section-header__actions">
-      <button class="btn btn--secondary" (click)="refresh()" [disabled]="loading()">
+      <button
+        class="btn btn--secondary"
+        (click)="refresh()"
+        [disabled]="loading()"
+      >
         @if (loading()) {
-          <span class="btn-spinner"></span>
+        <span class="btn-spinner"></span>
         } @else {
-          <span class="refresh-icon">↻</span>
-        }
-        Actualizar
+        <span class="refresh-icon">↻</span>
+        } Actualizar
       </button>
     </div>
   </div>
@@ -52,82 +55,100 @@
 
   <!-- Error Alert -->
   @if (error()) {
-    <div class="alert alert--error">
-      <span class="alert__icon">⚠️</span>
-      <span class="alert__message">{{ error() }}</span>
-    </div>
+  <div class="alert alert--error">
+    <span class="alert__icon">⚠️</span>
+    <span class="alert__message">{{ error() }}</span>
+  </div>
   }
 
   <!-- Loading State -->
   @if (loading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <span>Cargando registros...</span>
-    </div>
+  <div class="loading-state">
+    <div class="spinner"></div>
+    <span>Cargando registros...</span>
+  </div>
+  } @else if (crmConfigLoaded() && !hasCrmConfig()) {
+  <!-- CRM Not Configured -->
+  <div class="empty-state empty-state--crm">
+    <span class="empty-state__icon">🔗</span>
+    <p class="empty-state__title">CRM no configurado</p>
+    <p class="empty-state__description">
+      Para ver los registros de sincronización, primero configura tu integración
+      CRM.
+    </p>
+    <button
+      type="button"
+      class="btn btn--primary btn--sm"
+      (click)="goToCrmSetup()"
+    >
+      Ir a configuración
+    </button>
+  </div>
   } @else if (!hasRecords()) {
-    <!-- Empty State -->
-    <div class="empty-state">
-      <span class="empty-state__icon">📋</span>
-      <p class="empty-state__title">No hay registros de sincronización</p>
-      <p class="empty-state__description">
-        Los registros aparecerán aquí cuando se sincronicen leads con el CRM.
-      </p>
-    </div>
+  <!-- Empty State -->
+  <div class="empty-state">
+    <span class="empty-state__icon">📋</span>
+    <p class="empty-state__title">No hay registros de sincronización</p>
+    <p class="empty-state__description">
+      Los registros aparecerán aquí cuando se sincronicen leads con el CRM.
+    </p>
+  </div>
   } @else {
-    <!-- Records Table -->
-    <div class="table-container">
-      <table class="records-table">
-        <thead>
-          <tr>
-            <th>Visitor ID</th>
-            <th>CRM</th>
-            <th>ID Externo</th>
-            <th>Estado</th>
-            <th>Última Sync</th>
-            <th>Reintentos</th>
-            <th>Error</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (record of records(); track record.id) {
-            <tr [class.row--error]="record.status === 'failed'">
-              <td>
-                <span class="id-cell" [title]="record.visitorId">
-                  {{ truncateId(record.visitorId) }}
-                </span>
-              </td>
-              <td>{{ getCrmTypeLabel(record.crmType) }}</td>
-              <td>
-                @if (record.externalLeadId) {
-                  <span class="id-cell" [title]="record.externalLeadId">
-                    {{ truncateId(record.externalLeadId) }}
-                  </span>
-                } @else {
-                  <span class="text-muted">-</span>
-                }
-              </td>
-              <td>
-                <guiders-badge
-                  [text]="getStatusLabel(record.status)"
-                  [variant]="getStatusVariant(record.status)"
-                  size="small"
-                />
-              </td>
-              <td>{{ formatDate(record.lastSyncAt) }}</td>
-              <td class="text-center">{{ record.retryCount }}</td>
-              <td>
-                @if (record.lastError) {
-                  <span class="error-message" [title]="record.lastError">
-                    {{ record.lastError.length > 50 ? record.lastError.substring(0, 50) + '...' : record.lastError }}
-                  </span>
-                } @else {
-                  <span class="text-muted">-</span>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+  <!-- Records Table -->
+  <div class="table-container">
+    <table class="records-table">
+      <thead>
+        <tr>
+          <th>Visitor ID</th>
+          <th>CRM</th>
+          <th>ID Externo</th>
+          <th>Estado</th>
+          <th>Última Sync</th>
+          <th>Reintentos</th>
+          <th>Error</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (record of records(); track record.id) {
+        <tr [class.row--error]="record.status === 'failed'">
+          <td>
+            <span class="id-cell" [title]="record.visitorId">
+              {{ truncateId(record.visitorId) }}
+            </span>
+          </td>
+          <td>{{ getCrmTypeLabel(record.crmType) }}</td>
+          <td>
+            @if (record.externalLeadId) {
+            <span class="id-cell" [title]="record.externalLeadId">
+              {{ truncateId(record.externalLeadId) }}
+            </span>
+            } @else {
+            <span class="text-muted">-</span>
+            }
+          </td>
+          <td>
+            <guiders-badge
+              [text]="getStatusLabel(record.status)"
+              [variant]="getStatusVariant(record.status)"
+              size="small"
+            />
+          </td>
+          <td>{{ formatDate(record.lastSyncAt) }}</td>
+          <td class="text-center">{{ record.retryCount }}</td>
+          <td>
+            @if (record.lastError) {
+            <span class="error-message" [title]="record.lastError">
+              {{ record.lastError.length > 50 ? record.lastError.substring(0,
+              50) + '...' : record.lastError }}
+            </span>
+            } @else {
+            <span class="text-muted">-</span>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
   }
 </div>

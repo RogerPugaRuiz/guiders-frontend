@@ -54,6 +54,18 @@ export class LeadCarsConfigComponent implements OnInit {
   // Computed
   readonly hasConfig = computed(() => this.config() !== null);
 
+  // Estado para mostrar el formulario de setup cuando no hay config
+  readonly showSetupForm = signal<boolean>(false);
+
+  // Indica si se debe mostrar el panel de onboarding (sin config y sin formulario abierto)
+  readonly showOnboarding = computed(
+    () =>
+      !this.hasConfig() &&
+      !this.loading() &&
+      !this.error() &&
+      !this.showSetupForm()
+  );
+
   // Estado para datos de LeadCars (selectores dinámicos)
   readonly concesionarios = signal<LeadCarsConcesionario[]>([]);
   readonly sedes = signal<LeadCarsSede[]>([]);
@@ -332,6 +344,7 @@ export class LeadCarsConfigComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
+          this.showSetupForm.set(false);
           this.form.reset({
             enabled: true,
             syncChatConversations: false,

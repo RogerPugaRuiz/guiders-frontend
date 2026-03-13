@@ -8,9 +8,14 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '@guiders-frontend/leads-service';
-import { LeadCarsSyncRecord, SyncStatus } from '@guiders-frontend/shared/types';
+import {
+  LeadCarsSyncRecord,
+  SyncStatus,
+  LeadCarsCompanyConfig,
+} from '@guiders-frontend/shared/types';
 import { Badge } from '@guiders-frontend/badge';
 
 type LeadFilter = 'all' | SyncStatus;
@@ -24,6 +29,7 @@ type LeadFilter = 'all' | SyncStatus;
 export class LeadsList implements OnInit {
   private readonly leadsService = inject(LeadsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   // State
   readonly records = signal<LeadCarsSyncRecord[]>([]);
@@ -32,6 +38,11 @@ export class LeadsList implements OnInit {
   readonly activeFilter = signal<LeadFilter>('all');
   readonly searchQuery = signal<string>('');
   readonly expandedRowId = signal<string | null>(null);
+
+  // CRM config state
+  readonly crmConfig = signal<LeadCarsCompanyConfig | null>(null);
+  readonly crmConfigLoaded = signal<boolean>(false);
+  readonly hasCrmConfig = computed(() => this.crmConfig() !== null);
 
   // Stats
   readonly totalCount = computed(() => this.records().length);
@@ -88,7 +99,26 @@ export class LeadsList implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((v) => this.records.set(v));
 
+    this.leadsService.config$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((config) => {
+        this.crmConfig.set(config);
+        this.crmConfigLoaded.set(true);
+      });
+
+    this.loadCrmConfig();
     this.loadRecords();
+  }
+
+  private loadCrmConfig(): void {
+    this.leadsService
+      .getConfig()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe();
+  }
+
+  goToCrmSetup(): void {
+    this.router.navigate(['/integrations/leadcars']);
   }
 
   loadRecords(): void {

@@ -345,6 +345,47 @@
   }
 }
 
+// Onboarding Panel (empty state when no CRM configured)
+.onboarding-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--color-surface-elevated, var(--color-surface-primary));
+  border: 2px dashed var(--color-border-default);
+  border-radius: 12px;
+  max-width: 640px;
+
+  &__icon {
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-surface-secondary);
+    border-radius: 50%;
+    margin-bottom: 24px;
+    color: var(--color-accent);
+  }
+
+  &__title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 12px;
+  }
+
+  &__description {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0 0 24px;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+}
+
 .btn-spinner {
   width: 14px;
   height: 14px;
