@@ -1,0 +1,20 @@
+{
+  "name": "leadcars-status-panel",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/admin/ui/leadcars-status-panel/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["scope:admin", "type:ui"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/admin/ui/leadcars-status-panel"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

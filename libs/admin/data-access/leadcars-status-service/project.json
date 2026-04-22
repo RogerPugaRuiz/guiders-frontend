@@ -1,0 +1,20 @@
+{
+  "name": "leadcars-status-service",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/admin/data-access/leadcars-status-service/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["scope:admin", "type:data-access"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/admin/data-access/leadcars-status-service"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

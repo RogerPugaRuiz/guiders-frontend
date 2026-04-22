@@ -46,7 +46,7 @@ development_status:
   # Epic 6: Foundation & Observability  (no dependencies — start here)
   # ─────────────────────────────────────────────────────────────
   epic-6: in-progress
-  6-1-nx-library-scaffolding-for-all-new-libraries: ready-for-dev
+  6-1-nx-library-scaffolding-for-all-new-libraries: review
   6-2-visitor-list-polling-at-30s-nfr3-validation: backlog
   6-3-global-http-error-boundary-and-performance-skeleton-loaders: backlog
   6-4-end-to-end-test-coverage-for-mvp-critical-paths: backlog

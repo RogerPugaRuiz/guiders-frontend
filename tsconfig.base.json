@@ -129,14 +129,23 @@
       "@guiders-frontend/escalations": [
         "libs/chat/features/escalations/src/index.ts"
       ],
+      "@guiders-frontend/chat/ui/heat-index-badge": [
+        "libs/chat/ui/heat-index-badge/src/index.ts"
+      ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
       ],
-      "@guiders-frontend/leads": ["libs/admin/features/leads/src/index.ts"],
       "@guiders-frontend/lead-contact-service": [
         "libs/chat/data-access/lead-contact-service/src/index.ts"
       ],
+      "@guiders-frontend/admin/ui/leadcars-status-panel": [
+        "libs/admin/ui/leadcars-status-panel/src/index.ts"
+      ],
+      "@guiders-frontend/admin/data-access/leadcars-status-service": [
+        "libs/admin/data-access/leadcars-status-service/src/index.ts"
+      ],
+      "@guiders-frontend/leads": ["libs/admin/features/leads/src/index.ts"],
       "@guiders-frontend/leads-service": [
         "libs/admin/data-access/leads-service/src/index.ts"
       ],
@@ -181,7 +190,6 @@
       "@guiders-frontend/text-field": [
         "libs/shared/ui/text-field/src/index.ts"
       ],
-
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/typing-indicator": [
         "libs/chat/ui/typing-indicator/src/index.ts"
@@ -199,6 +207,12 @@
       ],
       "@guiders-frontend/visitor-display-name": [
         "libs/shared/util/visitor-display-name/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/visitor-product-history": [
+        "libs/chat/ui/visitor-product-history/src/index.ts"
+      ],
+      "@guiders-frontend/chat/data-access/visitor-products-service": [
+        "libs/chat/data-access/visitor-products-service/src/index.ts"
       ],
       "@guiders-frontend/visitors": [
         "libs/chat/features/visitors/src/index.ts"

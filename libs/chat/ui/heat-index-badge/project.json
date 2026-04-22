@@ -1,0 +1,20 @@
+{
+  "name": "heat-index-badge",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/ui/heat-index-badge/src",
+  "prefix": "guiders",
+  "projectType": "library",
+  "tags": ["scope:chat", "type:ui"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/ui/heat-index-badge"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
