@@ -279,11 +279,20 @@ export class LeadsService {
    * Obtener concesionarios de LeadCars
    * GET /api/v1/leads/admin/leadcars/concesionarios
    */
-  getConcesionarios(): Observable<LeadCarsConcesionario[]> {
+  getConcesionarios(clienteToken?: string, useSandbox?: boolean): Observable<LeadCarsConcesionario[]> {
+    const params: Record<string, string> = {};
+    if (clienteToken) {
+      params['clienteToken'] = clienteToken;
+      if (useSandbox !== undefined) params['useSandbox'] = String(useSandbox);
+    }
+    const options = {
+      ...this.getHttpOptions(),
+      params,
+    };
     return this.http
       .get<LeadCarsConcesionario[]>(
         `${this.baseUrl}/leadcars/concesionarios`,
-        this.getHttpOptions()
+        options
       )
       .pipe(
         tap((concesionarios) =>
@@ -338,11 +347,20 @@ export class LeadsService {
    * Obtener tipos de lead de LeadCars
    * GET /api/v1/leads/admin/leadcars/tipos
    */
-  getTiposLead(): Observable<LeadCarsTipoLead[]> {
+  getTiposLead(clienteToken?: string, useSandbox?: boolean): Observable<LeadCarsTipoLead[]> {
+    const params: Record<string, string> = {};
+    if (clienteToken) {
+      params['clienteToken'] = clienteToken;
+      if (useSandbox !== undefined) params['useSandbox'] = String(useSandbox);
+    }
+    const options = {
+      ...this.getHttpOptions(),
+      params,
+    };
     return this.http
       .get<LeadCarsTipoLead[]>(
         `${this.baseUrl}/leadcars/tipos`,
-        this.getHttpOptions()
+        options
       )
       .pipe(
         tap((tipos) => this.tiposLeadSubject.next(tipos)),

@@ -173,11 +173,14 @@ export class LeadCarsConfigComponent implements OnInit {
       return; // Ya están cargados
     }
 
+    const clienteToken = this.form.get('clienteToken')?.value as string | undefined;
+    const useSandbox = this.form.get('useSandbox')?.value as boolean | undefined;
+
     this.loadingLeadCarsData.set(true);
 
     // Cargar concesionarios y tipos de lead en paralelo
     this.leadsService
-      .getConcesionarios()
+      .getConcesionarios(clienteToken || undefined, useSandbox)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         complete: () => this.loadingLeadCarsData.set(false),
@@ -185,7 +188,7 @@ export class LeadCarsConfigComponent implements OnInit {
       });
 
     this.leadsService
-      .getTiposLead()
+      .getTiposLead(clienteToken || undefined, useSandbox)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe();
   }
