@@ -288,20 +288,20 @@
           formControlName="tipoLeadDefault"
           class="form-control"
         >
+          <option [ngValue]="null">-- Sin tipo específico --</option>
           @for (tipo of tiposLead(); track tipo.id) {
-          <option [value]="tipo.id">{{ tipo.nombre }}</option>
+          <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
           }
         </select>
         } @else {
-        <select
+        <input
+          type="number"
           id="tipoLeadDefault"
           formControlName="tipoLeadDefault"
           class="form-control"
-        >
-          @for (tipo of leadTypes; track tipo.value) {
-          <option [value]="tipo.value">{{ tipo.label }}</option>
-          }
-        </select>
+          placeholder="ID del tipo de lead"
+          min="1"
+        />
         <p class="form-hint">
           <button type="button" class="btn-link" (click)="loadLeadCarsData()">
             Cargar tipos desde LeadCars

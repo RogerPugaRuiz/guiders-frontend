@@ -101,8 +101,8 @@ export interface LeadCarsConfig {
   sedeId?: number;
   campanaId?: number;
 
-  // Tipo de lead por defecto
-  tipoLeadDefault?: LeadType;
+  // Tipo de lead por defecto (ID numérico de GET /tipos)
+  tipoLeadDefault?: number;
 }
 
 // Request para crear/actualizar configuración LeadCars
@@ -156,7 +156,6 @@ export interface TestConnectionResponse {
 // Valores por defecto para LeadCars
 export const LEADCARS_CONFIG_DEFAULTS: Partial<LeadCarsConfig> = {
   useSandbox: false,
-  tipoLeadDefault: 'COMPRA',
 };
 
 // URLs de la API de LeadCars

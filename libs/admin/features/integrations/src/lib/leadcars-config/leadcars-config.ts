@@ -22,7 +22,6 @@ import {
   LeadCarsConfig,
   AVAILABLE_TRIGGER_EVENTS,
   LEADCARS_CONFIG_DEFAULTS,
-  LEAD_TYPES,
   LeadCarsConcesionario,
   LeadCarsSede,
   LeadCarsCampana,
@@ -76,9 +75,6 @@ export class LeadCarsConfigComponent implements OnInit {
   // Eventos de trigger disponibles
   readonly availableTriggerEvents = AVAILABLE_TRIGGER_EVENTS;
 
-  // Tipos de lead disponibles
-  readonly leadTypes = LEAD_TYPES;
-
   // Formulario
   form: FormGroup = this.fb.group({
     enabled: [true],
@@ -94,7 +90,7 @@ export class LeadCarsConfigComponent implements OnInit {
     concesionarioId: [null, [Validators.required, Validators.min(1)]],
     sedeId: [null],
     campanaId: [null],
-    tipoLeadDefault: [LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault],
+    tipoLeadDefault: [null],
   });
 
   ngOnInit(): void {
@@ -228,9 +224,9 @@ export class LeadCarsConfigComponent implements OnInit {
       concesionarioId: leadCarsConfig.concesionarioId || null,
       sedeId: leadCarsConfig.sedeId || null,
       campanaId: leadCarsConfig.campanaId || null,
-      tipoLeadDefault:
-        leadCarsConfig.tipoLeadDefault ||
-        LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
+      tipoLeadDefault: leadCarsConfig.tipoLeadDefault
+        ? Number(leadCarsConfig.tipoLeadDefault)
+        : null,
     });
 
     // Cargar datos dinámicos de LeadCars
@@ -264,7 +260,9 @@ export class LeadCarsConfigComponent implements OnInit {
       clienteToken: formValue.clienteToken,
       concesionarioId: Number(formValue.concesionarioId),
       useSandbox: formValue.useSandbox,
-      tipoLeadDefault: formValue.tipoLeadDefault,
+      tipoLeadDefault: formValue.tipoLeadDefault
+        ? Number(formValue.tipoLeadDefault)
+        : undefined,
       ...(formValue.sedeId != null && { sedeId: Number(formValue.sedeId) }),
       ...(formValue.campanaId != null && {
         campanaId: Number(formValue.campanaId),
@@ -354,7 +352,7 @@ export class LeadCarsConfigComponent implements OnInit {
               contact_data_updated: false,
             },
             useSandbox: LEADCARS_CONFIG_DEFAULTS.useSandbox,
-            tipoLeadDefault: LEADCARS_CONFIG_DEFAULTS.tipoLeadDefault,
+            tipoLeadDefault: null,
           });
         },
       });
