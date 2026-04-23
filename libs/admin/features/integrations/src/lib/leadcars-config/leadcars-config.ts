@@ -14,6 +14,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { switchMap, forkJoin, of, EMPTY } from 'rxjs';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import {
@@ -140,22 +141,42 @@ export class LeadCarsConfigComponent implements OnInit {
   }
 
   /**
-   * Escucha cambios en el concesionario seleccionado para cargar sedes y campañas
+   * Escucha cambios en el concesionario seleccionado para cargar sedes y campañas.
+   * Usa switchMap para cancelar peticiones anteriores si el usuario cambia
+   * el concesionario antes de que respondan (evita race condition).
    */
   private setupConcesionarioChangeListener(): void {
     this.form
       .get('concesionarioId')
-      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((concesionarioId: number | null) => {
-        // Limpiar sedes y campañas previas
-        this.form.patchValue({ sedeId: null, campanaId: null });
-        this.leadsService.clearSedesYCampanas();
+      ?.valueChanges.pipe(
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((concesionarioId: number | null) => {
+          // Limpiar sedes y campañas previas
+          this.form.patchValue({ sedeId: null, campanaId: null });
+          this.leadsService.clearSedesYCampanas();
 
-        // Si hay concesionario seleccionado, cargar sedes y campañas
-        if (concesionarioId) {
-          this.loadSedesYCampanas(concesionarioId);
-        }
-      });
+          if (!concesionarioId) return EMPTY;
+
+          const clienteToken =
+            this.form.get('clienteToken')?.value as string | undefined;
+          const useSandbox =
+            this.form.get('useSandbox')?.value as boolean | undefined;
+
+          return forkJoin([
+            this.leadsService.getSedes(
+              concesionarioId,
+              clienteToken || undefined,
+              useSandbox,
+            ),
+            this.leadsService.getCampanas(
+              concesionarioId,
+              clienteToken || undefined,
+              useSandbox,
+            ),
+          ]);
+        }),
+      )
+      .subscribe();
   }
 
   private loadConfig(): void {
@@ -193,21 +214,6 @@ export class LeadCarsConfigComponent implements OnInit {
       .subscribe();
   }
 
-  /**
-   * Cargar sedes y campañas de un concesionario
-   */
-  private loadSedesYCampanas(concesionarioId: number): void {
-    this.leadsService
-      .getSedes(concesionarioId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
-
-    this.leadsService
-      .getCampanas(concesionarioId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
-  }
-
   private populateForm(config: LeadCarsCompanyConfig): void {
     const leadCarsConfig = config.config as LeadCarsConfig;
 
@@ -237,7 +243,25 @@ export class LeadCarsConfigComponent implements OnInit {
 
     // Si hay concesionario, cargar sus sedes y campañas
     if (leadCarsConfig.concesionarioId) {
-      this.loadSedesYCampanas(leadCarsConfig.concesionarioId);
+      const clienteToken =
+        this.form.get('clienteToken')?.value as string | undefined;
+      const useSandbox =
+        this.form.get('useSandbox')?.value as boolean | undefined;
+
+      forkJoin([
+        this.leadsService.getSedes(
+          leadCarsConfig.concesionarioId,
+          clienteToken || undefined,
+          useSandbox,
+        ),
+        this.leadsService.getCampanas(
+          leadCarsConfig.concesionarioId,
+          clienteToken || undefined,
+          useSandbox,
+        ),
+      ])
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe();
     }
   }
 

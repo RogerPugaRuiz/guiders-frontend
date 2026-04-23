@@ -309,11 +309,24 @@ export class LeadsService {
    * Obtener sedes de un concesionario
    * GET /api/v1/leads/admin/leadcars/sedes/:concesionarioId
    */
-  getSedes(concesionarioId: number): Observable<LeadCarsSede[]> {
+  getSedes(
+    concesionarioId: number,
+    clienteToken?: string,
+    useSandbox?: boolean
+  ): Observable<LeadCarsSede[]> {
+    const params: Record<string, string> = {};
+    if (clienteToken) {
+      params['clienteToken'] = clienteToken;
+      if (useSandbox !== undefined) params['useSandbox'] = String(useSandbox);
+    }
+    const options = {
+      ...this.getHttpOptions(),
+      params,
+    };
     return this.http
       .get<LeadCarsSede[]>(
         `${this.baseUrl}/leadcars/sedes/${concesionarioId}`,
-        this.getHttpOptions()
+        options
       )
       .pipe(
         tap((sedes) => this.sedesSubject.next(sedes)),
@@ -328,11 +341,24 @@ export class LeadsService {
    * Obtener campañas de un concesionario
    * GET /api/v1/leads/admin/leadcars/campanas/:concesionarioId
    */
-  getCampanas(concesionarioId: number): Observable<LeadCarsCampana[]> {
+  getCampanas(
+    concesionarioId: number,
+    clienteToken?: string,
+    useSandbox?: boolean
+  ): Observable<LeadCarsCampana[]> {
+    const params: Record<string, string> = {};
+    if (clienteToken) {
+      params['clienteToken'] = clienteToken;
+      if (useSandbox !== undefined) params['useSandbox'] = String(useSandbox);
+    }
+    const options = {
+      ...this.getHttpOptions(),
+      params,
+    };
     return this.http
       .get<LeadCarsCampana[]>(
         `${this.baseUrl}/leadcars/campanas/${concesionarioId}`,
-        this.getHttpOptions()
+        options
       )
       .pipe(
         tap((campanas) => this.campanasSubject.next(campanas)),

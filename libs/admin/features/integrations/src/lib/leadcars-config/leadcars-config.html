@@ -174,7 +174,7 @@
         >
           <option [ngValue]="null">-- Seleccionar concesionario --</option>
           @for (conc of concesionarios(); track conc.id) {
-          <option [ngValue]="conc.id">{{ conc.nombre }}</option>
+          <option [ngValue]="conc.id">{{ conc.nombre || 'Concesionario #' + conc.id }}</option>
           }
         </select>
         } @else {
@@ -214,7 +214,7 @@
           <select id="sedeId" formControlName="sedeId" class="form-control">
             <option [ngValue]="null">-- Sin sede específica --</option>
             @for (sede of sedes(); track sede.id) {
-            <option [ngValue]="sede.id">{{ sede.nombre }}</option>
+            <option [ngValue]="sede.id">{{ sede.nombre || 'Sede #' + sede.id }}</option>
             }
           </select>
           } @else {
@@ -255,7 +255,7 @@
             <option [ngValue]="null">-- Sin campaña específica --</option>
             @for (camp of campanas(); track camp.id) {
             <option [ngValue]="camp.id">
-              {{ camp.nombre }} ({{ camp.codigo }})
+              {{ camp.nombre || 'Campaña #' + camp.id }}{{ camp.codigo ? ' (' + camp.codigo + ')' : '' }}
             </option>
             }
           </select>
@@ -290,7 +290,7 @@
         >
           <option [ngValue]="null">-- Sin tipo específico --</option>
           @for (tipo of tiposLead(); track tipo.id) {
-          <option [ngValue]="tipo.id">{{ tipo.nombre }}</option>
+          <option [ngValue]="tipo.id">{{ tipo.nombre || 'Tipo #' + tipo.id }}</option>
           }
         </select>
         } @else {
