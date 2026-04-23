@@ -1,0 +1,176 @@
+<div class="data-table-wrapper" [class.data-table-wrapper--sticky]="cfg().stickyHeader">
+
+  <!-- Toolbar: column visibility + add column -->
+  @if (cfg().allowColumnVisibility || cfg().allowAddColumn) {
+    <div class="data-table-toolbar">
+      @if (cfg().allowAddColumn) {
+        <button
+          type="button"
+          class="dt-toolbar-btn dt-toolbar-btn--add"
+          (click)="onAddColumn()"
+          title="Añadir columna"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Añadir columna
+        </button>
+      }
+
+      @if (cfg().allowColumnVisibility) {
+        <div class="dt-visibility-control">
+          <button
+            type="button"
+            class="dt-toolbar-btn dt-toolbar-btn--columns"
+            (click)="toggleVisibilityPanel()"
+            title="Mostrar/ocultar columnas"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 3v18M15 3v18"/>
+            </svg>
+            Columnas
+          </button>
+
+          @if (showVisibilityPanel()) {
+            <div class="dt-visibility-panel">
+              <p class="dt-visibility-panel__title">Mostrar columnas</p>
+              @for (col of allColumns(); track col.field) {
+                @if (col.hideable !== false) {
+                  <label class="dt-visibility-option">
+                    <input
+                      type="checkbox"
+                      [checked]="isColumnVisible(col.field)"
+                      (change)="toggleColumnVisibility(col.field)"
+                    />
+                    {{ col.label }}
+                  </label>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Table -->
+  <div class="data-table-scroll-container">
+    <table class="data-table">
+      <thead class="data-table__head" [class.data-table__head--sticky]="cfg().stickyHeader">
+        <tr>
+          <!-- Select-all checkbox -->
+          @if (cfg().selectable) {
+            <th class="data-table__th data-table__th--select">
+              @if (cfg().multiSelect) {
+                <input
+                  type="checkbox"
+                  class="dt-checkbox"
+                  [checked]="allSelected()"
+                  [indeterminate]="someSelected()"
+                  (change)="onSelectAllChange($any($event.target).checked)"
+                  aria-label="Seleccionar todos"
+                />
+              }
+            </th>
+          }
+
+          <!-- Column headers -->
+          @for (col of visibleColumns(); track col.field) {
+            <th
+              class="data-table__th"
+              [class.data-table__th--sortable]="col.sortable"
+              [class.data-table__th--active]="sortDirectionFor(col.field) !== null"
+              [class]="col.cssClass || ''"
+              [style.minWidth.px]="col.minWidth"
+              (click)="onHeaderClick(col)"
+            >
+              <div class="dt-header-content">
+                <span>{{ col.label }}</span>
+                @if (col.sortable) {
+                  <span class="dt-sort-icon" [class.dt-sort-icon--visible]="sortDirectionFor(col.field) !== null">
+                    @if (sortDirectionFor(col.field) === 'desc') {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 10l5 5 5-5"/>
+                      </svg>
+                    } @else if (sortDirectionFor(col.field) === 'asc') {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 14l5-5 5 5"/>
+                      </svg>
+                    } @else {
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.35">
+                        <path d="M7 10l5 5 5-5"/>
+                      </svg>
+                    }
+                  </span>
+                }
+              </div>
+            </th>
+          }
+        </tr>
+      </thead>
+
+      <tbody class="data-table__body">
+        @if (loading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr class="data-table__row data-table__row--skeleton">
+              @if (cfg().selectable) {
+                <td class="data-table__td data-table__td--select">
+                  <span class="dt-skeleton dt-skeleton--checkbox"></span>
+                </td>
+              }
+              @for (col of visibleColumns(); track col.field) {
+                <td class="data-table__td">
+                  <span class="dt-skeleton"></span>
+                </td>
+              }
+            </tr>
+          }
+        } @else if (rows().length === 0) {
+          <tr class="data-table__row data-table__row--empty">
+            <td
+              class="data-table__td data-table__td--empty"
+              [attr.colspan]="visibleColumns().length + (cfg().selectable ? 1 : 0)"
+            >
+              <div class="dt-empty-state">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M3 9h18M9 21V9"/>
+                </svg>
+                <p>{{ emptyMessage() }}</p>
+              </div>
+            </td>
+          </tr>
+        } @else {
+          @for (row of rows(); track row[rowIdField()]) {
+            <tr
+              class="data-table__row"
+              [class.data-table__row--selected]="isRowSelected(row)"
+              (click)="onRowClick(row)"
+            >
+              @if (cfg().selectable) {
+                <td class="data-table__td data-table__td--select" (click)="$event.stopPropagation()">
+                  <input
+                    type="checkbox"
+                    class="dt-checkbox"
+                    [checked]="isRowSelected(row)"
+                    (change)="onRowCheckboxChange(row, $any($event.target).checked)"
+                  />
+                </td>
+              }
+
+              @for (col of visibleColumns(); track col.field) {
+                <td
+                  class="data-table__td"
+                  [class]="col.cssClass || ''"
+                >
+                  {{ getCellValue(row, col) }}
+                </td>
+              }
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

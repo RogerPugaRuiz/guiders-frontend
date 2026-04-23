@@ -1,0 +1,292 @@
+@use '../../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+// ─── Host ────────────────────────────────────────────────────────────────────
+
+:host {
+  display: block;
+  width: 100%;
+}
+
+// ─── Wrapper ─────────────────────────────────────────────────────────────────
+
+.data-table-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: tokens.$color-surface-primary;
+  border-radius: tokens.$border-radius-md;
+  border: 1px solid tokens.$color-border-subtle;
+  overflow: hidden;
+}
+
+// ─── Toolbar ─────────────────────────────────────────────────────────────────
+
+.data-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  background: tokens.$color-surface-secondary;
+}
+
+.dt-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  font-size: tokens.$font-size-sm;
+  font-weight: 500;
+  color: tokens.$color-text-secondary;
+  background: transparent;
+  border: 1px solid tokens.$color-border-subtle;
+  border-radius: tokens.$border-radius-sm;
+  cursor: pointer;
+  transition: tokens.$transition-fast;
+
+  &:hover {
+    background: tokens.$color-surface-hover;
+    color: tokens.$color-text-primary;
+    border-color: tokens.$color-border-default;
+  }
+}
+
+// ─── Visibility panel ────────────────────────────────────────────────────────
+
+.dt-visibility-control {
+  position: relative;
+}
+
+.dt-visibility-panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 180px;
+  background: tokens.$color-surface-primary;
+  border: 1px solid tokens.$color-border-default;
+  border-radius: tokens.$border-radius-md;
+  box-shadow: tokens.$shadow-md;
+  padding: tokens.$spacing-sm;
+
+  &__title {
+    font-size: tokens.$font-size-xs;
+    font-weight: 600;
+    color: tokens.$color-text-secondary;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 tokens.$spacing-xs tokens.$spacing-xs;
+    margin: 0;
+  }
+}
+
+.dt-visibility-option {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-xs;
+  font-size: tokens.$font-size-sm;
+  color: tokens.$color-text-primary;
+  border-radius: tokens.$border-radius-sm;
+  cursor: pointer;
+  transition: background tokens.$transition-fast;
+
+  &:hover {
+    background: tokens.$color-surface-hover;
+  }
+
+  input[type='checkbox'] {
+    cursor: pointer;
+    accent-color: tokens.$color-primary;
+  }
+}
+
+// ─── Scroll container ────────────────────────────────────────────────────────
+
+.data-table-scroll-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  width: 100%;
+  flex: 1;
+
+  // Allow host to constrain height for sticky to work
+  .data-table-wrapper--sticky & {
+    max-height: var(--dt-max-height, 600px);
+  }
+}
+
+// ─── Table ───────────────────────────────────────────────────────────────────
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: tokens.$font-size-sm;
+  color: tokens.$color-text-primary;
+  table-layout: auto;
+}
+
+// ─── Header ──────────────────────────────────────────────────────────────────
+
+.data-table__head {
+  background: tokens.$color-surface-secondary;
+}
+
+.data-table__head--sticky {
+  th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: tokens.$color-surface-secondary;
+    // Shadow to visually separate from scrolling content
+    box-shadow: 0 1px 0 tokens.$color-border-subtle, 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+}
+
+.data-table__th {
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  text-align: left;
+  font-size: tokens.$font-size-xs;
+  font-weight: 600;
+  color: tokens.$color-text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  user-select: none;
+
+  &--select {
+    width: 40px;
+    padding-right: tokens.$spacing-xs;
+  }
+
+  &--sortable {
+    cursor: pointer;
+
+    &:hover {
+      background: tokens.$color-surface-hover;
+      color: tokens.$color-text-primary;
+    }
+  }
+
+  &--active {
+    color: tokens.$color-primary;
+  }
+}
+
+.dt-header-content {
+  display: flex;
+  align-items: center;
+  gap: tokens.$spacing-xs;
+}
+
+.dt-sort-icon {
+  display: flex;
+  align-items: center;
+  color: tokens.$color-text-tertiary;
+  transition: color tokens.$transition-fast;
+  flex-shrink: 0;
+
+  &--visible {
+    color: tokens.$color-primary;
+  }
+}
+
+// ─── Body ─────────────────────────────────────────────────────────────────────
+
+.data-table__row {
+  border-bottom: 1px solid tokens.$color-border-subtle;
+  transition: background tokens.$transition-fast;
+  cursor: pointer;
+
+  &:hover {
+    background: tokens.$color-surface-hover;
+  }
+
+  &--selected {
+    background: tokens.$color-primary-subtle;
+
+    &:hover {
+      background: tokens.$color-primary-subtle-hover;
+    }
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &--skeleton,
+  &--empty {
+    cursor: default;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+.data-table__td {
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  vertical-align: middle;
+
+  &--select {
+    width: 40px;
+    padding-right: tokens.$spacing-xs;
+  }
+
+  &--empty {
+    text-align: center;
+    padding: tokens.$spacing-xl;
+  }
+}
+
+// ─── Checkbox ────────────────────────────────────────────────────────────────
+
+.dt-checkbox {
+  cursor: pointer;
+  accent-color: tokens.$color-primary;
+  width: 16px;
+  height: 16px;
+}
+
+// ─── Empty state ─────────────────────────────────────────────────────────────
+
+.dt-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: tokens.$spacing-md;
+  color: tokens.$color-text-tertiary;
+
+  p {
+    margin: 0;
+    font-size: tokens.$font-size-sm;
+  }
+}
+
+// ─── Skeleton loading ────────────────────────────────────────────────────────
+
+.dt-skeleton {
+  display: block;
+  height: 14px;
+  width: 80%;
+  border-radius: tokens.$border-radius-sm;
+  background: linear-gradient(
+    90deg,
+    tokens.$color-surface-secondary 25%,
+    tokens.$color-surface-hover 50%,
+    tokens.$color-surface-secondary 75%
+  );
+  background-size: 200% 100%;
+  animation: dt-shimmer 1.4s infinite;
+
+  &--checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: tokens.$border-radius-xs;
+  }
+}
+
+@keyframes dt-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
