@@ -121,7 +121,7 @@ export class CommercialPresenceService {
       commercialId: userId,
       commercialName: userName,
       metadata: request.metadata,
-      hasAuthToken: !!localStorage.getItem('access-token')
+      hasAuthToken: true // autenticación vía cookie BFF
     });
     console.groupEnd();
 
@@ -199,7 +199,7 @@ export class CommercialPresenceService {
       method: 'POST',
       commercialId: this.commercialId,
       sessionDuration: `${sessionDuration}s (${Math.round(sessionDuration / 60)}min)`,
-      hasAuthToken: !!localStorage.getItem('access-token')
+      hasAuthToken: true // autenticación vía cookie BFF
     });
     console.groupEnd();
 
@@ -276,7 +276,7 @@ export class CommercialPresenceService {
       commercialId: this.commercialId,
       previousStatus,
       newStatus: status,
-      hasAuthToken: !!localStorage.getItem('access-token')
+      hasAuthToken: true // autenticación vía cookie BFF
     });
     console.groupEnd();
 
@@ -397,7 +397,7 @@ export class CommercialPresenceService {
 
       // Configuración
       baseUrl: this.baseUrl,
-      hasAuthToken: !!localStorage.getItem('access-token')
+      hasAuthToken: true // autenticación vía cookie BFF
     };
   }
 
@@ -677,18 +677,13 @@ export class CommercialPresenceService {
 
   /**
    * Configuración de headers HTTP
+   * Nota: el header Authorization lo adjunta automáticamente el authInterceptor()
+   * de angular-auth-oidc-client. No añadir Bearer manualmente aquí.
    */
   private getHeaders(): HttpHeaders {
-    let headers = new HttpHeaders({
+    return new HttpHeaders({
       'Content-Type': 'application/json'
     });
-
-    const authToken = localStorage.getItem('access-token');
-    if (authToken) {
-      headers = headers.set('Authorization', `Bearer ${authToken}`);
-    }
-
-    return headers;
   }
 
   /**

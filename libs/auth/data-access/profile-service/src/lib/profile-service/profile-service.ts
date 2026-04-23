@@ -18,13 +18,6 @@ export class ProfileService {
   private readonly baseUrl = `${this.environment.api.baseUrl}`;
 
   /**
-   * Obtiene el token de acceso desde localStorage
-   */
-  private getAccessToken(): string | null {
-    return localStorage.getItem('access-token');
-  }
-
-  /**
    * Sube o actualiza el avatar del usuario
    * @param userId ID del usuario
    * @param file Archivo de imagen (PNG o JPG, máx 5MB)
@@ -53,17 +46,11 @@ export class ProfileService {
       fileType: file.type
     });
 
-    // Configurar headers de autenticación
-    const token = this.getAccessToken();
-    const options = token ?
-      { headers: { 'Authorization': `Bearer ${token}` }, withCredentials: true } :
-      { withCredentials: true };
-
     // Realizar petición POST con FormData
     return this.http.post<UploadAvatarResponse>(
       `${this.baseUrl}/user/auth/${userId}/avatar`,
       formData,
-      options
+      { withCredentials: true }
     ).pipe(
       tap(response => {
         console.log('[ProfileService] Avatar uploaded successfully:', response);
@@ -100,15 +87,9 @@ export class ProfileService {
   getUserProfile(): Observable<UserProfile> {
     console.log('[ProfileService] Fetching user profile from /api/user/auth/me');
 
-    // Configurar headers de autenticación
-    const token = this.getAccessToken();
-    const options = token ?
-      { headers: { 'Authorization': `Bearer ${token}` }, withCredentials: true } :
-      { withCredentials: true };
-
     return this.http.get<UserProfile>(
       `${this.baseUrl}/user/auth/me`,
-      options
+      { withCredentials: true }
     ).pipe(
       tap(profile => {
         console.log('[ProfileService] User profile loaded:', {

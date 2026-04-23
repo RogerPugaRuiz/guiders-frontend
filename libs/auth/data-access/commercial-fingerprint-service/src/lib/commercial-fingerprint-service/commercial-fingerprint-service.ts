@@ -25,20 +25,12 @@ export class CommercialFingerprintService {
     commercialId: string,
     fingerprint: string
   ): Observable<RegisterFingerprintResponse> {
-    const token = this.getAccessToken();
     const url = `${this.environment.api.baseUrl}/v2/commercials/register-fingerprint`;
 
     return this.http.post<RegisterFingerprintResponse>(
       url,
       { commercialId, fingerprint },
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-        withCredentials: true,
-      }
+      { withCredentials: true }
     );
-  }
-
-  private getAccessToken(): string | null {
-    return localStorage.getItem('access-token');
   }
 }
