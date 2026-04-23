@@ -90,7 +90,11 @@
   background: var(--color-surface-primary);
   border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
-  overflow: hidden;
+  // overflow:hidden breaks position:sticky on thead — use clip instead
+  overflow: clip;
+  // Enable vertical scroll so sticky header works correctly
+  overflow-y: auto;
+  max-height: var(--visitors-table-max-height, calc(100vh - 200px));
 
   // Permitir que los dropdowns sean visibles
   .dropdown-actions {
@@ -125,6 +129,8 @@
   position: sticky;
   top: 0;
   z-index: 10;
+  // Shadow ensures header is visually elevated above scrolling rows
+  box-shadow: 0 1px 0 var(--color-border-subtle), 0 2px 4px rgba(0, 0, 0, 0.04);
 
   &--pending-chats {
     text-align: center;

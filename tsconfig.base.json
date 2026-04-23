@@ -18,6 +18,12 @@
       "@guiders-frontend/activity-stat-card": [
         "libs/shared/ui/activity-stat-card/src/index.ts"
       ],
+      "@guiders-frontend/admin/data-access/leadcars-status-service": [
+        "libs/admin/data-access/leadcars-status-service/src/index.ts"
+      ],
+      "@guiders-frontend/admin/ui/leadcars-status-panel": [
+        "libs/admin/ui/leadcars-status-panel/src/index.ts"
+      ],
       "@guiders-frontend/ai-config": [
         "libs/admin/features/ai-config/src/index.ts"
       ],
@@ -68,6 +74,9 @@
       "@guiders-frontend/chat/data-access/chat-widget-service": [
         "libs/chat/data-access/chat-widget-service/src/index.ts"
       ],
+      "@guiders-frontend/chat/data-access/visitor-products-service": [
+        "libs/chat/data-access/visitor-products-service/src/index.ts"
+      ],
       "@guiders-frontend/chat/data-access/websocket-service": [
         "libs/chat/data-access/websocket-service/src/index.ts"
       ],
@@ -89,11 +98,17 @@
       "@guiders-frontend/chat/ui/conversation-list": [
         "libs/chat/ui/conversation-list/src/index.ts"
       ],
+      "@guiders-frontend/chat/ui/heat-index-badge": [
+        "libs/chat/ui/heat-index-badge/src/index.ts"
+      ],
       "@guiders-frontend/chat/ui/inbox-sidebar": [
         "libs/chat/ui/inbox-sidebar/src/index.ts"
       ],
       "@guiders-frontend/chat/ui/message-input": [
         "libs/chat/ui/message-input/src/index.ts"
+      ],
+      "@guiders-frontend/chat/ui/visitor-product-history": [
+        "libs/chat/ui/visitor-product-history/src/index.ts"
       ],
       "@guiders-frontend/checkbox": ["libs/shared/ui/checkbox/src/index.ts"],
       "@guiders-frontend/commercial-fingerprint-service": [
@@ -117,6 +132,9 @@
       "@guiders-frontend/dashboard": [
         "libs/admin/features/dashboard/src/index.ts"
       ],
+      "@guiders-frontend/data-table": [
+        "libs/shared/ui/data-table/src/index.ts"
+      ],
       "@guiders-frontend/design-tokens": [
         "libs/shared/design-tokens/src/index.ts"
       ],
@@ -129,21 +147,12 @@
       "@guiders-frontend/escalations": [
         "libs/chat/features/escalations/src/index.ts"
       ],
-      "@guiders-frontend/chat/ui/heat-index-badge": [
-        "libs/chat/ui/heat-index-badge/src/index.ts"
-      ],
       "@guiders-frontend/icon": ["libs/shared/ui/icon/src/index.ts"],
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
       ],
       "@guiders-frontend/lead-contact-service": [
         "libs/chat/data-access/lead-contact-service/src/index.ts"
-      ],
-      "@guiders-frontend/admin/ui/leadcars-status-panel": [
-        "libs/admin/ui/leadcars-status-panel/src/index.ts"
-      ],
-      "@guiders-frontend/admin/data-access/leadcars-status-service": [
-        "libs/admin/data-access/leadcars-status-service/src/index.ts"
       ],
       "@guiders-frontend/leads": ["libs/admin/features/leads/src/index.ts"],
       "@guiders-frontend/leads-service": [
@@ -207,12 +216,6 @@
       ],
       "@guiders-frontend/visitor-display-name": [
         "libs/shared/util/visitor-display-name/src/index.ts"
-      ],
-      "@guiders-frontend/chat/ui/visitor-product-history": [
-        "libs/chat/ui/visitor-product-history/src/index.ts"
-      ],
-      "@guiders-frontend/chat/data-access/visitor-products-service": [
-        "libs/chat/data-access/visitor-products-service/src/index.ts"
       ],
       "@guiders-frontend/visitors": [
         "libs/chat/features/visitors/src/index.ts"
