@@ -22,434 +22,316 @@
   }
 
   <!-- Tabla de visitantes -->
-  @if (!loading() && !error() && filteredVisitors().length > 0) {
+  @if (!loading() && !error()) {
     <div class="visitors-list__table-container">
-      <table class="visitors-table">
-        <thead>
-          <tr>
-            <th 
-              class="visitors-table__header visitors-table__header--visitor visitors-table__header--sortable"
-              [class.visitors-table__header--active]="currentSort().field === 'name'"
-              (click)="toggleSort('name')"
-            >
-              <div class="header-content">
-                <span>Visitante</span>
-                @if (currentSort().field === 'name') {
-                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    @if (currentSort().direction === 'desc') {
-                      <path d="M7 10l5 5 5-5"/>
-                    } @else {
-                      <path d="M7 14l5-5 5 5"/>
-                    }
-                  </svg>
-                }
-              </div>
-            </th>
-            <th
-              class="visitors-table__header visitors-table__header--status visitors-table__header--sortable"
-              [class.visitors-table__header--active]="currentSort().field === 'status'"
-              (click)="toggleSort('status')"
-            >
-              <div class="header-content">
-                <span>Estado de conexión</span>
-                @if (currentSort().field === 'status') {
-                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    @if (currentSort().direction === 'desc') {
-                      <path d="M7 10l5 5 5-5"/>
-                    } @else {
-                      <path d="M7 14l5-5 5 5"/>
-                    }
-                  </svg>
-                }
-              </div>
-            </th>
-            <th class="visitors-table__header visitors-table__header--lifecycle">Etapa</th>
-            <th
-              class="visitors-table__header visitors-table__header--created visitors-table__header--sortable"
-              [class.visitors-table__header--active]="currentSort().field === 'firstVisit'"
-              (click)="toggleSort('firstVisit')"
-            >
-              <div class="header-content">
-                <span>Creado</span>
-                @if (currentSort().field === 'firstVisit') {
-                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    @if (currentSort().direction === 'desc') {
-                      <path d="M7 10l5 5 5-5"/>
-                    } @else {
-                      <path d="M7 14l5-5 5 5"/>
-                    }
-                  </svg>
-                }
-              </div>
-            </th>
-            <th
-              class="visitors-table__header visitors-table__header--activity visitors-table__header--sortable"
-              [class.visitors-table__header--active]="currentSort().field === 'lastVisit'"
-              (click)="toggleSort('lastVisit')"
-            >
-              <div class="header-content">
-                <span>Actividad</span>
-                @if (currentSort().field === 'lastVisit') {
-                  <svg class="sort-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    @if (currentSort().direction === 'desc') {
-                      <path d="M7 10l5 5 5-5"/>
-                    } @else {
-                      <path d="M7 14l5-5 5 5"/>
-                    }
-                  </svg>
-                }
-              </div>
-            </th>
-            <th class="visitors-table__header visitors-table__header--actions">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (visitor of filteredVisitors(); track visitor.id) {
-            <tr 
-              class="visitors-table__row"
-              [class.visitors-table__row--selected]="isSelected(visitor.id)"
-              [class.visitors-table__row--online]="visitor.status === 'online'"
-              [class.visitors-table__row--has-chat]="visitor.hasActiveChat"
-              (click)="onVisitorClick(visitor)"
-            >
-              <!-- Visitante con avatar -->
-              <td class="visitors-table__cell visitors-table__cell--visitor">
-                <div class="visitor-profile">
-                  <div class="visitor-details">
-                    <div class="visitor-name">
-                      <span class="name-text">{{ visitor.name || 'Visitante anónimo' }}</span>
-                      @if (visitor.isMe) {
-                        <guiders-badge
-                          text="Tú"
-                          variant="primary"
-                          size="small"
-                        />
-                      }
-                      @if (visitor.isInternal) {
-                        <span class="internal-badge">
-                          Interno
-                        </span>
-                      }
-                      @if (visitor.isNewVisitor) {
-                        <span class="new-badge">
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <path d="M12 6v6l4 2"/>
-                          </svg>
-                          Nuevo
-                        </span>
-                      }
-                    </div>
-                    <div class="visitor-metadata">
-                      <div class="visitor-identifier">
-                        @if (visitor.email) {
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                            <polyline points="22,6 12,13 2,6"/>
-                          </svg>
-                          {{ visitor.email }}
-                        } @else {
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 12l2 2 4-4"/>
-                            <circle cx="12" cy="12" r="9"/>
-                          </svg>
-                          ID: {{ visitor.fingerprint || visitor.id.slice(0, 8) }}
-                        }
-                      </div>
-                      @if (visitor.fingerprint) {
-                        <div class="visitor-fingerprint">
-                          <svg width="12" height="12" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7 3.51555C8.4301 2.55827 10.1499 2 12 2C16.1031 2 19.5649 4.74572 20.6482 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M21 22V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M3 22V11C3 9.94809 3.18046 8.93834 3.51212 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M18 22V11.3C18 7.82061 15.3137 5 12 5C8.68629 5 6 7.82061 6 11.3V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M6 22V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M9 22V11.15C9 9.4103 10.3431 8 12 8C12.8653 8 13.645 8.38466 14.1926 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M15 22V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M12 22V18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                            <path d="M12 11V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-                          </svg>
-                          Fingerprint: {{ visitor.fingerprint }}
-                        </div>
-                      }
-                      @if (visitor.ipAddress) {
-                        <div class="visitor-ip">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
-                            <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
-                            <line x1="6" y1="6" x2="6.01" y2="6"/>
-                            <line x1="6" y1="18" x2="6.01" y2="18"/>
-                          </svg>
-                          {{ visitor.ipAddress }}
-                        </div>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </td>
-
-              <!-- Estado de conexión -->
-              <td class="visitors-table__cell visitors-table__cell--status">
-                <div class="connection-status">
-                  <span class="status-badge status-badge--{{ visitor.connectionStatus || visitor.status }}">
-                    <span class="status-dot"></span>
-                    @switch (visitor.connectionStatus || visitor.status) {
-                      @case ('online') { En línea }
-                      @case ('offline') { Desconectado }
-                      @case ('idle') { Inactivo }
-                      @case ('away') { Ausente }
-                      @case ('busy') { Ocupado }
-                      @case ('chatting') { Conversando }
-                      @default { {{ visitor.connectionStatus || visitor.status }} }
-                    }
-                  </span>
-                </div>
-              </td>
-
-              <!-- Etapa del ciclo de vida -->
-              <td class="visitors-table__cell visitors-table__cell--lifecycle">
-                <div class="lifecycle-tags">
-                  @switch (visitor.lifecycle) {
-                    @case ('ANON') { 
-                      <span class="tag tag--gray">Anónimo</span>
-                    }
-                    @case ('ENGAGED') { 
-                      <span class="tag tag--blue">Interesado</span>
-                    }
-                    @case ('LEAD') { 
-                      <span class="tag tag--orange">Lead</span>
-                    }
-                    @case ('CONVERTED') { 
-                      <span class="tag tag--green">Convertido</span>
-                    }
-                    @default { 
-                      <span class="tag tag--gray">{{ visitor.lifecycle }}</span>
-                    }
-                  }
-                </div>
-              </td>
-
-              <!-- Fecha de creación -->
-              <td class="visitors-table__cell visitors-table__cell--created">
-                <div class="created-info" title="Fecha de primera visita">
-                  <div class="created-date-wrapper">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <polyline points="12,6 12,12 16,14"/>
-                    </svg>
-                    <span class="created-date">{{ formatCreatedAt(visitor.firstVisit).date }}</span>
-                  </div>
-                  <span class="created-time">{{ formatCreatedAt(visitor.firstVisit).time }}</span>
-                </div>
-              </td>
-
-              <!-- Actividad -->
-              <td class="visitors-table__cell visitors-table__cell--activity">
-                <div class="activity-info">
-                  <div class="activity-main">
-                    <div class="activity-time-wrapper" title="Última actividad">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12,6 12,12 16,14"/>
-                      </svg>
-                      <span class="activity-time">{{ formatLastVisit(visitor.lastVisit) }}</span>
-                    </div>
-                    <div class="activity-location" [title]="visitor.currentUrl || visitor.domain">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                      </svg>
-                      <div class="url-segments">
-                        @for (segment of getUrlSegmentTags(visitor.currentUrl); track $index; let last = $last) {
-                          <button
-                            type="button"
-                            class="url-segment-tag"
-                            (click)="onBreadcrumbSegmentClick($event, $index, visitor.currentUrl)"
-                            [attr.aria-label]="'Abrir URL hasta ' + segment + ' en nueva pestaña'"
-                            [title]="'Click para abrir: ' + segment">
-                            {{ segment }}
-                          </button>
-                          @if (!last) {
-                            <span class="url-segment-separator" aria-hidden="true">›</span>
-                          }
-                        }
-                      </div>
-                    </div>
-                  </div>
-                  <div class="activity-stats">
-                    @if (visitor.totalChats > 0) {
-                      <div class="stat-badge stat-badge--chats" title="Total de chats">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
-                        </svg>
-                        <span>{{ visitor.totalChats }}</span>
-                        @if (hasUnreadMessages(visitor.id)) {
-                          <span class="unread-dot" title="Mensajes sin leer"></span>
-                        }
-                      </div>
-                    }
-                    @if (visitor.totalSessionDuration && visitor.totalSessionDuration > 0) {
-                      <div class="stat-badge stat-badge--duration" title="Tiempo total en sitio">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <circle cx="12" cy="12" r="10"/>
-                          <polyline points="12,6 12,12 16,14"/>
-                        </svg>
-                        <span>{{ formatDuration(visitor.totalSessionDuration) }}</span>
-                      </div>
-                    }
-                    @if (visitor.totalSessions > 1) {
-                      <div class="stat-badge stat-badge--sessions" title="Total de sesiones">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="M12 2v10l4 4"/>
-                          <circle cx="12" cy="12" r="10"/>
-                        </svg>
-                        <span>{{ visitor.totalSessions }}</span>
-                      </div>
-                    }
-                    @if (visitor.isNewVisitor) {
-                      <div class="stat-badge stat-badge--new">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                          <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                        </svg>
-                        <span>Primera visita</span>
-                      </div>
-                    }
-                  </div>
-                </div>
-              </td>
-
-              <!-- Acciones -->
-              <td class="visitors-table__cell visitors-table__cell--actions">
-                <div class="visitor-actions">
-                  @if (!visitor.hasActiveChat) {
-                    <button
-                      type="button"
-                      class="action-button action-button--primary"
-                      (click)="onCreateChat(visitor, $event)"
-                      title="Iniciar conversación"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M9 12H12M15 12H12M12 12V9M12 12V15" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                      Chat
-                    </button>
-                  } @else {
-                    <button
-                      type="button"
-                      class="action-button action-button--active"
-                      (click)="onViewChat(visitor, $event)"
-                      title="Ver conversación activa"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
-                      </svg>
-                      Ver chat
-                    </button>
-                  }
-
-                  @if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
-                    <button
-                      type="button"
-                      class="action-button action-button--warning"
-                      [class.action-button--processing]="isProcessing(visitor.id)"
-                      [disabled]="isProcessing(visitor.id)"
-                      (click)="onViewPendingChats(visitor, $event)"
-                      [title]="isProcessing(visitor.id) ? 'Procesando...' : 'Tomar chat pendiente (' + visitor.pendingChatIds.length + ' disponible' + (visitor.pendingChatIds.length > 1 ? 's' : '') + ')'"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                        <path d="M17 12.5C17.2761 12.5 17.5 12.2761 17.5 12C17.5 11.7239 17.2761 11.5 17 11.5C16.7239 11.5 16.5 11.7239 16.5 12C16.5 12.2761 16.7239 12.5 17 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M7 12.5C7.27614 12.5 7.5 12.2761 7.5 12C7.5 11.7239 7.27614 11.5 7 11.5C6.72386 11.5 6.5 11.7239 6.5 12C6.5 12.2761 6.72386 12.5 7 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                      <span class="pending-count">{{ visitor.pendingChatIds.length }}</span>
-                    </button>
-                  }
-                  <div class="dropdown-actions">
-                    <button
-                      type="button"
-                      class="action-button action-button--ghost dropdown-trigger"
-                      (click)="toggleDropdown(visitor.id, $event)"
-                      title="Más acciones"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="1"/>
-                        <circle cx="12" cy="5" r="1"/>
-                        <circle cx="12" cy="19" r="1"/>
-                      </svg>
-                    </button>
-                    @if (showDropdown() === visitor.id) {
-                      <div class="dropdown-menu" role="menu" [style.top.px]="dropdownPosition().top" [style.left.px]="dropdownPosition().left">
-                        <button class="dropdown-item" (click)="onViewDetails(visitor, $event); closeDropdown()" role="menuitem">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                          Ver perfil
-                        </button>
-                        <button class="dropdown-item" (click)="onViewHistory(visitor, $event); closeDropdown()">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12,6 12,12 16,14"/>
-                          </svg>
-                          Historial
-                        </button>
-                        <button class="dropdown-item" (click)="onAddTag(visitor, $event); closeDropdown()">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-                            <line x1="7" y1="7" x2="7.01" y2="7"/>
-                          </svg>
-                          Etiquetar
-                        </button>
-                        @if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
-                          <button 
-                            class="dropdown-item" 
-                            [class.dropdown-item--disabled]="isProcessing(visitor.id)"
-                            [disabled]="isProcessing(visitor.id)"
-                            (click)="onViewPendingChats(visitor, $event); closeDropdown()"
-                          >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                              <path d="M17 12.5C17.2761 12.5 17.5 12.2761 17.5 12C17.5 11.7239 17.2761 11.5 17 11.5C16.7239 11.5 16.5 11.7239 16.5 12C16.5 12.2761 16.7239 12.5 17 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                              <path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                              <path d="M7 12.5C7.27614 12.5 7.5 12.2761 7.5 12C7.5 11.7239 7.27614 11.5 7 11.5C6.72386 11.5 6.5 11.7239 6.5 12C6.5 12.2761 6.72386 12.5 7 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                              <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            {{ isProcessing(visitor.id) ? 'Procesando...' : 'Tomar chat pendiente (' + visitor.pendingChatIds.length + ')' }}
-                          </button>
-                        }
-                      </div>
-                    }
-                  </div>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <guiders-data-table
+        [rows]="$any(filteredVisitors())"
+        [columns]="tableColumns"
+        [loading]="loading()"
+        [cellTemplates]="cellTemplatesMap"
+        emptyMessage="No hay visitantes"
+        rowIdField="id"
+        (rowClick)="onVisitorClick($any($event))"
+      />
     </div>
   }
 
-  <!-- Estado vacío -->
-  @if (!loading() && !error() && filteredVisitors().length === 0) {
-    <div class="visitors-list__empty">
-      <div class="empty-state">
-        <div class="empty-state__icon">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="m22 21-3-3m0 0a5 5 0 1 0-7-7 5 5 0 0 0 7 7Z"/>
-          </svg>
-        </div>
-        <h3 class="empty-state__title">No hay visitantes</h3>
-        <p class="empty-state__message">
-          @if (visitors().length === 0) {
-            No hay visitantes conectados en este momento.
-          } @else {
-            No se encontraron visitantes que coincidan con los filtros aplicados.
+  <!-- Templates de celdas personalizadas -->
+
+  <!-- Visitante -->
+  <ng-template #visitorTpl let-row>
+    <div class="visitor-profile">
+      <div class="visitor-details">
+        <div class="visitor-name">
+          <span class="name-text">{{ row.name || 'Visitante anónimo' }}</span>
+          @if (row.isMe) {
+            <guiders-badge text="Tú" variant="primary" size="small" />
           }
-        </p>
+          @if (row.isInternal) {
+            <span class="internal-badge">Interno</span>
+          }
+          @if (row.isNewVisitor) {
+            <span class="new-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 6v6l4 2"/>
+              </svg>
+              Nuevo
+            </span>
+          }
+        </div>
+        <div class="visitor-metadata">
+          <div class="visitor-identifier">
+            @if (row.email) {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              {{ row.email }}
+            } @else {
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 12l2 2 4-4"/>
+                <circle cx="12" cy="12" r="9"/>
+              </svg>
+              ID: {{ row.fingerprint || row.id.slice(0, 8) }}
+            }
+          </div>
+          @if (row.fingerprint) {
+            <div class="visitor-fingerprint">
+              <svg width="12" height="12" stroke-width="1.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 3.51555C8.4301 2.55827 10.1499 2 12 2C16.1031 2 19.5649 4.74572 20.6482 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M21 22V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M3 22V11C3 9.94809 3.18046 8.93834 3.51212 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M18 22V11.3C18 7.82061 15.3137 5 12 5C8.68629 5 6 7.82061 6 11.3V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M6 22V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M9 22V11.15C9 9.4103 10.3431 8 12 8C12.8653 8 13.645 8.38466 14.1926 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M15 22V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12 22V18.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                <path d="M12 11V14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+              </svg>
+              Fingerprint: {{ row.fingerprint }}
+            </div>
+          }
+          @if (row.ipAddress) {
+            <div class="visitor-ip">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                <line x1="6" y1="6" x2="6.01" y2="6"/>
+                <line x1="6" y1="18" x2="6.01" y2="18"/>
+              </svg>
+              {{ row.ipAddress }}
+            </div>
+          }
+        </div>
       </div>
     </div>
-  }
+  </ng-template>
+
+  <!-- Estado de conexión -->
+  <ng-template #statusTpl let-row>
+    <div class="connection-status">
+      <span class="status-badge status-badge--{{ row.connectionStatus || row.status }}">
+        <span class="status-dot"></span>
+        @switch (row.connectionStatus || row.status) {
+          @case ('online') { En línea }
+          @case ('offline') { Desconectado }
+          @case ('idle') { Inactivo }
+          @case ('away') { Ausente }
+          @case ('busy') { Ocupado }
+          @case ('chatting') { Conversando }
+          @default { {{ row.connectionStatus || row.status }} }
+        }
+      </span>
+    </div>
+  </ng-template>
+
+  <!-- Etapa del ciclo de vida -->
+  <ng-template #lifecycleTpl let-row>
+    <div class="lifecycle-tags">
+      @switch (row.lifecycle) {
+        @case ('ANON') { <span class="tag tag--gray">Anónimo</span> }
+        @case ('ENGAGED') { <span class="tag tag--blue">Interesado</span> }
+        @case ('LEAD') { <span class="tag tag--orange">Lead</span> }
+        @case ('CONVERTED') { <span class="tag tag--green">Convertido</span> }
+        @default { <span class="tag tag--gray">{{ row.lifecycle }}</span> }
+      }
+    </div>
+  </ng-template>
+
+  <!-- Fecha de creación -->
+  <ng-template #createdTpl let-row>
+    <div class="created-info" title="Fecha de primera visita">
+      <div class="created-date-wrapper">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12,6 12,12 16,14"/>
+        </svg>
+        <span class="created-date">{{ formatCreatedAt(row.firstVisit).date }}</span>
+      </div>
+      <span class="created-time">{{ formatCreatedAt(row.firstVisit).time }}</span>
+    </div>
+  </ng-template>
+
+  <!-- Actividad -->
+  <ng-template #activityTpl let-row>
+    <div class="activity-info">
+      <div class="activity-main">
+        <div class="activity-time-wrapper" title="Última actividad">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12,6 12,12 16,14"/>
+          </svg>
+          <span class="activity-time">{{ formatLastVisit(row.lastVisit) }}</span>
+        </div>
+        <div class="activity-location" [title]="row.currentUrl || row.domain">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <div class="url-segments">
+            @for (segment of getUrlSegmentTags(row.currentUrl); track $index; let last = $last) {
+              <button
+                type="button"
+                class="url-segment-tag"
+                (click)="onBreadcrumbSegmentClick($event, $index, row.currentUrl)"
+                [attr.aria-label]="'Abrir URL hasta ' + segment + ' en nueva pestaña'"
+                [title]="'Click para abrir: ' + segment">
+                {{ segment }}
+              </button>
+              @if (!last) {
+                <span class="url-segment-separator" aria-hidden="true">›</span>
+              }
+            }
+          </div>
+        </div>
+      </div>
+      <div class="activity-stats">
+        @if (row.totalChats > 0) {
+          <div class="stat-badge stat-badge--chats" title="Total de chats">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
+            </svg>
+            <span>{{ row.totalChats }}</span>
+            @if (hasUnreadMessages(row.id)) {
+              <span class="unread-dot" title="Mensajes sin leer"></span>
+            }
+          </div>
+        }
+        @if (row.totalSessionDuration && row.totalSessionDuration > 0) {
+          <div class="stat-badge stat-badge--duration" title="Tiempo total en sitio">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12,6 12,12 16,14"/>
+            </svg>
+            <span>{{ formatDuration(row.totalSessionDuration) }}</span>
+          </div>
+        }
+        @if (row.totalSessions > 1) {
+          <div class="stat-badge stat-badge--sessions" title="Total de sesiones">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v10l4 4"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <span>{{ row.totalSessions }}</span>
+          </div>
+        }
+        @if (row.isNewVisitor) {
+          <div class="stat-badge stat-badge--new">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+            <span>Primera visita</span>
+          </div>
+        }
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Acciones -->
+  <ng-template #actionsTpl let-row>
+    <div class="visitor-actions">
+      @if (!row.hasActiveChat) {
+        <button
+          type="button"
+          class="action-button action-button--primary"
+          (click)="onCreateChat(row, $event)"
+          title="Iniciar conversación"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M9 12H12M15 12H12M12 12V9M12 12V15" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Chat
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="action-button action-button--active"
+          (click)="onViewChat(row, $event)"
+          title="Ver conversación activa"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/>
+          </svg>
+          Ver chat
+        </button>
+      }
+
+      @if (row.pendingChatIds && row.pendingChatIds.length > 0) {
+        <button
+          type="button"
+          class="action-button action-button--warning"
+          [class.action-button--processing]="isProcessing(row.id)"
+          [disabled]="isProcessing(row.id)"
+          (click)="onViewPendingChats(row, $event)"
+          [title]="isProcessing(row.id) ? 'Procesando...' : 'Tomar chat pendiente (' + row.pendingChatIds.length + ' disponible' + (row.pendingChatIds.length > 1 ? 's' : '') + ')'"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M17 12.5C17.2761 12.5 17.5 12.2761 17.5 12C17.5 11.7239 17.2761 11.5 17 11.5C16.7239 11.5 16.5 11.7239 16.5 12C16.5 12.2761 16.7239 12.5 17 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M7 12.5C7.27614 12.5 7.5 12.2761 7.5 12C7.5 11.7239 7.27614 11.5 7 11.5C6.72386 11.5 6.5 11.7239 6.5 12C6.5 12.2761 6.72386 12.5 7 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="pending-count">{{ row.pendingChatIds.length }}</span>
+        </button>
+      }
+
+      <div class="dropdown-actions">
+        <button
+          type="button"
+          class="action-button action-button--ghost dropdown-trigger"
+          (click)="toggleDropdown(row.id, $event)"
+          title="Más acciones"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="1"/>
+            <circle cx="12" cy="5" r="1"/>
+            <circle cx="12" cy="19" r="1"/>
+          </svg>
+        </button>
+        @if (showDropdown() === row.id) {
+          <div class="dropdown-menu" role="menu" [style.top.px]="dropdownPosition().top" [style.left.px]="dropdownPosition().left">
+            <button class="dropdown-item" (click)="onViewDetails(row, $event); closeDropdown()" role="menuitem">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              Ver perfil
+            </button>
+            <button class="dropdown-item" (click)="onViewHistory(row, $event); closeDropdown()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12,6 12,12 16,14"/>
+              </svg>
+              Historial
+            </button>
+            <button class="dropdown-item" (click)="onAddTag(row, $event); closeDropdown()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                <line x1="7" y1="7" x2="7.01" y2="7"/>
+              </svg>
+              Etiquetar
+            </button>
+            @if (row.pendingChatIds && row.pendingChatIds.length > 0) {
+              <button
+                class="dropdown-item"
+                [class.dropdown-item--disabled]="isProcessing(row.id)"
+                [disabled]="isProcessing(row.id)"
+                (click)="onViewPendingChats(row, $event); closeDropdown()"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M17 12.5C17.2761 12.5 17.5 12.2761 17.5 12C17.5 11.7239 17.2761 11.5 17 11.5C16.7239 11.5 16.5 11.7239 16.5 12C16.5 12.2761 16.7239 12.5 17 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M7 12.5C7.27614 12.5 7.5 12.2761 7.5 12C7.5 11.7239 7.27614 11.5 7 11.5C6.72386 11.5 6.5 11.7239 6.5 12C6.5 12.2761 6.72386 12.5 7 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                {{ isProcessing(row.id) ? 'Procesando...' : 'Tomar chat pendiente (' + row.pendingChatIds.length + ')' }}
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </ng-template>
 </div>

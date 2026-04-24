@@ -5,10 +5,21 @@ import {
   computed,
   signal,
   ChangeDetectionStrategy,
+  TemplateRef,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 // ─── Public types ─────────────────────────────────────────────────────────────
+
+/** Context object passed to each cell ng-template */
+export interface CellTemplateContext<T = object> {
+  /** The full row data */
+  $implicit: T;
+  /** The resolved cell value */
+  value: unknown;
+  /** The column definition */
+  column: TableColumn<T>;
+}
 
 export type SortDirection = 'asc' | 'desc';
 
@@ -17,7 +28,7 @@ export interface TableSort {
   direction: SortDirection;
 }
 
-export interface TableColumn<T = Record<string, unknown>> {
+export interface TableColumn<T = object> {
   /** Unique field identifier used for sorting and column visibility */
   field: string;
   /** Header label displayed in the table */
@@ -59,7 +70,7 @@ export interface DataTableConfig {
   styleUrls: ['./data-table.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DataTable<T extends Record<string, unknown> = Record<string, unknown>> {
+export class DataTable<T extends object = object> {
   // ── Inputs ──────────────────────────────────────────────────────────────────
 
   readonly rows = input<T[]>([]);
@@ -72,6 +83,11 @@ export class DataTable<T extends Record<string, unknown> = Record<string, unknow
   readonly rowIdField = input<string>('id');
   /** Empty state message */
   readonly emptyMessage = input<string>('No hay datos disponibles');
+  /**
+   * Optional map of column field → TemplateRef for custom cell rendering.
+   * Each template receives a CellTemplateContext<T> as its implicit context.
+   */
+  readonly cellTemplates = input<Map<string, TemplateRef<CellTemplateContext<T>>>>(new Map());
 
   // ── Outputs ─────────────────────────────────────────────────────────────────
 
@@ -106,7 +122,7 @@ export class DataTable<T extends Record<string, unknown> = Record<string, unknow
   readonly selectedRows = computed(() => {
     const ids = this.internalSelectedIds();
     const idField = this.rowIdField();
-    return this.rows().filter((row) => ids.has(String(row[idField])));
+    return this.rows().filter((row) => ids.has(String(this.getField(row, idField))));
   });
 
   readonly allSelected = computed(() => {
@@ -114,14 +130,14 @@ export class DataTable<T extends Record<string, unknown> = Record<string, unknow
     if (rows.length === 0) return false;
     const ids = this.internalSelectedIds();
     const idField = this.rowIdField();
-    return rows.every((row) => ids.has(String(row[idField])));
+    return rows.every((row) => ids.has(String(this.getField(row, idField))));
   });
 
   readonly someSelected = computed(() => {
     const rows = this.rows();
     const ids = this.internalSelectedIds();
     const idField = this.rowIdField();
-    return rows.some((row) => ids.has(String(row[idField]))) && !this.allSelected();
+    return rows.some((row) => ids.has(String(this.getField(row, idField)))) && !this.allSelected();
   });
 
   readonly cfg = computed<Required<DataTableConfig>>(() => ({
@@ -135,13 +151,26 @@ export class DataTable<T extends Record<string, unknown> = Record<string, unknow
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
+  /** Type-safe dynamic field accessor */
+  getField(row: T, field: string): unknown {
+    return (row as Record<string, unknown>)[field];
+  }
+
   getCellValue(row: T, col: TableColumn<T>): unknown {
     if (col.value) return col.value(row);
-    return row[col.field];
+    return this.getField(row, col.field);
+  }
+
+  getTemplate(field: string): TemplateRef<CellTemplateContext<T>> | null {
+    return this.cellTemplates().get(field) ?? null;
+  }
+
+  getCellContext(row: T, col: TableColumn<T>): CellTemplateContext<T> {
+    return { $implicit: row, value: this.getCellValue(row, col), column: col };
   }
 
   isRowSelected(row: T): boolean {
-    return this.internalSelectedIds().has(String(row[this.rowIdField()]));
+    return this.internalSelectedIds().has(String(this.getField(row, this.rowIdField())));
   }
 
   isColumnVisible(field: string): boolean {
@@ -174,7 +203,7 @@ export class DataTable<T extends Record<string, unknown> = Record<string, unknow
 
   onRowCheckboxChange(row: T, checked: boolean): void {
     const ids = new Set(this.internalSelectedIds());
-    const id = String(row[this.rowIdField()]);
+    const id = String(this.getField(row, this.rowIdField()));
 
     if (checked) {
       if (!this.cfg().multiSelect) ids.clear();
@@ -192,7 +221,7 @@ export class DataTable<T extends Record<string, unknown> = Record<string, unknow
 
     const idField = this.rowIdField();
     const ids = checked
-      ? new Set(this.rows().map((r) => String(r[idField])))
+      ? new Set(this.rows().map((r) => String(this.getField(r, idField))))
       : new Set<string>();
 
     this.internalSelectedIds.set(ids);

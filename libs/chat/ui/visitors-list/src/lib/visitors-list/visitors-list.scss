@@ -7,12 +7,18 @@
 @use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
 
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   width: 100%;
 }
 
 .visitors-list {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   background-color: transparent;
   width: 100%;
 }
@@ -88,13 +94,11 @@
 
 .visitors-list__table-container {
   background: var(--color-surface-primary);
-  border: 1px solid var(--color-border-subtle);
   border-radius: 8px;
-  // overflow:hidden breaks position:sticky on thead — use clip instead
-  overflow: clip;
-  // Enable vertical scroll so sticky header works correctly
-  overflow-y: auto;
-  max-height: var(--visitors-table-max-height, calc(100vh - 200px));
+  // Único scroll container — se adapta a la altura disponible del flex parent
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
 
   // Permitir que los dropdowns sean visibles
   .dropdown-actions {

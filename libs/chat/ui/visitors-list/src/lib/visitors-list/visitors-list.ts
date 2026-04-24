@@ -1,11 +1,7 @@
-import { Component, input, output, computed, signal, HostListener, inject, ChangeDetectorRef, effect } from '@angular/core';
+import { Component, input, output, computed, signal, HostListener, effect, ChangeDetectionStrategy, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { forkJoin } from 'rxjs';
-import { filter } from 'rxjs/operators';
 import { Badge } from '@guiders-frontend/badge';
-import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
-import { ChatService } from '@guiders-frontend/chat-service';
-import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
+import { DataTable, TableColumn, CellTemplateContext } from '@guiders-frontend/data-table';
 import {
   Visitor,
   VisitorFilters,
@@ -27,11 +23,12 @@ export interface VisitorListConfig {
 @Component({
   selector: 'lib-visitors-list',
   standalone: true,
-  imports: [CommonModule, Badge],
+  imports: [CommonModule, Badge, DataTable],
   templateUrl: './visitors-list.html',
-  styleUrls: ['./visitors-list.scss']
+  styleUrls: ['./visitors-list.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VisitorsListComponent {
+export class VisitorsListComponent implements AfterViewInit {
   // Inputs
   readonly visitors = input<Visitor[]>([]);
   readonly loading = input<boolean>(false);
@@ -46,6 +43,8 @@ export class VisitorsListComponent {
   });
   readonly selectedVisitorIds = input<string[]>([]);
   readonly externalSort = input<VisitorSearchSort | null>(null);
+  /** Set of visitor IDs that have unread messages (provided by container) */
+  readonly unreadVisitorIds = input<Set<string>>(new Set());
 
   // Outputs
   readonly visitorClick = output<Visitor>();
@@ -57,12 +56,14 @@ export class VisitorsListComponent {
   readonly viewPendingChats = output<{visitor: Visitor, pendingChatIds: string[]}>();
   readonly takePendingChat = output<{visitor: Visitor, chatId: string}>();
   readonly operationCompleted = output<string>(); // Emite el visitorId cuando la operación termina
-
-  // Services
-  private readonly cdr = inject(ChangeDetectorRef);
-  private readonly chatWidgetService = inject(ChatWidgetService);
-  private readonly chatService = inject(ChatService);
-  private readonly unreadMessagesService = inject(UnreadMessagesService);
+  /** Emitted when the user wants to open/create a chat for a visitor */
+  readonly openChat = output<Visitor>();
+  /** Emitted when the user wants to view an active chat for a visitor */
+  readonly openWidget = output<Visitor>();
+  /** Emitted when the user wants to view visitor details */
+  readonly viewDetails = output<Visitor>();
+  /** Emitted to register chat-visitor relationships for unread badges */
+  readonly registerVisitorChatsEvent = output<Array<{ chatId: string; visitorId: string }>>();
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -74,12 +75,42 @@ export class VisitorsListComponent {
   // Track visitors with pending operations (for optimistic UI)
   readonly processingVisitorIds = signal<Set<string>>(new Set());
 
+  // Cell templates (resolved in ngAfterViewInit)
+  @ViewChild('visitorTpl') visitorTpl!: TemplateRef<CellTemplateContext<Visitor>>;
+  @ViewChild('statusTpl') statusTpl!: TemplateRef<CellTemplateContext<Visitor>>;
+  @ViewChild('lifecycleTpl') lifecycleTpl!: TemplateRef<CellTemplateContext<Visitor>>;
+  @ViewChild('createdTpl') createdTpl!: TemplateRef<CellTemplateContext<Visitor>>;
+  @ViewChild('activityTpl') activityTpl!: TemplateRef<CellTemplateContext<Visitor>>;
+  @ViewChild('actionsTpl') actionsTpl!: TemplateRef<CellTemplateContext<Visitor>>;
+
+  cellTemplatesMap = new Map<string, TemplateRef<CellTemplateContext<Visitor>>>();
+
+  /** Column definitions for guiders-data-table */
+  readonly tableColumns: TableColumn<Visitor>[] = [
+    { field: 'name', label: 'Visitante', sortable: true },
+    { field: 'connectionStatus', label: 'Estado de conexión', sortable: true },
+    { field: 'lifecycle', label: 'Etapa' },
+    { field: 'firstVisit', label: 'Creado', sortable: true },
+    { field: 'lastVisit', label: 'Actividad', sortable: true },
+    { field: 'actions', label: 'Acciones', hideable: false, sortable: false },
+  ];
+
+  ngAfterViewInit(): void {
+    this.cellTemplatesMap = new Map([
+      ['name', this.visitorTpl],
+      ['connectionStatus', this.statusTpl],
+      ['lifecycle', this.lifecycleTpl],
+      ['firstVisit', this.createdTpl],
+      ['lastVisit', this.activityTpl],
+      ['actions', this.actionsTpl],
+    ]);
+  }
+
   constructor() {
     // Sync external sort with internal sort
     effect(() => {
       const external = this.externalSort();
       if (external) {
-        // Map API sort fields to table sort fields
         const fieldMap: Record<string, VisitorSort['field']> = {
           'lastActivity': 'lastVisit',
           'createdAt': 'firstVisit',
@@ -87,21 +118,29 @@ export class VisitorsListComponent {
           'lifecycle': 'lifecycle',
           'connectionStatus': 'status'
         };
-
         const mappedField = fieldMap[external.field] || 'lastVisit';
         const mappedDirection = external.direction.toLowerCase() as 'asc' | 'desc';
-
-        this.currentSort.set({
-          field: mappedField,
-          direction: mappedDirection
-        });
+        this.currentSort.set({ field: mappedField, direction: mappedDirection });
       }
     }, { allowSignalWrites: true });
 
-    // Register chat-visitor relationships for unread badges
+    // Emit chat-visitor relationships for unread badges (container handles registration)
     effect(() => {
       const visitors = this.visitors();
-      this.registerVisitorChats(visitors);
+      const chatsToRegister: Array<{ chatId: string; visitorId: string }> = [];
+      for (const visitor of visitors) {
+        if (visitor.lastChatId) {
+          chatsToRegister.push({ chatId: visitor.lastChatId, visitorId: visitor.id });
+        }
+        if (visitor.pendingChatIds?.length) {
+          for (const chatId of visitor.pendingChatIds) {
+            chatsToRegister.push({ chatId, visitorId: visitor.id });
+          }
+        }
+      }
+      if (chatsToRegister.length > 0) {
+        this.registerVisitorChatsEvent.emit(chatsToRegister);
+      }
     });
   }
 
@@ -109,31 +148,8 @@ export class VisitorsListComponent {
    * Registra las relaciones chat-visitor en el servicio de mensajes no leídos
    * Esto permite que el badge rojo aparezca en los visitantes con mensajes no leídos
    */
-  private registerVisitorChats(visitors: Visitor[]): void {
-    const chatsToRegister: Array<{ chatId: string; visitorId: string }> = [];
-
-    console.log('[VisitorsList] 🔄 Registrando chats de visitantes:', visitors.length);
-
-    for (const visitor of visitors) {
-      // Registrar lastChatId si existe
-      if (visitor.lastChatId) {
-        console.log(`[VisitorsList] 📋 Visitor ${visitor.id} tiene lastChatId: ${visitor.lastChatId}`);
-        chatsToRegister.push({ chatId: visitor.lastChatId, visitorId: visitor.id });
-      }
-      // Registrar pendingChatIds si existen
-      if (visitor.pendingChatIds && visitor.pendingChatIds.length > 0) {
-        console.log(`[VisitorsList] 📋 Visitor ${visitor.id} tiene pendingChatIds:`, visitor.pendingChatIds);
-        for (const chatId of visitor.pendingChatIds) {
-          chatsToRegister.push({ chatId, visitorId: visitor.id });
-        }
-      }
-    }
-
-    console.log('[VisitorsList] 📊 Total de relaciones a registrar:', chatsToRegister.length);
-
-    if (chatsToRegister.length > 0) {
-      this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
-    }
+  private registerVisitorChats(_visitors: Visitor[]): void {
+    // Delegated to container via registerVisitorChatsEvent output
   }
 
   // Computed values
@@ -224,97 +240,26 @@ export class VisitorsListComponent {
 
   onCreateChat(visitor: Visitor, event: Event): void {
     event.stopPropagation();
-
-    console.log('[VisitorsList] Verificando chats existentes para visitante:', visitor.id);
-
-    // Verificar primero si el visitante tiene chats asignados al comercial actual
-    this.chatService.getVisitorMyChats(visitor.id).subscribe({
-      next: (response: { chats: Chat[]; total: number; totalVisitorChats: number; hasMore: boolean; nextCursor?: string | null }) => {
-        console.log('[VisitorsList] Respuesta de chats del visitante:', response);
-
-        // Registrar relaciones chat-visitor para el servicio de no leídos
-        this.registerChatsForVisitor(response.chats, visitor.id);
-
-        // Si no hay chats asignados y el visitante no tiene chats en total, crear uno nuevo
-        if (response.totalVisitorChats === 0 && response.chats.length === 0) {
-          console.log('[VisitorsList] No hay chats existentes, abriendo widget para crear nuevo chat');
-          this.chatWidgetService.openWidget(visitor);
-        }
-        // Si hay múltiples chats asignados, abrir con pestañas
-        else if (response.chats.length > 1) {
-          console.log('[VisitorsList] Múltiples chats encontrados, abriendo con pestañas:', response.chats.length);
-          this.chatWidgetService.openWithTabs(response.chats, visitor, 0);
-        }
-        // Si hay un solo chat asignado al comercial actual, abrir ese chat
-        else if (response.chats.length === 1) {
-          const firstChat = response.chats[0];
-          console.log('[VisitorsList] Chat existente encontrado, abriendo chat:', firstChat.chatId);
-          this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
-        }
-        // Si el visitante tiene chats pero ninguno asignado a este comercial
-        else {
-          console.log('[VisitorsList] El visitante tiene chats pero ninguno asignado al comercial actual');
-        }
-      },
-      error: (error: unknown) => {
-        console.error('[VisitorsList] Error al verificar chats del visitante:', error);
-      }
-    });
+    this.openChat.emit(visitor);
   }
 
   /**
    * Registra las relaciones chat-visitor cuando se obtienen los chats del comercial
    */
-  private registerChatsForVisitor(chats: Chat[], visitorId: string): void {
-    if (chats.length === 0) return;
-
-    const chatsToRegister = chats.map(chat => ({
-      chatId: chat.chatId,
-      visitorId
-    }));
-
-    console.log(`[VisitorsList] 📋 Registrando ${chatsToRegister.length} chats para visitor ${visitorId}`);
-    this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
+  private registerChatsForVisitor(_chats: Chat[], _visitorId: string): void {
+    // Delegated to container via registerVisitorChatsEvent output
   }
 
   onViewDetails(visitor: Visitor, event?: Event): void {
     if (event) {
       event.stopPropagation();
     }
-    // Emit an event for viewing visitor details
-    // This could navigate to a detail page or open a modal
-    console.log('View details for visitor:', visitor.id);
+    this.viewDetails.emit(visitor);
   }
 
   onViewChat(visitor: Visitor, event: Event): void {
     event.stopPropagation();
-    console.log('[VisitorsList] Abriendo widget para ver chat activo del visitante:', visitor.id);
-
-    // Obtener el chat asignado al comercial actual para este visitante
-    this.chatService.getVisitorMyChats(visitor.id).subscribe({
-      next: (response: { chats: Chat[]; total: number; totalVisitorChats: number; hasMore: boolean; nextCursor?: string | null }) => {
-        // Registrar relaciones chat-visitor para el servicio de no leídos
-        this.registerChatsForVisitor(response.chats, visitor.id);
-
-        // Si hay múltiples chats asignados, abrir con pestañas
-        if (response.chats.length > 1) {
-          console.log('[VisitorsList] Múltiples chats encontrados, abriendo con pestañas:', response.chats.length);
-          this.chatWidgetService.openWithTabs(response.chats, visitor, 0);
-        }
-        // Si hay un solo chat, abrir ese chat
-        else if (response.chats.length === 1) {
-          const firstChat = response.chats[0];
-          console.log('[VisitorsList] Abriendo chat existente:', firstChat.chatId);
-          this.chatWidgetService.openWithChat(firstChat.chatId, visitor);
-        } else {
-          console.log('[VisitorsList] No se encontró chat asignado, abriendo widget para crear uno');
-          this.chatWidgetService.openWidget(visitor);
-        }
-      },
-      error: (error: unknown) => {
-        console.error('[VisitorsList] Error al obtener chat del visitante:', error);
-      }
-    });
+    this.openWidget.emit(visitor);
   }
 
   onViewHistory(visitor: Visitor, event?: Event): void {
@@ -334,15 +279,11 @@ export class VisitorsListComponent {
   }
 
   onCreateChatFromButton(visitor: Visitor): void {
-    // Create a mock event for compatibility
-    const mockEvent = new Event('click');
-    this.onCreateChat(visitor, mockEvent);
+    this.openChat.emit(visitor);
   }
 
   onViewChatFromButton(visitor: Visitor): void {
-    // Create a mock event for compatibility
-    const mockEvent = new Event('click');
-    this.onViewChat(visitor, mockEvent);
+    this.openWidget.emit(visitor);
   }
 
   onViewPendingChats(visitor: Visitor, event?: Event): void {
@@ -350,50 +291,22 @@ export class VisitorsListComponent {
       event.stopPropagation();
     }
 
-    // Verificar si ya está en proceso
     if (this.isProcessing(visitor.id)) {
-      console.log('Operation already in progress for visitor:', visitor.id);
       return;
     }
 
     const pendingChatIds = visitor.pendingChatIds || [];
 
     if (pendingChatIds.length === 0) {
-      console.log('[VisitorsList] No hay chats pendientes para este visitante');
       return;
     }
 
     this.closeDropdown();
 
-    // Si hay múltiples chats pendientes, abrir con pestañas
     if (pendingChatIds.length > 1) {
-      console.log('[VisitorsList] 🟠 Múltiples chats pendientes, abriendo con pestañas:', pendingChatIds.length);
-
-      // Obtener detalles de todos los chats pendientes
-      const chatRequests = pendingChatIds.map(chatId =>
-        this.chatService.getChat(chatId).pipe(
-          filter((chat): chat is Chat => chat !== null)
-        )
-      );
-
-      forkJoin(chatRequests).subscribe({
-        next: (chats: Chat[]) => {
-          console.log('[VisitorsList] 🟠 Chats pendientes obtenidos:', chats.length);
-
-          // Registrar relaciones chat-visitor para el servicio de no leídos
-          this.registerChatsForVisitor(chats, visitor.id);
-
-          // Abrir widget con pestañas de chats pendientes
-          this.chatWidgetService.openWithPendingTabs(chats, visitor, 0);
-        },
-        error: (error: unknown) => {
-          console.error('[VisitorsList] Error al obtener chats pendientes:', error);
-          // Fallback: tomar el primer chat como antes
-          this.takeSinglePendingChat(visitor, pendingChatIds[0]);
-        }
-      });
+      // Emit all pending chat ids — container decides how to open them
+      this.viewPendingChats.emit({ visitor, pendingChatIds });
     } else {
-      // Solo un chat pendiente - tomar automáticamente
       this.takeSinglePendingChat(visitor, pendingChatIds[0]);
     }
   }
@@ -420,16 +333,12 @@ export class VisitorsListComponent {
     const processing = new Set(this.processingVisitorIds());
     processing.add(visitorId);
     this.processingVisitorIds.set(processing);
-    // Forzar detección de cambios INMEDIATA (síncrona) para deshabilitar el botón
-    this.cdr.detectChanges();
   }
 
   markAsCompleted(visitorId: string): void {
     const processing = new Set(this.processingVisitorIds());
     processing.delete(visitorId);
     this.processingVisitorIds.set(processing);
-    // Usar detectChanges() para actualización inmediata de la UI
-    this.cdr.detectChanges();
   }
 
   isProcessing(visitorId: string): boolean {
@@ -880,13 +789,7 @@ export class VisitorsListComponent {
    * Verifica si un visitante tiene mensajes no leídos en sus chats asignados
    */
   hasUnreadMessages(visitorId: string): boolean {
-    const hasUnread = this.unreadMessagesService.hasUnreadForVisitor(visitorId);
-    const unreadCount = this.unreadMessagesService.getUnreadCountForVisitor(visitorId);
-    // Solo loguear si hay mensajes no leídos para evitar spam
-    if (hasUnread) {
-      console.log(`[VisitorsList] 🔴 Visitor ${visitorId} tiene ${unreadCount} mensajes no leídos`);
-    }
-    return hasUnread;
+    return this.unreadVisitorIds().has(visitorId);
   }
 
 }

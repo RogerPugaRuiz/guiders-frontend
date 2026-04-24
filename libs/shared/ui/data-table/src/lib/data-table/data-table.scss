@@ -1,4 +1,4 @@
-@use '../../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
 
 // ─── Host ────────────────────────────────────────────────────────────────────
 
@@ -13,10 +13,11 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   border-radius: tokens.$border-radius-md;
-  border: 1px solid tokens.$color-border-subtle;
-  overflow: hidden;
+  border: 1px solid var(--color-border-subtle);
+  // No overflow:hidden here — it breaks position:sticky on thead.
+  // The embedding container (e.g. visitors-list__table-container) clips and scrolls.
 }
 
 // ─── Toolbar ─────────────────────────────────────────────────────────────────
@@ -26,8 +27,8 @@
   align-items: center;
   gap: tokens.$spacing-sm;
   padding: tokens.$spacing-sm tokens.$spacing-md;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  background: tokens.$color-surface-secondary;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-secondary);
 }
 
 .dt-toolbar-btn {
@@ -37,17 +38,17 @@
   padding: tokens.$spacing-xs tokens.$spacing-sm;
   font-size: tokens.$font-size-sm;
   font-weight: 500;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
   background: transparent;
-  border: 1px solid tokens.$color-border-subtle;
+  border: 1px solid var(--color-border-subtle);
   border-radius: tokens.$border-radius-sm;
   cursor: pointer;
   transition: tokens.$transition-fast;
 
   &:hover {
-    background: tokens.$color-surface-hover;
-    color: tokens.$color-text-primary;
-    border-color: tokens.$color-border-default;
+    background: var(--color-surface-hover);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-default);
   }
 }
 
@@ -63,8 +64,8 @@
   left: 0;
   z-index: 100;
   min-width: 180px;
-  background: tokens.$color-surface-primary;
-  border: 1px solid tokens.$color-border-default;
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-default);
   border-radius: tokens.$border-radius-md;
   box-shadow: tokens.$shadow-md;
   padding: tokens.$spacing-sm;
@@ -72,7 +73,7 @@
   &__title {
     font-size: tokens.$font-size-xs;
     font-weight: 600;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 0 tokens.$spacing-xs tokens.$spacing-xs;
@@ -86,33 +87,29 @@
   gap: tokens.$spacing-sm;
   padding: tokens.$spacing-xs;
   font-size: tokens.$font-size-sm;
-  color: tokens.$color-text-primary;
+  color: var(--color-text-primary);
   border-radius: tokens.$border-radius-sm;
   cursor: pointer;
   transition: background tokens.$transition-fast;
 
   &:hover {
-    background: tokens.$color-surface-hover;
+    background: var(--color-surface-hover);
   }
 
   input[type='checkbox'] {
     cursor: pointer;
-    accent-color: tokens.$color-primary;
+    accent-color: var(--color-accent);
   }
 }
 
 // ─── Scroll container ────────────────────────────────────────────────────────
 
 .data-table-scroll-container {
-  overflow-x: auto;
-  overflow-y: auto;
+  // No overflow here — the embedding container manages both scroll axes.
+  // If data-table is used standalone (without an external scroll container),
+  // add overflow-x: auto on the wrapper via the --dt-overflow custom property or a host style.
   width: 100%;
   flex: 1;
-
-  // Allow host to constrain height for sticky to work
-  .data-table-wrapper--sticky & {
-    max-height: var(--dt-max-height, 600px);
-  }
 }
 
 // ─── Table ───────────────────────────────────────────────────────────────────
@@ -121,14 +118,14 @@
   width: 100%;
   border-collapse: collapse;
   font-size: tokens.$font-size-sm;
-  color: tokens.$color-text-primary;
+  color: var(--color-text-primary);
   table-layout: auto;
 }
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 
 .data-table__head {
-  background: tokens.$color-surface-secondary;
+  background: var(--color-surface-secondary);
 }
 
 .data-table__head--sticky {
@@ -136,9 +133,9 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    background: tokens.$color-surface-secondary;
+    background: var(--color-surface-secondary);
     // Shadow to visually separate from scrolling content
-    box-shadow: 0 1px 0 tokens.$color-border-subtle, 0 2px 4px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 0 var(--color-border-subtle), 0 2px 4px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -147,11 +144,11 @@
   text-align: left;
   font-size: tokens.$font-size-xs;
   font-weight: 600;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
-  border-bottom: 1px solid tokens.$color-border-subtle;
+  border-bottom: 1px solid var(--color-border-subtle);
   user-select: none;
 
   &--select {
@@ -163,13 +160,13 @@
     cursor: pointer;
 
     &:hover {
-      background: tokens.$color-surface-hover;
-      color: tokens.$color-text-primary;
+      background: var(--color-surface-hover);
+      color: var(--color-text-primary);
     }
   }
 
   &--active {
-    color: tokens.$color-primary;
+    color: var(--color-accent);
   }
 }
 
@@ -182,31 +179,31 @@
 .dt-sort-icon {
   display: flex;
   align-items: center;
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
   transition: color tokens.$transition-fast;
   flex-shrink: 0;
 
   &--visible {
-    color: tokens.$color-primary;
+    color: var(--color-accent);
   }
 }
 
 // ─── Body ─────────────────────────────────────────────────────────────────────
 
 .data-table__row {
-  border-bottom: 1px solid tokens.$color-border-subtle;
+  border-bottom: 1px solid var(--color-border-subtle);
   transition: background tokens.$transition-fast;
   cursor: pointer;
 
   &:hover {
-    background: tokens.$color-surface-hover;
+    background: var(--color-surface-hover);
   }
 
   &--selected {
-    background: tokens.$color-primary-subtle;
+    background: var(--color-surface-selected);
 
     &:hover {
-      background: tokens.$color-primary-subtle-hover;
+      background: var(--color-surface-hover);
     }
   }
 
@@ -243,7 +240,7 @@
 
 .dt-checkbox {
   cursor: pointer;
-  accent-color: tokens.$color-primary;
+  accent-color: var(--color-accent);
   width: 16px;
   height: 16px;
 }
@@ -255,7 +252,7 @@
   flex-direction: column;
   align-items: center;
   gap: tokens.$spacing-md;
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
 
   p {
     margin: 0;
@@ -272,9 +269,9 @@
   border-radius: tokens.$border-radius-sm;
   background: linear-gradient(
     90deg,
-    tokens.$color-surface-secondary 25%,
-    tokens.$color-surface-hover 50%,
-    tokens.$color-surface-secondary 75%
+    var(--color-surface-secondary) 25%,
+    var(--color-surface-hover) 50%,
+    var(--color-surface-secondary) 75%
   );
   background-size: 200% 100%;
   animation: dt-shimmer 1.4s infinite;

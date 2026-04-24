@@ -142,7 +142,7 @@
             </td>
           </tr>
         } @else {
-          @for (row of rows(); track row[rowIdField()]) {
+          @for (row of rows(); track getField(row, rowIdField())) {
             <tr
               class="data-table__row"
               [class.data-table__row--selected]="isRowSelected(row)"
@@ -164,7 +164,14 @@
                   class="data-table__td"
                   [class]="col.cssClass || ''"
                 >
-                  {{ getCellValue(row, col) }}
+                  @if (getTemplate(col.field); as tpl) {
+                    <ng-container
+                      [ngTemplateOutlet]="tpl"
+                      [ngTemplateOutletContext]="getCellContext(row, col)"
+                    />
+                  } @else {
+                    {{ getCellValue(row, col) }}
+                  }
                 </td>
               }
             </tr>

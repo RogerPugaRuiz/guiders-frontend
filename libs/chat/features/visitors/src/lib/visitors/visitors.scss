@@ -681,11 +681,11 @@
 
   &__list-container {
     flex: 1;
-    overflow-y: auto; // Solo este contenedor tiene scroll
-    overflow-x: hidden; // Evitar scroll horizontal
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; // Clipea sin crear scroll — el scroll lo gestiona visitors-list__table-container
     padding: 0 tokens.$spacing-md; // Padding lateral para la lista
     min-height: 0; // CRÍTICO: Importante para que funcione el flex con overflow
-    max-height: 100%; // Limitar altura al contenedor padre
 
     // Estilos personalizados de scrollbar
     &::-webkit-scrollbar {
