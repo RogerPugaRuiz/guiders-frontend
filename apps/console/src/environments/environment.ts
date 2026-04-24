@@ -11,7 +11,10 @@ interface Environment {
     wsUrl?: string; // URL específica para WebSocket (opcional)
   };
   adminUrl: string;
+  version?: string;
 }
+
+declare const __APP_VERSION__: string;
 
 export const environment: Environment = {
   production: false,
@@ -25,5 +28,6 @@ export const environment: Environment = {
     baseUrl: 'http://localhost:3000/api',
     wsUrl: 'http://localhost:3000' // URL específica para WebSocket (sin /api)
   },
-  adminUrl: 'http://localhost:4201'
+  adminUrl: 'http://localhost:4201',
+  version: (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'),
 };

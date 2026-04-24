@@ -293,5 +293,9 @@
       (switchApp)="onAppSwitch()"
     />
     }
+
+    @if (appVersion() && !isCollapsed()) {
+    <div class="sidebar__version">v{{ appVersion() }}</div>
+    }
   </footer>
 </aside>

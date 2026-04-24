@@ -753,3 +753,14 @@
     padding: tokens.$spacing-sm;
   }
 }
+
+// Version label
+.sidebar__version {
+  padding: tokens.$spacing-xs tokens.$spacing-md;
+  font-family: tokens.$font-family-sans;
+  font-size: tokens.$font-size-xs;
+  color: var(--sidebar-text-muted);
+  opacity: 0.5;
+  text-align: right;
+  user-select: none;
+}

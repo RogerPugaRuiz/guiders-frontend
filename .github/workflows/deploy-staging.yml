@@ -18,8 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
   deployments: write
+  issues: write
+  pull-requests: write
 
 jobs:
   build-and-deploy:
@@ -29,6 +31,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
 
       - name: Use Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
@@ -38,6 +43,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Version bump (semantic-release)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
 
       - name: Lint (staging)
         run: npx nx run-many -t lint --projects=admin,console --parallel
@@ -259,5 +269,7 @@ jobs:
 
       - name: Summary
         run: |
+          VERSION=$(node -p "require('./package.json').version")
           echo "## Despliegue Staging" >> $GITHUB_STEP_SUMMARY
-          echo "Build staging completado y artefactos publicados." >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Build staging completado y artefactos publicados." >> $GITHUB_STEP_SUMMARY

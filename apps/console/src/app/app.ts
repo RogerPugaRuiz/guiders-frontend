@@ -24,6 +24,9 @@ export class App {
 
   protected title = 'console';
 
+  // App version from build-time injection, with safe fallback
+  readonly appVersion: string = this.environment.version ?? '';
+
   // Usuario actual desde el servicio
   readonly currentUser = this.userService.currentUser;
 

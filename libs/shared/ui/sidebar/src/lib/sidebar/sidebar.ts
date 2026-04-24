@@ -44,6 +44,9 @@ export class Sidebar {
   readonly userEmail = input<string | null>(null);
   readonly userName = input<string | null>(null);
 
+  // App version display
+  readonly appVersion = input<string | null>(null);
+
   // App Switcher inputs
   readonly showAppSwitcher = input<boolean>(false);
   readonly appSwitcherLabel = input<string>('');
