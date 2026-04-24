@@ -1812,28 +1812,24 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           `[Visitors] 📝 Registrando ${chatsToRegister.length} relaciones chat-visitor para badges`
         );
         this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
-        this.refreshUnreadVisitorIds();
         console.log('[Visitors] ✅ Relaciones registradas exitosamente');
       });
   }
 
   /** Computes the current set of visitor IDs with unread messages and exposes it as a signal */
   readonly unreadVisitorIds = computed<Set<string>>(() => {
-    // Re-compute whenever visitors change so badges stay in sync
+    // Track both visitors and unreadCountByVisitor so Angular re-evaluates
+    // this computed whenever either changes — no manual refresh needed.
     const visitors = this.state().visitors;
+    const unreadByVisitor = this.unreadMessagesService.unreadCountByVisitor();
     const ids = new Set<string>();
     for (const v of visitors) {
-      if (this.unreadMessagesService.hasUnreadForVisitor(v.id)) {
+      if ((unreadByVisitor[v.id] || 0) > 0) {
         ids.add(v.id);
       }
     }
     return ids;
   });
-
-  private refreshUnreadVisitorIds(): void {
-    // Signal re-evaluation is automatic via computed(); a state update triggers it
-    this.updateState({});
-  }
 
   /** Handle openChat output from VisitorsListComponent */
   onOpenChat(visitor: Visitor): void {
@@ -1842,7 +1838,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         const chatsToRegister = response.chats.map(c => ({ chatId: c.chatId, visitorId: visitor.id }));
         if (chatsToRegister.length) {
           this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
-          this.refreshUnreadVisitorIds();
         }
         if (response.totalVisitorChats === 0 && response.chats.length === 0) {
           this.chatWidgetService.openWidget(visitor);
@@ -1863,7 +1858,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         const chatsToRegister = response.chats.map(c => ({ chatId: c.chatId, visitorId: visitor.id }));
         if (chatsToRegister.length) {
           this.unreadMessagesService.registerChatsVisitors(chatsToRegister);
-          this.refreshUnreadVisitorIds();
         }
         if (response.chats.length > 1) {
           this.chatWidgetService.openWithTabs(response.chats, visitor, 0);
@@ -1887,7 +1881,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   onRegisterVisitorChats(chats: Array<{ chatId: string; visitorId: string }>): void {
     if (chats.length) {
       this.unreadMessagesService.registerChatsVisitors(chats);
-      this.refreshUnreadVisitorIds();
     }
   }
 }
