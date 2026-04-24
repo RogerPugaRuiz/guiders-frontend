@@ -4,6 +4,7 @@ import {
   output,
   computed,
   signal,
+  effect,
   ChangeDetectionStrategy,
   TemplateRef,
 } from '@angular/core';
@@ -149,6 +150,21 @@ export class DataTable<T extends object = object> {
     ...this.config(),
   }));
 
+  constructor() {
+    // Evict stale cache entries when rows change
+    effect(() => {
+      const currentIds = new Set(
+        this.rows().map((r) => String(this.getField(r, this.rowIdField())))
+      );
+      for (const key of this._cellContextCache.keys()) {
+        const rowId = key.split('::')[0];
+        if (!currentIds.has(rowId)) {
+          this._cellContextCache.delete(key);
+        }
+      }
+    });
+  }
+
   // ── Helpers ─────────────────────────────────────────────────────────────────
 
   /** Type-safe dynamic field accessor */
@@ -165,8 +181,31 @@ export class DataTable<T extends object = object> {
     return this.cellTemplates().get(field) ?? null;
   }
 
+  /**
+   * Cache of cell contexts keyed by `${rowId}::${field}`.
+   * Reusing the same object reference prevents Angular from detecting spurious
+   * changes on [ngTemplateOutletContext], which would otherwise trigger an
+   * infinite change-detection loop (NG0103).
+   */
+  private readonly _cellContextCache = new Map<string, CellTemplateContext<T>>();
+
   getCellContext(row: T, col: TableColumn<T>): CellTemplateContext<T> {
-    return { $implicit: row, value: this.getCellValue(row, col), column: col };
+    const rowId = String(this.getField(row, this.rowIdField()));
+    const key = `${rowId}::${col.field}`;
+
+    const value = this.getCellValue(row, col);
+    const cached = this._cellContextCache.get(key);
+
+    if (cached) {
+      // Mutate the cached object in-place so the reference stays stable
+      cached.$implicit = row;
+      cached.value = value;
+      return cached;
+    }
+
+    const ctx: CellTemplateContext<T> = { $implicit: row, value, column: col };
+    this._cellContextCache.set(key, ctx);
+    return ctx;
   }
 
   isRowSelected(row: T): boolean {
