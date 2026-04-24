@@ -1,6 +1,6 @@
 {
   "name": "@guiders-frontend/source",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "scripts": {
     "serve": "nx serve console --port=4200",
