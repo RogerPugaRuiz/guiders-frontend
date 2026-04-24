@@ -13,8 +13,8 @@ import {
 } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { catchError, of, finalize, switchMap } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, of, finalize, interval, switchMap } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
 import { PresenceService } from '@guiders-frontend/presence-service';
@@ -107,9 +107,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Flag para indicar si debe hacer scroll al top después de cargar
   private shouldScrollToTop = false;
 
-  // Intervalo para actualizar el tiempo transcurrido
-  private timeUpdateIntervalId?: number;
-
   // Keys para localStorage
   private readonly STORAGE_KEY_AUTO_REFRESH = 'visitors_auto_refresh_interval';
   private readonly STORAGE_KEY_PAGE_SIZE = 'visitors_page_size';
@@ -123,13 +120,15 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   // Timestamp de la última carga de datos
   readonly lastRefreshTime = signal<Date | null>(null);
 
-  // Signal para forzar actualización del tiempo transcurrido
-  private readonly timeUpdateTrigger = signal<number>(0);
+  // Tick cada segundo usando toSignal(interval()) — se gestiona fuera del ciclo
+  // principal de change detection, evitando que el timer dispare un CD completo
+  // cada segundo (como hacía el setInterval manual anterior).
+  private readonly _tick = toSignal(interval(1000), { initialValue: 0 });
 
   // Computed signal para el tiempo transcurrido desde la última actualización
   readonly timeSinceLastRefresh = computed(() => {
-    // Leer el trigger para que Angular detecte cambios cuando se actualice
-    this.timeUpdateTrigger();
+    // Leer el tick para que el computed se recalcule cada segundo
+    this._tick();
 
     const lastRefresh = this.lastRefreshTime();
     if (!lastRefresh) return '';
@@ -481,9 +480,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         }
       );
 
-    // Configurar intervalo para actualizar el tiempo transcurrido cada minuto
-    this.setupTimeUpdateInterval();
-
     // 🔥 NUEVO: Suscribirse a cambios de presencia en tiempo real vía WebSocket
     this.setupPresenceListener();
   }
@@ -553,10 +549,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       clearInterval(this.refreshIntervalId);
       this.refreshIntervalId = undefined;
     }
-    if (this.timeUpdateIntervalId) {
-      clearInterval(this.timeUpdateIntervalId);
-      this.timeUpdateIntervalId = undefined;
-    }
+    // _tick (toSignal) se desuscribe automáticamente al destruir el componente
   }
 
   // Métodos para cargar configuraciones desde localStorage
@@ -635,21 +628,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     this.refreshIntervalId = window.setInterval(() => {
       this.refreshVisitors();
     }, interval);
-  }
-
-  // Método para configurar la actualización del tiempo transcurrido
-  private setupTimeUpdateInterval(): void {
-    // Limpiar intervalo existente si hay uno
-    if (this.timeUpdateIntervalId) {
-      clearInterval(this.timeUpdateIntervalId);
-      this.timeUpdateIntervalId = undefined;
-    }
-
-    // Actualizar cada segundo (1000ms)
-    this.timeUpdateIntervalId = window.setInterval(() => {
-      // Incrementar el trigger para forzar actualización del template
-      this.timeUpdateTrigger.update((v) => v + 1);
-    }, 1000);
   }
 
   // Método público para cambiar el intervalo de auto-refresh

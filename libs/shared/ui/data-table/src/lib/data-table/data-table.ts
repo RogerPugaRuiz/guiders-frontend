@@ -151,14 +151,18 @@ export class DataTable<T extends object = object> {
   }));
 
   constructor() {
-    // Evict stale cache entries when rows change
+    // Evict stale cache entries when rows or visible columns change
     effect(() => {
       const currentIds = new Set(
         this.rows().map((r) => String(this.getField(r, this.rowIdField())))
       );
+      const currentFields = new Set(this.visibleColumns().map((c) => c.field));
+
       for (const key of this._cellContextCache.keys()) {
-        const rowId = key.split('::')[0];
-        if (!currentIds.has(rowId)) {
+        const separatorIdx = key.indexOf('::');
+        const rowId = key.slice(0, separatorIdx);
+        const field = key.slice(separatorIdx + 2);
+        if (!currentIds.has(rowId) || !currentFields.has(field)) {
           this._cellContextCache.delete(key);
         }
       }
@@ -183,26 +187,35 @@ export class DataTable<T extends object = object> {
 
   /**
    * Cache of cell contexts keyed by `${rowId}::${field}`.
-   * Reusing the same object reference prevents Angular from detecting spurious
-   * changes on [ngTemplateOutletContext], which would otherwise trigger an
-   * infinite change-detection loop (NG0103).
+   *
+   * Strategy: return the SAME object reference when row + value are identical.
+   * Only allocate a new object when data actually changed. This keeps
+   * [ngTemplateOutletContext] stable between change-detection cycles, preventing
+   * the NG0103 infinite loop, while still propagating real data updates.
    */
   private readonly _cellContextCache = new Map<string, CellTemplateContext<T>>();
 
   getCellContext(row: T, col: TableColumn<T>): CellTemplateContext<T> {
-    const rowId = String(this.getField(row, this.rowIdField()));
-    const key = `${rowId}::${col.field}`;
+    const rawId = this.getField(row, this.rowIdField());
 
+    // Guard: if id is empty/null fall back to a safe placeholder so we never
+    // create a collision key like '::field' that would corrupt data for other rows.
+    const rowId = rawId !== undefined && rawId !== null && rawId !== ''
+      ? String(rawId)
+      : `__noId__${col.field}`;
+
+    const key = `${rowId}::${col.field}`;
     const value = this.getCellValue(row, col);
     const cached = this._cellContextCache.get(key);
 
-    if (cached) {
-      // Mutate the cached object in-place so the reference stays stable
-      cached.$implicit = row;
-      cached.value = value;
+    // Return the cached reference unchanged when both row object and computed
+    // value are identical — this is the critical stability guarantee.
+    if (cached && cached.$implicit === row && cached.value === value) {
       return cached;
     }
 
+    // Data changed (or first render): create a new object so Angular picks up
+    // the update, then store it for subsequent stable cycles.
     const ctx: CellTemplateContext<T> = { $implicit: row, value, column: col };
     this._cellContextCache.set(key, ctx);
     return ctx;
