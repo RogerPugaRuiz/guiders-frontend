@@ -1,4 +1,4 @@
-import { Component, input, output, computed, signal, HostListener, effect, ChangeDetectionStrategy, ViewChild, TemplateRef, AfterViewInit } from '@angular/core';
+import { Component, input, output, computed, signal, HostListener, effect, ChangeDetectionStrategy, ViewChild, TemplateRef, AfterViewInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Badge } from '@guiders-frontend/badge';
 import { DataTable, TableColumn, CellTemplateContext } from '@guiders-frontend/data-table';
@@ -85,6 +85,8 @@ export class VisitorsListComponent implements AfterViewInit {
 
   cellTemplatesMap = new Map<string, TemplateRef<CellTemplateContext<Visitor>>>();
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   /** Column definitions for guiders-data-table */
   readonly tableColumns: TableColumn<Visitor>[] = [
     { field: 'name', label: 'Visitante', sortable: true },
@@ -104,6 +106,8 @@ export class VisitorsListComponent implements AfterViewInit {
       ['lastVisit', this.activityTpl],
       ['actions', this.actionsTpl],
     ]);
+    // Notify Angular of the change since we're using OnPush
+    this.cdr.markForCheck();
   }
 
   constructor() {

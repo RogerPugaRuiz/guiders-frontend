@@ -8,7 +8,6 @@ import {
   effect,
   untracked,
   ElementRef,
-  ChangeDetectorRef,
   ViewChild,
   DestroyRef,
 } from '@angular/core';
@@ -92,7 +91,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly elementRef = inject(ElementRef);
   private readonly document = inject(DOCUMENT);
   private readonly useMockData = inject(USE_MOCK_DATA);
-  private readonly cdr = inject(ChangeDetectorRef);
   private readonly chatWidgetService = inject(ChatWidgetService);
   private readonly presenceService = inject(PresenceService);
   private readonly destroyRef = inject(DestroyRef);
@@ -547,9 +545,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         this.updateState({
           visitors: updatedVisitors,
         });
-
-        // Forzar detección de cambios para que Angular actualice la vista
-        this.cdr.detectChanges();
       });
   }
 
@@ -733,9 +728,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         // Actualizar timestamp de última carga
         this.lastRefreshTime.set(new Date());
 
-        // Forzar detección de cambios para que Angular renderice los nuevos datos
-        this.cdr.detectChanges();
-
         // Restaurar la posición del scroll después de renderizar
         this.restoreScrollPosition();
       }, 500); // Simular latencia de red
@@ -811,9 +803,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
           // Actualizar timestamp de última carga
           this.lastRefreshTime.set(new Date());
-
-          // Forzar detección de cambios para que Angular renderice los nuevos datos
-          this.cdr.detectChanges();
 
           // Restaurar la posición del scroll después de renderizar
           this.restoreScrollPosition();
@@ -1495,9 +1484,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   private updateState(updates: Partial<VisitorState>): void {
     this.state.update((current) => ({ ...current, ...updates }));
-    // CRÍTICO: Forzar detección de cambios con OnPush
-    // Esto garantiza que la UI se actualice cuando cambia el estado
-    this.cdr.markForCheck();
   }
 
   // Event handlers del UI
