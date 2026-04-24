@@ -981,6 +981,25 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   /** Manejar selección de filtro rápido */
   onQuickFilterSelect(filterId: string): void {
+    // Toggle: si el filtro ya está activo, deseleccionarlo
+    if (this.selectedFilterId() === filterId) {
+      this.selectedFilterId.set('');
+      this.selectedSavedFilterId.set(null);
+      this.updateState({
+        pagination: {
+          ...this.state().pagination,
+          currentPage: 1,
+          offset: 0,
+        },
+      });
+      this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { page: 1 },
+        queryParamsHandling: 'merge',
+      });
+      return;
+    }
+
     // Buscar el filtro rápido seleccionado
     const filter = this.quickFilters().find((f) => f.id === filterId);
     if (!filter) return;

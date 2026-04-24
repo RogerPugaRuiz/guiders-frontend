@@ -9,7 +9,7 @@ test.describe('Visitors - localStorage persistence', () => {
   test.describe('Auto-refresh interval selector', () => {
     test('should use default value when localStorage is empty', async ({ page }) => {
       await page.goto('/visitors');
-      await expect(page.locator('.auto-refresh-selector')).toBeVisible();
+      await expect(page.locator('.auto-refresh-selector')).toBeVisible({ timeout: 15000 });
 
       const select = page.locator('.refresh-interval-select');
       await expect(select).toHaveValue('30000');

@@ -934,48 +934,12 @@ export class UnreadMessagesService {
    * Usamos la API Web Audio para generar un tono corto
    */
   private initializeNotificationSound(): void {
-    try {
-      // Check if AudioContext is available (not available in tests)
-      if (
-        typeof window === 'undefined' ||
-        (!window.AudioContext && !(window as any).webkitAudioContext)
-      ) {
-        console.log(
-          '[UnreadMessagesService] AudioContext no disponible en este entorno'
-        );
-        return;
-      }
-
-      // Crear sonido usando data URL (tono de notificación simple)
-      // Este es un tono corto y agradable generado sintéticamente
-      const audioContext = new (window.AudioContext ||
-        (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      // Configurar el tono (800Hz, suena como una notificación)
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-
-      // Crear envelope para que suene más natural
-      const now = audioContext.currentTime;
-      gainNode.gain.setValueAtTime(0, now);
-      gainNode.gain.linearRampToValueAtTime(0.3, now + 0.01); // Attack
-      gainNode.gain.linearRampToValueAtTime(0.2, now + 0.1); // Sustain
-      gainNode.gain.linearRampToValueAtTime(0, now + 0.2); // Release
-
-      console.log(
-        '[UnreadMessagesService] 🔔 Sonido de notificación inicializado'
-      );
-    } catch (error) {
-      console.warn(
-        '[UnreadMessagesService] No se pudo inicializar el sonido de notificación:',
-        error
-      );
-    }
+    // No crear AudioContext en inicialización — se crea de forma lazy en playNotificationSound()
+    // para evitar crashes en entornos headless (Playwright/Chromium) y cumplir con la
+    // política de autoplay del navegador que requiere un gesto del usuario.
+    console.log(
+      '[UnreadMessagesService] 🔔 Sonido de notificación configurado (lazy)'
+    );
   }
 
   /**

@@ -93,15 +93,26 @@ export async function setupAuthMock(page: Page): Promise<void> {
       return;
     }
 
+    // Mockear endpoint de refresh de sesión
+    if (url.includes('/bff/auth/refresh')) {
+      console.log('[AUTH MOCK] Respondiendo a /bff/auth/refresh con 200');
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true }),
+      });
+      return;
+    }
+
     // Redirigir intentos de login BFF de vuelta a la app
     if (url.includes('/bff/auth/login')) {
       console.log('[AUTH MOCK] Redirigiendo /bff/auth/login de vuelta a la app');
       const urlObj = new URL(url);
-      const redirect = urlObj.searchParams.get('redirect') || 'http://localhost:4200/';
+      const redirect = decodeURIComponent(urlObj.searchParams.get('redirect') || 'http://localhost:4200/');
       route.fulfill({
-        status: 302,
-        headers: { 'Location': decodeURIComponent(redirect) },
-        body: ''
+        status: 200,
+        contentType: 'text/html',
+        body: `<html><head><meta http-equiv="refresh" content="0;url=${redirect}"></head><body></body></html>`,
       });
       return;
     }

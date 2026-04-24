@@ -276,9 +276,12 @@ test.describe('Visitors - Complex Filters', () => {
     test('should show count badges on quick filters', async ({ page }) => {
       await page.goto('/visitors');
 
-      // Check that counts are displayed
+      // Wait for filters to load
+      await expect(page.locator('.quick-filters__chip').first()).toBeVisible({ timeout: 15000 });
+
+      // Check that counts are displayed via the badge component
       const onlineFilter = page.locator('.quick-filters__chip:not(.quick-filters__chip--saved):has-text("Online")');
-      await expect(onlineFilter.locator('.quick-filters__count')).toHaveText('5');
+      await expect(onlineFilter.locator('.guiders-badge__content')).toHaveText('5');
     });
 
     test('should activate filter on click and show active state', async ({ page }) => {
@@ -386,7 +389,7 @@ test.describe('Visitors - Complex Filters', () => {
       }
 
       // Apply filters
-      const applyButton = page.locator('.advanced-filters__apply');
+      const applyButton = page.locator('.advanced-filters__btn--primary');
       await applyButton.click();
 
       // Panel should close

@@ -39,7 +39,18 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--disable-web-security',
+            '--disable-audio-output',
+            '--autoplay-policy=no-user-gesture-required',
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+          ],
+        },
+      },
     },
 
     {

@@ -75,6 +75,10 @@ export class VisitorsListComponent implements AfterViewInit {
   // Track visitors with pending operations (for optimistic UI)
   readonly processingVisitorIds = signal<Set<string>>(new Set());
 
+  /** Set of chat IDs already emitted via registerVisitorChatsEvent — prevents re-emitting
+   *  on every CD cycle which would create a reactive loop with the container. */
+  private readonly _registeredChatIds = new Set<string>();
+
   // Cell templates (resolved in ngAfterViewInit)
   @ViewChild('visitorTpl') visitorTpl!: TemplateRef<CellTemplateContext<Visitor>>;
   @ViewChild('statusTpl') statusTpl!: TemplateRef<CellTemplateContext<Visitor>>;
@@ -128,22 +132,32 @@ export class VisitorsListComponent implements AfterViewInit {
       }
     }, { allowSignalWrites: true });
 
-    // Emit chat-visitor relationships for unread badges (container handles registration)
+    // Emit chat-visitor relationships for unread badges (container handles registration).
+    // IMPORTANT: Only emit IDs that have NOT been registered yet. This breaks the
+    // reactive loop:  visitors input changes → effect emits → container mutates
+    // unreadCountByVisitor signal → unreadVisitorIds computed changes → Angular
+    // re-renders visitors-list → visitors input re-evaluates → effect runs again.
+    // By tracking already-registered IDs we ensure the effect emits only once per
+    // new chat ID, stopping the loop after the first registration pass.
     effect(() => {
       const visitors = this.visitors();
-      const chatsToRegister: Array<{ chatId: string; visitorId: string }> = [];
+      const newChats: Array<{ chatId: string; visitorId: string }> = [];
       for (const visitor of visitors) {
-        if (visitor.lastChatId) {
-          chatsToRegister.push({ chatId: visitor.lastChatId, visitorId: visitor.id });
+        if (visitor.lastChatId && !this._registeredChatIds.has(visitor.lastChatId)) {
+          newChats.push({ chatId: visitor.lastChatId, visitorId: visitor.id });
+          this._registeredChatIds.add(visitor.lastChatId);
         }
         if (visitor.pendingChatIds?.length) {
           for (const chatId of visitor.pendingChatIds) {
-            chatsToRegister.push({ chatId, visitorId: visitor.id });
+            if (!this._registeredChatIds.has(chatId)) {
+              newChats.push({ chatId, visitorId: visitor.id });
+              this._registeredChatIds.add(chatId);
+            }
           }
         }
       }
-      if (chatsToRegister.length > 0) {
-        this.registerVisitorChatsEvent.emit(chatsToRegister);
+      if (newChats.length > 0) {
+        this.registerVisitorChatsEvent.emit(newChats);
       }
     });
   }
