@@ -60,16 +60,15 @@
     &--active {
       background: var(--wl-color-primary, var(--color-accent));
       border-color: var(--wl-color-primary, var(--color-accent));
-      color: var(--color-text-inverse);
+      color: var(--color-on-accent);
 
       // Estilos mejorados para el badge cuando está activo
       ::ng-deep guiders-badge {
         .guiders-badge {
-          background: rgba(255, 255, 255, 0.25);
-          color: var(--color-text-inverse);
-          border-color: rgba(255, 255, 255, 0.35);
+          background: color-mix(in srgb, var(--color-on-accent) 20%, transparent);
+          color: var(--color-on-accent);
+          border-color: color-mix(in srgb, var(--color-on-accent) 30%, transparent);
           font-weight: tokens.$font-weight-bold;
-          backdrop-filter: blur(4px);
         }
       }
 
@@ -77,19 +76,19 @@
         background: color-mix(
           in srgb,
           var(--wl-color-primary, var(--color-accent)) 85%,
-          black
+          var(--color-on-accent)
         );
         border-color: color-mix(
           in srgb,
           var(--wl-color-primary, var(--color-accent)) 85%,
-          black
+          var(--color-on-accent)
         );
-        color: var(--color-text-inverse);
+        color: var(--color-on-accent);
 
         ::ng-deep guiders-badge {
           .guiders-badge {
-            background: rgba(255, 255, 255, 0.3);
-            border-color: rgba(255, 255, 255, 0.4);
+            background: color-mix(in srgb, var(--color-on-accent) 25%, transparent);
+            border-color: color-mix(in srgb, var(--color-on-accent) 35%, transparent);
           }
         }
       }
@@ -177,19 +176,19 @@
     &.quick-filters__chip--active {
       background: var(--wl-color-primary, var(--color-accent));
       border-color: var(--wl-color-primary, var(--color-accent));
-      color: var(--color-text-inverse);
+      color: var(--color-on-accent);
 
       .quick-filters__icon {
-        color: var(--color-text-inverse);
+        color: var(--color-on-accent);
         opacity: 1;
       }
 
       .quick-filters__delete {
-        color: rgba(255, 255, 255, 0.8);
+        color: color-mix(in srgb, var(--color-on-accent) 80%, transparent);
 
         &:hover {
-          color: var(--color-text-inverse);
-          background: rgba(255, 255, 255, 0.2);
+          color: var(--color-on-accent);
+          background: color-mix(in srgb, var(--color-on-accent) 20%, transparent);
         }
       }
     }

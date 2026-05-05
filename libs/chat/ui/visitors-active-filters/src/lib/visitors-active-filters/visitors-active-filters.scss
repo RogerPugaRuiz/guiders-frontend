@@ -64,11 +64,7 @@
   }
 
   &__chip-label {
-    color: color-mix(
-      in srgb,
-      var(--wl-color-primary, var(--color-accent)) 70%,
-      var(--color-text-secondary)
-    );
+    color: var(--color-text-secondary);
     font-weight: tokens.$font-weight-medium;
   }
 
@@ -110,23 +106,15 @@
     border: none;
     border-radius: tokens.$border-radius-sm;
     background: transparent;
-    color: var(--wl-color-primary, var(--color-accent));
+    color: var(--color-text-secondary);
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: color-mix(
-        in srgb,
-        var(--wl-color-primary, var(--color-accent)) 10%,
-        var(--color-surface-primary)
-      );
-      color: color-mix(
-        in srgb,
-        var(--wl-color-primary, var(--color-accent)) 85%,
-        black
-      );
+      background: var(--color-surface-secondary);
+      color: var(--color-text-primary);
     }
 
     &:focus-visible {

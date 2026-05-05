@@ -259,7 +259,7 @@
   // --- Acento (Dark Mode) ---
   --color-accent: #{tokens.$color-content-dark-accent};
   --color-accent-hover: #{tokens.$color-content-dark-accent-hover};
-  --color-on-accent: #{tokens.$color-content-dark-on-accent};
+  --color-on-accent: #{tokens.$neutral-50};
 
   // --- Scrollbar (Dark Mode) ---
   --color-scrollbar-thumb: #{tokens.$color-content-dark-scrollbar-thumb};
@@ -286,6 +286,10 @@
   --color-brand: #{tokens.$color-content-dark-accent};
   --color-brand-hover: #{tokens.$color-content-dark-accent-hover};
   --color-on-brand: #{tokens.$color-content-dark-on-accent};
+
+  // Primario wl redefine al acento invertido en dark mode
+  --wl-color-primary: #{tokens.$neutral-600};
+  --wl-color-primary-rgb: 112, 114, 118; // #707276 (steel)
 
   --wl-color-surface: #{tokens.$color-content-dark-bg-secondary};
   --wl-color-surface-hover: #{tokens.$color-content-dark-bg-hover};
