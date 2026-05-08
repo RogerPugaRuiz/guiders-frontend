@@ -6,3 +6,4 @@ export * from './lib/auth-refresh.service';
 export * from './lib/auth-refresh.interceptor';
 export * from './lib/session-guardian.service';
 export * from './lib/global-error.interceptor';
+export * from './lib/settings-tokens';

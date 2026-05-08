@@ -17,7 +17,7 @@ import {
   SessionGuardianService,
   globalErrorInterceptor,
 } from '@guiders-frontend/auth/data-access/session';
-import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/features/settings';
+import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/data-access/session';
 import { firstValueFrom } from 'rxjs';
 
 /**

@@ -1,13 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, InjectionToken } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { ToastHostComponent } from '@guiders-frontend/shared/ui/toast';
+import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/data-access/session';
 
-/** Route to navigate to when the user closes the settings page. Provide per-app. */
-export const SETTINGS_CLOSE_ROUTE = new InjectionToken<string>('SETTINGS_CLOSE_ROUTE', {
-  providedIn: 'root',
-  factory: () => '/inbox', // sensible default for console
-});
+export { SETTINGS_CLOSE_ROUTE };
 
 interface SettingsNavGroup {
   readonly label: string;
