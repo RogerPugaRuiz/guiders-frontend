@@ -562,7 +562,7 @@
   left: 80px; // Ancho del sidebar colapsado + margen
   background: var(--color-surface-primary);
   border-radius: tokens.$border-radius-md;
-  box-shadow: tokens.$shadow-lg;
+  box-shadow: var(--shadow-md);
   min-width: 240px;
   max-width: 320px;
   border: 1px solid var(--color-border-default);
