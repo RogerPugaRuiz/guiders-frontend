@@ -36,6 +36,14 @@ export const appRoutes: Route[] = [
     canActivate: [adminGuard],
   },
   {
+    path: 'settings',
+    loadChildren: () =>
+      import('@guiders-frontend/auth/features/settings').then(
+        (m) => m.settingsRoutes
+      ),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'login',
     loadChildren: () =>
       import('@guiders-frontend/auth/features/login').then(

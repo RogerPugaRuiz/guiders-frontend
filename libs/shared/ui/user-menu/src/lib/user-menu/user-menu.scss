@@ -16,11 +16,11 @@
   overflow: visible;
   cursor: pointer;
 
-  // === TEMA DARK (por defecto) ===
-  --user-menu-bg-hover: rgba(255, 255, 255, 0.05);
-  --user-menu-name-color: #{tokens.$neutral-100};
-  --user-menu-email-color: #{tokens.$neutral-300};
-  --user-menu-badge-border: #{tokens.$color-sidebar-dark-bg}; // #1a1a1a (negro carbón)
+  // CSS vars del tema activo — fijadas a variables de sidebar (siempre dark)
+  --user-menu-bg-hover: var(--color-sidebar-bg-hover, rgba(255,255,255,0.08));
+  --user-menu-name-color: var(--color-sidebar-text-active, #{tokens.$neutral-50});
+  --user-menu-email-color: var(--color-sidebar-text, #{tokens.$neutral-400});
+  --user-menu-badge-border: var(--color-sidebar-bg); // color del sidebar activo
 
   &:hover {
     background-color: var(--user-menu-bg-hover);
@@ -149,11 +149,11 @@
     z-index: 1201;
     animation: dropdown-enter 0.2s ease-out;
 
-    // === TEMA DARK (por defecto) ===
-    background: #{tokens.$color-surface-primary};
-    border: 1px solid #{tokens.$color-border-default};
+    // Usa CSS vars del tema activo (data-theme en body)
+    background: var(--color-surface-elevated, var(--color-surface-primary));
+    border: 1px solid var(--color-border-default);
 
-    // === TEMA LIGHT ===
+    // === TEMA LIGHT (legacy, no usado con el nuevo sistema) ===
     &--light {
       background: #{tokens.$neutral-50};
       border: 1px solid #{tokens.$neutral-300};
@@ -170,7 +170,7 @@
     margin: 0;
 
     &--divider {
-      border-top: 1px solid #{tokens.$color-border-subtle};
+      border-top: 1px solid var(--color-border-subtle);
       margin-top: tokens.$spacing-xs;
       padding-top: tokens.$spacing-xs;
     }
@@ -193,12 +193,12 @@
     transition: background-color tokens.$duration-fast tokens.$easing-standard;
     line-height: tokens.$line-height-tight;
 
-    // Colores por defecto (dark theme)
-    color: #{tokens.$color-text-secondary};
+    // Colores por defecto (usa tema activo)
+    color: var(--color-text-secondary);
 
     &:hover {
-      background: #{tokens.$color-surface-tertiary};
-      color: #{tokens.$color-text-primary};
+      background: var(--color-surface-hover);
+      color: var(--color-text-primary);
     }
 
     &:focus-visible {
@@ -208,21 +208,21 @@
 
     // Variante para acciones peligrosas (logout)
     &--danger {
-      color: #{tokens.$color-error-600};
+      color: var(--color-error, #{tokens.$color-error-600});
 
       &:hover {
-        background: #{tokens.$color-error-50};
-        color: #{tokens.$color-error-600};
+        background: var(--color-error-bg, rgba(220, 38, 38, 0.1));
+        color: var(--color-error-text, #{tokens.$color-error-600});
       }
     }
 
-    // Variante para cambiar de app (usa colores neutros)
+    // Variante para cambiar de app (usa acento del tema activo)
     &--switch {
-      color: var(--ui-color-accent, tokens.$color-ui-accent);
+      color: var(--color-accent);
 
       &:hover {
-        background: #{tokens.$color-surface-hover};
-        color: var(--ui-color-accent-active, tokens.$color-ui-accent-active);
+        background: var(--color-surface-hover);
+        color: var(--color-accent-hover);
       }
     }
   }

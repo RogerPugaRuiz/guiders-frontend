@@ -15,7 +15,9 @@ import {
   authRefreshInterceptor,
   UserService,
   SessionGuardianService,
+  globalErrorInterceptor,
 } from '@guiders-frontend/auth/data-access/session';
+import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/features/settings';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -65,7 +67,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
     provideHttpClient(
-      withInterceptors([authRefreshInterceptor, authInterceptor()])
+      withInterceptors([authRefreshInterceptor, authInterceptor(), globalErrorInterceptor])
     ),
     provideAuth({
       config: {
@@ -81,6 +83,7 @@ export const appConfig: ApplicationConfig = {
       },
     }),
     { provide: ENVIRONMENT_TOKEN, useValue: environment },
+    { provide: SETTINGS_CLOSE_ROUTE, useValue: '/dashboard' },
     {
       provide: APP_INITIALIZER,
       useFactory: initializeApp,

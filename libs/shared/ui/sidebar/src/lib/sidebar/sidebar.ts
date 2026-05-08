@@ -14,7 +14,11 @@ import { Button } from '@guiders-frontend/button';
 import { IconComponent } from '@guiders-frontend/icon';
 import { Badge } from '@guiders-frontend/badge';
 import { UserMenu } from '@guiders-frontend/user-menu';
-import { ThemeService } from '@guiders-frontend/shared/data-access/theme';
+import {
+  ThemeService,
+  THEME_OPTIONS,
+  type NamedTheme,
+} from '@guiders-frontend/shared/data-access/theme';
 
 @Component({
   selector: 'guiders-sidebar',
@@ -62,8 +66,15 @@ export class Sidebar {
 
   // Estado interno con signals
   readonly isCollapsed = signal(false);
+  /** Controls the theme picker dropdown in the sidebar footer */
+  readonly isThemePickerOpen = signal(false);
   // Use ThemeService signal directly for reactivity
   readonly currentTheme = this.themeService.theme;
+  readonly currentThemeOption = this.themeService.currentThemeOption;
+  /** Exposed to the template for rendering theme swatches */
+  readonly themeOptions = THEME_OPTIONS;
+  readonly darkThemeOptions = THEME_OPTIONS.filter((t) => !t.light);
+  readonly lightThemeOptions = THEME_OPTIONS.filter((t) => t.light);
   private readonly expandedItems = signal<Set<string>>(new Set());
   private readonly popoverItem = signal<SidebarItem | null>(null);
   private elementPositions = new Map<string, DOMRect>();
@@ -77,11 +88,12 @@ export class Sidebar {
   readonly sidebarClasses = computed(() => ({
     sidebar: true,
     'sidebar--collapsed': this.isCollapsed(),
-    'sidebar--dark': this.currentTheme() === 'dark',
-    'sidebar--light': this.currentTheme() === 'light',
+    // All named themes are dark variants; keep legacy classes for SCSS compatibility
+    'sidebar--dark': true,
+    'sidebar--light': false,
   }));
 
-  readonly isDarkTheme = computed(() => this.currentTheme() === 'dark');
+  readonly isDarkTheme = computed(() => true); // All named themes are dark
 
   constructor() {
     // Effect para expandir automáticamente elementos padre cuando sus hijos están activos
@@ -113,10 +125,24 @@ export class Sidebar {
     });
   }
 
-  // Toggle tema
+  // Toggle tema — cycles through named themes; emits 'dark' for backwards compatibility
   onToggleTheme(): void {
-    const newTheme = this.themeService.toggleTheme();
-    this.themeChange.emit(newTheme);
+    this.themeService.cycleTheme();
+    this.themeChange.emit('dark'); // all themes are dark variants
+  }
+
+  toggleThemePicker(): void {
+    this.isThemePickerOpen.update((v) => !v);
+  }
+
+  selectTheme(themeId: NamedTheme): void {
+    this.themeService.setTheme(themeId);
+    this.isThemePickerOpen.set(false);
+    this.themeChange.emit('dark');
+  }
+
+  closeThemePicker(): void {
+    this.isThemePickerOpen.set(false);
   }
 
   // Métodos

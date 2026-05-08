@@ -35,7 +35,7 @@
 
   &:focus-visible {
     outline: none;
-    box-shadow: var(--shadow-focus-brand);
+    box-shadow: var(--shadow-focus-accent, 0 0 0 3px var(--color-accent-muted));
   }
 
   &:disabled,
@@ -46,43 +46,31 @@
 
   // === VARIANTES ===
 
-  // Primary - Acción principal con degradado sutil
+  // Primary - Acción principal
   &--primary {
-    background: linear-gradient(
-      135deg,
-      var(--color-brand) 0%,
-      color-mix(in srgb, var(--color-brand) 90%, black) 100%
-    );
-    color: var(--color-on-brand);
-    border-color: var(--color-brand);
+    background-color: var(--color-accent);
+    color: var(--color-on-accent);
+    border-color: var(--color-accent);
 
     &:hover:not(:disabled) {
-      background: linear-gradient(
-        135deg,
-        var(--color-brand-hover) 0%,
-        color-mix(in srgb, var(--color-brand-hover) 85%, black) 100%
-      );
-      border-color: var(--color-brand-hover);
+      background-color: var(--color-accent-hover);
+      border-color: var(--color-accent-hover);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
 
     &:active:not(:disabled) {
-      background: linear-gradient(
-        135deg,
-        var(--color-brand-active) 0%,
-        color-mix(in srgb, var(--color-brand-active) 80%, black) 100%
-      );
-      border-color: var(--color-brand-active);
+      background-color: color-mix(in srgb, var(--color-accent) 80%, black);
+      border-color: color-mix(in srgb, var(--color-accent) 80%, black);
       transform: translateY(0);
       box-shadow: var(--shadow-sm);
     }
 
     &:disabled,
     &.guiders-button--disabled {
-      background-color: var(--color-brand-disabled);
+      background-color: var(--color-surface-disabled);
       color: var(--color-on-surface-disabled);
-      border-color: var(--color-brand-disabled);
+      border-color: var(--color-border-disabled);
     }
   }
 
@@ -116,19 +104,19 @@
   // Outline - Botón con borde
   &--outline {
     background-color: transparent;
-    color: var(--color-brand);
-    border-color: var(--color-brand);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
 
     &:hover:not(:disabled) {
-      background-color: var(--color-brand);
-      color: var(--color-on-brand);
+      background-color: var(--color-accent);
+      color: var(--color-on-accent);
       transform: translateY(-1px);
       box-shadow: var(--shadow-md);
     }
 
     &:active:not(:disabled) {
-      background-color: var(--color-brand-active);
-      border-color: var(--color-brand-active);
+      background-color: color-mix(in srgb, var(--color-accent) 80%, black);
+      border-color: color-mix(in srgb, var(--color-accent) 80%, black);
       transform: translateY(0);
     }
 
@@ -142,14 +130,14 @@
   // Ghost - Botón sin fondo
   &--ghost {
     background-color: transparent;
-    color: var(--color-brand);
+    color: var(--color-accent);
     border-color: transparent;
     padding: 8px !important; // Forzar padding para mantener tamaño de hit area
     border-radius: tokens.$border-radius-sm !important;
 
     &:hover:not(:disabled) {
       background-color: var(--sidebar-bg-hover);
-      color: var(--color-brand-hover);
+      color: var(--color-accent-hover);
     }
 
     &:active:not(:disabled) {
@@ -242,9 +230,9 @@
 
     &:disabled,
     &.guiders-button--disabled {
-      background-color: var(--color-brand-disabled);
+      background-color: var(--color-surface-disabled);
       color: var(--color-on-surface-disabled);
-      border-color: var(--color-brand-disabled);
+      border-color: var(--color-border-disabled);
     }
   }
 

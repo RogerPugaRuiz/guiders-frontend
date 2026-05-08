@@ -1,17 +1,10 @@
 @use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
 
 // === AVATAR COMPONENT ===
-// Componente unificado de avatar con diseño moderno y elegante
-// - Gradiente sutil para dar profundidad
-// - Sombra refinada que se adapta al tema
-// - Indicador de presencia con animación sutil
-// - Soporte completo para dark mode
-// - Accesibilidad WCAG 2.2 AA
+// Estilo minimalista: fondo plano, sin gradientes ni sombras decorativas
 
 :host {
   display: inline-block;
-  // CSS variable para el borde del indicador de presencia
-  // Puede ser sobrescrita por contenedores para adaptarse al fondo
   --avatar-presence-border: var(--color-surface-primary);
 }
 
@@ -22,49 +15,7 @@
   justify-content: center;
   flex-shrink: 0;
   border-radius: tokens.$border-radius-full;
-
-  // Sombra elegante con múltiples capas para profundidad
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
-
-  // Borde sutil para definición
-  border: 1px solid rgba(0, 0, 0, 0.08);
-
-  // Transición suave para hover
-  transition: transform tokens.$duration-fast tokens.$easing-standard,
-    box-shadow tokens.$duration-fast tokens.$easing-standard;
-
-  // Overlay sutil para efecto de profundidad
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.2) 0%,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(0, 0, 0, 0.1) 100%
-    );
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  // === DARK MODE ===
-  :host-context(.theme-dark) & {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.1);
-
-    &::before {
-      background: linear-gradient(
-        145deg,
-        rgba(255, 255, 255, 0.15) 0%,
-        rgba(255, 255, 255, 0) 50%,
-        rgba(0, 0, 0, 0.15) 100%
-      );
-    }
-  }
+  transition: opacity tokens.$duration-fast tokens.$easing-standard;
 
   // === SIZES ===
   &--small {
@@ -114,19 +65,14 @@
 }
 
 .guiders-avatar__text {
-  position: relative;
-  z-index: 2;
-  font-weight: 600;
-  color: white;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   user-select: none;
-  // Sombra de texto sutil para mejor legibilidad
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
 // === PRESENCE INDICATOR ===
-// Badge de presencia - estilo simple y limpio
 .guiders-avatar__presence-indicator {
   position: absolute;
   bottom: -2px;
@@ -165,24 +111,12 @@
   }
 }
 
-// === HIGH CONTRAST MODE ===
 @media (prefers-contrast: high) {
   .guiders-avatar {
-    border-width: 2px;
-    border-color: currentColor;
-    box-shadow: none;
-
-    &::before {
-      display: none;
-    }
+    outline: 2px solid currentColor;
   }
 
   .guiders-avatar__text {
-    text-shadow: none;
     font-weight: 700;
-  }
-
-  .guiders-avatar__presence-indicator {
-    border-width: 3px;
   }
 }

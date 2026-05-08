@@ -1,0 +1,42 @@
+<div class="settings-page">
+  <div class="settings-page__inner">
+    <header class="settings-page__header">
+      <h1 class="settings-page__title">Configuración</h1>
+      <button
+        type="button"
+        class="settings-page__close"
+        (click)="onNavClose()"
+        aria-label="Cerrar configuración">
+        ✕
+      </button>
+    </header>
+
+    <div class="settings-page__body">
+      <nav class="settings-nav" aria-label="Secciones de configuración">
+        @for (group of navGroups; track group.label) {
+          <div class="settings-nav__group">
+            <p class="settings-nav__group-label">{{ group.label }}</p>
+            <ul class="settings-nav__list">
+              @for (item of group.items; track item.id) {
+                <li>
+                  <a
+                    [routerLink]="item.route"
+                    routerLinkActive="settings-nav__item--active"
+                    class="settings-nav__item">
+                    {{ item.label }}
+                  </a>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+      </nav>
+
+      <main class="settings-content">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+
+  <guiders-toast-host></guiders-toast-host>
+</div>

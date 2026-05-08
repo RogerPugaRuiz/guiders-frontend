@@ -25,7 +25,7 @@
   min-height: 0;
 
   &__empty {
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     text-align: center;
     padding: tokens.$spacing-xl 0;
     font-size: tokens.$font-size-base;

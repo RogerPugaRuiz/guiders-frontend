@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { Visitor, Chat, ChatTab } from '@guiders-frontend/shared/types';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -38,6 +38,10 @@ export class ChatWidgetService {
   // Observable para saber si el widget debe estar visible según la ruta
   private readonly shouldShowSubject = new BehaviorSubject<boolean>(true);
   readonly shouldShow$ = this.shouldShowSubject.asObservable();
+
+  /** Emite el chatId cuando un chat pendiente es asignado al comercial */
+  private readonly chatAssignedSubject = new Subject<{ chatId: string; visitorId: string }>();
+  readonly chatAssigned$ = this.chatAssignedSubject.asObservable();
 
   constructor() {
     // Suscribirse a cambios de ruta para ocultar el widget en /inbox
@@ -114,6 +118,7 @@ export class ChatWidgetService {
 
   /**
    * Marcar el chat actual como asignado (ya no pendiente)
+   * Emite chatAssigned$ para que los suscriptores (ej. visitors feature) refresquen su estado
    */
   markChatAsAssigned(): void {
     const current = this.widgetDataSubject.value;
@@ -123,6 +128,13 @@ export class ChatWidgetService {
         ...current,
         isPending: false
       });
+      // Notificar a los suscriptores (ej. tabla de visitantes) para que refresquen
+      if (current.chatId) {
+        this.chatAssignedSubject.next({
+          chatId: current.chatId,
+          visitorId: current.visitor?.id ?? ''
+        });
+      }
     }
   }
 

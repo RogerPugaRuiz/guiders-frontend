@@ -8,7 +8,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: tokens.$color-overlay-backdrop;
+    background: var(--color-overlay-backdrop);
     animation: fadeIn 0.15s ease-out;
   }
 
@@ -16,7 +16,7 @@
     width: 100%;
     max-width: 420px;
     margin: tokens.$spacing-md;
-    background: tokens.$color-surface-primary;
+    background: var(--color-surface-primary);
     border-radius: tokens.$border-radius-lg;
     box-shadow: tokens.$shadow-xl;
     animation: scaleIn 0.15s ease-out;
@@ -24,14 +24,14 @@
 
   &__header {
     padding: tokens.$spacing-md tokens.$spacing-lg;
-    border-bottom: 1px solid tokens.$color-border-subtle;
+    border-bottom: 1px solid var(--color-border-subtle);
   }
 
   &__title {
     margin: 0;
     font-size: tokens.$font-size-lg;
     font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
   }
 
   &__content {
@@ -43,8 +43,8 @@
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-md;
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-warning-50;
-    color: tokens.$color-warning-700;
+    background: var(--color-warning-bg);
+    color: var(--color-warning-text);
 
     svg {
       flex-shrink: 0;
@@ -71,41 +71,41 @@
     margin-bottom: tokens.$spacing-xs;
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-medium;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
   }
 
   &__required {
-    color: tokens.$color-danger-500;
+    color: var(--color-error-text);
   }
 
   &__optional {
     font-weight: tokens.$font-weight-regular;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
   }
 
   &__input,
   &__textarea {
     width: 100%;
     padding: tokens.$spacing-sm;
-    border: 1px solid tokens.$color-border-subtle;
+    border: 1px solid var(--color-border-subtle);
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-surface-primary;
+    background: var(--color-surface-primary);
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      border-color: tokens.$color-border-default;
+      border-color: var(--color-border-default);
     }
 
     &:focus {
       outline: none;
-      border-color: tokens.$color-primary-500;
-      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px var(--color-accent-muted, rgba(0, 123, 255, 0.25));
     }
 
     &::placeholder {
-      color: tokens.$color-text-tertiary;
+      color: var(--color-text-tertiary);
     }
   }
 
@@ -117,7 +117,7 @@
   &__hint {
     margin: 0;
     font-size: tokens.$font-size-xs;
-    color: tokens.$color-text-tertiary;
+    color: var(--color-text-tertiary);
   }
 
   &__footer {
@@ -125,7 +125,7 @@
     justify-content: flex-end;
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-md tokens.$spacing-lg;
-    border-top: 1px solid tokens.$color-border-subtle;
+    border-top: 1px solid var(--color-border-subtle);
   }
 
   &__btn {
@@ -137,7 +137,7 @@
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:focus-visible {
-      outline: 2px solid tokens.$color-primary-500;
+      outline: 2px solid var(--color-accent);
       outline-offset: 2px;
     }
 
@@ -148,22 +148,23 @@
 
     &--primary {
       border: none;
-      background: tokens.$color-primary-500;
-      color: tokens.$color-text-inverse;
+      background: var(--color-accent);
+      color: var(--color-accent-fg, var(--color-text-inverse));
 
       &:hover:not(:disabled) {
-        background: tokens.$color-primary-600;
+        background: var(--color-accent-hover, var(--color-accent));
+        opacity: 0.9;
       }
     }
 
     &--secondary {
-      border: 1px solid tokens.$color-border-subtle;
-      background: tokens.$color-surface-primary;
-      color: tokens.$color-text-secondary;
+      border: 1px solid var(--color-border-subtle);
+      background: var(--color-surface-primary);
+      color: var(--color-text-secondary);
 
       &:hover {
-        background: tokens.$color-surface-secondary;
-        color: tokens.$color-text-primary;
+        background: var(--color-surface-secondary);
+        color: var(--color-text-primary);
       }
     }
   }

@@ -13,7 +13,7 @@
     (userLogout)="onLogout()"
     (userConfigureAccount)="onConfigureAccount()">
   </guiders-sidebar>
-  
+
   <div class="console-main">
     <main class="console-content">
       <router-outlet></router-outlet>
@@ -22,15 +22,4 @@
 
   <!-- Chat Widget - Fixed en esquina inferior derecha -->
   <guiders-chat-widget></guiders-chat-widget>
-
-  <!-- Profile Configuration Modal -->
-  @if (userProfile()) {
-    <lib-profile-modal
-      [currentUser]="userProfile()!"
-      [isOpen]="isProfileModalOpen()"
-      [loading]="isUploadingAvatar()"
-      (modalClose)="onProfileModalClose()"
-      (avatarUpdate)="onAvatarUpdate($event)">
-    </lib-profile-modal>
-  }
 </div>

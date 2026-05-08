@@ -27,6 +27,12 @@ export const appRoutes: Route[] = [
 		canActivate: [authGuard],
 	},
 	{
+		path: 'settings',
+		loadChildren: () => import('@guiders-frontend/auth/features/settings').then(m => m.settingsRoutes),
+		title: 'Configuración',
+		canActivate: [authGuard],
+	},
+	{
 		path: '',
 		pathMatch: 'full',
 		redirectTo: 'inbox',

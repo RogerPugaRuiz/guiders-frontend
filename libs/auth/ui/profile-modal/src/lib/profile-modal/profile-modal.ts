@@ -18,6 +18,7 @@ import { ButtonTertiaryComponent } from '@guiders-frontend/button-tertiary';
 import { UserProfile, SessionService } from '@guiders-frontend/auth/data-access/session';
 import { getAvatarColor } from '@guiders-frontend/avatar-colors';
 import { CommercialFingerprintService } from '@guiders-frontend/commercial-fingerprint-service';
+import { ThemeService, THEME_OPTIONS, ThemeOption } from '@guiders-frontend/shared/data-access/theme';
 import { firstValueFrom } from 'rxjs';
 import {
   AllSettings,
@@ -26,7 +27,6 @@ import {
   SettingsSectionConfig,
   SettingsUpdateRequest,
   UserStatus,
-  Theme,
   FontSize,
   Language
 } from './settings.types';
@@ -43,6 +43,13 @@ export class ProfileModalComponent {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly commercialFingerprintService = inject(CommercialFingerprintService);
   private readonly sessionService = inject(SessionService);
+  readonly themeService = inject(ThemeService);
+
+  /** Expose theme options to the template */
+  readonly themeOptions: ThemeOption[] = THEME_OPTIONS;
+
+  readonly darkThemes = THEME_OPTIONS.filter(t => !t.light);
+  readonly lightThemes = THEME_OPTIONS.filter(t => t.light);
 
   // Inputs
   readonly currentUser = input.required<UserProfile>();

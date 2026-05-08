@@ -2,7 +2,6 @@
   "name": "visitor-products-service",
   "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "libs/chat/data-access/visitor-products-service/src",
-  "prefix": "guiders",
   "projectType": "library",
   "tags": ["scope:chat", "type:data-access"],
   "targets": {

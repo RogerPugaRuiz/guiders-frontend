@@ -17,8 +17,8 @@
     width: 100%;
     max-width: 400px;
     height: 100%;
-    background: tokens.$color-surface-primary;
-    box-shadow: tokens.$shadow-xl;
+    background: var(--color-surface-primary);
+    box-shadow: var(--shadow-lg);
     animation: slideIn 0.2s ease-out;
   }
 
@@ -27,14 +27,14 @@
     align-items: center;
     justify-content: space-between;
     padding: tokens.$spacing-md;
-    border-bottom: 1px solid tokens.$color-border-subtle;
+    border-bottom: 1px solid var(--color-border-default);
   }
 
   &__title {
     margin: 0;
     font-size: tokens.$font-size-lg;
     font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
   }
 
   &__close {
@@ -47,17 +47,17 @@
     border: none;
     border-radius: tokens.$border-radius-md;
     background: transparent;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      background: tokens.$color-surface-secondary;
-      color: tokens.$color-text-primary;
+      background: var(--color-surface-secondary);
+      color: var(--color-text-primary);
     }
 
     &:focus-visible {
-      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
+      outline: 2px solid var(--color-accent);
       outline-offset: 2px;
     }
   }
@@ -80,7 +80,7 @@
     margin: 0 0 tokens.$spacing-sm;
     font-size: tokens.$font-size-sm;
     font-weight: tokens.$font-weight-semibold;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
@@ -96,20 +96,20 @@
     align-items: center;
     gap: tokens.$spacing-2xs;
     padding: tokens.$spacing-2xs tokens.$spacing-sm;
-    border: 1px solid tokens.$color-border-subtle;
+    border: 1px solid var(--color-border-default);
     border-radius: tokens.$border-radius-sm;
-    background: tokens.$color-surface-primary;
+    background: var(--color-surface-secondary);
     cursor: pointer;
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      border-color: tokens.$color-border-default;
-      background: tokens.$color-surface-secondary;
+      border-color: var(--color-border-strong);
+      background: var(--color-surface-tertiary);
     }
 
     &:has(input:checked) {
-      border-color: var(--wl-color-primary, tokens.$color-primary-500);
-      background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 12%, white);
+      border-color: var(--color-accent);
+      background: var(--color-accent-muted);
     }
 
     input {
@@ -119,7 +119,7 @@
 
   &__checkbox-label {
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
   }
 
   &__date-range {
@@ -137,31 +137,31 @@
   &__label {
     font-size: tokens.$font-size-xs;
     font-weight: tokens.$font-weight-medium;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
   }
 
   &__input,
   &__select {
     padding: tokens.$spacing-xs tokens.$spacing-sm;
-    border: 1px solid tokens.$color-border-subtle;
+    border: 1px solid var(--color-border-default);
     border-radius: tokens.$border-radius-md;
-    background: tokens.$color-surface-primary;
+    background: var(--color-surface-secondary);
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:hover {
-      border-color: tokens.$color-border-default;
+      border-color: var(--color-border-strong);
     }
 
     &:focus {
       outline: none;
-      border-color: var(--wl-color-primary, tokens.$color-primary-500);
-      box-shadow: 0 0 0 2px color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 25%, transparent);
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 2px var(--color-accent-muted);
     }
 
     &::placeholder {
-      color: tokens.$color-text-tertiary;
+      color: var(--color-text-muted);
     }
   }
 
@@ -179,7 +179,7 @@
 
   &__radio-label {
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-secondary);
     flex-basis: 100%;
   }
 
@@ -188,11 +188,11 @@
     align-items: center;
     gap: tokens.$spacing-2xs;
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     cursor: pointer;
 
     input {
-      accent-color: var(--wl-color-primary, tokens.$color-primary-500);
+      accent-color: var(--color-accent);
     }
   }
 
@@ -207,7 +207,7 @@
     justify-content: flex-end;
     gap: tokens.$spacing-sm;
     padding: tokens.$spacing-md;
-    border-top: 1px solid tokens.$color-border-subtle;
+    border-top: 1px solid var(--color-border-default);
   }
 
   &__btn {
@@ -219,38 +219,38 @@
     transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:focus-visible {
-      outline: 2px solid var(--wl-color-primary, tokens.$color-primary-500);
+      outline: 2px solid var(--color-accent);
       outline-offset: 2px;
     }
 
     &--primary {
       border: none;
-      background: var(--wl-color-primary, tokens.$color-primary-500);
-      color: tokens.$color-text-inverse;
+      background: var(--color-accent);
+      color: var(--color-on-accent);
 
       &:hover {
-        background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 85%, black);
+        background: var(--color-accent-hover);
       }
     }
 
     &--secondary {
-      border: 1px solid tokens.$color-border-subtle;
-      background: tokens.$color-surface-primary;
-      color: tokens.$color-text-secondary;
+      border: 1px solid var(--color-border-default);
+      background: var(--color-surface-secondary);
+      color: var(--color-text-secondary);
 
       &:hover {
-        background: tokens.$color-surface-secondary;
-        color: tokens.$color-text-primary;
+        background: var(--color-surface-tertiary);
+        color: var(--color-text-primary);
       }
     }
 
     &--outline {
-      border: 1px solid var(--wl-color-primary, tokens.$color-primary-500);
+      border: 1px solid var(--color-accent);
       background: transparent;
-      color: var(--wl-color-primary, tokens.$color-primary-500);
+      color: var(--color-accent);
 
       &:hover {
-        background: color-mix(in srgb, var(--wl-color-primary, tokens.$color-primary-500) 10%, white);
+        background: var(--color-accent-muted);
       }
     }
   }

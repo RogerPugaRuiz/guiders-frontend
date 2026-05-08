@@ -1,0 +1,76 @@
+@use '../../../../../design-tokens/src/lib/tokens-vars' as tokens;
+
+.toast-host {
+  position: fixed;
+  bottom: tokens.$spacing-lg;
+  right: tokens.$spacing-lg;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-sm;
+  pointer-events: none;
+}
+
+.toast {
+  display: inline-flex;
+  align-items: center;
+  gap: tokens.$spacing-sm;
+  padding: tokens.$spacing-sm tokens.$spacing-md;
+  background: var(--color-bg-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: tokens.$border-radius-md;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-text-primary) 12%, transparent);
+  font-size: tokens.$font-size-sm;
+  pointer-events: auto;
+  animation: toast-in 180ms ease-out;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.toast__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.toast--success .toast__icon {
+  background: color-mix(in srgb, var(--color-accent) 18%, transparent);
+  color: var(--color-accent);
+}
+
+.toast--error {
+  border-color: color-mix(in srgb, #e5484d 40%, var(--color-border-subtle));
+}
+
+.toast--error .toast__icon {
+  background: color-mix(in srgb, #e5484d 18%, transparent);
+  color: #e5484d;
+}
+
+.toast--info .toast__icon {
+  background: color-mix(in srgb, var(--color-text-secondary) 18%, transparent);
+  color: var(--color-text-secondary);
+}
+
+.toast__text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

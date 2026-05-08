@@ -3,7 +3,8 @@
 import { SafeHtml } from '@angular/platform-browser';
 
 export type UserStatus = 'online' | 'away' | 'busy' | 'invisible';
-export type Theme = 'light' | 'dark' | 'auto';
+/** @deprecated Use NamedTheme from ThemeService instead. */
+export type Theme = string;
 export type FontSize = 'small' | 'medium' | 'large';
 export type Language = 'es' | 'en';
 

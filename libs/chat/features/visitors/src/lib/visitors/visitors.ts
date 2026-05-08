@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { catchError, of, finalize, interval, switchMap } from 'rxjs';
+import { BehaviorSubject, catchError, EMPTY, of, finalize, interval, switchMap, Subject, takeUntil } from 'rxjs';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
@@ -23,7 +23,6 @@ import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
-import { PaginationComponent } from '@guiders-frontend/pagination';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import { VisitorsQuickFilters } from '@guiders-frontend/visitors-quick-filters';
@@ -74,7 +73,6 @@ type AssignChatResponse = {
   imports: [
     CommonModule,
     VisitorsListComponent,
-    PaginationComponent,
     VisitorsQuickFilters,
     VisitorsActiveFilters,
     VisitorsAdvancedFilters,
@@ -250,6 +248,18 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   readonly selectedFilterId = signal<string>('unassigned');
 
+  // === INFINITE SCROLL STATE ===
+  readonly batchSize = 25;
+  readonly isLoadingMore = signal<boolean>(false);
+  readonly hasMore = signal<boolean>(true);
+  readonly lastBatchStartIndex = signal<number>(0);
+  /** Current offset for the next loadMore call */
+  private infiniteOffset = 0;
+  /** Emits when a new search/reset starts, cancelling any in-flight loadMore */
+  private readonly _cancelLoadMore$ = new Subject<void>();
+  /** True while resetAndLoad/searchVisitorsWithFilters is pending — guards onLoadMore from applying stale results */
+  private isResetting = false;
+
   // Estado para filtros complejos (nueva API)
   readonly quickFilters = signal<QuickFilter[]>([]);
   readonly savedFilters = signal<SavedFilter[]>([]);
@@ -362,10 +372,22 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         });
       });
     });
+
+    // Reactive polling: switchMap re-creates the interval on each interval change.
+    // takeUntilDestroyed ensures cleanup on component destroy — no manual clearInterval needed.
+    this._refreshInterval$.pipe(
+      switchMap(ms => ms === 0 ? EMPTY : interval(ms)),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.refreshVisitors());
   }
 
-  private refreshIntervalId?: number;
+  private readonly _refreshInterval$ = new BehaviorSubject<number>(this.loadAutoRefreshInterval());
   private optimisticUpdateInProgress = false; // Flag para pausar auto-refresh
+  /** Handle for the aria announcement reset timeout, to allow cleanup on destroy. */
+  private _ariaResetTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** Announcement text for screen readers after each silent refresh. */
+  readonly ariaAnnouncement = signal<string>('');
 
   ngOnInit(): void {
     // Leer query parameters de la URL
@@ -475,13 +497,26 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           // Cargar chats del comercial para badges de mensajes no leídos
           this.loadCommercialChatsForBadges();
 
-          // Configurar auto-refresh inicial
-          this.setupAutoRefresh();
+          // Polling interval is driven by _refreshInterval$ BehaviorSubject set in constructor.
+          // No additional setup needed here.
         }
       );
 
     // 🔥 NUEVO: Suscribirse a cambios de presencia en tiempo real vía WebSocket
     this.setupPresenceListener();
+
+    // Refrescar lista cuando el widget asigna un chat pendiente a un comercial
+    this.chatWidgetService.chatAssigned$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ chatId, visitorId }) => {
+        console.log(
+          '[Visitors] 🔄 Chat asignado — refrescando lista:',
+          chatId,
+          'visitante:',
+          visitorId
+        );
+        this.refreshVisitorsSilently();
+      });
   }
 
   /**
@@ -545,11 +580,13 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.refreshIntervalId) {
-      clearInterval(this.refreshIntervalId);
-      this.refreshIntervalId = undefined;
+    this._cancelLoadMore$.next();
+    this._cancelLoadMore$.complete();
+    this._refreshInterval$.complete();
+    if (this._ariaResetTimeout !== null) {
+      clearTimeout(this._ariaResetTimeout);
     }
-    // _tick (toSignal) se desuscribe automáticamente al destruir el componente
+    // _tick (toSignal) polling unsubscribes automatically via takeUntilDestroyed.
   }
 
   // Métodos para cargar configuraciones desde localStorage
@@ -590,9 +627,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para guardar configuraciones en localStorage
-  private saveAutoRefreshInterval(interval: number): void {
+  private saveAutoRefreshInterval(ms: number): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY_AUTO_REFRESH, interval.toString());
+      localStorage.setItem(this.STORAGE_KEY_AUTO_REFRESH, ms.toString());
     } catch (error) {
       console.error(
         'Error saving auto-refresh interval to localStorage:',
@@ -609,32 +646,14 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Método para configurar el auto-refresh
-  private setupAutoRefresh(): void {
-    const interval = this.autoRefreshInterval();
-
-    // Limpiar intervalo existente si hay uno
-    if (this.refreshIntervalId) {
-      clearInterval(this.refreshIntervalId);
-      this.refreshIntervalId = undefined;
-    }
-
-    // Si el intervalo es 0, no configurar auto-refresh
-    if (interval === 0) {
-      return;
-    }
-
-    // Configurar nuevo intervalo
-    this.refreshIntervalId = window.setInterval(() => {
-      this.refreshVisitors();
-    }, interval);
-  }
-
   // Método público para cambiar el intervalo de auto-refresh
-  onAutoRefreshIntervalChange(interval: number): void {
-    this.autoRefreshInterval.set(interval);
-    this.saveAutoRefreshInterval(interval);
-    this.setupAutoRefresh();
+  onAutoRefreshIntervalChange(ms: number): void {
+    this.autoRefreshInterval.set(ms);
+    this.saveAutoRefreshInterval(ms);
+    this._refreshInterval$.next(ms); // triggers switchMap to restart interval
+    if (ms === 0) {
+      this.ariaAnnouncement.set('');
+    }
   }
 
   private getFilterCount(visitors: Visitor[], filters: VisitorFilters): number {
@@ -673,13 +692,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Guardar la posición del scroll antes de cargar (solo si no vamos a hacer scroll al top)
-    if (options.scrollToTop) {
-      this.shouldScrollToTop = true;
-    } else {
-      this.saveScrollPosition();
-    }
-
     this.updateState({ loading: true, error: null });
 
     const currentState = this.state();
@@ -688,11 +700,9 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     if (this.useMockData) {
       // USAR MOCK
       setTimeout(() => {
-        const mockResponse = getMockVisitorsResponse(
-          currentState.pagination.limit,
-          currentState.pagination.offset || 0
-        );
+        const mockResponse = getMockVisitorsResponse(this.batchSize, 0);
 
+        this.hasMore.set(mockResponse.visitors.length < mockResponse.total);
         this.updateState({
           visitors: mockResponse.visitors,
           error: null,
@@ -705,9 +715,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
         // Actualizar timestamp de última carga
         this.lastRefreshTime.set(new Date());
-
-        // Restaurar la posición del scroll después de renderizar
-        this.restoreScrollPosition();
       }, 500); // Simular latencia de red
     } else {
       // USAR SERVICIO REAL - Usando searchVisitors como endpoint único
@@ -735,12 +742,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           field: sortFieldMap[currentSort.field] || 'createdAt',
           direction: currentSort.direction.toUpperCase() as SortDirection,
         },
-        page:
-          Math.floor(
-            (currentState.pagination.offset || 0) /
-              currentState.pagination.limit
-          ) + 1,
-        limit: currentState.pagination.limit,
+        page: 1,
+        limit: this.batchSize,
       };
 
       this.visitorsService
@@ -753,7 +756,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
               pagination: {
                 total: 0,
                 page: 1,
-                limit: currentState.pagination.limit,
+                limit: this.batchSize,
                 totalPages: 0,
                 hasNextPage: false,
                 hasPreviousPage: false,
@@ -761,6 +764,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
             });
           }),
           finalize(() => {
+            this.isResetting = false;
             this.updateState({ loading: false });
           })
         )
@@ -770,6 +774,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
             response.visitors
           );
 
+          this.hasMore.set(response.pagination.hasNextPage);
           this.updateState({
             visitors: mappedVisitors,
             error: null,
@@ -781,9 +786,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
           // Actualizar timestamp de última carga
           this.lastRefreshTime.set(new Date());
-
-          // Restaurar la posición del scroll después de renderizar
-          this.restoreScrollPosition();
         });
     }
   }
@@ -865,6 +867,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         // Actualizar timestamp de última carga
         this.lastRefreshTime.set(new Date());
 
+        // Announce update to screen readers
+        const total = mockResponse.total;
+        this.ariaAnnouncement.set(`Lista actualizada. ${total} visitantes activos.`);
+        if (this._ariaResetTimeout !== null) clearTimeout(this._ariaResetTimeout);
+        this._ariaResetTimeout = setTimeout(() => { this.ariaAnnouncement.set(''); this._ariaResetTimeout = null; }, 3000);
+
         // Restaurar la posición del scroll después de actualizar
         this.restoreScrollPosition();
 
@@ -942,6 +950,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
           // Actualizar timestamp de última carga
           this.lastRefreshTime.set(new Date());
+
+          // Announce update to screen readers
+          const total = response.pagination.total;
+          this.ariaAnnouncement.set(`Lista actualizada. ${total} visitantes activos.`);
+          if (this._ariaResetTimeout !== null) clearTimeout(this._ariaResetTimeout);
+          this._ariaResetTimeout = setTimeout(() => { this.ariaAnnouncement.set(''); this._ariaResetTimeout = null; }, 3000);
 
           // Restaurar la posición del scroll después de actualizar
           this.restoreScrollPosition();
@@ -1326,17 +1340,25 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   /** Buscar visitantes usando la nueva API de filtros */
   private searchVisitorsWithFilters(): void {
+    // Cancel any in-flight loadMore requests
+    this._cancelLoadMore$.next();
+    this.isResetting = true;
+
+    // Reset infinite scroll and delegate to loadVisitors
+    this.infiniteOffset = 0;
+    this.hasMore.set(true);
+    this.lastBatchStartIndex.set(0);
+    this.updateState({ visitors: [], loading: true, error: null });
+
     const companyId = this.companyId();
     if (!companyId) return;
-
-    this.updateState({ loading: true, error: null });
 
     const currentState = this.state();
     const request = {
       filters: this.activeSearchFilters(),
       sort: this.activeSearchSort(),
-      page: currentState.pagination.currentPage || 1,
-      limit: currentState.pagination.limit,
+      page: 1,
+      limit: this.batchSize,
     };
 
     this.visitorsService
@@ -1349,14 +1371,17 @@ export class VisitorsComponent implements OnInit, OnDestroy {
             pagination: {
               total: 0,
               page: 1,
-              limit: 20,
+              limit: this.batchSize,
               totalPages: 0,
               hasNextPage: false,
               hasPreviousPage: false,
             },
           });
         }),
-        finalize(() => this.updateState({ loading: false }))
+        finalize(() => {
+          this.isResetting = false;
+          this.updateState({ loading: false });
+        })
       )
       .subscribe((response) => {
         // Mapear VisitorSearchResult a Visitor
@@ -1364,6 +1389,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
           response.visitors
         );
 
+        this.hasMore.set(response.pagination.hasNextPage);
         this.updateState({
           visitors: mappedVisitors,
           pagination: {
@@ -1484,9 +1510,113 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   // Event handlers del UI
+
+  /**
+   * Resets the visitor list and loads the first batch (used when filters/sort change).
+   */
+  resetAndLoad(): void {
+    // Cancel any in-flight loadMore requests
+    this._cancelLoadMore$.next();
+    this.isResetting = true;
+
+    this.infiniteOffset = 0;
+    this.hasMore.set(true);
+    this.lastBatchStartIndex.set(0);
+    this.updateState({ visitors: [] });
+    this.loadVisitors();
+  }
+
+  /**
+   * Loads the next batch and appends it to the existing list (infinite scroll).
+   */
+  onLoadMore(): void {
+    if (this.isResetting || this.isLoadingMore() || !this.hasMore() || this.state().loading) return;
+
+    const companyId = this.companyId();
+    if (!companyId) return;
+
+    const currentVisitors = this.state().visitors;
+    const batchStart = currentVisitors.length;
+    this.infiniteOffset = batchStart;
+    this.isLoadingMore.set(true);
+
+    const currentState = this.state();
+    const currentSort = currentState.sort;
+    const sortFieldMap: Record<string, VisitorSortField> = {
+      firstVisit: 'createdAt',
+      lastVisit: 'lastActivity',
+    };
+
+    const searchFilters: VisitorSearchFilters = { ...this.activeSearchFilters() };
+    if (currentState.searchQuery && !searchFilters.currentUrlContains) {
+      searchFilters.currentUrlContains = currentState.searchQuery;
+    }
+
+    const page = Math.floor(this.infiniteOffset / this.batchSize) + 1;
+
+    const request: VisitorSearchRequest = {
+      filters: searchFilters,
+      sort: {
+        field: sortFieldMap[currentSort.field] || 'createdAt',
+        direction: currentSort.direction.toUpperCase() as SortDirection,
+      },
+      page,
+      limit: this.batchSize,
+    };
+
+    if (this.useMockData) {
+      setTimeout(() => {
+        if (this.isResetting) return; // Discard if reset happened during mock delay
+        const mockResponse = getMockVisitorsResponse(this.batchSize, this.infiniteOffset);
+        const newVisitors = this.mapSearchResultsToVisitors(mockResponse.visitors as unknown as VisitorSearchResult[]);
+        const merged = [...currentVisitors, ...newVisitors];
+        this.lastBatchStartIndex.set(batchStart);
+        this.hasMore.set(merged.length < mockResponse.total);
+        this.updateState({ visitors: merged });
+        this.isLoadingMore.set(false);
+      }, 400);
+      return;
+    }
+
+    this.visitorsService
+      .searchVisitors(companyId, request)
+      .pipe(
+        takeUntil(this._cancelLoadMore$),
+        catchError(() =>
+          of({
+            visitors: [],
+            pagination: {
+              total: 0,
+              page: 1,
+              limit: this.batchSize,
+              totalPages: 0,
+              hasNextPage: false,
+              hasPreviousPage: false,
+            },
+          })
+        ),
+        finalize(() => this.isLoadingMore.set(false))
+      )
+      .subscribe((response) => {
+        if (this.isResetting) return; // Discard stale results
+        const newVisitors = this.mapSearchResultsToVisitors(response.visitors);
+        const merged = [...currentVisitors, ...newVisitors];
+        this.lastBatchStartIndex.set(batchStart);
+        this.hasMore.set(response.pagination.hasNextPage);
+        this.updateState({
+          visitors: merged,
+          pagination: {
+            ...currentState.pagination,
+            totalCount: response.pagination.total,
+          },
+        });
+        this.lastRefreshTime.set(new Date());
+      });
+  }
+
   onFilterPresetChange(filterId: string): void {
     this.selectedFilterId.set(filterId);
-    this.loadVisitors();
+    this.resetAndLoad();
   }
 
   onVisitorClick(visitor: Visitor): void {
@@ -1539,12 +1669,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
   onFilterChange(filters: VisitorFilters): void {
     this.updateState({ filters: { ...this.state().filters, ...filters } });
-    this.loadVisitors();
+    this.resetAndLoad();
   }
 
   onSortChange(sort: VisitorSort): void {
     this.updateState({ sort });
-    this.loadVisitors();
+    this.resetAndLoad();
   }
 
   // Métodos de paginación
@@ -1636,7 +1766,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     return filter?.description || '';
   }
 
-  // Pending chats handler - abre el primer chat pendiente en el widget
+  // Pending chats handler - abre el primer chat pendiente en modo preview (sin asignar)
   onViewPendingChats(data: {
     visitor: Visitor;
     pendingChatIds: string[];
@@ -1653,9 +1783,10 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Abrir el primer chat pendiente en el widget
+    // Abrir el primer chat pendiente en modo preview (isPending: true)
+    // El chat se asignará al comercial cuando envíe su primer mensaje
     const firstChatId = data.pendingChatIds[0];
-    this.chatWidgetService.openWithChat(firstChatId, data.visitor);
+    this.chatWidgetService.openPendingChat(firstChatId, data.visitor);
 
     // Log si hay más chats pendientes
     if (data.pendingChatIds.length > 1) {

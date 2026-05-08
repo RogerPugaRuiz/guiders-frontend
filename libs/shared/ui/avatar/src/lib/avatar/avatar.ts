@@ -94,25 +94,24 @@ export class Avatar {
    * - Professional appearance in both light and dark modes
    */
   private generateColorFromId(id: string): string {
-    // Paleta profesional con colores saturados pero elegantes
-    // Todos los colores tienen buen contraste con texto blanco (WCAG AA)
+    // Paleta muted adaptada a temas dark: tonos desaturados con buen contraste para texto blanco
     const colors = [
-      '#6366f1', // Índigo vibrante
-      '#8b5cf6', // Violeta
-      '#a855f7', // Púrpura
-      '#d946ef', // Fucsia
-      '#ec4899', // Rosa
-      '#f43f5e', // Rosa rojo
-      '#ef4444', // Rojo
-      '#f97316', // Naranja
-      '#f59e0b', // Ámbar
-      '#84cc16', // Lima
-      '#22c55e', // Verde
-      '#10b981', // Esmeralda
-      '#14b8a6', // Teal
-      '#06b6d4', // Cyan
-      '#0ea5e9', // Azul cielo
-      '#3b82f6', // Azul
+      '#4f52a0', // Índigo apagado
+      '#6b4fa0', // Violeta apagado
+      '#7c4fa0', // Púrpura apagado
+      '#8c4a7a', // Fucsia apagado
+      '#8c4a62', // Rosa apagado
+      '#8c3a4a', // Rosa rojo apagado
+      '#8c3a3a', // Rojo apagado
+      '#8c5a2a', // Naranja apagado
+      '#7a6020', // Ámbar apagado
+      '#4a6820', // Lima apagado
+      '#2a6a3a', // Verde apagado
+      '#2a6a56', // Esmeralda apagado
+      '#2a6462', // Teal apagado
+      '#1e6070', // Cyan apagado
+      '#1e5070', // Azul cielo apagado
+      '#2a4a80', // Azul apagado
     ];
 
     // Generar hash del ID para obtener índice consistente
@@ -124,6 +123,11 @@ export class Avatar {
     }
 
     const index = Math.abs(hash) % colors.length;
-    return colors[index];
+    // Convertir hex a rgba con opacidad 0.55 para efecto translúcido
+    const hex = colors[index].replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, 0.55)`;
   }
 }

@@ -210,19 +210,19 @@
   gap: tokens.$spacing-sm;
   padding: tokens.$spacing-sm;
   border-radius: tokens.$border-radius-md;
-  background: tokens.$color-surface-primary;
-  color: tokens.$color-text-primary;
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
   text-align: left;
   cursor: pointer;
   flex: 1;
   border: 1px solid #e5e7eb;
 
   &:hover {
-    background: tokens.$color-surface-hover;
+    background: var(--color-surface-hover);
   }
 
   &:active {
-    background: tokens.$color-surface-hover;
+    background: var(--color-surface-hover);
   }
 
   &--primary {
@@ -268,7 +268,7 @@
 
 .action-desc {
   @include tokens.typography('caption');
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
 /* Activity feed */
@@ -302,13 +302,13 @@
 
 .activity-time {
   @include tokens.typography('caption');
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
   font-weight: tokens.$font-weight-medium;
 }
 
 .activity-text {
   @include tokens.typography('body-small');
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
 /* Bento Grid System */
@@ -617,7 +617,7 @@
 
 .last-refresh-indicator {
   @include tokens.typography('caption');
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
   font-weight: tokens.$font-weight-regular;
   white-space: nowrap;
   margin-left: tokens.$spacing-xs;
@@ -629,6 +629,14 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+// Respect user's motion preferences for refresh spinner
+@media (prefers-reduced-motion: reduce) {
+  .refresh-button--loading svg {
+    animation: none !important;
+    transition: none !important;
   }
 }
 

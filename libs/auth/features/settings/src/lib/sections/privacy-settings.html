@@ -1,0 +1,27 @@
+<lib-settings-section-header
+  title="Privacidad"
+  description="Gestiona la privacidad de tu navegación">
+</lib-settings-section-header>
+
+<lib-settings-row
+  label="Fingerprint del navegador"
+  description="Registra tu fingerprint para que no aparezcas como visitante en tu sitio web"
+  [stacked]="true">
+  <div class="fp-control">
+    <input
+      type="text"
+      class="fp-input"
+      placeholder="Pega aquí tu fingerprint del SDK web"
+      [ngModel]="fingerprintInput()"
+      (ngModelChange)="fingerprintInput.set($event)"
+      [disabled]="isRegistering()"
+    />
+    <button
+      type="button"
+      class="fp-button"
+      (click)="onRegister()"
+      [disabled]="isRegistering() || !fingerprintInput().trim()">
+      {{ isRegistering() ? 'Registrando...' : 'Registrar' }}
+    </button>
+  </div>
+</lib-settings-row>

@@ -1,1 +1,38 @@
-<p>LeadcarsStatusPanel works!</p>
+@if (loading()) {
+  <div class="leadcars-panel__skeleton" role="status" aria-label="Cargando estado de LeadCars">
+    <guiders-skeleton-block height="48px" />
+    <guiders-skeleton-block height="40px" />
+    <guiders-skeleton-block height="40px" />
+    <guiders-skeleton-block height="40px" />
+  </div>
+} @else if (status() === null) {
+  <div class="leadcars-panel__empty">
+    Sin datos de conexión LeadCars.
+  </div>
+} @else {
+  <div class="leadcars-panel__status-banner" [class.leadcars-panel__status-banner--connected]="status()!.connected">
+    {{ status()!.connected ? 'Conectado' : 'Desconectado' }}
+    @if (status()!.message) {
+      <span class="leadcars-panel__status-message">— {{ status()!.message }}</span>
+    }
+  </div>
+
+  @if (failedRecords().length > 0) {
+    <div class="leadcars-panel__records">
+      <button type="button" class="leadcars-panel__retry-all" (click)="retryAll.emit()">
+        Reintentar todos
+      </button>
+      <ul class="leadcars-panel__records-list">
+        @for (record of failedRecords(); track record.id) {
+          <li class="leadcars-panel__record">
+            <span>{{ record.createdAt }}</span>
+            @if (record.errorMessage) {
+              <span>{{ record.errorMessage }}</span>
+            }
+            <button type="button" [attr.aria-label]="'Reintentar registro ' + record.id" (click)="retryRecord.emit(record.id)">Reintentar</button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+}

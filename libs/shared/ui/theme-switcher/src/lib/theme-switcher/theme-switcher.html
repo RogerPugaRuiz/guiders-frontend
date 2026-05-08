@@ -1,0 +1,46 @@
+<div [ngClass]="containerClasses()">
+  <!-- Compact swatch bar (always visible) -->
+  <div class="theme-switcher__swatches" role="group" aria-label="Select theme">
+    @for (theme of themes; track theme.id) {
+      <button
+        class="theme-switcher__swatch"
+        [class.theme-switcher__swatch--active]="isActive(theme.id)"
+        [attr.aria-pressed]="isActive(theme.id)"
+        [attr.aria-label]="theme.label + ' theme'"
+        [title]="theme.label + ' — ' + theme.description"
+        [style.--swatch-color]="theme.accent"
+        (click)="selectTheme(theme.id)"
+        type="button"
+      >
+        <span class="theme-switcher__swatch-dot"></span>
+        @if (isActive(theme.id)) {
+          <span class="theme-switcher__active-ring"></span>
+        }
+      </button>
+    }
+  </div>
+
+  <!-- Expanded dropdown with labels -->
+  @if (isExpanded()) {
+    <div class="theme-switcher__dropdown">
+      @for (theme of themes; track theme.id) {
+        <button
+          class="theme-switcher__option"
+          [class.theme-switcher__option--active]="isActive(theme.id)"
+          (click)="selectTheme(theme.id)"
+          type="button"
+        >
+          <span
+            class="theme-switcher__option-dot"
+            [style.background]="theme.accent"
+          ></span>
+          <span class="theme-switcher__option-label">{{ theme.label }}</span>
+          <span class="theme-switcher__option-desc">{{ theme.description }}</span>
+          @if (isActive(theme.id)) {
+            <span class="theme-switcher__check" aria-hidden="true">✓</span>
+          }
+        </button>
+      }
+    </div>
+  }
+</div>

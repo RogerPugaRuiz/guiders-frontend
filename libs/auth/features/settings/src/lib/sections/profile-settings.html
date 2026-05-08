@@ -1,0 +1,48 @@
+<lib-settings-section-header
+  title="Perfil"
+  description="Gestiona tu información personal visible en la plataforma">
+</lib-settings-section-header>
+
+@if (errorMessage()) {
+  <div class="error-banner" role="alert">{{ errorMessage() }}</div>
+}
+
+@if (profile(); as p) {
+  <lib-settings-row
+    label="Foto de perfil"
+    description="PNG o JPG, máximo 5MB">
+    <div class="avatar-control">
+      <div class="avatar-preview">
+        @if (avatarUrl()) {
+          <img [src]="avatarUrl()" [alt]="'Avatar de ' + userName()" />
+        } @else {
+          <div class="avatar-initials" [style.background-color]="avatarBg()">
+            {{ userInitials() }}
+          </div>
+        }
+      </div>
+      <label class="avatar-button" [class.disabled]="isUploading()">
+        <input
+          type="file"
+          accept="image/png, image/jpeg, image/jpg"
+          (change)="onFileSelected($event)"
+          [disabled]="isUploading()"
+          hidden
+        />
+        {{ isUploading() ? 'Subiendo...' : 'Cambiar' }}
+      </label>
+    </div>
+  </lib-settings-row>
+
+  <lib-settings-row
+    label="Nombre"
+    description="Cómo apareces ante otros usuarios">
+    <span class="readonly-value">{{ p.name || '—' }}</span>
+  </lib-settings-row>
+
+  <lib-settings-row
+    label="Correo electrónico"
+    description="No se puede modificar">
+    <span class="readonly-value">{{ p.email }}</span>
+  </lib-settings-row>
+}

@@ -1,5 +1,5 @@
 /**
- * Contact Data Form Styles
+ * Contact Data Form — minimal dark-mode-aware styles
  */
 
 @use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
@@ -11,81 +11,89 @@
 .contact-data-form {
   display: flex;
   flex-direction: column;
-  gap: tokens.$spacing-lg;
+  gap: tokens.$spacing-md;
 
   &__fields {
-    display: flex;
-    flex-direction: column;
-    gap: tokens.$spacing-md;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: tokens.$spacing-xs tokens.$spacing-sm;
+
+    // Nombre y apellidos en columnas paralelas; email, tel, dni, población full-width
+    .contact-data-form__field:nth-child(3),
+    .contact-data-form__field:nth-child(4),
+    .contact-data-form__field:nth-child(5),
+    .contact-data-form__field:nth-child(6) {
+      grid-column: span 2;
+    }
   }
 
   &__field {
     display: flex;
     flex-direction: column;
-    gap: tokens.$spacing-xs;
+    gap: 3px;
   }
 
   &__label {
-    font-family: tokens.$font-family-ui;
-    font-size: tokens.$font-size-sm;
+    font-size: tokens.$font-size-xs;
     font-weight: 500;
-    color: tokens.$color-text-secondary;
+    color: var(--color-text-tertiary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
   &__input {
     width: 100%;
-    padding: tokens.$spacing-sm tokens.$spacing-md;
+    padding: 6px tokens.$spacing-sm;
     font-family: tokens.$font-family-ui;
     font-size: tokens.$font-size-sm;
-    color: tokens.$color-text-primary;
-    background: tokens.$color-surface-primary;
-    border: 1px solid tokens.$color-border-default;
-    border-radius: tokens.$border-radius-md;
+    color: var(--color-text-primary);
+    background: var(--color-surface-secondary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: tokens.$border-radius-sm;
     box-sizing: border-box;
-    transition: all 0.2s ease;
+    transition: border-color tokens.$duration-fast tokens.$easing-standard,
+      background tokens.$duration-fast tokens.$easing-standard;
 
     &::placeholder {
-      color: tokens.$color-text-tertiary;
+      color: var(--color-text-tertiary);
+      opacity: 0.6;
     }
 
     &:hover:not(:disabled) {
-      border-color: tokens.$color-border-strong;
+      border-color: var(--color-border-default);
     }
 
     &:focus {
       outline: none;
-      border-color: tokens.$color-primary-500;
-      box-shadow: 0 0 0 3px rgba(tokens.$color-primary-500, 0.1);
+      border-color: var(--color-primary-default);
+      background: var(--color-surface-tertiary);
     }
 
     &:disabled {
-      background: tokens.$color-surface-secondary;
-      color: tokens.$color-text-tertiary;
+      opacity: 0.4;
       cursor: not-allowed;
     }
 
     &--error {
-      border-color: tokens.$color-danger-500;
+      border-color: var(--color-danger-default, #{tokens.$color-danger-500});
 
       &:focus {
-        border-color: tokens.$color-danger-500;
-        box-shadow: 0 0 0 3px rgba(tokens.$color-danger-500, 0.1);
+        border-color: var(--color-danger-default, #{tokens.$color-danger-500});
       }
     }
   }
 
   &__error {
-    font-family: tokens.$font-family-ui;
     font-size: tokens.$font-size-xs;
-    color: tokens.$color-danger-500;
+    color: var(--color-danger-default, #{tokens.$color-danger-500});
   }
 
   &__actions {
     display: flex;
     justify-content: flex-end;
-    gap: tokens.$spacing-sm;
+    gap: tokens.$spacing-xs;
     padding-top: tokens.$spacing-sm;
-    border-top: 1px solid tokens.$color-border-subtle;
+    border-top: 1px solid var(--color-border-subtle);
   }
 
   &__button {
@@ -93,53 +101,48 @@
     align-items: center;
     justify-content: center;
     gap: tokens.$spacing-xs;
-    padding: tokens.$spacing-sm tokens.$spacing-lg;
+    padding: 5px tokens.$spacing-md;
     font-family: tokens.$font-family-ui;
     font-size: tokens.$font-size-sm;
     font-weight: 500;
-    border: none;
-    border-radius: tokens.$border-radius-md;
+    border: 1px solid transparent;
+    border-radius: tokens.$border-radius-sm;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all tokens.$duration-fast tokens.$easing-standard;
 
     &:disabled {
-      opacity: 0.6;
+      opacity: 0.4;
       cursor: not-allowed;
     }
 
     &--primary {
-      background: tokens.$color-primary-500;
-      color: tokens.$color-text-inverse;
+      background: var(--color-primary-default);
+      color: var(--color-text-on-primary, #fff);
+      border-color: var(--color-primary-default);
 
       &:hover:not(:disabled) {
-        background: tokens.$color-primary-600;
-      }
-
-      &:active:not(:disabled) {
-        background: tokens.$color-primary-700;
+        opacity: 0.88;
       }
 
       &:focus-visible {
-        outline: 2px solid tokens.$color-primary-500;
+        outline: 2px solid var(--color-primary-default);
         outline-offset: 2px;
       }
     }
 
     &--secondary {
-      background: tokens.$color-surface-secondary;
-      color: tokens.$color-text-secondary;
+      background: transparent;
+      color: var(--color-text-secondary);
+      border-color: var(--color-border-subtle);
 
       &:hover:not(:disabled) {
-        background: tokens.$color-surface-tertiary;
-        color: tokens.$color-text-primary;
-      }
-
-      &:active:not(:disabled) {
-        background: tokens.$color-surface-hover;
+        background: var(--color-surface-hover);
+        color: var(--color-text-primary);
+        border-color: var(--color-border-default);
       }
 
       &:focus-visible {
-        outline: 2px solid tokens.$color-primary-500;
+        outline: 2px solid var(--color-primary-default);
         outline-offset: 2px;
       }
     }
@@ -147,9 +150,9 @@
 
   &__spinner {
     display: inline-block;
-    width: 14px;
-    height: 14px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
     border-top-color: white;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;

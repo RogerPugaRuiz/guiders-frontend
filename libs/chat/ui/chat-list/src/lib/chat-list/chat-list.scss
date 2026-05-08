@@ -10,15 +10,15 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  background: tokens.$color-surface-primary;
-  border-right: 1px solid tokens.$color-border-primary;
+  background: var(--color-surface-primary);
+  border-right: 1px solid var(--color-border-default);
 }
 
 // Barra de búsqueda
 .chat-list__search {
   padding: tokens.$spacing-lg;
-  border-bottom: 1px solid tokens.$color-border-subtle;
-  background: tokens.$color-surface-secondary;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: var(--color-surface-secondary);
 
   .chat-list__search-field {
     width: 100%;
@@ -33,7 +33,7 @@
   justify-content: center;
   flex: 1;
   gap: tokens.$spacing-lg;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
   
   .loading-spinner {
     @include tokens.loading-spinner;
@@ -51,7 +51,7 @@
   
   // Scroll personalizado
   scrollbar-width: thin;
-  scrollbar-color: tokens.$color-border-primary transparent;
+  scrollbar-color: var(--color-border-default) transparent;
   
   &::-webkit-scrollbar {
     width: 6px;
@@ -62,12 +62,12 @@
   }
   
   &::-webkit-scrollbar-thumb {
-    background: tokens.$color-border-primary;
+    background: var(--color-border-default);
     border-radius: tokens.$border-radius-md;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: tokens.$color-border-strong;
+    background: var(--color-border-strong);
   }
 }
 
@@ -78,7 +78,7 @@
   justify-content: center;
   height: 200px;
   padding: tokens.$spacing-lg;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
   @include tokens.typography('body-small');
   text-align: center;
   font-style: italic;
@@ -95,13 +95,13 @@
   cursor: pointer;
   text-align: left;
   position: relative;
-  border-bottom: 1px solid tokens.$color-border-subtle;
+  border-bottom: 1px solid var(--color-border-subtle);
   min-height: 64px;
   transition: background-color tokens.$transition-fast ease;
 
   // Estados de interacción
   &:hover {
-    background: tokens.$color-surface-hover;
+    background: var(--color-surface-hover);
   }
 
   &:focus-visible {
@@ -110,36 +110,36 @@
   }
 
   &:active {
-    background: tokens.$color-surface-pressed;
+    background: var(--color-surface-pressed);
   }
 
   // Estados especiales
   &--selected {
-    background: tokens.$color-primary-50;
-    border-left: 3px solid tokens.$color-primary-500;
+    background: var(--color-accent-muted);
+    border-left: 3px solid var(--color-accent);
     
     &:hover {
-      background: tokens.$color-primary-50;
+      background: var(--color-accent-muted);
     }
   }
 
   &--unread {
-    background: tokens.$color-info-50;
+    background: var(--color-surface-secondary);
     
     .chat-item__name {
       font-weight: tokens.$font-weight-semibold;
-      color: tokens.$color-text-primary;
+      color: var(--color-text-primary);
     }
 
     .chat-item__message {
-      color: tokens.$color-text-primary;
+      color: var(--color-text-primary);
       font-weight: tokens.$font-weight-medium;
     }
   }
 
   &--pinned {
     order: -1;
-    background: tokens.$color-warning-50;
+    background: rgba(var(--color-warning, #d97706), 0.05);
   }
 }
 
@@ -157,9 +157,9 @@
   align-items: center;
   justify-content: center;
   border-radius: tokens.$border-radius-full;
-  background: tokens.$color-surface-secondary;
+  background: var(--color-surface-secondary);
   overflow: hidden;
-  border: 2px solid tokens.$color-border-subtle;
+  border: 2px solid var(--color-border-subtle);
 }
 
 .avatar__image {
@@ -169,7 +169,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
 }
 
 .avatar__status {
@@ -179,7 +179,7 @@
   width: 12px;
   height: 12px;
   border-radius: tokens.$border-radius-full;
-  border: 2px solid tokens.$color-surface-primary;
+  border: 2px solid var(--color-surface-primary);
 }
 
 .avatar__pin {
@@ -187,14 +187,14 @@
   top: -2px;
   right: -2px;
   font-size: 10px;
-  background: tokens.$color-surface-primary;
+  background: var(--color-surface-primary);
   border-radius: tokens.$border-radius-full;
   width: 16px;
   height: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid tokens.$color-border-default;
+  border: 1px solid var(--color-border-default);
   box-shadow: tokens.$shadow-sm;
 }
 
@@ -214,7 +214,7 @@
 .chat-item__name {
   font-size: tokens.$font-size-base;
   font-weight: tokens.$font-weight-medium;
-  color: tokens.$color-text-primary;
+  color: var(--color-text-primary);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -233,13 +233,13 @@
 .chat-item__time {
   font-size: tokens.$font-size-sm;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
   font-weight: tokens.$font-weight-medium;
 }
 
 .chat-item__muted {
   font-size: tokens.$font-size-sm;
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
 }
 
 .chat-item__footer {
@@ -252,14 +252,14 @@
 .chat-item__message {
   flex: 1;
   font-size: tokens.$font-size-sm;
-  color: tokens.$color-text-secondary;
+  color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: tokens.$line-height-relaxed;
 
   .message--unread {
-    color: tokens.$color-text-primary;
+    color: var(--color-text-primary);
     font-weight: tokens.$font-weight-medium;
   }
 }
@@ -269,7 +269,7 @@
   display: flex;
   align-items: center;
   gap: tokens.$spacing-sm;
-  color: tokens.$color-primary-600;
+  color: var(--color-accent);
   font-size: tokens.$font-size-sm;
   font-style: italic;
   font-weight: tokens.$font-weight-medium;
@@ -282,7 +282,7 @@
   span {
     width: 4px;
     height: 4px;
-    background: tokens.$color-primary-600;
+    background: var(--color-accent);
     border-radius: tokens.$border-radius-full;
     animation: typing 1s infinite ease-in-out;
 
@@ -313,7 +313,7 @@
 
 .message-status {
   font-size: tokens.$font-size-sm;
-  color: tokens.$color-text-tertiary;
+  color: var(--color-text-tertiary);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 
   .status--read {
@@ -333,7 +333,7 @@
 // Estados de alto contraste
 @media (prefers-contrast: high) {
   .chat-item {
-    border-bottom-color: tokens.$color-border-strong;
+    border-bottom-color: var(--color-border-strong);
     
     &--selected {
       border-left-width: 4px;
@@ -345,7 +345,7 @@
   }
 
   .unread-badge {
-    box-shadow: 0 0 0 1px tokens.$color-border-strong;
+    box-shadow: 0 0 0 1px var(--color-border-strong);
   }
 }
 

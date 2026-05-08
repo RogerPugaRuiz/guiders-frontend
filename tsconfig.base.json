@@ -36,6 +36,9 @@
       "@guiders-frontend/auth/features/login": [
         "libs/auth/features/login/src/index.ts"
       ],
+      "@guiders-frontend/auth/features/settings": [
+        "libs/auth/features/settings/src/index.ts"
+      ],
       "@guiders-frontend/auth/ui/login-form": [
         "libs/auth/ui/login-form/src/index.ts"
       ],
@@ -192,12 +195,19 @@
         "libs/shared/data-access/theme/src/index.ts"
       ],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/shared/ui/toast": [
+        "libs/shared/ui/toast/src/index.ts"
+      ],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
+      "@guiders-frontend/shared/ui/skeleton": ["libs/shared/ui/skeleton/src/index.ts"],
       "@guiders-frontend/status-selector": [
         "libs/shared/ui/status-selector/src/index.ts"
       ],
       "@guiders-frontend/text-field": [
         "libs/shared/ui/text-field/src/index.ts"
+      ],
+      "@guiders-frontend/theme-switcher": [
+        "libs/shared/ui/theme-switcher/src/index.ts"
       ],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/typing-indicator": [

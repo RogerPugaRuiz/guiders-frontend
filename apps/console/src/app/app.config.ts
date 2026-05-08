@@ -15,7 +15,9 @@ import {
   authRefreshInterceptor,
   UserService,
   SessionGuardianService,
+  globalErrorInterceptor,
 } from '@guiders-frontend/auth/data-access/session';
+import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/features/settings';
 import { CommercialPresenceService } from '@guiders-frontend/commercial-presence';
 import { CommercialStatusService } from '@guiders-frontend/commercial-status';
 import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-service';
@@ -282,6 +284,7 @@ export const appConfig: ApplicationConfig = {
       withInterceptors([
         authRefreshInterceptor, // Refresh automático antes que el auth interceptor
         authInterceptor(),
+        globalErrorInterceptor, // Captura 401 irrecuperables, 500, 503 y errores de red
       ])
     ),
     provideAuth({
@@ -299,6 +302,8 @@ export const appConfig: ApplicationConfig = {
     }),
     // Proporcionar el environment a las librerías
     { provide: ENVIRONMENT_TOKEN, useValue: environment },
+    // Ruta de cierre de Settings para la console
+    { provide: SETTINGS_CLOSE_ROUTE, useValue: '/inbox' },
     // Inicializar la aplicación (usuario + presencia comercial)
     {
       provide: APP_INITIALIZER,

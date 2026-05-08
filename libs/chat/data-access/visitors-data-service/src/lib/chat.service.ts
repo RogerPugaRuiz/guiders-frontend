@@ -244,7 +244,7 @@ export class ChatService {
   }): Observable<Chat[]> {
     this.setLoading(true);
     
-    let url = `${this.baseUrl}/chats/commercial/${commercialId}`;
+    let url = `${this.baseUrl}/commercials/${commercialId}/chats`;
     const params = new URLSearchParams();
     
     if (options?.cursor) params.append('cursor', options.cursor);

@@ -20,9 +20,9 @@ This document captures the **existing design system** as implemented in the code
 
 **Core principles:**
 - Neutral-first: the UI recedes; content speaks.
-- Carbon (`#1a1a1a`) is the accent color — not blue, not a brand color.
-- Dark sidebar + light content area is the primary layout pattern.
-- Supports full dark mode via `.theme-dark` body class + CSS custom properties.
+- Carbon (`#1a1a1a`) is the original accent color — not blue, not a brand color.
+- Dark sidebar + content area is the primary layout pattern.
+- Supports **8 named themes** (4 dark + 4 light) via `data-theme="<name>"` attribute on `<body>`. See §2.12.
 
 ---
 
@@ -189,18 +189,61 @@ AI message gradient: `linear-gradient(135deg, #eff6ff, #f3f3f1)` with `#bfdbfe` 
 #14b8a6 (teal)     #06b6d4 (cyan)      #0ea5e9 (sky)      #3b82f6 (blue)
 ```
 
-### 2.12 Dark Mode Overrides (`.theme-dark` on body)
+### 2.12 Multi-Theme System
 
-Surfaces become:
-- Primary: `#262626`, Secondary: `#363636`, Tertiary: `#525252`, Elevated: `#363636`
+The app supports **8 named themes** selectable by the user in `/settings/appearance`. Themes are applied via a `data-theme="<name>"` attribute on `<body>` by `ThemeService`. The value is persisted in `localStorage` under the key `guiders-sidebar-theme`.
 
-Text becomes:
-- Primary: `#f8f8f6`, Secondary: `#c4c4c4`, Tertiary: `#a8a39d`
+**Dark themes:**
 
-Accent inverts:
-- Accent: `#f8f8f6` (bone white), On-accent: `#1a1a1a` (carbon)
+| `data-theme` value | Label | Accent | Background | Inspiration |
+|---|---|---|---|---|
+| `grey-dark` *(default)* | Grey | `#a8a39d` | `#1c1917` | "Hormigón y Sombra" — original palette |
+| `carbon` | Carbon | `#ededed` | `#0a0a0a` | Vercel — deep blacks |
+| `midnight` | Midnight | `#58a6ff` | `#0d1117` | GitHub — navy blues |
+| `warm-dark` | Warm | `#9e8cfc` | `#16141d` | Linear — warm charcoals |
 
-Semantic colors in dark mode use `rgba` overlays at 20% opacity to avoid harsh blocks of color (e.g. `rgba(16, 185, 129, 0.2)` for success backgrounds).
+**Light themes:**
+
+| `data-theme` value | Label | Accent | Background | Inspiration |
+|---|---|---|---|---|
+| `clean-light` | Clean | `#374151` | `#ffffff` | Pure white & greys — zero chroma |
+| `daylight` | Daylight | `#1a6bcc` | `#f0f4f8` | Corporate blue |
+| `fresh-light` | Fresh | `#0f9d74` | `#f5f7f5` | Mint green |
+| `rose-quartz` | Rose | `#c2185b` | `#fdf6f7` | Mauve-pink |
+
+**Legacy aliases** (backwards compat, normalised on read):
+- `'dark'` → `'grey-dark'`
+- `'light'` → `'daylight'`
+
+**How CSS variables react to `data-theme`:**
+
+All semantic CSS variables (`--color-bg-primary`, `--color-text-primary`, `--color-accent`, etc.) are defined per theme in blocks like:
+
+```scss
+[data-theme='carbon'] {
+  --color-bg-primary: #0a0a0a;
+  --color-accent: #ededed;
+  // …
+}
+```
+
+The sidebar remains visually dark regardless of the active theme — it uses its own `$color-sidebar-dark-*` SCSS tokens, not the global CSS variables.
+
+**Service API** (`libs/shared/data-access/theme`):
+
+```typescript
+import { ThemeService, THEME_OPTIONS, SidebarTheme, NamedTheme } from '@guiders-frontend/shared/data-access/theme';
+
+// Read current theme
+const theme = themeService.theme(); // Signal<NamedTheme>
+
+// Apply a theme (cast string to SidebarTheme if coming from a template)
+themeService.setTheme('midnight');
+themeService.setTheme(themeId as SidebarTheme);
+
+// All available options (for a theme picker UI)
+THEME_OPTIONS.forEach(opt => opt.id, opt.label, opt.accent, opt.bg, opt.light);
+```
 
 ---
 
@@ -610,7 +653,7 @@ selectionChange = output<SelectOption | SelectOption[]>()
 **Selector:** `guiders-sidebar`
 **File:** `libs/shared/ui/sidebar/src/lib/sidebar/sidebar.ts`
 
-**Themes:** `dark` (default) | `light` — controlled via `ThemeService`
+**Themes:** The sidebar always renders in dark style regardless of the active app theme. It uses its own `$color-sidebar-dark-*` SCSS tokens (see §2.7), not the global `data-theme` CSS variables. The `SidebarConfig.theme` input (`'dark' | 'light'`) controls sidebar-internal styling only and is independent of `ThemeService`.
 **Width:** expanded `280px` | collapsed `64px`
 
 **Features:**
@@ -738,7 +781,7 @@ CSS custom properties are available globally via `:root` in `apps/console/src/st
 }
 ```
 
-Dark mode is handled automatically — the CSS custom properties update when `.theme-dark` is applied to `<body>`.
+Dark mode is handled automatically — the CSS custom properties update when `data-theme` is applied to `<body>` (see §2.12).
 
 ### BEM Naming Convention
 
@@ -799,16 +842,20 @@ body {
 |---|---|
 | `.sr-only` | Visually hidden but accessible to screen readers |
 | `.skip-link` | Skip navigation link for keyboard users |
-| `.theme-dark` | Applied to `<body>` to activate dark mode globally |
 
-### Snackbar / Toast classes (Angular Material override)
+> **Note:** `.theme-dark` no longer exists. Theming is handled exclusively via `data-theme="<name>"` on `<body>` — see §2.12.
 
-| Class | Color |
-|---|---|
-| `.snackbar-success` | `#22c55e` |
-| `.snackbar-error` | `#ef4444` |
-| `.snackbar-warning` | `#f59e0b` |
-| `.snackbar-info` | `#3b82f6` |
+### Toast / Snackbar (`guiders-toast-host`)
+
+The app uses a custom `ToastService` + `ToastHostComponent` from `@guiders-frontend/toast` (not Angular Material). Mount `<guiders-toast-host>` once in the layout component.
+
+```typescript
+import { ToastService } from '@guiders-frontend/toast';
+this.toast.success('Guardado');
+this.toast.error('Error al guardar');
+```
+
+Toasts auto-dismiss after 2 seconds. No Angular Material snackbar classes.
 
 ---
 
@@ -827,7 +874,7 @@ body {
 
 When creating a new component or screen:
 
-1. **Colors:** Use semantic tokens (`$color-text-primary`, not `#1a1a1a`) — they automatically work in dark mode.
+1. **Colors:** Use semantic tokens (`$color-text-primary`, not `#1a1a1a`) — they automatically work across all 8 themes via CSS variables.
 2. **Spacing:** Use scale tokens (`$spacing-md` = 16px) — never hardcode px values.
 3. **Typography:** Use `@include tokens.typography($preset)` — never set `font-size` + `font-weight` manually.
 4. **Borders:** Use `$border-radius-*` and `$color-border-*` tokens.

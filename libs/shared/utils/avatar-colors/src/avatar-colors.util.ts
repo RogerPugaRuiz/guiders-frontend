@@ -1,23 +1,22 @@
 /**
  * Paleta de colores para avatares de usuario.
- * Colores accesibles y agradables visualmente que cumplen con WCAG AA
- * para texto blanco sobre estos fondos.
+ * Colores muted/desaturados adaptados a temas dark — buen contraste para texto blanco.
  */
 const AVATAR_COLORS = [
-  '#E91E63', // Pink 500
-  '#9C27B0', // Purple 500
-  '#673AB7', // Deep Purple 500
-  '#3F51B5', // Indigo 500
-  '#2196F3', // Blue 500
-  '#03A9F4', // Light Blue 500
-  '#00BCD4', // Cyan 500
-  '#009688', // Teal 500
-  '#4CAF50', // Green 500
-  '#8BC34A', // Light Green 500
-  '#FF9800', // Orange 500
-  '#FF5722', // Deep Orange 500
-  '#795548', // Brown 500
-  '#607D8B', // Blue Grey 500
+  '#8c4a62', // Pink apagado
+  '#7c4fa0', // Purple apagado
+  '#5a3a8c', // Deep Purple apagado
+  '#2a4a80', // Indigo apagado
+  '#1e5070', // Blue apagado
+  '#1e6070', // Light Blue apagado
+  '#1e6070', // Cyan apagado
+  '#2a6462', // Teal apagado
+  '#2a6a3a', // Green apagado
+  '#4a6820', // Light Green apagado
+  '#8c5a2a', // Orange apagado
+  '#8c3a2a', // Deep Orange apagado
+  '#5a3a2a', // Brown apagado
+  '#3a4a52', // Blue Grey apagado
 ] as const;
 
 /**

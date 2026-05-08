@@ -196,8 +196,62 @@
         @if (activeSection() === 'appearance') {
           <div class="settings-section">
             <h3 class="section-title">Apariencia</h3>
-            <div class="empty-state">
-              <p class="empty-state-text">Esta funcionalidad estará disponible próximamente</p>
+
+            <!-- Theme selector -->
+            <div class="form-group">
+              <span class="form-label">Tema</span>
+
+              <p class="theme-section-label">Oscuros</p>
+              <div class="theme-grid">
+                @for (theme of darkThemes; track theme.id) {
+                  <button
+                    type="button"
+                    class="theme-card"
+                    [class.active]="themeService.theme() === theme.id"
+                    (click)="themeService.setTheme(theme.id)"
+                    [attr.aria-pressed]="themeService.theme() === theme.id"
+                    [attr.aria-label]="'Tema ' + theme.label">
+                    <div
+                      class="theme-swatch"
+                      [style.background-color]="theme.bg">
+                      <div
+                        class="theme-swatch-accent"
+                        [style.background-color]="theme.accent">
+                      </div>
+                    </div>
+                    <span class="theme-card-label">{{ theme.label }}</span>
+                    @if (themeService.theme() === theme.id) {
+                      <span class="theme-card-active-icon" aria-hidden="true">✓</span>
+                    }
+                  </button>
+                }
+              </div>
+
+              <p class="theme-section-label">Claros</p>
+              <div class="theme-grid">
+                @for (theme of lightThemes; track theme.id) {
+                  <button
+                    type="button"
+                    class="theme-card"
+                    [class.active]="themeService.theme() === theme.id"
+                    (click)="themeService.setTheme(theme.id)"
+                    [attr.aria-pressed]="themeService.theme() === theme.id"
+                    [attr.aria-label]="'Tema ' + theme.label">
+                    <div
+                      class="theme-swatch"
+                      [style.background-color]="theme.bg">
+                      <div
+                        class="theme-swatch-accent"
+                        [style.background-color]="theme.accent">
+                      </div>
+                    </div>
+                    <span class="theme-card-label">{{ theme.label }}</span>
+                    @if (themeService.theme() === theme.id) {
+                      <span class="theme-card-active-icon" aria-hidden="true">✓</span>
+                    }
+                  </button>
+                }
+              </div>
             </div>
           </div>
         }

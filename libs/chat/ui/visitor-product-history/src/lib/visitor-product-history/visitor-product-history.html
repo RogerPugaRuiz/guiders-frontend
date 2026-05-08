@@ -1,1 +1,21 @@
-<p>VisitorProductHistory works!</p>
+@if (loading()) {
+  <div class="product-history__skeleton" role="status" aria-label="Cargando historial de vehículos">
+    <guiders-skeleton-block height="80px" />
+    <guiders-skeleton-block height="80px" />
+    <guiders-skeleton-block height="80px" />
+  </div>
+} @else if (hasError()) {
+  <div class="product-history__error">
+    Error al cargar el historial de vehículos.
+  </div>
+} @else if (products().length === 0) {
+  <div class="product-history__empty">
+    Sin datos de tracking
+  </div>
+} @else {
+  <ul class="product-history__list">
+    @for (product of products(); track product.id) {
+      <li class="product-history__item">{{ product.name }}</li>
+    }
+  </ul>
+}

@@ -2,9 +2,11 @@
   #menuElement
   class="user-menu"
   [class.user-menu--compact]="compact()"
-  [class.user-menu--dark]="currentTheme() === 'dark'"
-  [class.user-menu--light]="currentTheme() === 'light'"
+  [class.user-menu--dark]="true"
+  [class.user-menu--light]="false"
   (click)="toggleDropdown()"
+  (keydown.enter)="toggleDropdown()"
+  (keydown.space)="toggleDropdown()"
   tabindex="0"
   role="button"
   aria-haspopup="true"
@@ -43,8 +45,8 @@
 @if (isDropdownOpen() && dropdownPosition()) {
 <div
   class="user-menu__dropdown-overlay"
-  [class.user-menu__dropdown-overlay--dark]="currentTheme() === 'dark'"
-  [class.user-menu__dropdown-overlay--light]="currentTheme() === 'light'"
+  [class.user-menu__dropdown-overlay--dark]="true"
+  [class.user-menu__dropdown-overlay--light]="false"
   (click)="closeDropdown()"
   (keydown.escape)="closeDropdown()"
   role="button"
@@ -53,8 +55,8 @@
 >
   <div
     class="user-menu__dropdown"
-    [class.user-menu__dropdown--dark]="currentTheme() === 'dark'"
-    [class.user-menu__dropdown--light]="currentTheme() === 'light'"
+    [class.user-menu__dropdown--dark]="true"
+    [class.user-menu__dropdown--light]="false"
     (click)="$event.stopPropagation()"
     (keydown)="$event.stopPropagation()"
     [style.bottom.px]="dropdownPosition()!.bottom"

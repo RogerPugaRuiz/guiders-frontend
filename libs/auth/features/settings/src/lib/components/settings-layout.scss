@@ -1,0 +1,147 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+  height: 100%;
+}
+
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+
+  &__inner {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: tokens.$spacing-xl tokens.$spacing-xl 0;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: tokens.$spacing-lg;
+    border-bottom: 1px solid var(--color-border-subtle);
+    margin-bottom: tokens.$spacing-xl;
+  }
+
+  &__title {
+    font-size: tokens.$font-size-2xl;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  &__close {
+    background: transparent;
+    border: 1px solid var(--color-border-subtle);
+    color: var(--color-text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: tokens.$border-radius-md;
+    cursor: pointer;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: tokens.$transition-fast;
+
+    &:hover {
+      background: var(--color-bg-hover);
+      color: var(--color-text-primary);
+    }
+  }
+
+  &__body {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: tokens.$spacing-2xl;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: tokens.$spacing-xl;
+  }
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-lg;
+  position: sticky;
+  top: tokens.$spacing-xl;
+  align-self: flex-start;
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: tokens.$spacing-xs;
+  }
+
+  &__group-label {
+    font-size: tokens.$font-size-xs;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-tertiary);
+    margin: 0 0 tokens.$spacing-xs tokens.$spacing-sm;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__item {
+    display: block;
+    padding: tokens.$spacing-sm tokens.$spacing-md;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-radius: tokens.$border-radius-sm;
+    font-size: tokens.$font-size-sm;
+    font-weight: 500;
+    border-left: 2px solid transparent;
+    transition: tokens.$transition-fast;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-bg-hover);
+      color: var(--color-text-primary);
+    }
+
+    &--active {
+      color: var(--color-text-primary);
+      background: var(--color-bg-hover);
+      border-left-color: var(--color-accent);
+    }
+  }
+}
+
+.settings-content {
+  max-width: 720px;
+  width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .settings-page__body {
+    grid-template-columns: 1fr;
+    gap: tokens.$spacing-lg;
+  }
+
+  .settings-nav {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: tokens.$spacing-md;
+  }
+}

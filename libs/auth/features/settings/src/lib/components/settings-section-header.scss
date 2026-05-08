@@ -1,0 +1,23 @@
+@use '../../../../../../shared/design-tokens/src/lib/tokens-vars' as tokens;
+
+:host {
+  display: block;
+  margin-bottom: tokens.$spacing-md;
+}
+
+.section-header {
+  &__title {
+    font-size: tokens.$font-size-xl;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin: 0 0 tokens.$spacing-xs 0;
+    letter-spacing: -0.01em;
+  }
+
+  &__description {
+    font-size: tokens.$font-size-sm;
+    color: var(--color-text-secondary);
+    margin: 0;
+    line-height: 1.5;
+  }
+}

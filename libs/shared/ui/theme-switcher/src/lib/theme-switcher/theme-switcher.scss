@@ -1,0 +1,153 @@
+@use '@guiders-frontend/shared/design-tokens' as tokens;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ThemeSwitcher component styles
+// Uses CSS custom properties from [data-theme] blocks so it visually adapts
+// to the currently selected theme.
+// ─────────────────────────────────────────────────────────────────────────────
+
+.theme-switcher {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: tokens.$spacing-2;
+
+  // ── Swatch bar ──────────────────────────────────────────────────────────
+  &__swatches {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-1-5;
+    padding: tokens.$spacing-1;
+    border-radius: tokens.$border-radius-full;
+    background: var(--color-bg-tertiary, #{tokens.$neutral-800});
+    border: 1px solid var(--color-border-subtle, #{tokens.$neutral-700});
+  }
+
+  &__swatch {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: tokens.$border-radius-full;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: transform tokens.$duration-fast tokens.$easing-standard;
+
+    &:hover {
+      transform: scale(1.15);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-border-focus, #{tokens.$neutral-300});
+      outline-offset: 2px;
+    }
+  }
+
+  &__swatch-dot {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: tokens.$border-radius-full;
+    background: var(--swatch-color, #{tokens.$neutral-500});
+    transition: width tokens.$duration-fast tokens.$easing-standard,
+      height tokens.$duration-fast tokens.$easing-standard;
+
+    .theme-switcher__swatch--active & {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  &__active-ring {
+    position: absolute;
+    inset: -1px;
+    border-radius: tokens.$border-radius-full;
+    border: 2px solid var(--swatch-color, #{tokens.$neutral-500});
+    pointer-events: none;
+  }
+
+  // ── Expanded dropdown ───────────────────────────────────────────────────
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + tokens.$spacing-2);
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: tokens.$spacing-1;
+    background: var(--color-bg-elevated, #{tokens.$neutral-800});
+    border: 1px solid var(--color-border-default, #{tokens.$neutral-700});
+    border-radius: tokens.$border-radius-lg;
+    box-shadow: var(
+      --shadow-lg,
+      0 10px 15px -3px rgba(0, 0, 0, 0.5)
+    );
+    z-index: tokens.$z-index-dropdown;
+    animation: slide-down tokens.$duration-normal tokens.$easing-entrance;
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: tokens.$spacing-2;
+    width: 100%;
+    padding: tokens.$spacing-2 tokens.$spacing-3;
+    border: none;
+    border-radius: tokens.$border-radius-base;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: background tokens.$duration-fast tokens.$easing-standard;
+    color: var(--color-text-secondary, #{tokens.$neutral-300});
+
+    &:hover {
+      background: var(--color-bg-hover, #{rgba(tokens.$neutral-50, 0.06)});
+    }
+
+    &--active {
+      background: var(--color-bg-selected, #{rgba(tokens.$neutral-50, 0.1)});
+      color: var(--color-text-primary, #{tokens.$neutral-50});
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-border-focus, #{tokens.$neutral-300});
+      outline-offset: -2px;
+    }
+  }
+
+  &__option-dot {
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: tokens.$border-radius-full;
+  }
+
+  &__option-label {
+    flex: 1;
+    font-family: tokens.$font-family-sans;
+    font-size: tokens.$font-size-sm;
+    font-weight: tokens.$font-weight-medium;
+    line-height: tokens.$line-height-tight;
+    color: inherit;
+  }
+
+  &__option-desc {
+    font-family: tokens.$font-family-sans;
+    font-size: tokens.$font-size-xs;
+    color: var(--color-text-muted, #{tokens.$neutral-500});
+    white-space: nowrap;
+  }
+
+  &__check {
+    flex-shrink: 0;
+    font-size: tokens.$font-size-xs;
+    color: var(--color-accent, #{tokens.$neutral-50});
+  }
+}
