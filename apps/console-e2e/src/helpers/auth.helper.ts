@@ -1,10 +1,5 @@
 import { Page } from '@playwright/test';
 
-/**
- * Mock de token JWT para pruebas E2E
- * Este es un token ficticio que la aplicación aceptará en modo de pruebas
- */
-const MOCK_ACCESS_TOKEN = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IlRlc3QgVXNlciIsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsImlhdCI6MTUxNjIzOTAyMiwiZXhwIjo5OTk5OTk5OTk5fQ.mock';
 
 /**
  * Datos de usuario mock para las pruebas
@@ -17,47 +12,19 @@ const MOCK_USER = {
   tenantId: 'test-tenant-123',
 };
 
-/**
- * Datos mock de visitantes para las pruebas
- */
-const MOCK_VISITORS_RESPONSE = {
-  visitors: [
-    {
-      id: 'visitor-1',
-      name: 'Test Visitor 1',
-      email: 'visitor1@example.com',
-      status: 'online',
-      lifecycle: 'VISITOR',
-      hasActiveChat: false,
-      lastVisit: new Date().toISOString(),
-      currentPage: '/home',
-      device: 'desktop',
-      browser: 'chrome',
-      country: 'ES'
-    },
-    {
-      id: 'visitor-2',
-      name: 'Test Visitor 2',
-      email: 'visitor2@example.com',
-      status: 'online',
-      lifecycle: 'LEAD',
-      hasActiveChat: true,
-      lastVisit: new Date().toISOString(),
-      currentPage: '/products',
-      device: 'mobile',
-      browser: 'safari',
-      country: 'MX'
-    }
-  ],
-  total: 2,
-  hasMore: false
-};
 
 /**
- * Configura autenticación mockeada para las pruebas E2E
- * Establece tokens y datos de usuario en localStorage
+ * Sets up mocked authentication for E2E tests.
+ * Mocks all endpoints that APP_INITIALIZER needs:
+ *   - /bff/auth/me
+ *   - /bff/auth/refresh
+ *   - /bff/auth/login
+ *   - POST /v2/commercials/connect
+ *   - GET  /v2/commercials/:id/chats
+ *   - GET  /v2/csrf
+ *   - socket.io aborted to prevent hangs
  *
- * @param page - Instancia de Page de Playwright
+ * @param page - Playwright Page instance
  */
 export async function setupAuthMock(page: Page): Promise<void> {
   // IMPORTANTE: Bloquear redirecciones y mockear endpoints de autenticación
@@ -67,6 +34,12 @@ export async function setupAuthMock(page: Page): Promise<void> {
     // Bloquear cualquier redirección a Keycloak
     if (url.includes('keycloak') || url.includes('/realms/') || url.includes('/auth/realms/')) {
       console.log('[AUTH MOCK] Bloqueando redirección a Keycloak:', url);
+      route.abort();
+      return;
+    }
+
+    // Bloquear peticiones WebSocket / socket.io para evitar cuelgues
+    if (url.includes('/socket.io') || url.includes('socket.io')) {
       route.abort();
       return;
     }
@@ -113,6 +86,47 @@ export async function setupAuthMock(page: Page): Promise<void> {
         status: 200,
         contentType: 'text/html',
         body: `<html><head><meta http-equiv="refresh" content="0;url=${redirect}"></head><body></body></html>`,
+      });
+      return;
+    }
+
+    // Mockear POST /v2/commercials/connect - necesario para APP_INITIALIZER
+    if (url.includes('/v2/commercials/connect') && route.request().method() === 'POST') {
+      console.log('[AUTH MOCK] Interceptando POST /v2/commercials/connect');
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: MOCK_USER.id,
+            name: MOCK_USER.name,
+            email: MOCK_USER.email,
+            status: 'online',
+            companyId: MOCK_USER.companyId,
+          }
+        })
+      });
+      return;
+    }
+
+    // Mockear GET /v2/commercials/:id/chats - necesario para APP_INITIALIZER
+    if (url.match(/\/v2\/commercials\/[^/]+\/chats/) && route.request().method() === 'GET') {
+      console.log('[AUTH MOCK] Interceptando GET /v2/commercials/.../chats');
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ data: [], total: 0, hasMore: false })
+      });
+      return;
+    }
+
+    // Mockear GET /v2/csrf - necesario para algunas llamadas HTTP
+    if (url.includes('/v2/csrf')) {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ token: 'mock-csrf-token' })
       });
       return;
     }

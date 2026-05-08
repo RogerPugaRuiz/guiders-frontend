@@ -1437,7 +1437,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       status,
       connectionStatus: result.connectionStatus,
       currentUrl: result.currentUrl,
-      domain: '', // No disponible en la respuesta
+      // name, email and domain are NOT returned by the visitor search endpoint.
+      // They must be enriched from a separate contact/profile endpoint when needed.
+      name: result.name,
+      email: result.email,
+      domain: result.domain ?? '',
       siteId: result.siteId,
       companyId: result.tenantId,
       ipAddress: result.lastIpAddress,

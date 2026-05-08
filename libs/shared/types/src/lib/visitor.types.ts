@@ -354,6 +354,11 @@ export interface VisitorSearchResult {
   lastUserAgent?: string; // Último user agent del visitante
   isMe?: boolean; // Indica si este visitante es el propio usuario
   isInternal?: boolean; // Indica si este visitante es un usuario interno (empleado, admin, etc.)
+  // Contact enrichment fields — only present when the backend enriches from contact profile.
+  // Not guaranteed by the search endpoint; treat as optional.
+  name?: string;
+  email?: string;
+  domain?: string;
 }
 
 // Paginación de búsqueda

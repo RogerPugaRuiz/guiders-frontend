@@ -149,6 +149,16 @@ This story does NOT need to add new boundary rules — the existing rules alread
 - Existing pattern: `libs/chat/ui/visitor-detail-panel/project.json`
 - Nx generator defaults: `nx.json` `generators["@nx/angular:library"]`
 
+## Review Findings
+
+- [ ] [Review][Patch] prefix "guiders" en libs data-access sin efecto — eliminar campo prefix de project.json de visitor-products-service y leadcars-status-service [libs/chat/data-access/visitor-products-service/project.json, libs/admin/data-access/leadcars-status-service/project.json]
+- [x] [Review][Defer] Path alias scoped vs alias cortos existentes — inconsistencia de convención; cambio consciente documentado en Dev Notes [tsconfig.base.json] — deferred, pre-existing
+- [x] [Review][Defer] Missing build target en project.json — patrón pre-existente en todas las libs del workspace — deferred, pre-existing
+- [x] [Review][Defer] reportsDirectory path relativo — copiado del patrón de visitors-data-service; cambio global diferido — deferred, pre-existing
+- [x] [Review][Defer] heat-index-badge scope:chat vs potencial shared — decisión de scope pendiente de implementación — deferred, pre-existing
+- [x] [Review][Defer] outputs de test incompleto para caché Nx — pre-existing en todas las libs — deferred, pre-existing
+- [x] [Review][Defer] lintFilePatterns ausente en target lint — pre-existing en workspace — deferred, pre-existing
+
 ## Dev Agent Record
 
 ### Agent Model Used
