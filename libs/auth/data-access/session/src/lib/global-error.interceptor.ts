@@ -1,9 +1,9 @@
 import { inject } from '@angular/core';
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { EMPTY, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { SessionService } from './session.service';
+import { ENVIRONMENT_TOKEN } from './environment.token';
 
 /**
  * Guard to prevent duplicate 401 redirects when multiple concurrent requests
@@ -16,7 +16,7 @@ let redirectingToLogin = false;
  *
  * Handles:
  * - 401 Unauthorized (after authRefreshInterceptor has already tried token refresh):
- *   clears the user session and redirects to /login.
+ *   clears the user session and redirects to the BFF login endpoint.
  * - 500 Internal Server Error, 503 Service Unavailable, 0 (network error):
  *   logs to console and rethrows so individual components can show their own error state.
  * - All other errors: passes through unchanged.
@@ -28,7 +28,7 @@ let redirectingToLogin = false;
  */
 export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const sessionService = inject(SessionService);
-  const router = inject(Router);
+  const environment = inject(ENVIRONMENT_TOKEN);
 
   return next(req).pipe(
     catchError((error: unknown) => {
@@ -39,13 +39,11 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401) {
         if (!redirectingToLogin) {
           redirectingToLogin = true;
-          console.warn('[GlobalErrorInterceptor] Unrecoverable 401 — clearing session and redirecting to /login', req.url);
+          console.warn('[GlobalErrorInterceptor] Unrecoverable 401 — clearing session and redirecting to BFF login', req.url);
           sessionService.clearCache();
-          router.navigate(['/login']).catch((navErr) =>
-            console.error('[GlobalErrorInterceptor] Failed to redirect to /login', navErr)
-          ).finally(() => {
-            redirectingToLogin = false;
-          });
+          const ret = encodeURIComponent(window.location.pathname);
+          location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
+          setTimeout(() => { redirectingToLogin = false; }, 5000);
         }
         return EMPTY;
       }
