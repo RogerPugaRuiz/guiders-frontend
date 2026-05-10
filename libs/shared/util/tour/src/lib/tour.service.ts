@@ -5,10 +5,21 @@ import { filter, firstValueFrom } from 'rxjs';
 import { TourId, TourStepConfig } from './tour-step.interface';
 import { consoleTour } from './tours/console.tour';
 import { adminTour } from './tours/admin.tour';
+import { TOUR_LIFECYCLE_HOOKS, TourLifecycleHook } from './tour-lifecycle-hook';
 
 @Injectable({ providedIn: 'root' })
 export class TourService {
   private readonly router = inject(Router);
+  /**
+   * Lifecycle hooks contributed by other domains (e.g. chat sandbox setup).
+   * Optional — empty array when no domain has registered a hook.
+   * Decoupled via {@link TOUR_LIFECYCLE_HOOKS} multi-provider to keep
+   * `scope:shared` free of `scope:chat` imports.
+   */
+  private readonly lifecycleHooks = inject<TourLifecycleHook[]>(
+    TOUR_LIFECYCLE_HOOKS,
+    { optional: true }
+  ) ?? [];
   private _isRunning = false;
   /**
    * In-memory record of which (tourId, userId) pairs have already been started
@@ -66,6 +77,10 @@ export class TourService {
   private async _launchTour(tourId: TourId, userId: string): Promise<void> {
     this._isRunning = true;
     this._startedPairs.add(this.pairKey(tourId, userId));
+
+    // Notify lifecycle hooks (e.g. seed sandbox demo data). Failures must
+    // not abort the tour — log and continue.
+    await this.runHooks('start', tourId, userId);
 
     const steps = this.resolveSteps(tourId);
 
@@ -189,6 +204,8 @@ export class TourService {
         cleanupActiveListener();
         this._isRunning = false;
         this.markCompleted(tourId, userId);
+        // Fire-and-forget teardown of sandbox/demo data
+        void this.runHooks('end', tourId, userId);
       },
       steps: this.buildDriveSteps(steps),
     });
@@ -216,5 +233,26 @@ export class TourService {
         align: step.popover.align,
       },
     }));
+  }
+
+  private async runHooks(
+    phase: 'start' | 'end',
+    tourId: TourId,
+    userId: string
+  ): Promise<void> {
+    if (!this.lifecycleHooks.length) return;
+    await Promise.all(
+      this.lifecycleHooks.map(async (hook) => {
+        try {
+          if (phase === 'start') {
+            await hook.onTourStart(tourId, userId);
+          } else {
+            await hook.onTourEnd(tourId, userId);
+          }
+        } catch (err) {
+          console.error(`[TourService] lifecycle hook ${phase} failed`, err);
+        }
+      })
+    );
   }
 }

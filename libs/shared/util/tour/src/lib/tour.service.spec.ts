@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { TourService } from './tour.service';
 import { TourId } from './tour-step.interface';
+import { TOUR_LIFECYCLE_HOOKS, TourLifecycleHook } from './tour-lifecycle-hook';
 
 // Mock driver.js to avoid DOM dependencies in unit tests
 vi.mock('driver.js', () => ({
@@ -462,5 +463,107 @@ describe('TourService', () => {
       await service.startTour(consoleTourId, mockUserId);
       expect(service.hasStartedFor(adminTourId, mockUserId)).toBe(false);
     });
+  });
+});
+
+describe('TourService — lifecycle hooks', () => {
+  let router: Router;
+
+  const mockUserId = 'user-789';
+  const consoleTourId: TourId = 'console';
+
+  function setupTestBedWithHooks(hooks: TourLifecycleHook[]): TourService {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [
+        TourService,
+        ...hooks.map((hook) => ({
+          provide: TOUR_LIFECYCLE_HOOKS,
+          useValue: hook,
+          multi: true,
+        })),
+      ],
+    });
+    const svc = TestBed.inject(TourService);
+    router = TestBed.inject(Router);
+    mockRouterNavigation(router);
+    return svc;
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('should invoke onTourStart for every registered hook with tourId and userId', async () => {
+    const hookA: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+    };
+    const hookB: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+    };
+
+    const service = setupTestBedWithHooks([hookA, hookB]);
+    await service.startTour(consoleTourId, mockUserId);
+
+    expect(hookA.onTourStart).toHaveBeenCalledWith(consoleTourId, mockUserId);
+    expect(hookB.onTourStart).toHaveBeenCalledWith(consoleTourId, mockUserId);
+  });
+
+  it('should invoke onTourEnd for every registered hook when driver is destroyed', async () => {
+    const hook: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+    };
+
+    const { driver } = await import('driver.js');
+    let destroyCallback: (() => void) | undefined;
+
+    (driver as ReturnType<typeof vi.fn>).mockImplementation(
+      (config: { onDestroyed?: () => void }) => {
+        destroyCallback = config.onDestroyed;
+        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
+      }
+    );
+
+    const service = setupTestBedWithHooks([hook]);
+    await service.startTour(consoleTourId, mockUserId);
+    destroyCallback?.();
+
+    await Promise.resolve();
+    expect(hook.onTourEnd).toHaveBeenCalledWith(consoleTourId, mockUserId);
+  });
+
+  it('should still complete the tour even if a hook throws on onTourStart', async () => {
+    const failingHook: TourLifecycleHook = {
+      onTourStart: vi.fn(() => {
+        throw new Error('boom');
+      }),
+      onTourEnd: vi.fn(),
+    };
+
+    const service = setupTestBedWithHooks([failingHook]);
+    await expect(service.startTour(consoleTourId, mockUserId)).resolves.toBeUndefined();
+    expect(service.hasStartedFor(consoleTourId, mockUserId)).toBe(true);
+  });
+
+  it('should not throw when no hooks are registered', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule.withRoutes([])],
+      providers: [TourService],
+    });
+    const service = TestBed.inject(TourService);
+    router = TestBed.inject(Router);
+    mockRouterNavigation(router);
+
+    await expect(service.startTour(consoleTourId, mockUserId)).resolves.toBeUndefined();
   });
 });
