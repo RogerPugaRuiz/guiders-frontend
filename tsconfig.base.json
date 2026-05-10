@@ -224,6 +224,9 @@
       "@guiders-frontend/visitor-detail-panel": [
         "libs/chat/ui/visitor-detail-panel/src/index.ts"
       ],
+      "@guiders-frontend/shared/util/tour": [
+        "libs/shared/util/tour/src/index.ts"
+      ],
       "@guiders-frontend/visitor-display-name": [
         "libs/shared/util/visitor-display-name/src/index.ts"
       ],

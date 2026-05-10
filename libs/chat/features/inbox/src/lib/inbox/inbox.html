@@ -4,7 +4,7 @@
   [class.inbox--panel-open]="showVisitorPanel()"
 >
   <!-- Panel izquierdo: Sidebar completo -->
-  <div class="inbox__sidebar">
+  <div class="inbox__sidebar" data-tour="inbox-sidebar">
     <guiders-inbox-sidebar
       [conversations]="conversations()"
       [selectedConversationId]="selectedConversationId()"
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Panel central: Chat activo -->
-  <div class="inbox__main">
+  <div class="inbox__main" data-tour="inbox-main">
     @if (selectedConversationId() && selectedChat()) {
     <guiders-chat-placeholder
       [selectedChat]="selectedChat()!"

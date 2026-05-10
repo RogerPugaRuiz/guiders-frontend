@@ -1,0 +1,187 @@
+// Driver.js Tour Styles — Console App
+// Estilo: Moderno minimalista (Linear/Notion-like)
+// Uses design tokens via CSS custom properties already defined in styles.scss
+
+.driver-overlay {
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.driver-popover {
+  background: var(--color-surface-elevated, #ffffff);
+  border-radius: var(--border-radius-xl, 16px);
+  box-shadow:
+    0 20px 25px -5px rgba(15, 23, 42, 0.12),
+    0 10px 10px -5px rgba(15, 23, 42, 0.06),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  font-family: var(--font-family-sans, 'Inter', system-ui, sans-serif);
+  font-size: var(--font-size-base, 13px);
+  color: var(--color-text-primary, #0a0a0a);
+  padding: 20px 22px;
+  min-width: 300px;
+  max-width: 400px;
+  border: none;
+}
+
+.driver-popover-title {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary, #0a0a0a);
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+  // Ensure close btn is positioned relative to the popover, not the title
+  position: static;
+  padding-right: 28px; // reserve space so title text doesn't overlap the X
+}
+
+.driver-popover-description {
+  font-size: 13.5px;
+  color: var(--color-text-secondary, #6b7280);
+  line-height: 1.55;
+  margin: 0 0 18px 0;
+}
+
+.driver-popover-progress-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-tertiary, #9ca3af);
+  letter-spacing: 0.02em;
+}
+
+.driver-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  gap: 8px;
+}
+
+.driver-popover-navigation-btns {
+  display: flex;
+  gap: 6px;
+}
+
+// Hide native close button — replaced by custom .guiders-tour-close in TourService
+.driver-popover-close-btn {
+  display: none !important;
+}
+
+// Custom close button injected via onPopoverRender
+.guiders-tour-close {
+  all: unset;
+  box-sizing: border-box;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--color-text-tertiary, #9ca3af);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: var(--color-surface-secondary, #f3f4f6);
+    color: var(--color-text-primary, #0a0a0a);
+  }
+}
+
+// Progress bar injected above footer via onPopoverRender
+.guiders-tour-progress {
+  width: calc(100% + 44px); // bleed over the popover padding (22px each side)
+  margin-left: -22px;
+  height: 3px;
+  background: var(--color-border-default, #e5e7eb);
+  margin-bottom: 14px;
+  overflow: hidden;
+
+  &__fill {
+    height: 100%;
+    background: var(--color-accent, #0a0a0a);
+    border-radius: 0 2px 2px 0;
+    transition: width 0.3s ease;
+  }
+}
+
+.driver-popover-prev-btn,
+.driver-popover-next-btn {
+  all: unset;
+  font-family: var(--font-family-sans, 'Inter', system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+  text-align: center;
+  line-height: 1.3;
+  box-sizing: border-box;
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.driver-popover-prev-btn {
+  background: transparent;
+  color: var(--color-text-secondary, #6b7280);
+  border: 1px solid var(--color-border-light, #e5e7eb);
+
+  &:hover:not(.driver-popover-btn-disabled) {
+    background: var(--color-surface-secondary, #f3f4f6);
+    color: var(--color-text-primary, #0a0a0a);
+  }
+}
+
+.driver-popover-next-btn {
+  background: var(--color-accent, #0a0a0a);
+  color: #ffffff;
+  border: 1px solid transparent;
+
+  &:hover:not(.driver-popover-btn-disabled) {
+    background: var(--color-accent-hover, #1f2937);
+  }
+}
+
+.driver-popover-btn-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+// === Flecha sólida grande (10px) ===
+// Driver.js coloca la flecha con border de un solo lado coloreado.
+// Sobreescribimos los 4 lados con el color del popover.
+.driver-popover-arrow {
+  border-width: 10px;
+}
+
+.driver-popover-arrow-side-left {
+  border-left-color: var(--color-surface-elevated, #ffffff);
+}
+
+.driver-popover-arrow-side-right {
+  border-right-color: var(--color-surface-elevated, #ffffff);
+}
+
+.driver-popover-arrow-side-top {
+  border-top-color: var(--color-surface-elevated, #ffffff);
+}
+
+.driver-popover-arrow-side-bottom {
+  border-bottom-color: var(--color-surface-elevated, #ffffff);
+}
+
+// Reajustar offsets de alineación para la flecha más grande
+.driver-popover-arrow-side-left.driver-popover-arrow-align-center,
+.driver-popover-arrow-side-right.driver-popover-arrow-align-center {
+  margin-top: -10px;
+}
+
+.driver-popover-arrow-side-top.driver-popover-arrow-align-center,
+.driver-popover-arrow-side-bottom.driver-popover-arrow-align-center {
+  margin-left: -10px;
+}

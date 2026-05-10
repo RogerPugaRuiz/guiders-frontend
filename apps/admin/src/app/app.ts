@@ -1,4 +1,4 @@
-import { Component, signal, inject, computed } from '@angular/core';
+import { Component, signal, inject, computed, effect } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { Sidebar, SidebarItem, SidebarConfig } from '@guiders-frontend/sidebar';
 import {
@@ -6,6 +6,7 @@ import {
   ENVIRONMENT_TOKEN,
 } from '@guiders-frontend/auth/data-access/session';
 import { RedirectConfirm } from '@guiders-frontend/redirect-confirm';
+import { TourService } from '@guiders-frontend/shared/util/tour';
 
 @Component({
   imports: [RouterModule, Sidebar, RedirectConfirm],
@@ -17,10 +18,30 @@ export class App {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
+  private readonly tourService = inject(TourService);
 
   protected title = 'admin';
 
   readonly currentUser = this.userService.currentUser;
+
+  private _tourStartedForUser: string | null = null;
+
+  constructor() {
+    // Auto-start tour on first login.
+    // The TourService itself tracks which (tourId, userId) pairs have already
+    // been started in this session, so re-emissions of currentUser (e.g. due
+    // to authGuard re-calling ensureSession$ on every navigation) are harmless.
+    effect(() => {
+      const user = this.currentUser();
+      if (!user?.sub) return;
+      if (this.tourService.isRunning) return;
+      if (this.tourService.hasStartedFor('admin', user.sub)) return;
+      if (this.tourService.isCompleted('admin', user.sub)) return;
+
+      this._tourStartedForUser = user.sub;
+      this.tourService.startTour('admin', user.sub);
+    });
+  }
 
   // App Switcher - solo visible para admins
   readonly isAdmin = computed(
@@ -105,6 +126,15 @@ export class App {
 
   onSidebarItemClick(item: SidebarItem): void {
     console.log('Admin sidebar item clicked:', item);
+  }
+
+  onRestartTour(): void {
+    const user = this.currentUser();
+    if (user?.sub) {
+      this._tourStartedForUser = null;
+      this.tourService.resetTour('admin', user.sub);
+      this.tourService.startTour('admin', user.sub);
+    }
   }
 
   onSidebarToggle(collapsed: boolean): void {

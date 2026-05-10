@@ -191,8 +191,34 @@
     color: var(--color-text-primary);
     cursor: pointer;
 
+    // Hide native radio — replaced by custom ::before circle
     input {
-      accent-color: var(--color-accent);
+      display: none;
+    }
+
+    // Custom radio circle
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 15px;
+      height: 15px;
+      min-width: 15px;
+      border-radius: 50%;
+      border: 1.5px solid var(--color-border-strong);
+      background: transparent;
+      transition: border-color tokens.$duration-fast tokens.$easing-standard,
+        background tokens.$duration-fast tokens.$easing-standard,
+        box-shadow tokens.$duration-fast tokens.$easing-standard;
+    }
+
+    &:has(input:checked)::before {
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      box-shadow: inset 0 0 0 3px var(--color-surface-elevated, var(--color-surface-primary));
+    }
+
+    &:hover::before {
+      border-color: var(--color-accent);
     }
   }
 

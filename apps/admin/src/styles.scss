@@ -3,6 +3,12 @@
 // Design Tokens - única fuente de verdad para estilos
 @use '../../../libs/shared/design-tokens/src/lib/tokens-vars.scss' as tokens;
 
+// Driver.js base styles (provides position:fixed, z-index, etc.)
+@use 'driver.js/dist/driver.css';
+
+// Driver.js Tour Styles (must be before @import rules)
+@use './tour';
+
 // Angular Material prebuilt theme
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
 

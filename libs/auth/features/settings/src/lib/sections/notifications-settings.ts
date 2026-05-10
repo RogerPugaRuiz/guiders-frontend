@@ -8,6 +8,7 @@ import { SettingsSectionHeaderComponent } from '../components/settings-section-h
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <lib-settings-section-header
+      data-tour="settings-notifications"
       title="Notificaciones"
       description="Próximamente: gestiona cómo recibes alertas">
     </lib-settings-section-header>

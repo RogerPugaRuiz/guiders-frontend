@@ -5,7 +5,7 @@
   [attr.aria-expanded]="!isCollapsed()"
 >
   <!-- Header with logo and toggle -->
-  <header class="sidebar__header">
+  <header class="sidebar__header" data-tour="sidebar-header">
     @if (!isCollapsed()) {
     <div class="sidebar__logo">
       @if (logoUrl()) {
@@ -414,7 +414,88 @@
     }
 
     @if (appVersion() && !isCollapsed()) {
-    <div class="sidebar__version">v{{ appVersion() }}</div>
+    <div class="sidebar__version-row">
+      @if (showTourButton()) {
+      <div class="sidebar__help-anchor">
+        <button
+          #helpBtn
+          type="button"
+          class="sidebar__help-icon-btn"
+          [class.sidebar__help-icon-btn--open]="isHelpOpen()"
+          (click)="toggleHelpMenu()"
+          aria-label="Ayuda"
+          title="Ayuda"
+          [attr.aria-expanded]="isHelpOpen()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+        </button>
+
+        @if (isHelpOpen()) {
+        <div class="sidebar__help-overlay" role="button" tabindex="-1" aria-label="Cerrar menú de ayuda" (click)="closeHelpMenu()"></div>
+
+        <div class="sidebar__help-dropdown" role="menu" aria-label="Ayuda"
+          [style.bottom.px]="helpDropdownPos()?.bottom"
+          [style.left.px]="helpDropdownPos()?.left"
+        >
+          <div class="sidebar__help-header">
+            <span class="sidebar__help-header-title">Ayuda</span>
+            <span class="sidebar__help-header-sub">¿En qué podemos ayudarte?</span>
+          </div>
+          <div class="sidebar__help-divider"></div>
+
+          <!-- Tour de la app -->
+          <button type="button" class="sidebar__help-item" role="menuitem"
+            (click)="onUserStartTour('console'); closeHelpMenu()">
+            <span class="sidebar__help-item-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </span>
+            <span class="sidebar__help-item-body">
+              <span class="sidebar__help-item-label">Tour de la app</span>
+              <span class="sidebar__help-item-desc">Recorre todas las secciones paso a paso</span>
+            </span>
+          </button>
+
+          <div class="sidebar__help-divider"></div>
+
+          <button type="button" class="sidebar__help-item sidebar__help-item--soon" role="menuitem" disabled>
+            <span class="sidebar__help-item-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </span>
+            <span class="sidebar__help-item-body">
+              <span class="sidebar__help-item-label">Documentación <span class="sidebar__help-badge">Pronto</span></span>
+              <span class="sidebar__help-item-desc">Guías y referencias técnicas</span>
+            </span>
+          </button>
+
+          <button type="button" class="sidebar__help-item sidebar__help-item--soon" role="menuitem" disabled>
+            <span class="sidebar__help-item-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <span class="sidebar__help-item-body">
+              <span class="sidebar__help-item-label">Soporte <span class="sidebar__help-badge">Pronto</span></span>
+              <span class="sidebar__help-item-desc">Contacta con nuestro equipo</span>
+            </span>
+          </button>
+
+          <button type="button" class="sidebar__help-item sidebar__help-item--soon" role="menuitem" disabled>
+            <span class="sidebar__help-item-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </span>
+            <span class="sidebar__help-item-body">
+              <span class="sidebar__help-item-label">Novedades <span class="sidebar__help-badge">Pronto</span></span>
+              <span class="sidebar__help-item-desc">Últimas funcionalidades y mejoras</span>
+            </span>
+          </button>
+        </div>
+        }
+      </div>
+      }
+      <span class="sidebar__version-text">v{{ appVersion() }}</span>
+    </div>
     }
   </footer>
 </aside>

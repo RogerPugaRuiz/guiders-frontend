@@ -40,7 +40,7 @@
 
     <!-- Escalations list -->
     @else {
-      <div class="escalations-list">
+      <div class="escalations-list" data-tour="escalations-list">
         @for (escalation of escalations(); track escalation.chatId) {
           <article class="escalation-card">
             <!-- Icon + Header -->

@@ -1,5 +1,6 @@
 <div class="admin-app">
   <guiders-sidebar
+    data-tour="sidebar-nav"
     [items]="sidebarItems()"
     [config]="sidebarConfig()"
     [userEmail]="currentUser()?.email ?? null"
@@ -7,10 +8,12 @@
     [showAppSwitcher]="isAdmin()"
     [appSwitcherLabel]="'Ir a Console'"
     [appSwitcherUrl]="consoleUrl"
+    [showTourButton]="true"
     (itemClick)="onSidebarItemClick($event)"
     (toggleSidebar)="onSidebarToggle($event)"
     (userLogout)="onLogout()"
-    (userConfigureAccount)="onConfigureAccount()">
+    (userConfigureAccount)="onConfigureAccount()"
+    (userStartTour)="onRestartTour()">
   </guiders-sidebar>
 
   <div class="admin-main">
