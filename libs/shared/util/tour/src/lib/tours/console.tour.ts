@@ -6,11 +6,23 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="sidebar-header"]',
     route: '/inbox',
     popover: {
-      title: 'Navegación principal',
+      title: 'Bienvenido a Guiders',
       description:
-        'Desde aquí accedes a todas las secciones de la plataforma. El menú se puede colapsar para ganar espacio.',
+        'Esta es tu consola de trabajo. Desde aquí gestionas todas las conversaciones con tus clientes en tiempo real.',
       side: 'right',
       align: 'start',
+    },
+  },
+  // --- Status (first critical action) ---
+  {
+    element: '[data-tour="status-trigger"]',
+    route: '/inbox',
+    popover: {
+      title: 'Activa tu disponibilidad primero',
+      description:
+        'Importante: mientras estés en modo "Ausente" no recibirás nuevos chats. Ponlo en "Disponible" para empezar a atender.',
+      side: 'right',
+      align: 'end',
     },
   },
   // --- Inbox ---
@@ -18,9 +30,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="inbox-sidebar"]',
     route: '/inbox',
     popover: {
-      title: 'Bandeja de entrada',
+      title: 'Aquí llegan tus chats en vivo',
       description:
-        'Aquí verás todas las conversaciones activas en tiempo real. Las nuevas aparecen automáticamente.',
+        'Cada nueva conversación aparece aquí al instante. Las no leídas se marcan en negrita.',
       side: 'right',
       align: 'start',
     },
@@ -29,22 +41,11 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="inbox-main"]',
     route: '/inbox',
     popover: {
-      title: 'Panel de conversación',
+      title: 'Lee y responde en este panel',
       description:
-        'Selecciona una conversación para leer y responder mensajes directamente.',
+        'Haz clic en cualquier conversación para abrirla y escribir tu respuesta.',
       side: 'left',
       align: 'start',
-    },
-  },
-  {
-    element: '[data-tour="status-trigger"]',
-    route: '/inbox',
-    popover: {
-      title: 'Tu estado de disponibilidad',
-      description:
-        'Cambia aquí si estás disponible para recibir nuevas conversaciones.',
-      side: 'right',
-      align: 'end',
     },
   },
   // --- Visitors ---
@@ -52,9 +53,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="visitors-panel"]',
     route: '/visitors',
     popover: {
-      title: 'Visitantes activos',
+      title: 'Personas navegando ahora mismo',
       description:
-        'Visualiza en tiempo real quién está navegando por tu web ahora mismo.',
+        'Ves en tiempo real a cada persona que está en tu sitio antes de que escriba. Puedes iniciar tú la conversación.',
       side: 'bottom',
       align: 'start',
     },
@@ -63,9 +64,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="visitors-filters"]',
     route: '/visitors',
     popover: {
-      title: 'Filtros de visitantes',
+      title: 'Encuentra al visitante que necesitas',
       description:
-        'Segmenta por canal, estado o fuente para localizar rápidamente al visitante correcto.',
+        'Filtra por página visitada, tiempo en el sitio o canal de entrada para priorizar quién necesita ayuda.',
       side: 'bottom',
       align: 'start',
     },
@@ -75,9 +76,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="contacts-container"]',
     route: '/contacts',
     popover: {
-      title: 'Contactos',
+      title: 'Historial de todos tus clientes',
       description:
-        'Gestiona el historial de tus clientes: conversaciones anteriores, datos de contacto y notas.',
+        'Cada persona que ha hablado contigo queda aquí con su historial completo de conversaciones y datos.',
       side: 'right',
       align: 'start',
     },
@@ -87,9 +88,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="escalations-list"]',
     route: '/escalations',
     popover: {
-      title: 'Escalaciones',
+      title: 'Conversaciones que necesitan atención urgente',
       description:
-        'Aquí aparecen las conversaciones que requieren atención urgente o han superado el tiempo de respuesta.',
+        'Cuando una conversación supera el tiempo de respuesta o requiere un supervisor, aparece aquí. Actúa rápido.',
       side: 'right',
       align: 'start',
     },
@@ -99,9 +100,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="settings-profile"]',
     route: '/settings/profile',
     popover: {
-      title: 'Tu perfil',
+      title: 'Tu identidad frente al cliente',
       description:
-        'Edita tu nombre, foto y datos de contacto. Esta información es visible para tus clientes.',
+        'Tu nombre y foto son lo primero que ven tus clientes. Mantenlos actualizados para generar confianza.',
       side: 'right',
       align: 'start',
     },
@@ -110,9 +111,9 @@ export const consoleTour: TourStepConfig[] = [
     element: '[data-tour="settings-notifications"]',
     route: '/settings/notifications',
     popover: {
-      title: 'Notificaciones',
+      title: 'No pierdas ni un chat',
       description:
-        'Configura cuándo y cómo quieres recibir alertas de nuevas conversaciones y escalaciones.',
+        'Activa las notificaciones ahora. Si no lo haces, puedes perder conversaciones cuando no tengas la app abierta.',
       side: 'right',
       align: 'start',
     },
