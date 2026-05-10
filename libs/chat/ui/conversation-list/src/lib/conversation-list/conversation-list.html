@@ -1,12 +1,13 @@
-<div class="guiders-conversation-list" #list>
+<div class="guiders-conversation-list" #list data-tour="conversation-list">
   <ng-container *ngIf="conversations?.length; else emptyState">
     <guiders-conversation-item
-      *ngFor="let conversation of conversations"
+      *ngFor="let conversation of conversations; let i = index"
       [conversation]="conversation"
       [isSelected]="conversation.chatId === selectedConversationId"
       [participantPresenceStatus]="presenceMap[conversation.chatId]"
       (conversationSelected)="onSelect(conversation)"
       class="conversation-item"
+      [attr.data-tour]="i === 0 ? 'conversation-item-first' : null"
       [ngClass]="{ 'is-selected': conversation.chatId === selectedConversationId }"
     ></guiders-conversation-item>
   </ng-container>

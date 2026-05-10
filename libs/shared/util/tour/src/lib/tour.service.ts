@@ -104,13 +104,53 @@ export class TourService {
     // Extra tick to let Angular finish rendering the routed component tree
     await new Promise((resolve) => setTimeout(resolve, 150));
 
+    // Track currently registered auto-advance listener so we can clean it up
+    // when the active step changes or the tour is destroyed.
+    let activeListenerCleanup: (() => void) | null = null;
+    const cleanupActiveListener = () => {
+      if (activeListenerCleanup) {
+        activeListenerCleanup();
+        activeListenerCleanup = null;
+      }
+    };
+
     const driverInstance = driver({
       showProgress: true,
       progressText: '{{current}} de {{total}}',
       nextBtnText: 'Siguiente →',
       prevBtnText: '← Anterior',
       doneBtnText: '¡Entendido!',
+      onHighlighted: (_el, _step, { state }) => {
+        // Wire up auto-advance for action steps when the step becomes active.
+        cleanupActiveListener();
+        const idx = state.activeIndex ?? 0;
+        const stepCfg = steps[idx];
+        if (!stepCfg || stepCfg.mode !== 'action') return;
+
+        const target = stepCfg.awaitEvent?.selector ?? stepCfg.element;
+        const eventName = stepCfg.awaitEvent?.event ?? 'click';
+        const node = document.querySelector(target);
+        if (!node) return; // Fallback: keep Next button visible
+
+        const handler = () => {
+          cleanupActiveListener();
+          // Defer to next tick so the user sees the action take effect.
+          setTimeout(() => driverInstance.moveNext(), 50);
+        };
+        node.addEventListener(eventName, handler, { once: true });
+        activeListenerCleanup = () => node.removeEventListener(eventName, handler);
+      },
+      onDeselected: () => {
+        cleanupActiveListener();
+      },
       onPopoverRender: (popover, { config, state }) => {
+        // Hide the Next button on action steps so the user is forced to perform the action
+        const idx = state.activeIndex ?? 0;
+        const stepCfg = steps[idx];
+        const nextBtn = popover.nextButton as HTMLElement | undefined;
+        if (nextBtn) {
+          nextBtn.style.display = stepCfg?.mode === 'action' ? 'none' : '';
+        }
         // Replace native close button with a custom one we fully control
         const nativeClose = popover.closeButton as HTMLElement | undefined;
         if (nativeClose) {
@@ -146,6 +186,7 @@ export class TourService {
         fill.style.width = `${pct}%`;
       },
       onDestroyed: () => {
+        cleanupActiveListener();
         this._isRunning = false;
         this.markCompleted(tourId, userId);
       },
@@ -165,6 +206,9 @@ export class TourService {
   private buildDriveSteps(steps: TourStepConfig[]): DriveStep[] {
     return steps.map((step) => ({
       element: step.element,
+      // Action steps need the highlighted element to remain interactive
+      disableActiveInteraction:
+        step.mode === 'action' || step.allowInteraction ? false : undefined,
       popover: {
         title: step.popover.title,
         description: step.popover.description,

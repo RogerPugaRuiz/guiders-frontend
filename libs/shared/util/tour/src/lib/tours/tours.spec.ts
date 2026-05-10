@@ -30,18 +30,6 @@ describe('consoleTour', () => {
     expect(hasVisitors).toBe(true);
   });
 
-  it('should include a step for contacts route /contacts', () => {
-    const hasContacts = consoleTour.some((step) => step.route === '/contacts');
-    expect(hasContacts).toBe(true);
-  });
-
-  it('should include a step for escalations route /escalations', () => {
-    const hasEscalations = consoleTour.some(
-      (step) => step.route === '/escalations'
-    );
-    expect(hasEscalations).toBe(true);
-  });
-
   it('should include the sidebar-header step', () => {
     const hasSidebar = consoleTour.some(
       (step) => step.element === '[data-tour="sidebar-header"]'
@@ -49,11 +37,45 @@ describe('consoleTour', () => {
     expect(hasSidebar).toBe(true);
   });
 
-  it('should include the status-trigger step', () => {
-    const hasStatus = consoleTour.some(
-      (step) => step.element === '[data-tour="status-trigger"]'
+  it('should include at least one action step', () => {
+    const actionSteps = consoleTour.filter((step) => step.mode === 'action');
+    expect(actionSteps.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('should include an action step targeting the first conversation item', () => {
+    const hasConvAction = consoleTour.some(
+      (step) =>
+        step.mode === 'action' &&
+        step.element === '[data-tour="conversation-item-first"]'
     );
-    expect(hasStatus).toBe(true);
+    expect(hasConvAction).toBe(true);
+  });
+
+  it('should include an action step targeting the message input', () => {
+    const hasMsgAction = consoleTour.some(
+      (step) =>
+        step.mode === 'action' &&
+        step.element === '[data-tour="message-input"]'
+    );
+    expect(hasMsgAction).toBe(true);
+  });
+
+  it('should include an action step targeting the advanced filters button', () => {
+    const hasFilterAction = consoleTour.some(
+      (step) =>
+        step.mode === 'action' &&
+        step.element === '[data-tour="visitors-advanced-btn"]'
+    );
+    expect(hasFilterAction).toBe(true);
+  });
+
+  it('should include an action step targeting the first visitor item', () => {
+    const hasVisitorAction = consoleTour.some(
+      (step) =>
+        step.mode === 'action' &&
+        step.element === '[data-tour="visitor-item-first"]'
+    );
+    expect(hasVisitorAction).toBe(true);
   });
 
   it('all popover sides should be valid driver.js values', () => {

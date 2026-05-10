@@ -1,119 +1,119 @@
 import { TourStepConfig } from '../tour-step.interface';
 
+/**
+ * Console interactive tour.
+ *
+ * Mixes informational steps with action steps that auto-advance when the user
+ * performs the real interaction in the UI. Action steps:
+ *  - Hide the Next button (the user must do the action to continue).
+ *  - Keep the highlighted element interactive.
+ *  - Listen for a click (or custom event) on the target.
+ *
+ * If a target element is missing in the DOM (e.g. empty inbox / empty visitors
+ * list), no listener is attached and the standard Next button is shown as a
+ * fallback so the user is never stuck.
+ */
 export const consoleTour: TourStepConfig[] = [
-  // --- Sidebar ---
+  // 1. Welcome
   {
     element: '[data-tour="sidebar-header"]',
     route: '/inbox',
     popover: {
       title: 'Bienvenido a Guiders',
       description:
-        'Esta es tu consola de trabajo. Desde aquí gestionas todas las conversaciones con tus clientes en tiempo real.',
+        'Esta es tu consola de trabajo. En menos de un minuto verás cómo atender a tus clientes en tiempo real.',
       side: 'right',
       align: 'start',
     },
   },
-  // --- Status (first critical action) ---
-  {
-    element: '[data-tour="status-trigger"]',
-    route: '/inbox',
-    popover: {
-      title: 'Activa tu disponibilidad primero',
-      description:
-        'Importante: mientras estés en modo "Ausente" no recibirás nuevos chats. Ponlo en "Disponible" para empezar a atender.',
-      side: 'right',
-      align: 'end',
-    },
-  },
-  // --- Inbox ---
+  // 2. Inbox overview
   {
     element: '[data-tour="inbox-sidebar"]',
     route: '/inbox',
     popover: {
-      title: 'Aquí llegan tus chats en vivo',
+      title: 'Tus conversaciones en vivo',
       description:
-        'Cada nueva conversación aparece aquí al instante. Las no leídas se marcan en negrita.',
+        'Aquí aparece cada chat que entra. Las conversaciones con mensajes sin leer muestran un contador numérico en azul para que no se te escape ninguna.',
       side: 'right',
       align: 'start',
     },
   },
+  // 3. ACTION: open a conversation
   {
-    element: '[data-tour="inbox-main"]',
+    element: '[data-tour="conversation-item-first"]',
     route: '/inbox',
+    mode: 'action',
+    awaitClick: true,
     popover: {
-      title: 'Lee y responde en este panel',
+      title: 'Abre una conversación',
       description:
-        'Haz clic en cualquier conversación para abrirla y escribir tu respuesta.',
-      side: 'left',
-      align: 'start',
+        'Solo para practicar — haz clic en cualquier conversación para abrirla. El tour avanza automáticamente y no enviará nada.',
+      side: 'right',
+      align: 'center',
     },
   },
-  // --- Visitors ---
+  // 4. ACTION: focus the message editor
+  {
+    element: '[data-tour="message-input"]',
+    route: '/inbox',
+    mode: 'action',
+    awaitEvent: { event: 'click' },
+    popover: {
+      title: 'Aquí escribirías tu respuesta',
+      description:
+        'Este es el editor de mensajes. Haz clic dentro para ver cómo funciona — el tour avanza al hacerlo y no se enviará ningún mensaje.',
+      side: 'top',
+      align: 'center',
+    },
+  },
+  // 5. Visitors overview (info)
   {
     element: '[data-tour="visitors-panel"]',
     route: '/visitors',
     popover: {
       title: 'Personas navegando ahora mismo',
       description:
-        'Ves en tiempo real a cada persona que está en tu sitio antes de que escriba. Puedes iniciar tú la conversación.',
+        'Ves en tiempo real a cada visitante en tu sitio antes de que escriba. Puedes iniciar tú la conversación.',
       side: 'bottom',
       align: 'start',
     },
   },
+  // 6. ACTION: open advanced filters
   {
-    element: '[data-tour="visitors-filters"]',
+    element: '[data-tour="visitors-advanced-btn"]',
     route: '/visitors',
+    mode: 'action',
+    awaitClick: true,
     popover: {
-      title: 'Encuentra al visitante que necesitas',
+      title: 'Filtra para encontrar al visitante clave',
       description:
-        'Filtra por página visitada, tiempo en el sitio o canal de entrada para priorizar quién necesita ayuda.',
+        'Pulsa "Filtros avanzados" para acotar por página, tiempo en el sitio o canal. El tour avanza al hacer clic.',
       side: 'bottom',
       align: 'start',
     },
   },
-  // --- Contacts ---
+  // 7. ACTION: click a visitor to start a chat
   {
-    element: '[data-tour="contacts-container"]',
-    route: '/contacts',
+    element: '[data-tour="visitor-item-first"]',
+    route: '/visitors',
+    mode: 'action',
+    awaitClick: true,
     popover: {
-      title: 'Historial de todos tus clientes',
+      title: 'Abre el panel de un visitante',
       description:
-        'Cada persona que ha hablado contigo queda aquí con su historial completo de conversaciones y datos.',
-      side: 'right',
-      align: 'start',
+        'Solo para practicar — haz clic en cualquier visitante para ver su panel. El tour avanza y no iniciará ningún chat real.',
+      side: 'top',
+      align: 'center',
     },
   },
-  // --- Escalations ---
+  // 8. Wrap-up
   {
-    element: '[data-tour="escalations-list"]',
-    route: '/escalations',
+    element: '[data-tour="sidebar-header"]',
+    route: '/inbox',
     popover: {
-      title: 'Conversaciones que necesitan atención urgente',
+      title: 'Listo para atender',
       description:
-        'Cuando una conversación supera el tiempo de respuesta o requiere un supervisor, aparece aquí. Actúa rápido.',
-      side: 'right',
-      align: 'start',
-    },
-  },
-  // --- Settings ---
-  {
-    element: '[data-tour="settings-profile"]',
-    route: '/settings/profile',
-    popover: {
-      title: 'Tu identidad frente al cliente',
-      description:
-        'Tu nombre y foto son lo primero que ven tus clientes. Mantenlos actualizados para generar confianza.',
-      side: 'right',
-      align: 'start',
-    },
-  },
-  {
-    element: '[data-tour="settings-notifications"]',
-    route: '/settings/notifications',
-    popover: {
-      title: 'No pierdas ni un chat',
-      description:
-        'Activa las notificaciones ahora. Si no lo haces, puedes perder conversaciones cuando no tengas la app abierta.',
+        'Ya conoces lo esencial. Recuerda que puedes volver a lanzar este tour desde el botón "Tour de la app" del menú lateral.',
       side: 'right',
       align: 'start',
     },

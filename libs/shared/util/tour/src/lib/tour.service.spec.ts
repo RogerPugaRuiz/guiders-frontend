@@ -253,6 +253,186 @@ describe('TourService', () => {
     });
   });
 
+  describe('action steps (auto-advance)', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    /** Build a fully-mocked popover object accepted by the real onPopoverRender. */
+    const buildPopover = () => {
+      const wrapper = document.createElement('div');
+      const footer = document.createElement('div');
+      wrapper.appendChild(footer);
+      const closeButton = document.createElement('button');
+      const nextButton = document.createElement('button');
+      return { wrapper, footer, closeButton, nextButton };
+    };
+
+    it('should hide the Next button on action steps via onPopoverRender', async () => {
+      const { driver } = await import('driver.js');
+      let capturedConfig: {
+        onPopoverRender?: (
+          popover: ReturnType<typeof buildPopover>,
+          ctx: { config: { steps: unknown[] }; state: { activeIndex: number } }
+        ) => void;
+      } = {};
+
+      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
+        capturedConfig = config;
+        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
+      });
+
+      mockRouterNavigation(router);
+      await service.startTour(consoleTourId, mockUserId);
+
+      // Step 3 (index 2) is an action step in the console tour
+      const popover = buildPopover();
+      capturedConfig.onPopoverRender?.(popover, {
+        config: { steps: new Array(8) },
+        state: { activeIndex: 2 },
+      });
+
+      expect(popover.nextButton.style.display).toBe('none');
+    });
+
+    it('should show the Next button on info steps via onPopoverRender', async () => {
+      const { driver } = await import('driver.js');
+      let capturedConfig: {
+        onPopoverRender?: (
+          popover: ReturnType<typeof buildPopover>,
+          ctx: { config: { steps: unknown[] }; state: { activeIndex: number } }
+        ) => void;
+      } = {};
+
+      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
+        capturedConfig = config;
+        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
+      });
+
+      mockRouterNavigation(router);
+      await service.startTour(consoleTourId, mockUserId);
+
+      // Step 1 (index 0) is an info step
+      const popover = buildPopover();
+      capturedConfig.onPopoverRender?.(popover, {
+        config: { steps: new Array(8) },
+        state: { activeIndex: 0 },
+      });
+
+      expect(popover.nextButton.style.display).toBe('');
+    });
+
+    it('should call moveNext when the action target is clicked', async () => {
+      const { driver } = await import('driver.js');
+      const moveNext = vi.fn();
+      let capturedConfig: {
+        onHighlighted?: (
+          el: Element | undefined,
+          step: unknown,
+          ctx: { state: { activeIndex: number } }
+        ) => void;
+      } = {};
+
+      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
+        capturedConfig = config;
+        return { drive: vi.fn(), destroy: vi.fn(), moveNext };
+      });
+
+      // Insert the target element into the DOM so the listener can attach
+      const target = document.createElement('div');
+      target.setAttribute('data-tour', 'conversation-item-first');
+      document.body.appendChild(target);
+
+      mockRouterNavigation(router);
+      await service.startTour(consoleTourId, mockUserId);
+
+      // Activate step 3 (action step)
+      capturedConfig.onHighlighted?.(undefined, undefined, {
+        state: { activeIndex: 2 },
+      });
+
+      target.dispatchEvent(new Event('click'));
+
+      // Implementation defers moveNext via setTimeout(50)
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(moveNext).toHaveBeenCalledTimes(1);
+      document.body.removeChild(target);
+    });
+
+    it('should not call moveNext on info steps even if the element is clicked', async () => {
+      const { driver } = await import('driver.js');
+      const moveNext = vi.fn();
+      let capturedConfig: {
+        onHighlighted?: (
+          el: Element | undefined,
+          step: unknown,
+          ctx: { state: { activeIndex: number } }
+        ) => void;
+      } = {};
+
+      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
+        capturedConfig = config;
+        return { drive: vi.fn(), destroy: vi.fn(), moveNext };
+      });
+
+      const target = document.createElement('div');
+      target.setAttribute('data-tour', 'sidebar-header');
+      document.body.appendChild(target);
+
+      mockRouterNavigation(router);
+      await service.startTour(consoleTourId, mockUserId);
+
+      // Step 1 (info)
+      capturedConfig.onHighlighted?.(undefined, undefined, {
+        state: { activeIndex: 0 },
+      });
+
+      target.dispatchEvent(new Event('click'));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      expect(moveNext).not.toHaveBeenCalled();
+      document.body.removeChild(target);
+    });
+
+    it('should clean up listeners on onDeselected to avoid leaks', async () => {
+      const { driver } = await import('driver.js');
+      const moveNext = vi.fn();
+      let capturedConfig: {
+        onHighlighted?: (
+          el: Element | undefined,
+          step: unknown,
+          ctx: { state: { activeIndex: number } }
+        ) => void;
+        onDeselected?: () => void;
+      } = {};
+
+      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
+        capturedConfig = config;
+        return { drive: vi.fn(), destroy: vi.fn(), moveNext };
+      });
+
+      const target = document.createElement('div');
+      target.setAttribute('data-tour', 'conversation-item-first');
+      document.body.appendChild(target);
+
+      mockRouterNavigation(router);
+      await service.startTour(consoleTourId, mockUserId);
+
+      capturedConfig.onHighlighted?.(undefined, undefined, {
+        state: { activeIndex: 2 },
+      });
+      capturedConfig.onDeselected?.();
+
+      // After deselection, click should NOT advance
+      target.dispatchEvent(new Event('click'));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      expect(moveNext).not.toHaveBeenCalled();
+
+      document.body.removeChild(target);
+    });
+  });
+
   describe('hasStartedFor()', () => {
     it('should return false before any startTour call', () => {
       expect(service.hasStartedFor(consoleTourId, mockUserId)).toBe(false);

@@ -149,6 +149,7 @@
                 [class.visitors-table__row--last]="last"
                 [class.visitors-table__row--new-batch]="isNewBatchRow(i)"
                 [style.animation-delay]="isNewBatchRow(i) ? getRowAnimationDelay(i) + 'ms' : '0ms'"
+                [attr.data-tour]="i === 0 ? 'visitor-item-first' : null"
                 (click)="onVisitorClick(visitor)"
                 role="row"
               >
