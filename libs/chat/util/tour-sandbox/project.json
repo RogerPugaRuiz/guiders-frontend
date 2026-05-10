@@ -1,0 +1,19 @@
+{
+  "name": "tour-sandbox",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/chat/util/tour-sandbox/src",
+  "projectType": "library",
+  "tags": ["type:util", "scope:chat"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "../../../../coverage/libs/chat/util/tour-sandbox"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
