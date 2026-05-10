@@ -933,6 +933,48 @@ export class ChatService {
     };
   }
 
+  /**
+   * Public sandbox wrapper: append (or replace) a demo chat into chats$ stream.
+   * Used exclusively by the interactive tour to inject the fictional visitor
+   * conversation without going through the backend.
+   */
+  addDemoChat(chat: Chat): void {
+    this.addChatToState(chat);
+  }
+
+  /**
+   * Public sandbox wrapper: append a demo message into messages$ stream
+   * for the given chatId. Skips duplicates by messageId. Tour-only.
+   */
+  addDemoMessage(chatId: string, message: Message): void {
+    this.addMessageToState(chatId, message);
+  }
+
+  /**
+   * Public sandbox wrapper: replace the entire message list for the given
+   * chatId in messages$ stream. Tour-only.
+   */
+  setDemoMessages(chatId: string, messages: Message[]): void {
+    this.setMessagesForChat(chatId, messages);
+  }
+
+  /**
+   * Public sandbox wrapper: remove a demo chat (and its messages) from the
+   * streams. Used when the tour ends so the operator does not see leftover
+   * fictional data. Safe to call with an unknown chatId. Tour-only.
+   */
+  removeDemoChat(chatId: string): void {
+    const remaining = this.chatsSubject.value.filter((c) => c.chatId !== chatId);
+    this.chatsSubject.next(remaining);
+
+    const currentMessages = this.messagesSubject.value;
+    if (chatId in currentMessages) {
+      const next = { ...currentMessages };
+      delete next[chatId];
+      this.messagesSubject.next(next);
+    }
+  }
+
   private addChatToState(chat: Chat): void {
     const currentChats = this.chatsSubject.value;
     const existingIndex = currentChats.findIndex(c => c.chatId === chat.chatId);
