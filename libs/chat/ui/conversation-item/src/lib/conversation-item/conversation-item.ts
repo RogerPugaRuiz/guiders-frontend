@@ -3,12 +3,14 @@ import { CommonModule } from '@angular/common';
 import { Chat, User, PresenceStatus } from '@guiders-frontend/shared/types';
 import { UnreadBadge } from '@guiders-frontend/unread-badge';
 import { Avatar } from '@guiders-frontend/avatar';
+import { Badge } from '@guiders-frontend/badge';
+import { isDemoId } from '@guiders-frontend/tour-sandbox';
 import { getVisitorDisplayName } from '@guiders-frontend/visitor-display-name';
 
 @Component({
   selector: 'guiders-conversation-item',
   standalone: true,
-  imports: [CommonModule, UnreadBadge, Avatar],
+  imports: [CommonModule, UnreadBadge, Avatar, Badge],
   templateUrl: './conversation-item.html',
   styleUrl: './conversation-item.scss',
 })
@@ -27,6 +29,9 @@ export class ConversationItem {
   readonly showPresenceBadge = computed(() => {
     return this.participantPresenceStatus() !== undefined;
   });
+
+  // Computed: true cuando la conversación pertenece al sandbox del tour
+  readonly isDemo = computed(() => isDemoId(this.conversation().chatId));
 
   // Computed para obtener datos del visitante para el avatar
   readonly visitorId = computed(() => {

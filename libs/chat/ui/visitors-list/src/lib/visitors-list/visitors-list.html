@@ -177,6 +177,14 @@
                     <div class="visitor-details">
                       <div class="visitor-name">
                         <span class="name-text">{{ visitor.name || 'Visitante anónimo' }}</span>
+                        @if (isDemoVisitor(visitor.id)) {
+                          <guiders-badge
+                            data-testid="visitor-demo-badge"
+                            text="DEMO"
+                            variant="warning"
+                            size="small"
+                          />
+                        }
                         @if (visitor.isMe) {
                           <guiders-badge text="Tú" variant="primary" size="small" />
                         }
