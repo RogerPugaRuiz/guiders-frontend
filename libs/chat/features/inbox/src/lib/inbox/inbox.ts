@@ -11,6 +11,10 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
 import {
+  TourSandboxService,
+  isDemoId,
+} from '@guiders-frontend/tour-sandbox';
+import {
   Chat,
   Message,
   PresenceStatus,
@@ -68,6 +72,7 @@ export class Inbox implements OnInit, OnDestroy {
   private readonly presenceService = inject(PresenceService);
   private readonly visitorsDataService = inject(VisitorsDataService);
   private readonly leadContactService = inject(LeadContactService);
+  private readonly tourSandbox = inject(TourSandboxService, { optional: true });
 
   // ===== ESTADO PRINCIPAL =====
   readonly selectedConversationId = signal<string | null>(null);
@@ -555,6 +560,14 @@ export class Inbox implements OnInit, OnDestroy {
 
     if (!chatId) {
       console.error('No se puede enviar el mensaje: falta chatId');
+      return;
+    }
+
+    // Tour sandbox: derive demo conversation messages locally so the user
+    // can practice sending without hitting the backend.
+    if (isDemoId(chatId) && this.tourSandbox) {
+      this.tourSandbox.appendOperatorMessage(content);
+      this.tourSandbox.simulateVisitorReply();
       return;
     }
 
