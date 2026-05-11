@@ -8,6 +8,10 @@ import { VisitorsComponent } from './visitors';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
+import {
+  TourSandboxService,
+  DEMO_VISITOR_ID,
+} from '@guiders-frontend/tour-sandbox';
 
 const mockSearchResponse = {
   visitors: [],
@@ -134,6 +138,108 @@ describe('VisitorsComponent', () => {
     tick(300); // allow microtask queue to flush observable emissions
 
     expect(component.ariaAnnouncement()).toContain('5 visitantes activos');
+
+    discardPeriodicTasks();
+  }));
+});
+
+describe('VisitorsComponent · TourSandbox integration', () => {
+  let component: VisitorsComponent;
+  let fixture: ComponentFixture<VisitorsComponent>;
+  let mockVisitorsService: ReturnType<typeof buildMockVisitorsService>;
+  let sandbox: TourSandboxService;
+
+  beforeEach(async () => {
+    mockVisitorsService = buildMockVisitorsService();
+
+    await TestBed.configureTestingModule({
+      imports: [VisitorsComponent],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: VisitorsDataService, useValue: mockVisitorsService },
+        { provide: USE_MOCK_DATA, useValue: false },
+        { provide: ENVIRONMENT_TOKEN, useValue: mockEnvironment },
+      ],
+    }).compileComponents();
+
+    sandbox = TestBed.inject(TourSandboxService);
+    fixture = TestBed.createComponent(VisitorsComponent);
+    component = fixture.componentInstance;
+    component.companyId.set('test-company-id');
+  });
+
+  afterEach(() => {
+    sandbox.deactivate();
+  });
+
+  it('prepends the demo visitor to the list when the sandbox is active after a search', fakeAsync(() => {
+    sandbox.activate();
+    fixture.detectChanges();
+    component.loadVisitors();
+    tick(0);
+
+    const visitors = component.state().visitors;
+    expect(visitors.length).toBeGreaterThanOrEqual(1);
+    expect(visitors[0].id).toBe(DEMO_VISITOR_ID);
+
+    discardPeriodicTasks();
+  }));
+
+  it('does NOT add the demo visitor when the sandbox is inactive', fakeAsync(() => {
+    fixture.detectChanges();
+    component.loadVisitors();
+    tick(0);
+
+    const ids = component.state().visitors.map((v) => v.id);
+    expect(ids).not.toContain(DEMO_VISITOR_ID);
+
+    discardPeriodicTasks();
+  }));
+
+  it('keeps the demo visitor on top after the polling refresh tick', fakeAsync(() => {
+    sandbox.activate();
+    fixture.detectChanges();
+    component.loadVisitors();
+    tick(0);
+
+    component.onAutoRefreshIntervalChange(0);
+    component.onAutoRefreshIntervalChange(10000);
+    tick(10001);
+    tick(0);
+
+    const visitors = component.state().visitors;
+    expect(visitors[0].id).toBe(DEMO_VISITOR_ID);
+
+    discardPeriodicTasks();
+  }));
+
+  it('does not duplicate the demo visitor if the backend already returns it', fakeAsync(() => {
+    sandbox.activate();
+    mockVisitorsService.searchVisitors.mockReturnValue(
+      of({
+        ...mockSearchResponse,
+        visitors: [
+          {
+            id: DEMO_VISITOR_ID,
+            connectionStatus: 'online',
+            lastActivityAt: new Date().toISOString(),
+            currentUrl: '/x',
+            createdAt: new Date().toISOString(),
+          },
+        ],
+        pagination: { ...mockSearchResponse.pagination, total: 1 },
+      }),
+    );
+    fixture.detectChanges();
+    component.loadVisitors();
+    tick(0);
+
+    const occurrences = component
+      .state()
+      .visitors.filter((v) => v.id === DEMO_VISITOR_ID).length;
+    expect(occurrences).toBe(1);
 
     discardPeriodicTasks();
   }));

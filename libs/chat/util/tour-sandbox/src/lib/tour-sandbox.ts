@@ -57,6 +57,21 @@ export class TourSandboxService {
   /** Read-only signal that flips to true between activate() and deactivate(). */
   readonly isActive = this._isActive.asReadonly();
 
+  /** Synchronous snapshot of the current demo visitors (empty when inactive). */
+  get visitorsSnapshot(): Visitor[] {
+    return this._visitors$.value;
+  }
+
+  /** Synchronous snapshot of the current demo chats (empty when inactive). */
+  get chatsSnapshot(): Chat[] {
+    return this._chats$.value;
+  }
+
+  /** Synchronous snapshot of the current demo messages map (empty when inactive). */
+  get messagesSnapshot(): Record<string, Message[]> {
+    return this._messages$.value;
+  }
+
   /**
    * Activates the sandbox: emits the demo visitor, demo chat and the
    * initial visitor message. Idempotent: calling twice does not duplicate.
