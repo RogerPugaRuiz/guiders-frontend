@@ -60,6 +60,16 @@ describe('consoleTour', () => {
     expect(hasMsgAction).toBe(true);
   });
 
+  it('message-input action step should await the message-sent-demo event', () => {
+    const msgStep = consoleTour.find(
+      (step) =>
+        step.mode === 'action' &&
+        step.element === '[data-tour="message-input"]'
+    );
+    expect(msgStep).toBeDefined();
+    expect(msgStep?.awaitEvent?.event).toBe('message-sent-demo');
+  });
+
   it('should include an action step targeting the advanced filters button', () => {
     const hasFilterAction = consoleTour.some(
       (step) =>

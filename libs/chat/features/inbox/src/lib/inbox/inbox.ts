@@ -568,6 +568,16 @@ export class Inbox implements OnInit, OnDestroy {
     if (isDemoId(chatId) && this.tourSandbox) {
       this.tourSandbox.appendOperatorMessage(content);
       this.tourSandbox.simulateVisitorReply();
+      // Notify the tour orchestrator that the demo send has happened so the
+      // 'envía un mensaje' action step can auto-advance. We dispatch directly
+      // on the tour anchor element when present; if it isn't mounted (e.g.
+      // tour not active or panel not open), the dispatch is silently skipped.
+      const anchor = document.querySelector('[data-tour="message-input"]');
+      if (anchor) {
+        anchor.dispatchEvent(
+          new CustomEvent('message-sent-demo', { bubbles: true })
+        );
+      }
       return;
     }
 

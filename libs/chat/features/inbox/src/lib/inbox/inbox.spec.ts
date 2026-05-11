@@ -81,6 +81,46 @@ describe('Inbox', () => {
       expect(sendMessageSpy).not.toHaveBeenCalled();
     });
 
+    it('dispatches message-sent-demo event on the message-input anchor after a demo send', () => {
+      sandbox.activate();
+      component.selectedConversationId.set(DEMO_CHAT_ID);
+
+      // Inject the tour anchor element so the component can locate it.
+      const anchor = document.createElement('div');
+      anchor.setAttribute('data-tour', 'message-input');
+      document.body.appendChild(anchor);
+
+      const handler = vi.fn();
+      anchor.addEventListener('message-sent-demo', handler);
+
+      try {
+        component.onSendMessage('Probando el tour');
+        expect(handler).toHaveBeenCalledTimes(1);
+      } finally {
+        anchor.removeEventListener('message-sent-demo', handler);
+        anchor.remove();
+      }
+    });
+
+    it('does not dispatch message-sent-demo for non-demo conversations', () => {
+      component.selectedConversationId.set('real-chat-123');
+
+      const anchor = document.createElement('div');
+      anchor.setAttribute('data-tour', 'message-input');
+      document.body.appendChild(anchor);
+
+      const handler = vi.fn();
+      anchor.addEventListener('message-sent-demo', handler);
+
+      try {
+        component.onSendMessage('hello');
+        expect(handler).not.toHaveBeenCalled();
+      } finally {
+        anchor.removeEventListener('message-sent-demo', handler);
+        anchor.remove();
+      }
+    });
+
     it('uses ChatService for non-demo conversations', () => {
       component.selectedConversationId.set('real-chat-123');
 

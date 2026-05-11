@@ -52,16 +52,16 @@ export const consoleTour: TourStepConfig[] = [
       align: 'center',
     },
   },
-  // 4. ACTION: focus the message editor
+  // 4. ACTION: send a demo message in the sandbox conversation
   {
     element: '[data-tour="message-input"]',
     route: '/inbox',
     mode: 'action',
-    awaitEvent: { event: 'click' },
+    awaitEvent: { event: 'message-sent-demo' },
     popover: {
-      title: 'Aquí escribirías tu respuesta',
+      title: 'Envía tu primer mensaje',
       description:
-        'Este es el editor de mensajes. Haz clic dentro para ver cómo funciona — el tour avanza al hacerlo y no se enviará ningún mensaje.',
+        'Escribe una respuesta y pulsa Enter (o el botón de enviar). Estás en una conversación de práctica con un visitante ficticio: nada se enviará a un cliente real. El tour avanzará automáticamente cuando envíes el mensaje.',
       side: 'top',
       align: 'center',
     },
