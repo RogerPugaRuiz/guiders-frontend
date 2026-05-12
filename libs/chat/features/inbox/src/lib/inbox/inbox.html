@@ -47,7 +47,7 @@
 
   <!-- Panel derecho: Detalles del visitante -->
   @if (showVisitorPanel() && selectedVisitor()) {
-  <div class="inbox__detail-panel">
+  <div class="inbox__detail-panel" data-tour="visitor-detail-panel">
     <guiders-visitor-detail-panel
       [visitor]="selectedVisitor()!"
       [isOpen]="showVisitorPanel()"

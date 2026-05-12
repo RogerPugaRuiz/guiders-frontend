@@ -81,6 +81,7 @@
           [ariaCurrent]="isItemActive(item) ? 'page' : undefined"
           [ariaExpanded]="item.children && item.children.length > 0 ? isItemExpanded(item.id) : undefined"
           class="sidebar__nav-link"
+          [attr.data-tour]="'nav-' + item.id"
         >
           @if (item.icon) {
           <guiders-icon

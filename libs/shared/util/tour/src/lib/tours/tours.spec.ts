@@ -97,6 +97,53 @@ describe('consoleTour', () => {
       ).toBe(true);
     });
   });
+
+  describe('visitor handoff sub-flow (between message-input and visitors-panel)', () => {
+    const indexOf = (selector: string) =>
+      consoleTour.findIndex((s) => s.element === selector);
+
+    it('includes an action step to open the visitor detail panel from inbox', () => {
+      const step = consoleTour.find(
+        (s) =>
+          s.mode === 'action' &&
+          s.element === '[data-tour="chat-detail-toggle"]' &&
+          s.route === '/inbox'
+      );
+      expect(step).toBeDefined();
+    });
+
+    it('includes an info step that highlights the visitor detail panel', () => {
+      const step = consoleTour.find(
+        (s) => s.element === '[data-tour="visitor-detail-panel"]' && s.route === '/inbox'
+      );
+      expect(step).toBeDefined();
+      expect(step?.mode === 'action').toBe(false);
+    });
+
+    it('includes an action step to navigate to /visitors via the sidebar nav', () => {
+      const step = consoleTour.find(
+        (s) =>
+          s.mode === 'action' &&
+          s.element === '[data-tour="nav-visitors"]'
+      );
+      expect(step).toBeDefined();
+    });
+
+    it('orders the new sub-flow strictly between message-input and visitors-panel', () => {
+      const msgIdx = indexOf('[data-tour="message-input"]');
+      const toggleIdx = indexOf('[data-tour="chat-detail-toggle"]');
+      const panelIdx = indexOf('[data-tour="visitor-detail-panel"]');
+      const navIdx = indexOf('[data-tour="nav-visitors"]');
+      const visitorsIdx = indexOf('[data-tour="visitors-panel"]');
+
+      expect(msgIdx).toBeGreaterThanOrEqual(0);
+      expect(visitorsIdx).toBeGreaterThanOrEqual(0);
+      expect(msgIdx).toBeLessThan(toggleIdx);
+      expect(toggleIdx).toBeLessThan(panelIdx);
+      expect(panelIdx).toBeLessThan(navIdx);
+      expect(navIdx).toBeLessThan(visitorsIdx);
+    });
+  });
 });
 
 describe('adminTour', () => {

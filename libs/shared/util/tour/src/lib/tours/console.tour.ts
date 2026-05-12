@@ -66,7 +66,47 @@ export const consoleTour: TourStepConfig[] = [
       align: 'center',
     },
   },
-  // 5. Visitors overview (info)
+  // 5. ACTION: open the visitor detail panel from inside the conversation
+  {
+    element: '[data-tour="chat-detail-toggle"]',
+    route: '/inbox',
+    mode: 'action',
+    awaitClick: true,
+    popover: {
+      title: 'Conoce mejor a tu visitante',
+      description:
+        'Pulsa el icono del panel lateral (arriba a la derecha) para abrir la ficha del visitante. El tour avanza automáticamente al hacer clic.',
+      side: 'left',
+      align: 'start',
+    },
+  },
+  // 6. INFO: explain the visitor detail panel that just opened
+  {
+    element: '[data-tour="visitor-detail-panel"]',
+    route: '/inbox',
+    popover: {
+      title: 'Toda la información del visitante a un vistazo',
+      description:
+        'Aquí ves su contacto, actividad, página actual y datos clave para personalizar la atención sin cambiar de pantalla.',
+      side: 'left',
+      align: 'start',
+    },
+  },
+  // 7. ACTION: navigate to the Visitors section via the sidebar
+  {
+    element: '[data-tour="nav-visitors"]',
+    route: '/inbox',
+    mode: 'action',
+    awaitClick: true,
+    popover: {
+      title: 'Ahora vamos a Visitantes',
+      description:
+        'Pulsa "Visitantes" en el menú lateral para ver quién está navegando tu sitio en tiempo real. El tour avanza al hacer clic.',
+      side: 'right',
+      align: 'center',
+    },
+  },
+  // 8. Visitors overview (info)
   {
     element: '[data-tour="visitors-panel"]',
     route: '/visitors',
@@ -78,7 +118,7 @@ export const consoleTour: TourStepConfig[] = [
       align: 'start',
     },
   },
-  // 6. ACTION: open advanced filters
+  // 9. ACTION: open advanced filters
   {
     element: '[data-tour="visitors-advanced-btn"]',
     route: '/visitors',
@@ -92,7 +132,7 @@ export const consoleTour: TourStepConfig[] = [
       align: 'start',
     },
   },
-  // 7. ACTION: click a visitor to start a chat
+  // 10. ACTION: click a visitor to start a chat
   {
     element: '[data-tour="visitor-item-first"]',
     route: '/visitors',
@@ -106,7 +146,7 @@ export const consoleTour: TourStepConfig[] = [
       align: 'center',
     },
   },
-  // 8. Wrap-up
+  // 11. Wrap-up
   {
     element: '[data-tour="sidebar-header"]',
     route: '/inbox',
