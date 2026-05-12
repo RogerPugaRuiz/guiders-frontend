@@ -3,15 +3,21 @@ import { TourStepConfig } from '../tour-step.interface';
 /**
  * Console interactive tour.
  *
- * Mixes informational steps with action steps that auto-advance when the user
- * performs the real interaction in the UI. Action steps:
- *  - Hide the Next button (the user must do the action to continue).
- *  - Keep the highlighted element interactive.
- *  - Listen for a click (or custom event) on the target.
+ * Guided walkthrough of the operator console. Every step is informational
+ * and progresses via the Prev/Next buttons rendered by Shepherd — no step
+ * waits for the user to perform a real action. This keeps the tour
+ * resilient to DOM changes and lets the user read at their own pace.
  *
- * If a target element is missing in the DOM (e.g. empty inbox / empty visitors
- * list), no listener is attached and the standard Next button is shown as a
- * fallback so the user is never stuck.
+ * The tour seeds a sandboxed demo conversation/visitor (see TourSandbox)
+ * so steps that point at "the first conversation" or "the first visitor"
+ * always have something to highlight, even on a brand-new account.
+ *
+ * Order chosen to mirror the operator's daily flow:
+ *   1. Orient (sidebar + agent status)
+ *   2. Reactive work (inbox → conversation → ficha del visitante)
+ *   3. Escalations (urgent items)
+ *   4. Proactive work (live visitors)
+ *   5. Wrap-up (where to relaunch the tour)
  */
 export const consoleTour: TourStepConfig[] = [
   // 1. Welcome
@@ -21,139 +27,103 @@ export const consoleTour: TourStepConfig[] = [
     popover: {
       title: 'Bienvenido a Guiders',
       description:
-        'Esta es tu consola de trabajo. En menos de un minuto verás cómo atender a tus clientes en tiempo real.',
+        'Esta es tu consola de trabajo: todo lo que necesitas para atender a tus clientes en tiempo real está a un clic. Te lleva menos de un minuto.',
       side: 'right',
       align: 'start',
     },
   },
-  // 2. Inbox overview
+  // 2. Agent status — first thing operators set every shift
+  {
+    element: '[data-tour="status-trigger"]',
+    route: '/inbox',
+    popover: {
+      title: 'Tu estado de agente',
+      description:
+        'Marca si estás Disponible, Ocupado o Ausente. El sistema solo te asigna chats nuevos cuando estás Disponible, así controlas tu carga.',
+      side: 'bottom',
+      align: 'end',
+    },
+  },
+  // 3. Inbox sidebar — the heart of reactive work
   {
     element: '[data-tour="inbox-sidebar"]',
     route: '/inbox',
     popover: {
-      title: 'Tus conversaciones en vivo',
+      title: 'Tu bandeja de conversaciones',
       description:
-        'Aquí aparece cada chat que entra. Las conversaciones con mensajes sin leer muestran un contador numérico en azul para que no se te escape ninguna.',
+        'Aquí entra cada chat en vivo. Las conversaciones con mensajes sin leer muestran un contador en azul para que ninguna se te escape.',
       side: 'right',
       align: 'start',
     },
   },
-  // 3. ACTION: open a conversation
+  // 4. Open conversation — the working area
   {
-    element: '[data-tour="conversation-item-first"]',
+    element: '[data-tour="inbox-main"]',
     route: '/inbox',
-    mode: 'action',
-    awaitClick: true,
     popover: {
-      title: 'Abre una conversación',
+      title: 'Área de conversación',
       description:
-        'Solo para practicar — haz clic en cualquier conversación para abrirla. El tour avanza automáticamente y no enviará nada.',
-      side: 'right',
+        'Al abrir un chat, ves el hilo completo aquí. El historial se carga automáticamente conforme bajas, sin que tengas que recargar nada.',
+      side: 'left',
       align: 'center',
     },
   },
-  // 4. ACTION: send a demo message in the sandbox conversation
+  // 5. Message input — how operators reply
   {
     element: '[data-tour="message-input"]',
     route: '/inbox',
-    mode: 'action',
-    awaitEvent: { event: 'message-sent-demo' },
     popover: {
-      title: 'Envía tu primer mensaje',
+      title: 'Responde con un atajo',
       description:
-        'Escribe una respuesta y pulsa Enter (o el botón de enviar). Estás en una conversación de práctica con un visitante ficticio: nada se enviará a un cliente real. El tour avanzará automáticamente cuando envíes el mensaje.',
+        'Escribe tu mensaje y pulsa Enter para enviar (Shift+Enter para salto de línea). Tu cliente verá que estás escribiendo en tiempo real.',
       side: 'top',
       align: 'center',
     },
   },
-  // 5. ACTION: open the visitor detail panel from inside the conversation
-  {
-    element: '[data-tour="chat-detail-toggle"]',
-    route: '/inbox',
-    mode: 'action',
-    awaitClick: true,
-    popover: {
-      title: 'Conoce mejor a tu visitante',
-      description:
-        'Pulsa el icono del panel lateral (arriba a la derecha) para abrir la ficha del visitante. El tour avanza automáticamente al hacer clic.',
-      side: 'left',
-      align: 'start',
-    },
-  },
-  // 6. INFO: explain the visitor detail panel that just opened
+  // 6. Visitor detail panel — context without leaving the chat
   {
     element: '[data-tour="visitor-detail-panel"]',
     route: '/inbox',
     popover: {
-      title: 'Toda la información del visitante a un vistazo',
+      title: 'Ficha del visitante',
       description:
-        'Aquí ves su contacto, actividad, página actual y datos clave para personalizar la atención sin cambiar de pantalla.',
+        'Contacto, página actual, dispositivo y actividad reciente — todo el contexto del visitante a la derecha, sin abandonar la conversación.',
       side: 'left',
       align: 'start',
     },
   },
-  // 7. ACTION: navigate to the Visitors section via the sidebar
+  // 7. Escalations — urgency / SLA awareness
   {
-    element: '[data-tour="nav-visitors"]',
+    element: '[data-tour="nav-escalations"]',
     route: '/inbox',
-    mode: 'action',
-    awaitClick: true,
     popover: {
-      title: 'Ahora vamos a Visitantes',
+      title: 'Escalaciones',
       description:
-        'Pulsa "Visitantes" en el menú lateral para ver quién está navegando tu sitio en tiempo real. El tour avanza al hacer clic.',
+        'Casos que requieren atención prioritaria o intervención de un superior. El badge rojo te avisa cuando hay alguno pendiente.',
       side: 'right',
       align: 'center',
     },
   },
-  // 8. Visitors overview (info)
+  // 8. Live visitors — proactive engagement
   {
-    element: '[data-tour="visitors-panel"]',
-    route: '/visitors',
+    element: '[data-tour="nav-visitors"]',
+    route: '/inbox',
     popover: {
-      title: 'Personas navegando ahora mismo',
+      title: 'Visitantes en vivo',
       description:
-        'Ves en tiempo real a cada visitante en tu sitio antes de que escriba. Puedes iniciar tú la conversación.',
-      side: 'bottom',
-      align: 'start',
-    },
-  },
-  // 9. ACTION: open advanced filters
-  {
-    element: '[data-tour="visitors-advanced-btn"]',
-    route: '/visitors',
-    mode: 'action',
-    awaitClick: true,
-    popover: {
-      title: 'Filtra para encontrar al visitante clave',
-      description:
-        'Pulsa "Filtros avanzados" para acotar por página, tiempo en el sitio o canal. El tour avanza al hacer clic.',
-      side: 'bottom',
-      align: 'start',
-    },
-  },
-  // 10. ACTION: click a visitor to start a chat
-  {
-    element: '[data-tour="visitor-item-first"]',
-    route: '/visitors',
-    mode: 'action',
-    awaitClick: true,
-    popover: {
-      title: 'Abre el panel de un visitante',
-      description:
-        'Solo para practicar — haz clic en cualquier visitante para ver su panel. El tour avanza y no iniciará ningún chat real.',
-      side: 'top',
+        'Aquí ves quién está navegando tu sitio ahora mismo, antes incluso de que escriba. Puedes adelantarte e iniciar tú la conversación.',
+      side: 'right',
       align: 'center',
     },
   },
-  // 11. Wrap-up
+  // 9. Wrap-up — where to relaunch
   {
     element: '[data-tour="sidebar-header"]',
     route: '/inbox',
     popover: {
       title: 'Listo para atender',
       description:
-        'Ya conoces lo esencial. Recuerda que puedes volver a lanzar este tour desde el botón "Tour de la app" del menú lateral.',
+        'Ya conoces lo esencial. Puedes volver a lanzar este tour cuando quieras desde el botón "Tour de la app" en el menú lateral.',
       side: 'right',
       align: 'start',
     },

@@ -25,9 +25,13 @@ describe('consoleTour', () => {
     expect(consoleTour[0].route).toBe('/inbox');
   });
 
-  it('should include a step for visitors route /visitors', () => {
-    const hasVisitors = consoleTour.some((step) => step.route === '/visitors');
-    expect(hasVisitors).toBe(true);
+  it('should include a step for visitors nav (highlighted from /inbox)', () => {
+    // The new informational tour stays on /inbox the whole time and
+    // simply points at the Visitantes sidebar entry rather than navigating.
+    const hasVisitorsNavStep = consoleTour.some(
+      (step) => step.element === '[data-tour="nav-visitors"]'
+    );
+    expect(hasVisitorsNavStep).toBe(true);
   });
 
   it('should include the sidebar-header step', () => {
@@ -37,55 +41,47 @@ describe('consoleTour', () => {
     expect(hasSidebar).toBe(true);
   });
 
-  it('should include at least one action step', () => {
+  it('should be fully informational (no auto-advance action steps)', () => {
+    // Decision: every step renders Prev/Next buttons; no step waits for the
+    // user to perform a real DOM action to progress. This keeps the tour
+    // resilient to DOM mutations and lets the user read at their own pace.
     const actionSteps = consoleTour.filter((step) => step.mode === 'action');
-    expect(actionSteps.length).toBeGreaterThanOrEqual(1);
+    expect(actionSteps.length).toBe(0);
   });
 
-  it('should include an action step targeting the first conversation item', () => {
-    const hasConvAction = consoleTour.some(
-      (step) =>
-        step.mode === 'action' &&
-        step.element === '[data-tour="conversation-item-first"]'
+  it('should highlight the agent status selector', () => {
+    const hasStatus = consoleTour.some(
+      (step) => step.element === '[data-tour="status-trigger"]'
     );
-    expect(hasConvAction).toBe(true);
+    expect(hasStatus).toBe(true);
   });
 
-  it('should include an action step targeting the message input', () => {
-    const hasMsgAction = consoleTour.some(
-      (step) =>
-        step.mode === 'action' &&
-        step.element === '[data-tour="message-input"]'
+  it('should highlight the message input', () => {
+    const hasMsg = consoleTour.some(
+      (step) => step.element === '[data-tour="message-input"]'
     );
-    expect(hasMsgAction).toBe(true);
+    expect(hasMsg).toBe(true);
   });
 
-  it('message-input action step should await the message-sent-demo event', () => {
-    const msgStep = consoleTour.find(
-      (step) =>
-        step.mode === 'action' &&
-        step.element === '[data-tour="message-input"]'
+  it('should highlight the visitor detail panel', () => {
+    const hasPanel = consoleTour.some(
+      (step) => step.element === '[data-tour="visitor-detail-panel"]'
     );
-    expect(msgStep).toBeDefined();
-    expect(msgStep?.awaitEvent?.event).toBe('message-sent-demo');
+    expect(hasPanel).toBe(true);
   });
 
-  it('should include an action step targeting the advanced filters button', () => {
-    const hasFilterAction = consoleTour.some(
-      (step) =>
-        step.mode === 'action' &&
-        step.element === '[data-tour="visitors-advanced-btn"]'
+  it('should highlight the escalations nav entry', () => {
+    const hasEscalations = consoleTour.some(
+      (step) => step.element === '[data-tour="nav-escalations"]'
     );
-    expect(hasFilterAction).toBe(true);
+    expect(hasEscalations).toBe(true);
   });
 
-  it('should include an action step targeting the first visitor item', () => {
-    const hasVisitorAction = consoleTour.some(
-      (step) =>
-        step.mode === 'action' &&
-        step.element === '[data-tour="visitor-item-first"]'
+  it('should highlight the visitors nav entry', () => {
+    const hasVisitorsNav = consoleTour.some(
+      (step) => step.element === '[data-tour="nav-visitors"]'
     );
-    expect(hasVisitorAction).toBe(true);
+    expect(hasVisitorsNav).toBe(true);
   });
 
   it('all popover sides should be valid placement values', () => {
@@ -95,53 +91,6 @@ describe('consoleTour', () => {
         validSides.includes(step.popover.side),
         `step ${i} side`
       ).toBe(true);
-    });
-  });
-
-  describe('visitor handoff sub-flow (between message-input and visitors-panel)', () => {
-    const indexOf = (selector: string) =>
-      consoleTour.findIndex((s) => s.element === selector);
-
-    it('includes an action step to open the visitor detail panel from inbox', () => {
-      const step = consoleTour.find(
-        (s) =>
-          s.mode === 'action' &&
-          s.element === '[data-tour="chat-detail-toggle"]' &&
-          s.route === '/inbox'
-      );
-      expect(step).toBeDefined();
-    });
-
-    it('includes an info step that highlights the visitor detail panel', () => {
-      const step = consoleTour.find(
-        (s) => s.element === '[data-tour="visitor-detail-panel"]' && s.route === '/inbox'
-      );
-      expect(step).toBeDefined();
-      expect(step?.mode === 'action').toBe(false);
-    });
-
-    it('includes an action step to navigate to /visitors via the sidebar nav', () => {
-      const step = consoleTour.find(
-        (s) =>
-          s.mode === 'action' &&
-          s.element === '[data-tour="nav-visitors"]'
-      );
-      expect(step).toBeDefined();
-    });
-
-    it('orders the new sub-flow strictly between message-input and visitors-panel', () => {
-      const msgIdx = indexOf('[data-tour="message-input"]');
-      const toggleIdx = indexOf('[data-tour="chat-detail-toggle"]');
-      const panelIdx = indexOf('[data-tour="visitor-detail-panel"]');
-      const navIdx = indexOf('[data-tour="nav-visitors"]');
-      const visitorsIdx = indexOf('[data-tour="visitors-panel"]');
-
-      expect(msgIdx).toBeGreaterThanOrEqual(0);
-      expect(visitorsIdx).toBeGreaterThanOrEqual(0);
-      expect(msgIdx).toBeLessThan(toggleIdx);
-      expect(toggleIdx).toBeLessThan(panelIdx);
-      expect(panelIdx).toBeLessThan(navIdx);
-      expect(navIdx).toBeLessThan(visitorsIdx);
     });
   });
 });

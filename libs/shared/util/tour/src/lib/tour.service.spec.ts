@@ -24,25 +24,29 @@ type CapturedTour = {
 const capturedTours: CapturedTour[] = [];
 
 vi.mock('shepherd.js', () => {
-  return {
-    Tour: vi.fn().mockImplementation(function (this: any, options: any) {
-      const listeners: Record<string, Array<() => void>> = {};
-      const inst: CapturedTour = {
-        options,
-        start: vi.fn(),
-        cancel: vi.fn(),
-        complete: vi.fn(),
-        next: vi.fn(),
-        back: vi.fn(),
-        on: vi.fn((event: string, cb: () => void) => {
-          (listeners[event] ??= []).push(cb);
-        }),
-        __listeners: listeners,
-      };
-      capturedTours.push(inst);
-      return inst;
-    }),
-  };
+  const TourCtor = vi.fn().mockImplementation(function (this: any, options: any) {
+    const listeners: Record<string, Array<() => void>> = {};
+    const inst: CapturedTour = {
+      options,
+      start: vi.fn(),
+      cancel: vi.fn(),
+      complete: vi.fn(),
+      next: vi.fn(),
+      back: vi.fn(),
+      on: vi.fn((event: string, cb: () => void) => {
+        (listeners[event] ??= []).push(cb);
+      }),
+      __listeners: listeners,
+    };
+    capturedTours.push(inst);
+    return inst;
+  });
+  // Shepherd v15 exposes a default singleton with `Tour` as a property.
+  // Service uses `new Shepherd.Tour(...)`, so the default export must
+  // carry `Tour` on it. We also re-export `Tour` as a named export for
+  // any consumers that prefer that import shape.
+  const Shepherd = { Tour: TourCtor };
+  return { default: Shepherd, Tour: TourCtor };
 });
 
 /** Helper: mock router.navigate + router.events so startTour resolves */
@@ -243,41 +247,57 @@ describe('TourService', () => {
     });
   });
 
-  describe('action vs info steps configuration', () => {
-    it('should configure action steps with advanceOn (no Next button)', async () => {
+  describe('step button + advance configuration', () => {
+    it('should configure every step with Prev/Next buttons (no auto-advance)', async () => {
+      // Decision: the tour is fully informational. No step uses advanceOn;
+      // every step renders at least one button (Next or Done), and steps
+      // after the first additionally render a Prev button.
       mockRouterNavigation(router);
       await service.startTour(consoleTourId, mockUserId);
 
       const steps = capturedTours[0].options.steps as any[];
-      // Step at index 2 is an action step in the console tour
-      const actionStep = steps[2];
-      expect(actionStep.advanceOn).toBeDefined();
-      expect(actionStep.advanceOn.event).toBe('click');
-      expect(actionStep.buttons).toEqual([]);
-      expect(actionStep.canClickTarget).toBe(true);
+      expect(steps.length).toBeGreaterThan(0);
+
+      steps.forEach((step, idx) => {
+        expect(
+          step.advanceOn,
+          `step ${idx} should not auto-advance`
+        ).toBeUndefined();
+        expect(
+          Array.isArray(step.buttons),
+          `step ${idx} should have buttons array`
+        ).toBe(true);
+        const expectedBtnCount = idx === 0 ? 1 : 2;
+        expect(
+          step.buttons.length,
+          `step ${idx} should have ${expectedBtnCount} button(s)`
+        ).toBe(expectedBtnCount);
+      });
     });
 
-    it('should configure info steps with buttons and no advanceOn', async () => {
+    it('should mark the last step Next button as the completion ("Done") button', async () => {
       mockRouterNavigation(router);
       await service.startTour(consoleTourId, mockUserId);
 
       const steps = capturedTours[0].options.steps as any[];
-      // Step at index 0 is the welcome (info) step
-      const infoStep = steps[0];
-      expect(infoStep.advanceOn).toBeUndefined();
-      expect(Array.isArray(infoStep.buttons)).toBe(true);
-      expect(infoStep.buttons.length).toBeGreaterThan(0);
+      const lastStep = steps[steps.length - 1];
+      const lastBtn = lastStep.buttons[lastStep.buttons.length - 1];
+      expect(lastBtn.text).toContain('Entendido');
     });
 
-    it('should respect awaitEvent.event when configured (e.g. message-sent-demo)', async () => {
+    it('should keep targets non-interactive by default (canClickTarget false)', async () => {
       mockRouterNavigation(router);
       await service.startTour(consoleTourId, mockUserId);
 
       const steps = capturedTours[0].options.steps as any[];
-      // Step 4 (index 3) uses awaitEvent: { event: 'message-sent-demo' }
-      const sendStep = steps[3];
-      expect(sendStep.advanceOn).toBeDefined();
-      expect(sendStep.advanceOn.event).toBe('message-sent-demo');
+      // No step in the new informational console tour opts in to
+      // `allowInteraction`, so all should report canClickTarget === false.
+      steps.forEach((step, idx) => {
+        expect(
+          step.canClickTarget,
+          `step ${idx} canClickTarget`
+        ).toBe(false);
+      });
     });
   });
 

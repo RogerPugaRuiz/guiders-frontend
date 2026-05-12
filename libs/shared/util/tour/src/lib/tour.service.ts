@@ -181,10 +181,13 @@ export class TourService {
   ): StepOptions[] {
     const total = steps.length;
     return steps.map((step, idx) => {
-      const isAction = step.mode === 'action';
       const isLast = idx === total - 1;
-      const advanceSelector = step.awaitEvent?.selector ?? step.element;
-      const advanceEvent = step.awaitEvent?.event ?? 'click';
+
+      // NOTE: Interactive auto-advance (advanceOn / awaitClick / awaitEvent)
+      // is intentionally disabled — every step renders Prev/Next buttons so
+      // the user fully controls progression. The `mode: 'action'` flag and
+      // `awaitEvent`/`awaitClick` config are kept in the public API for
+      // future re-enablement but are ignored here.
 
       const stepOpts: StepOptions = {
         id: `step-${idx}`,
@@ -197,39 +200,34 @@ export class TourService {
         },
         title: step.popover.title,
         text: step.popover.description,
-        // Action steps: target must be clickable AND we wire advanceOn so
-        // Shepherd auto-advances when the user performs the real action.
-        canClickTarget: isAction || step.allowInteraction === true,
-        ...(isAction
-          ? { advanceOn: { selector: advanceSelector, event: advanceEvent } }
-          : {}),
-        // Buttons: action steps render no Next button (forces interaction);
-        // info steps render Prev (when not first) and Next/Done.
-        buttons: isAction
-          ? []
-          : [
-              ...(idx > 0
-                ? [
-                    {
-                      text: '← Anterior',
-                      secondary: true,
-                      action(this: Tour) {
-                        this.back();
-                      },
-                    },
-                  ]
-                : []),
-              {
-                text: isLast ? '¡Entendido!' : 'Siguiente →',
-                action(this: Tour) {
-                  if (isLast) {
-                    this.complete();
-                  } else {
-                    this.next();
-                  }
+        // Target stays non-interactive by default so clicks on it don't
+        // accidentally trigger app behavior while the user reads. Opt-in
+        // per step via `allowInteraction: true` if needed.
+        canClickTarget: step.allowInteraction === true,
+        // Always render Prev (when not first) and Next/Done buttons.
+        buttons: [
+          ...(idx > 0
+            ? [
+                {
+                  text: '← Anterior',
+                  secondary: true,
+                  action(this: Tour) {
+                    this.back();
+                  },
                 },
-              },
-            ],
+              ]
+            : []),
+          {
+            text: isLast ? '¡Entendido!' : 'Siguiente →',
+            action(this: Tour) {
+              if (isLast) {
+                this.complete();
+              } else {
+                this.next();
+              }
+            },
+          },
+        ],
         // Navigate before showing this step (handles route transitions
         // between non-contiguous routes like /inbox → /visitors).
         beforeShowPromise: step.route
