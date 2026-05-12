@@ -604,6 +604,12 @@ export class Inbox implements OnInit, OnDestroy {
   // ===== MÉTODOS AUXILIARES =====
 
   private loadMessages(chatId: string): void {
+    // Demo chats are seeded by TourSandboxService and exposed via
+    // ChatService.messages$ — never hit the backend for them, otherwise
+    // the 404 error path would clear the editor gate (messages.length > 0).
+    if (isDemoId(chatId)) {
+      return;
+    }
     this.chatService
       .getMessagesV2(chatId, {
         limit: 50,

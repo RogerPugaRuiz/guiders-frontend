@@ -135,4 +135,57 @@ describe('Inbox', () => {
       expect(simulateReplySpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('onUserSelected · TourSandbox integration', () => {
+    let chatService: ChatService;
+    let sandbox: TourSandboxService;
+    let getMessagesV2Spy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(() => {
+      chatService = TestBed.inject(ChatService);
+      sandbox = TestBed.inject(TourSandboxService);
+      getMessagesV2Spy = vi
+        .spyOn(chatService, 'getMessagesV2')
+        .mockReturnValue(
+          of({ messages: [], total: 0, hasMore: false, nextCursor: null }) as never
+        );
+    });
+
+    it('does not call getMessagesV2 for demo chats (sandbox provides messages)', () => {
+      sandbox.activate();
+      const demoChat = sandbox.chatsSnapshot[0];
+      expect(demoChat).toBeTruthy();
+
+      component.onUserSelected(demoChat as never);
+
+      expect(getMessagesV2Spy).not.toHaveBeenCalled();
+      expect(component.selectedConversationId()).toBe(DEMO_CHAT_ID);
+    });
+
+    it('exposes the seeded demo message via currentMessages after selection', () => {
+      sandbox.activate();
+      // Mirror what ChatTourSandboxLifecycleHook does on tour start.
+      chatService.addDemoChat(sandbox.chatsSnapshot[0]);
+      chatService.setDemoMessages(
+        DEMO_CHAT_ID,
+        sandbox.messagesSnapshot[DEMO_CHAT_ID] ?? []
+      );
+
+      const demoChat = sandbox.chatsSnapshot[0];
+      component.onUserSelected(demoChat as never);
+
+      expect(component.currentMessages().length).toBeGreaterThan(0);
+      expect(component.currentMessages()[0].chatId).toBe(DEMO_CHAT_ID);
+    });
+
+    it('still calls getMessagesV2 for real chats', () => {
+      const realChat = { chatId: 'real-chat-999', participants: [] } as never;
+      component.onUserSelected(realChat);
+
+      expect(getMessagesV2Spy).toHaveBeenCalledWith(
+        'real-chat-999',
+        expect.objectContaining({ limit: 50 })
+      );
+    });
+  });
 });
