@@ -7,14 +7,43 @@ import { TourService } from './tour.service';
 import { TourId } from './tour-step.interface';
 import { TOUR_LIFECYCLE_HOOKS, TourLifecycleHook } from './tour-lifecycle-hook';
 
-// Mock driver.js to avoid DOM dependencies in unit tests
-vi.mock('driver.js', () => ({
-  driver: vi.fn(() => ({
-    drive: vi.fn(),
-    destroy: vi.fn(),
-    moveNext: vi.fn(),
-  })),
-}));
+// Mock shepherd.js to avoid DOM dependencies in unit tests.
+// We capture the constructor args + event listeners so tests can simulate
+// `complete` / `cancel` events and inspect the steps that were built.
+type CapturedTour = {
+  options: any;
+  start: ReturnType<typeof vi.fn>;
+  cancel: ReturnType<typeof vi.fn>;
+  complete: ReturnType<typeof vi.fn>;
+  next: ReturnType<typeof vi.fn>;
+  back: ReturnType<typeof vi.fn>;
+  on: ReturnType<typeof vi.fn>;
+  __listeners: Record<string, Array<() => void>>;
+};
+
+const capturedTours: CapturedTour[] = [];
+
+vi.mock('shepherd.js', () => {
+  return {
+    Tour: vi.fn().mockImplementation(function (this: any, options: any) {
+      const listeners: Record<string, Array<() => void>> = {};
+      const inst: CapturedTour = {
+        options,
+        start: vi.fn(),
+        cancel: vi.fn(),
+        complete: vi.fn(),
+        next: vi.fn(),
+        back: vi.fn(),
+        on: vi.fn((event: string, cb: () => void) => {
+          (listeners[event] ??= []).push(cb);
+        }),
+        __listeners: listeners,
+      };
+      capturedTours.push(inst);
+      return inst;
+    }),
+  };
+});
 
 /** Helper: mock router.navigate + router.events so startTour resolves */
 function mockRouterNavigation(router: Router): void {
@@ -23,6 +52,12 @@ function mockRouterNavigation(router: Router): void {
     get: () => of(new NavigationEnd(1, '/', '/')),
     configurable: true,
   });
+}
+
+/** Fire the named Shepherd event on the most-recently created Tour. */
+function fireShepherdEvent(event: 'complete' | 'cancel'): void {
+  const last = capturedTours[capturedTours.length - 1];
+  last?.__listeners[event]?.forEach((cb) => cb());
 }
 
 describe('TourService', () => {
@@ -35,6 +70,7 @@ describe('TourService', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    capturedTours.length = 0;
 
     TestBed.configureTestingModule({
       imports: [RouterTestingModule.withRoutes([])],
@@ -116,21 +152,20 @@ describe('TourService', () => {
   // --- startTour ---
 
   describe('startTour()', () => {
-    it('should mark tour as completed when driver is destroyed', async () => {
-      const { driver } = await import('driver.js');
-      let destroyCallback: (() => void) | undefined;
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config: { onDestroyed?: () => void }) => {
-        destroyCallback = config.onDestroyed;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
-      });
-
+    it('should mark tour as completed when Shepherd emits complete', async () => {
       mockRouterNavigation(router);
-
       await service.startTour(consoleTourId, mockUserId);
 
-      // Simulate driver destruction (tour completed)
-      destroyCallback?.();
+      fireShepherdEvent('complete');
+
+      expect(service.isCompleted(consoleTourId, mockUserId)).toBe(true);
+    });
+
+    it('should mark tour as completed when Shepherd emits cancel', async () => {
+      mockRouterNavigation(router);
+      await service.startTour(consoleTourId, mockUserId);
+
+      fireShepherdEvent('cancel');
 
       expect(service.isCompleted(consoleTourId, mockUserId)).toBe(true);
     });
@@ -154,283 +189,95 @@ describe('TourService', () => {
     });
 
     it('should not start a second tour if one is already running', async () => {
-      const { driver } = await import('driver.js');
-      const mockDrive = vi.fn();
-
-      (driver as ReturnType<typeof vi.fn>).mockReturnValue({
-        drive: mockDrive,
-        destroy: vi.fn(),
-        moveNext: vi.fn(),
-      });
-
       mockRouterNavigation(router);
 
-      // Call startTour twice concurrently — second call should be ignored
       await Promise.all([
         service.startTour(consoleTourId, mockUserId),
         service.startTour(consoleTourId, mockUserId),
       ]);
 
-      expect(mockDrive).toHaveBeenCalledTimes(1);
+      expect(capturedTours).toHaveLength(1);
+      expect(capturedTours[0].start).toHaveBeenCalledTimes(1);
     });
 
-    it('should call driver.drive() to start the tour', async () => {
-      const { driver } = await import('driver.js');
-      const mockDrive = vi.fn();
-
-      (driver as ReturnType<typeof vi.fn>).mockReturnValue({
-        drive: mockDrive,
-        destroy: vi.fn(),
-        moveNext: vi.fn(),
-      });
-
+    it('should call tour.start() to launch the tour', async () => {
       mockRouterNavigation(router);
-
       await service.startTour(consoleTourId, mockUserId);
 
-      expect(mockDrive).toHaveBeenCalled();
+      expect(capturedTours[0].start).toHaveBeenCalled();
     });
 
     it('should not start a second time for the same user even after the first tour finished', async () => {
-      const { driver } = await import('driver.js');
-      const mockDrive = vi.fn();
-      let destroyCallback: (() => void) | undefined;
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config: { onDestroyed?: () => void }) => {
-        destroyCallback = config.onDestroyed;
-        return { drive: mockDrive, destroy: vi.fn(), moveNext: vi.fn() };
-      });
-
       mockRouterNavigation(router);
 
       await service.startTour(consoleTourId, mockUserId);
-      destroyCallback?.(); // first tour finishes
-      await service.startTour(consoleTourId, mockUserId); // try again
+      fireShepherdEvent('complete');
+      await service.startTour(consoleTourId, mockUserId);
 
-      expect(mockDrive).toHaveBeenCalledTimes(1);
+      expect(capturedTours).toHaveLength(1);
     });
 
     it('should allow restart after resetTour() is called', async () => {
-      const { driver } = await import('driver.js');
-      const mockDrive = vi.fn();
-      let destroyCallback: (() => void) | undefined;
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config: { onDestroyed?: () => void }) => {
-        destroyCallback = config.onDestroyed;
-        return { drive: mockDrive, destroy: vi.fn(), moveNext: vi.fn() };
-      });
-
       mockRouterNavigation(router);
 
       await service.startTour(consoleTourId, mockUserId);
-      destroyCallback?.();
+      fireShepherdEvent('complete');
 
       service.resetTour(consoleTourId, mockUserId);
 
       await service.startTour(consoleTourId, mockUserId);
 
-      expect(mockDrive).toHaveBeenCalledTimes(2);
+      expect(capturedTours).toHaveLength(2);
     });
 
     it('should run console and admin tours independently for the same user', async () => {
-      const { driver } = await import('driver.js');
-      const mockDrive = vi.fn();
-      let destroyCallback: (() => void) | undefined;
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config: { onDestroyed?: () => void }) => {
-        destroyCallback = config.onDestroyed;
-        return { drive: mockDrive, destroy: vi.fn(), moveNext: vi.fn() };
-      });
-
       mockRouterNavigation(router);
 
       await service.startTour(consoleTourId, mockUserId);
-      destroyCallback?.();
+      fireShepherdEvent('complete');
 
       await service.startTour(adminTourId, mockUserId);
-      destroyCallback?.();
+      fireShepherdEvent('complete');
 
-      expect(mockDrive).toHaveBeenCalledTimes(2);
+      expect(capturedTours).toHaveLength(2);
     });
   });
 
-  describe('action steps (auto-advance)', () => {
-    afterEach(() => {
-      vi.useRealTimers();
-    });
-
-    /** Build a fully-mocked popover object accepted by the real onPopoverRender. */
-    const buildPopover = () => {
-      const wrapper = document.createElement('div');
-      const footer = document.createElement('div');
-      wrapper.appendChild(footer);
-      const closeButton = document.createElement('button');
-      const nextButton = document.createElement('button');
-      return { wrapper, footer, closeButton, nextButton };
-    };
-
-    it('should hide the Next button on action steps via onPopoverRender', async () => {
-      const { driver } = await import('driver.js');
-      let capturedConfig: {
-        onPopoverRender?: (
-          popover: ReturnType<typeof buildPopover>,
-          ctx: { config: { steps: unknown[] }; state: { activeIndex: number } }
-        ) => void;
-      } = {};
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
-        capturedConfig = config;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
-      });
-
+  describe('action vs info steps configuration', () => {
+    it('should configure action steps with advanceOn (no Next button)', async () => {
       mockRouterNavigation(router);
       await service.startTour(consoleTourId, mockUserId);
 
-      // Step 3 (index 2) is an action step in the console tour
-      const popover = buildPopover();
-      capturedConfig.onPopoverRender?.(popover, {
-        config: { steps: new Array(8) },
-        state: { activeIndex: 2 },
-      });
-
-      expect(popover.nextButton.style.display).toBe('none');
+      const steps = capturedTours[0].options.steps as any[];
+      // Step at index 2 is an action step in the console tour
+      const actionStep = steps[2];
+      expect(actionStep.advanceOn).toBeDefined();
+      expect(actionStep.advanceOn.event).toBe('click');
+      expect(actionStep.buttons).toEqual([]);
+      expect(actionStep.canClickTarget).toBe(true);
     });
 
-    it('should show the Next button on info steps via onPopoverRender', async () => {
-      const { driver } = await import('driver.js');
-      let capturedConfig: {
-        onPopoverRender?: (
-          popover: ReturnType<typeof buildPopover>,
-          ctx: { config: { steps: unknown[] }; state: { activeIndex: number } }
-        ) => void;
-      } = {};
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
-        capturedConfig = config;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
-      });
-
+    it('should configure info steps with buttons and no advanceOn', async () => {
       mockRouterNavigation(router);
       await service.startTour(consoleTourId, mockUserId);
 
-      // Step 1 (index 0) is an info step
-      const popover = buildPopover();
-      capturedConfig.onPopoverRender?.(popover, {
-        config: { steps: new Array(8) },
-        state: { activeIndex: 0 },
-      });
-
-      expect(popover.nextButton.style.display).toBe('');
+      const steps = capturedTours[0].options.steps as any[];
+      // Step at index 0 is the welcome (info) step
+      const infoStep = steps[0];
+      expect(infoStep.advanceOn).toBeUndefined();
+      expect(Array.isArray(infoStep.buttons)).toBe(true);
+      expect(infoStep.buttons.length).toBeGreaterThan(0);
     });
 
-    it('should call moveNext when the action target is clicked', async () => {
-      const { driver } = await import('driver.js');
-      const moveNext = vi.fn();
-      let capturedConfig: {
-        onHighlighted?: (
-          el: Element | undefined,
-          step: unknown,
-          ctx: { state: { activeIndex: number } }
-        ) => void;
-      } = {};
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
-        capturedConfig = config;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext };
-      });
-
-      // Insert the target element into the DOM so the listener can attach
-      const target = document.createElement('div');
-      target.setAttribute('data-tour', 'conversation-item-first');
-      document.body.appendChild(target);
-
+    it('should respect awaitEvent.event when configured (e.g. message-sent-demo)', async () => {
       mockRouterNavigation(router);
       await service.startTour(consoleTourId, mockUserId);
 
-      // Activate step 3 (action step)
-      capturedConfig.onHighlighted?.(undefined, undefined, {
-        state: { activeIndex: 2 },
-      });
-
-      target.dispatchEvent(new Event('click'));
-
-      // Implementation defers moveNext via setTimeout(50)
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect(moveNext).toHaveBeenCalledTimes(1);
-      document.body.removeChild(target);
-    });
-
-    it('should not call moveNext on info steps even if the element is clicked', async () => {
-      const { driver } = await import('driver.js');
-      const moveNext = vi.fn();
-      let capturedConfig: {
-        onHighlighted?: (
-          el: Element | undefined,
-          step: unknown,
-          ctx: { state: { activeIndex: number } }
-        ) => void;
-      } = {};
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
-        capturedConfig = config;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext };
-      });
-
-      const target = document.createElement('div');
-      target.setAttribute('data-tour', 'sidebar-header');
-      document.body.appendChild(target);
-
-      mockRouterNavigation(router);
-      await service.startTour(consoleTourId, mockUserId);
-
-      // Step 1 (info)
-      capturedConfig.onHighlighted?.(undefined, undefined, {
-        state: { activeIndex: 0 },
-      });
-
-      target.dispatchEvent(new Event('click'));
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      expect(moveNext).not.toHaveBeenCalled();
-      document.body.removeChild(target);
-    });
-
-    it('should clean up listeners on onDeselected to avoid leaks', async () => {
-      const { driver } = await import('driver.js');
-      const moveNext = vi.fn();
-      let capturedConfig: {
-        onHighlighted?: (
-          el: Element | undefined,
-          step: unknown,
-          ctx: { state: { activeIndex: number } }
-        ) => void;
-        onDeselected?: () => void;
-      } = {};
-
-      (driver as ReturnType<typeof vi.fn>).mockImplementation((config) => {
-        capturedConfig = config;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext };
-      });
-
-      const target = document.createElement('div');
-      target.setAttribute('data-tour', 'conversation-item-first');
-      document.body.appendChild(target);
-
-      mockRouterNavigation(router);
-      await service.startTour(consoleTourId, mockUserId);
-
-      capturedConfig.onHighlighted?.(undefined, undefined, {
-        state: { activeIndex: 2 },
-      });
-      capturedConfig.onDeselected?.();
-
-      // After deselection, click should NOT advance
-      target.dispatchEvent(new Event('click'));
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      expect(moveNext).not.toHaveBeenCalled();
-
-      document.body.removeChild(target);
+      const steps = capturedTours[0].options.steps as any[];
+      // Step 4 (index 3) uses awaitEvent: { event: 'message-sent-demo' }
+      const sendStep = steps[3];
+      expect(sendStep.advanceOn).toBeDefined();
+      expect(sendStep.advanceOn.event).toBe('message-sent-demo');
     });
   });
 
@@ -493,6 +340,7 @@ describe('TourService — lifecycle hooks', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    capturedTours.length = 0;
   });
 
   afterEach(() => {
@@ -517,25 +365,15 @@ describe('TourService — lifecycle hooks', () => {
     expect(hookB.onTourStart).toHaveBeenCalledWith(consoleTourId, mockUserId);
   });
 
-  it('should invoke onTourEnd for every registered hook when driver is destroyed', async () => {
+  it('should invoke onTourEnd for every registered hook when Shepherd completes', async () => {
     const hook: TourLifecycleHook = {
       onTourStart: vi.fn(),
       onTourEnd: vi.fn(),
     };
 
-    const { driver } = await import('driver.js');
-    let destroyCallback: (() => void) | undefined;
-
-    (driver as ReturnType<typeof vi.fn>).mockImplementation(
-      (config: { onDestroyed?: () => void }) => {
-        destroyCallback = config.onDestroyed;
-        return { drive: vi.fn(), destroy: vi.fn(), moveNext: vi.fn() };
-      }
-    );
-
     const service = setupTestBedWithHooks([hook]);
     await service.startTour(consoleTourId, mockUserId);
-    destroyCallback?.();
+    fireShepherdEvent('complete');
 
     await Promise.resolve();
     expect(hook.onTourEnd).toHaveBeenCalledWith(consoleTourId, mockUserId);

@@ -14,14 +14,14 @@ import { TourId } from './tour-step.interface';
  */
 export interface TourLifecycleHook {
   /**
-   * Called immediately after `_startedPairs.add(...)` and before driver.js
+   * Called immediately after `_startedPairs.add(...)` and before the tour
    * navigates to the first step. Use to seed sandbox/demo data.
    */
   onTourStart(tourId: TourId, userId: string): void | Promise<void>;
 
   /**
-   * Called inside the driver.js `onDestroyed` callback, after the tour is
-   * marked as completed. Use to tear down sandbox/demo data.
+   * Called inside the Shepherd `complete`/`cancel` callbacks, after the tour
+   * is marked as completed. Use to tear down sandbox/demo data.
    */
   onTourEnd(tourId: TourId, userId: string): void | Promise<void>;
 }

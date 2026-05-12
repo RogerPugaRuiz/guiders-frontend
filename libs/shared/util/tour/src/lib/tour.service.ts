@@ -1,11 +1,26 @@
 import { Injectable, inject } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { driver, DriveStep } from 'driver.js';
+import Shepherd, { type Tour, type StepOptions } from 'shepherd.js';
 import { filter, firstValueFrom } from 'rxjs';
-import { TourId, TourStepConfig } from './tour-step.interface';
+import {
+  TourId,
+  TourStepConfig,
+  TourStepPopover,
+} from './tour-step.interface';
 import { consoleTour } from './tours/console.tour';
 import { adminTour } from './tours/admin.tour';
 import { TOUR_LIFECYCLE_HOOKS, TourLifecycleHook } from './tour-lifecycle-hook';
+
+/**
+ * Maps our internal `side`/`align` to a Shepherd/Popper placement string.
+ * Defaults to `'bottom'` when no side is provided.
+ */
+function toPopperPlacement(popover: TourStepPopover): string {
+  const side = popover.side ?? 'bottom';
+  const align = popover.align;
+  if (!align || align === 'center') return side;
+  return `${side}-${align}`;
+}
 
 @Injectable({ providedIn: 'root' })
 export class TourService {
@@ -16,10 +31,8 @@ export class TourService {
    * Decoupled via {@link TOUR_LIFECYCLE_HOOKS} multi-provider to keep
    * `scope:shared` free of `scope:chat` imports.
    */
-  private readonly lifecycleHooks = inject<TourLifecycleHook[]>(
-    TOUR_LIFECYCLE_HOOKS,
-    { optional: true }
-  ) ?? [];
+  private readonly lifecycleHooks =
+    inject<TourLifecycleHook[]>(TOUR_LIFECYCLE_HOOKS, { optional: true }) ?? [];
   private _isRunning = false;
   /**
    * In-memory record of which (tourId, userId) pairs have already been started
@@ -90,8 +103,7 @@ export class TourService {
     }
 
     // Wait for the router to complete its initial navigation before
-    // attempting to navigate to the first tour step. If the router has
-    // already navigated (router.navigated === true) this resolves instantly.
+    // attempting to navigate to the first tour step.
     if (!this.router.navigated) {
       await Promise.race([
         firstValueFrom(
@@ -101,138 +113,182 @@ export class TourService {
       ]);
     }
 
-    // Navigate to the first step route
+    // Navigate to the first step route up-front so Shepherd can find the
+    // attachTo element on initial show.
     const firstRoute = steps[0].route;
     if (firstRoute) {
-      // Subscribe to NavigationEnd BEFORE calling navigate to avoid race condition
-      const navigationDone$ = this.router.events.pipe(
-        filter((e) => e instanceof NavigationEnd)
-      );
-      const navigationComplete = firstValueFrom(navigationDone$);
-      await this.router.navigate([firstRoute]);
-      await Promise.race([
-        navigationComplete,
-        new Promise((resolve) => setTimeout(resolve, 2000)),
-      ]);
+      await this.navigateTo(firstRoute);
     }
 
     // Extra tick to let Angular finish rendering the routed component tree
     await new Promise((resolve) => setTimeout(resolve, 150));
 
-    // Track currently registered auto-advance listener so we can clean it up
-    // when the active step changes or the tour is destroyed.
-    let activeListenerCleanup: (() => void) | null = null;
-    const cleanupActiveListener = () => {
-      if (activeListenerCleanup) {
-        activeListenerCleanup();
-        activeListenerCleanup = null;
-      }
-    };
-
-    const driverInstance = driver({
-      showProgress: true,
-      progressText: '{{current}} de {{total}}',
-      nextBtnText: 'Siguiente →',
-      prevBtnText: '← Anterior',
-      doneBtnText: '¡Entendido!',
-      onHighlighted: (_el, _step, { state }) => {
-        // Wire up auto-advance for action steps when the step becomes active.
-        cleanupActiveListener();
-        const idx = state.activeIndex ?? 0;
-        const stepCfg = steps[idx];
-        if (!stepCfg || stepCfg.mode !== 'action') return;
-
-        const target = stepCfg.awaitEvent?.selector ?? stepCfg.element;
-        const eventName = stepCfg.awaitEvent?.event ?? 'click';
-        const node = document.querySelector(target);
-        if (!node) return; // Fallback: keep Next button visible
-
-        const handler = () => {
-          cleanupActiveListener();
-          // Defer to next tick so the user sees the action take effect.
-          setTimeout(() => driverInstance.moveNext(), 50);
-        };
-        node.addEventListener(eventName, handler, { once: true });
-        activeListenerCleanup = () => node.removeEventListener(eventName, handler);
+    const tour: Tour = new Shepherd.Tour({
+      useModalOverlay: true,
+      keyboardNavigation: true,
+      exitOnEsc: true,
+      defaultStepOptions: {
+        scrollTo: { behavior: 'smooth', block: 'center' },
+        cancelIcon: { enabled: true, label: 'Cerrar tour' },
+        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningRadius: 8,
+        classes: 'guiders-tour',
+        arrow: true,
       },
-      onDeselected: () => {
-        cleanupActiveListener();
-      },
-      onPopoverRender: (popover, { config, state }) => {
-        // Hide the Next button on action steps so the user is forced to perform the action
-        const idx = state.activeIndex ?? 0;
-        const stepCfg = steps[idx];
-        const nextBtn = popover.nextButton as HTMLElement | undefined;
-        if (nextBtn) {
-          nextBtn.style.display = stepCfg?.mode === 'action' ? 'none' : '';
-        }
-        // Replace native close button with a custom one we fully control
-        const nativeClose = popover.closeButton as HTMLElement | undefined;
-        if (nativeClose) {
-          nativeClose.style.display = 'none';
-        }
-        const existing = popover.wrapper.querySelector('.guiders-tour-close');
-        if (!existing) {
-          const btn = document.createElement('button');
-          btn.className = 'guiders-tour-close';
-          btn.setAttribute('aria-label', 'Cerrar tour');
-          btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
-          </svg>`;
-          btn.addEventListener('click', () => driverInstance.destroy());
-          popover.wrapper.appendChild(btn);
-        }
-
-        // Progress bar above footer
-        const total = (config.steps ?? []).length;
-        const current = (state.activeIndex ?? 0) + 1;
-        const pct = total > 0 ? (current / total) * 100 : 0;
-
-        let bar = popover.wrapper.querySelector('.guiders-tour-progress') as HTMLElement | null;
-        if (!bar) {
-          bar = document.createElement('div');
-          bar.className = 'guiders-tour-progress';
-          const fill = document.createElement('div');
-          fill.className = 'guiders-tour-progress__fill';
-          bar.appendChild(fill);
-          popover.footer.before(bar);
-        }
-        const fill = bar.querySelector('.guiders-tour-progress__fill') as HTMLElement;
-        fill.style.width = `${pct}%`;
-      },
-      onDestroyed: () => {
-        cleanupActiveListener();
-        this._isRunning = false;
-        this.markCompleted(tourId, userId);
-        // Fire-and-forget teardown of sandbox/demo data
-        void this.runHooks('end', tourId, userId);
-      },
-      steps: this.buildDriveSteps(steps),
+      steps: this.buildShepherdSteps(steps, (): Tour => tour),
     });
 
-    driverInstance.drive();
+    tour.on('complete', () => {
+      this._isRunning = false;
+      this.markCompleted(tourId, userId);
+      void this.runHooks('end', tourId, userId);
+    });
+    tour.on('cancel', () => {
+      this._isRunning = false;
+      this.markCompleted(tourId, userId);
+      void this.runHooks('end', tourId, userId);
+    });
+
+    tour.start();
+  }
+
+  private async navigateTo(route: string): Promise<void> {
+    const navigationDone$ = this.router.events.pipe(
+      filter((e) => e instanceof NavigationEnd)
+    );
+    const navigationComplete = firstValueFrom(navigationDone$);
+    const currentUrl = this.router.url.split('?')[0];
+    if (currentUrl === route) return;
+    await this.router.navigate([route]);
+    await Promise.race([
+      navigationComplete,
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
   }
 
   private resolveSteps(tourId: TourId): TourStepConfig[] {
     switch (tourId) {
-      case 'console': return consoleTour;
-      case 'admin':   return adminTour;
+      case 'console':
+        return consoleTour;
+      case 'admin':
+        return adminTour;
     }
   }
 
-  private buildDriveSteps(steps: TourStepConfig[]): DriveStep[] {
-    return steps.map((step) => ({
-      element: step.element,
-      // Action steps need the highlighted element to remain interactive
-      disableActiveInteraction:
-        step.mode === 'action' || step.allowInteraction ? false : undefined,
-      popover: {
+  private buildShepherdSteps(
+    steps: TourStepConfig[],
+    getTour: () => Tour
+  ): StepOptions[] {
+    const total = steps.length;
+    return steps.map((step, idx) => {
+      const isAction = step.mode === 'action';
+      const isLast = idx === total - 1;
+      const advanceSelector = step.awaitEvent?.selector ?? step.element;
+      const advanceEvent = step.awaitEvent?.event ?? 'click';
+
+      const stepOpts: StepOptions = {
+        id: `step-${idx}`,
+        attachTo: {
+          element: step.element,
+          // Shepherd uses Popper placement strings (e.g. 'left-start').
+          // Cast through `any` because our public API constrains side/align
+          // to a friendlier subset.
+          on: toPopperPlacement(step.popover) as any,
+        },
         title: step.popover.title,
-        description: step.popover.description,
-        side: step.popover.side,
-        align: step.popover.align,
-      },
-    }));
+        text: step.popover.description,
+        // Action steps: target must be clickable AND we wire advanceOn so
+        // Shepherd auto-advances when the user performs the real action.
+        canClickTarget: isAction || step.allowInteraction === true,
+        ...(isAction
+          ? { advanceOn: { selector: advanceSelector, event: advanceEvent } }
+          : {}),
+        // Buttons: action steps render no Next button (forces interaction);
+        // info steps render Prev (when not first) and Next/Done.
+        buttons: isAction
+          ? []
+          : [
+              ...(idx > 0
+                ? [
+                    {
+                      text: '← Anterior',
+                      secondary: true,
+                      action(this: Tour) {
+                        this.back();
+                      },
+                    },
+                  ]
+                : []),
+              {
+                text: isLast ? '¡Entendido!' : 'Siguiente →',
+                action(this: Tour) {
+                  if (isLast) {
+                    this.complete();
+                  } else {
+                    this.next();
+                  }
+                },
+              },
+            ],
+        // Navigate before showing this step (handles route transitions
+        // between non-contiguous routes like /inbox → /visitors).
+        beforeShowPromise: step.route
+          ? async () => {
+              await this.navigateTo(step.route!);
+              // Let Angular finish rendering routed components / dynamic UI
+              // (e.g. visitor detail panel that appears after a click).
+              await new Promise((resolve) => setTimeout(resolve, 200));
+            }
+          : undefined,
+        when: {
+          show(this: any) {
+            // Inject a thin progress bar above the footer for every step.
+            const tourInst = getTour();
+            const el: HTMLElement | null | undefined =
+              typeof this.getElement === 'function' ? this.getElement() : this.el;
+            if (!el) return;
+            const current = idx + 1;
+            const pct = total > 0 ? (current / total) * 100 : 0;
+            let bar = el.querySelector(
+              '.guiders-tour-progress'
+            ) as HTMLElement | null;
+            if (!bar) {
+              bar = document.createElement('div');
+              bar.className = 'guiders-tour-progress';
+              const fill = document.createElement('div');
+              fill.className = 'guiders-tour-progress__fill';
+              bar.appendChild(fill);
+              const footer = el.querySelector('.shepherd-footer');
+              if (footer) {
+                footer.before(bar);
+              } else {
+                el.appendChild(bar);
+              }
+            }
+            const fill = bar.querySelector(
+              '.guiders-tour-progress__fill'
+            ) as HTMLElement;
+            fill.style.width = `${pct}%`;
+
+            // Render a small "X de Y" indicator inside the header.
+            let counter = el.querySelector(
+              '.guiders-tour-counter'
+            ) as HTMLElement | null;
+            if (!counter) {
+              counter = document.createElement('div');
+              counter.className = 'guiders-tour-counter';
+              el.prepend(counter);
+            }
+            counter.textContent = `${current} de ${total}`;
+
+            // Reference to silence unused-var lint on getTour in some configs.
+            void tourInst;
+          },
+        },
+      };
+
+      return stepOpts;
+    });
   }
 
   private async runHooks(

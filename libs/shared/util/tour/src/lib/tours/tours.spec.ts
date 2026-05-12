@@ -88,7 +88,7 @@ describe('consoleTour', () => {
     expect(hasVisitorAction).toBe(true);
   });
 
-  it('all popover sides should be valid driver.js values', () => {
+  it('all popover sides should be valid placement values', () => {
     const validSides = ['top', 'right', 'bottom', 'left', undefined];
     consoleTour.forEach((step, i) => {
       expect(
@@ -186,7 +186,7 @@ describe('adminTour', () => {
     expect(hasIntegrations).toBe(true);
   });
 
-  it('all popover sides should be valid driver.js values', () => {
+  it('all popover sides should be valid placement values', () => {
     const validSides = ['top', 'right', 'bottom', 'left', undefined];
     adminTour.forEach((step, i) => {
       expect(
