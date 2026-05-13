@@ -24,6 +24,7 @@ import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-s
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { EscalationService } from '@guiders-frontend/escalation-service';
+import { CHAT_TOUR_SANDBOX_HOOK_PROVIDER } from '@guiders-frontend/tour-sandbox';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -316,5 +317,8 @@ export const appConfig: ApplicationConfig = {
       useFactory: initializeSessionGuardian,
       multi: true,
     },
+    // Registrar el hook de sandbox del tour para sembrar/limpiar
+    // datos demo en ChatService alrededor del ciclo de vida del tour console.
+    CHAT_TOUR_SANDBOX_HOOK_PROVIDER,
   ],
 };

@@ -34,7 +34,7 @@
 
       @if (!isPanelOpen) {
       <button class="guiders-chat-placeholder__action-btn" (click)="onSettingsClick()" type="button"
-        aria-label="Abrir panel de detalles">
+        aria-label="Abrir panel de detalles" data-tour="chat-detail-toggle">
         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect width="18" height="18" x="3" y="3" rx="2" />
@@ -149,7 +149,5 @@
     }
   </div>
 
-  @if (messages.length > 0) {
   <guiders-message-input [chatId]="selectedChat.chatId" [siteId]="siteId" [mode]="'inbox'" (messageSent)="onMessageSent($event)" />
-  }
 </div>

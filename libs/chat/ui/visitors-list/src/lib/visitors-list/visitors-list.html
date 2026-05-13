@@ -149,6 +149,7 @@
                 [class.visitors-table__row--last]="last"
                 [class.visitors-table__row--new-batch]="isNewBatchRow(i)"
                 [style.animation-delay]="isNewBatchRow(i) ? getRowAnimationDelay(i) + 'ms' : '0ms'"
+                [attr.data-tour]="i === 0 ? 'visitor-item-first' : null"
                 (click)="onVisitorClick(visitor)"
                 role="row"
               >
@@ -157,6 +158,7 @@
                   <button
                     type="button"
                     class="row-drag-handle dropdown-trigger"
+                    [attr.data-tour]="i === 0 ? 'visitor-row-menu-trigger' : null"
                     (click)="toggleDropdown(visitor.id, $event)"
                     title="Más acciones"
                   >
@@ -176,6 +178,14 @@
                     <div class="visitor-details">
                       <div class="visitor-name">
                         <span class="name-text">{{ visitor.name || 'Visitante anónimo' }}</span>
+                        @if (isDemoVisitor(visitor.id)) {
+                          <guiders-badge
+                            data-testid="visitor-demo-badge"
+                            text="DEMO"
+                            variant="warning"
+                            size="small"
+                          />
+                        }
                         @if (visitor.isMe) {
                           <guiders-badge text="Tú" variant="primary" size="small" />
                         }

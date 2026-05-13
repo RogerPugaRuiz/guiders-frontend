@@ -14,6 +14,14 @@
   <div class="conversation-item__content">
     <div class="conversation-item__header">
       <h3 class="conversation-item__name">{{ getChatDisplayName() }}</h3>
+      @if (isDemo()) {
+        <guiders-badge
+          data-testid="conversation-demo-badge"
+          text="DEMO"
+          variant="warning"
+          size="small"
+        />
+      }
       <time class="conversation-item__time" 
             [attr.datetime]="getChatDatetime()">
         {{ formatChatTime() }}

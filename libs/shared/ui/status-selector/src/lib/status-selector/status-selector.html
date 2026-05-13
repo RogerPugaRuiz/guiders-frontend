@@ -1,6 +1,7 @@
 <button
   #triggerButton
   class="status-selector__trigger"
+  data-tour="status-trigger"
   (click)="toggleDropdown()"
   [attr.aria-expanded]="isDropdownOpen()"
   [disabled]="isUpdating()"

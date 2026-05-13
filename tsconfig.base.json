@@ -154,6 +154,9 @@
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
       ],
+      "@guiders-frontend/self-chat": [
+        "libs/chat/data-access/self-chat/src/index.ts"
+      ],
       "@guiders-frontend/lead-contact-service": [
         "libs/chat/data-access/lead-contact-service/src/index.ts"
       ],
@@ -195,11 +198,16 @@
         "libs/shared/data-access/theme/src/index.ts"
       ],
       "@guiders-frontend/shared/types": ["libs/shared/types/src/index.ts"],
+      "@guiders-frontend/shared/ui/skeleton": [
+        "libs/shared/ui/skeleton/src/index.ts"
+      ],
       "@guiders-frontend/shared/ui/toast": [
         "libs/shared/ui/toast/src/index.ts"
       ],
+      "@guiders-frontend/shared/util/tour": [
+        "libs/shared/util/tour/src/index.ts"
+      ],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
-      "@guiders-frontend/shared/ui/skeleton": ["libs/shared/ui/skeleton/src/index.ts"],
       "@guiders-frontend/status-selector": [
         "libs/shared/ui/status-selector/src/index.ts"
       ],
@@ -208,6 +216,9 @@
       ],
       "@guiders-frontend/theme-switcher": [
         "libs/shared/ui/theme-switcher/src/index.ts"
+      ],
+      "@guiders-frontend/tour-sandbox": [
+        "libs/chat/util/tour-sandbox/src/index.ts"
       ],
       "@guiders-frontend/types": ["libs/shared/types/src/index.ts"],
       "@guiders-frontend/typing-indicator": [

@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { Sidebar } from './sidebar';
 import { SidebarItem } from './sidebar.types';
 
@@ -41,5 +42,30 @@ describe('Sidebar', () => {
     expect(component.isCollapsed()).toBe(false);
     component.onToggleSidebar();
     expect(component.isCollapsed()).toBe(true);
+  });
+
+  // --- showTourButton propagation ---
+
+  describe('showTourButton input', () => {
+    it('should default showTourButton to false', () => {
+      expect(component.showTourButton()).toBe(false);
+    });
+
+    it('should accept showTourButton as true', () => {
+      fixture.componentRef.setInput('showTourButton', true);
+      fixture.detectChanges();
+      expect(component.showTourButton()).toBe(true);
+    });
+  });
+
+  // --- userStartTour output ---
+
+  describe('userStartTour output', () => {
+    it('should emit userStartTour when onUserStartTour() is called', () => {
+      const emitSpy = vi.fn();
+      component.userStartTour.subscribe(emitSpy);
+      component.onUserStartTour();
+      expect(emitSpy).toHaveBeenCalledTimes(1);
+    });
   });
 });

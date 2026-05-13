@@ -16,6 +16,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Badge } from '@guiders-frontend/badge';
+import { isDemoId } from '@guiders-frontend/tour-sandbox';
 import {
   Visitor,
   VisitorFilters,
@@ -774,5 +775,14 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
 
   hasUnreadMessages(visitorId: string): boolean {
     return this.unreadVisitorIds().has(visitorId);
+  }
+
+  /**
+   * Returns true when the visitor belongs to the tour sandbox demo state.
+   * Used by the template to render a `DEMO` badge so operators can tell
+   * sandbox rows from real visitors at a glance.
+   */
+  isDemoVisitor(visitorId: string): boolean {
+    return isDemoId(visitorId);
   }
 }

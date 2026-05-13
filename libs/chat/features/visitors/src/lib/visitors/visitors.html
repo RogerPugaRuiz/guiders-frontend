@@ -4,10 +4,10 @@
   <!-- Grid Bento principal -->
   <div class="visitors-grid bento-grid bento-grid--4-cols bento-grid--comfortable">
     <!-- Panel principal - Lista de visitantes -->
-    <div class="bento-card bento-card--4x3 visitors-panel">
+    <div class="bento-card bento-card--4x3 visitors-panel" data-tour="visitors-panel">
       <div class="bento-card-header">
         <h3 class="bento-card-title">Lista de Visitantes</h3>
-        <div class="header-actions">
+        <div class="header-actions" data-tour="visitors-refresh-controls">
           @if (lastRefreshTime()) {
             <span class="last-refresh-indicator">
               Actualizado {{ timeSinceLastRefresh() }}
@@ -46,24 +46,28 @@
       
       <div class="bento-card-content visitors-panel__content">
         <!-- Filtros rápidos y activos -->
-        <div class="visitors-panel__filters">
-          <guiders-visitors-quick-filters
-            [filters]="quickFilters()"
-            [activeFilterId]="selectedFilterId()"
-            [loading]="state().loading"
-            [savedFilters]="savedFilters()"
-            [selectedSavedFilterId]="selectedSavedFilterId()"
-            (filterSelect)="onQuickFilterSelect($event)"
-            (savedFilterSelect)="onSavedFilterSelect($event)"
-            (savedFilterDelete)="onSavedFilterDelete($event)"
-          />
+        <div class="visitors-panel__filters" data-tour="visitors-filters">
+          <div data-tour="visitors-quick-filters">
+            <guiders-visitors-quick-filters
+              [filters]="quickFilters()"
+              [activeFilterId]="selectedFilterId()"
+              [loading]="state().loading"
+              [savedFilters]="savedFilters()"
+              [selectedSavedFilterId]="selectedSavedFilterId()"
+              (filterSelect)="onQuickFilterSelect($event)"
+              (savedFilterSelect)="onSavedFilterSelect($event)"
+              (savedFilterDelete)="onSavedFilterDelete($event)"
+            />
+          </div>
 
-          <guiders-visitors-active-filters
-            [filters]="activeSearchFilters()"
-            (removeFilter)="onFilterRemove($event)"
-            (clearAll)="onFiltersClearAll()"
-            (openAdvanced)="onOpenAdvancedFilters()"
-          />
+          <div data-tour="visitors-active-filters">
+            <guiders-visitors-active-filters
+              [filters]="activeSearchFilters()"
+              (removeFilter)="onFilterRemove($event)"
+              (clearAll)="onFiltersClearAll()"
+              (openAdvanced)="onOpenAdvancedFilters()"
+            />
+          </div>
         </div>
 
         @if (state().error) {

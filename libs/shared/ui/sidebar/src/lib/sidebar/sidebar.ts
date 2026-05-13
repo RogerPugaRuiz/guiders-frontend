@@ -6,6 +6,8 @@ import {
   output,
   signal,
   effect,
+  ElementRef,
+  ViewChild,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -56,6 +58,9 @@ export class Sidebar {
   readonly appSwitcherLabel = input<string>('');
   readonly appSwitcherUrl = input<string>('');
 
+  // Tour input
+  readonly showTourButton = input<boolean>(false);
+
   // Outputs usando signals API
   readonly itemClick = output<SidebarItem>();
   readonly toggleSidebar = output<boolean>();
@@ -63,11 +68,18 @@ export class Sidebar {
   readonly userConfigureAccount = output<void>();
   readonly appSwitch = output<void>();
   readonly themeChange = output<'light' | 'dark'>();
+  readonly userStartTour = output<string>();
 
   // Estado interno con signals
   readonly isCollapsed = signal(false);
   /** Controls the theme picker dropdown in the sidebar footer */
   readonly isThemePickerOpen = signal(false);
+  /** Controls the help menu dropdown in the sidebar footer */
+  readonly isHelpOpen = signal(false);
+  /** Position of the help dropdown (fixed, calculated from button rect) */
+  readonly helpDropdownPos = signal<{ bottom: number; left: number } | null>(null);
+
+  @ViewChild('helpBtn') helpBtnRef?: ElementRef<HTMLButtonElement>;
   // Use ThemeService signal directly for reactivity
   readonly currentTheme = this.themeService.theme;
   readonly currentThemeOption = this.themeService.currentThemeOption;
@@ -143,6 +155,23 @@ export class Sidebar {
 
   closeThemePicker(): void {
     this.isThemePickerOpen.set(false);
+  }
+
+  toggleHelpMenu(): void {
+    if (!this.isHelpOpen()) {
+      const rect = this.helpBtnRef?.nativeElement.getBoundingClientRect();
+      if (rect) {
+        this.helpDropdownPos.set({
+          bottom: window.innerHeight - rect.top + 6,
+          left: rect.left,
+        });
+      }
+    }
+    this.isHelpOpen.update((v) => !v);
+  }
+
+  closeHelpMenu(): void {
+    this.isHelpOpen.set(false);
   }
 
   // Métodos
@@ -410,5 +439,9 @@ export class Sidebar {
 
   onAppSwitch(): void {
     this.appSwitch.emit();
+  }
+
+  onUserStartTour(tourId: string): void {
+    this.userStartTour.emit(tourId);
   }
 }
