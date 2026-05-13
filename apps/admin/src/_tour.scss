@@ -9,8 +9,9 @@
   z-index: 9998;
 }
 
-// Popover wrapper
-.shepherd-element {
+// Popover wrapper (scoped to our tour class so theme vars apply reliably)
+.shepherd-element.guiders-tour,
+.guiders-tour.shepherd-element {
   z-index: 9999;
   background: var(--color-surface-elevated, #ffffff);
   border-radius: var(--border-radius-xl, 16px);
@@ -35,13 +36,15 @@
   border-radius: inherit;
 }
 
-.shepherd-header {
+.shepherd-element.guiders-tour .shepherd-header,
+.guiders-tour .shepherd-header {
   padding: 0;
   background: transparent;
   position: relative;
 }
 
-.shepherd-title {
+.shepherd-element.guiders-tour .shepherd-title,
+.guiders-tour .shepherd-title {
   font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -49,9 +52,11 @@
   margin: 0 0 6px 0;
   line-height: 1.4;
   padding-right: 36px; // reserve space so title text doesn't overlap the X / counter
+  background: transparent; /* ensure no unexpected light block in dark themes */
 }
 
-.shepherd-text {
+.shepherd-element.guiders-tour .shepherd-text,
+.guiders-tour .shepherd-text {
   font-size: 13.5px;
   color: var(--color-text-secondary, #6b7280);
   line-height: 1.55;
@@ -72,7 +77,8 @@
 }
 
 // Cancel icon (Shepherd's built-in X)
-.shepherd-cancel-icon {
+.shepherd-element.guiders-tour .shepherd-cancel-icon,
+.guiders-tour .shepherd-cancel-icon {
   all: unset;
   box-sizing: border-box;
   position: absolute;
@@ -90,14 +96,15 @@
   line-height: 1;
   transition: background 0.15s ease, color 0.15s ease;
 
-  &:hover {
-    background: var(--color-surface-secondary, #f3f4f6);
-    color: var(--color-text-primary, #0a0a0a);
-  }
+    &:hover {
+      background: var(--color-surface-secondary, #f3f4f6);
+      color: var(--color-text-primary, #0a0a0a);
+    }
 }
 
 // Progress bar injected above footer via TourService
-.guiders-tour-progress {
+.shepherd-element.guiders-tour .guiders-tour-progress,
+.guiders-tour .guiders-tour-progress {
   width: 100%;
   height: 3px;
   background: var(--color-border-default, #e5e7eb);
@@ -124,7 +131,8 @@
   border: none;
 }
 
-.shepherd-button {
+.shepherd-element.guiders-tour .shepherd-button,
+.guiders-tour .shepherd-button {
   all: unset;
   font-family: var(--font-family-sans, 'Inter', system-ui, sans-serif);
   font-size: 13px;
