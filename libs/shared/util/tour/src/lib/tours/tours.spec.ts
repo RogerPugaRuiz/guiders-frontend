@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { consoleTour } from './console.tour';
 import { adminTour } from './admin.tour';
+import { visitorsTour } from './visitors.tour';
 
 describe('consoleTour', () => {
   it('should have at least 8 steps', () => {
@@ -138,6 +139,99 @@ describe('adminTour', () => {
   it('all popover sides should be valid placement values', () => {
     const validSides = ['top', 'right', 'bottom', 'left', undefined];
     adminTour.forEach((step, i) => {
+      expect(
+        validSides.includes(step.popover.side),
+        `step ${i} side`
+      ).toBe(true);
+    });
+  });
+});
+
+describe('visitorsTour', () => {
+  it('should have at least 7 steps', () => {
+    expect(visitorsTour.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it('should have all steps with a non-empty data-tour element selector', () => {
+    visitorsTour.forEach((step, i) => {
+      expect(step.element, `step ${i} element`).toBeTruthy();
+      expect(step.element.startsWith('[data-tour=')).toBe(true);
+    });
+  });
+
+  it('should have all steps with a popover title and description', () => {
+    visitorsTour.forEach((step, i) => {
+      expect(step.popover.title, `step ${i} title`).toBeTruthy();
+      expect(step.popover.description, `step ${i} description`).toBeTruthy();
+    });
+  });
+
+  it('every step should target the /visitors route', () => {
+    visitorsTour.forEach((step, i) => {
+      expect(step.route, `step ${i} route`).toBe('/visitors');
+    });
+  });
+
+  it('first step should be the visitors panel welcome', () => {
+    expect(visitorsTour[0].element).toBe('[data-tour="visitors-panel"]');
+  });
+
+  it('should highlight the refresh controls', () => {
+    expect(
+      visitorsTour.some(
+        (s) => s.element === '[data-tour="visitors-refresh-controls"]'
+      )
+    ).toBe(true);
+  });
+
+  it('should highlight the quick filters', () => {
+    expect(
+      visitorsTour.some(
+        (s) => s.element === '[data-tour="visitors-quick-filters"]'
+      )
+    ).toBe(true);
+  });
+
+  it('should highlight the active filters chip area', () => {
+    expect(
+      visitorsTour.some(
+        (s) => s.element === '[data-tour="visitors-active-filters"]'
+      )
+    ).toBe(true);
+  });
+
+  it('should highlight the advanced filters button', () => {
+    expect(
+      visitorsTour.some(
+        (s) => s.element === '[data-tour="visitors-advanced-btn"]'
+      )
+    ).toBe(true);
+  });
+
+  it('should highlight the first visitor row', () => {
+    expect(
+      visitorsTour.some(
+        (s) => s.element === '[data-tour="visitor-item-first"]'
+      )
+    ).toBe(true);
+  });
+
+  it('should highlight the row contextual menu trigger', () => {
+    expect(
+      visitorsTour.some(
+        (s) => s.element === '[data-tour="visitor-row-menu-trigger"]'
+      )
+    ).toBe(true);
+  });
+
+  it('should be fully informational (no auto-advance action steps)', () => {
+    const actionSteps = visitorsTour.filter((s) => s.mode === 'action');
+    expect(actionSteps.length).toBe(0);
+  });
+
+  it('all popover sides should be valid placement values', () => {
+    const validSides = ['top', 'right', 'bottom', 'left', undefined];
+    visitorsTour.forEach((step, i) => {
       expect(
         validSides.includes(step.popover.side),
         `step ${i} side`

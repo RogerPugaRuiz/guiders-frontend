@@ -9,6 +9,7 @@ import {
 } from './tour-step.interface';
 import { consoleTour } from './tours/console.tour';
 import { adminTour } from './tours/admin.tour';
+import { visitorsTour } from './tours/visitors.tour';
 import { TOUR_LIFECYCLE_HOOKS, TourLifecycleHook } from './tour-lifecycle-hook';
 
 /**
@@ -135,7 +136,7 @@ export class TourService {
         classes: 'guiders-tour',
         arrow: true,
       },
-      steps: this.buildShepherdSteps(steps, (): Tour => tour),
+      steps: this.buildShepherdSteps(steps, (): Tour => tour, tourId, userId),
     });
 
     tour.on('complete', () => {
@@ -172,12 +173,16 @@ export class TourService {
         return consoleTour;
       case 'admin':
         return adminTour;
+      case 'visitors':
+        return visitorsTour;
     }
   }
 
   private buildShepherdSteps(
     steps: TourStepConfig[],
-    getTour: () => Tour
+    getTour: () => Tour,
+    tourId: TourId,
+    userId: string
   ): StepOptions[] {
     const total = steps.length;
     return steps.map((step, idx) => {
@@ -228,16 +233,22 @@ export class TourService {
             },
           },
         ],
-        // Navigate before showing this step (handles route transitions
-        // between non-contiguous routes like /inbox → /visitors).
-        beforeShowPromise: step.route
-          ? async () => {
-              await this.navigateTo(step.route!);
+        // Always run lifecycle hooks before showing the step so cross-domain
+        // hooks can prepare UI state (open panels, select demo entities,
+        // etc.) automatically. Hooks run BEFORE navigation so they can
+        // mutate state ahead of the routed view's first render.
+        beforeShowPromise: async () => {
+          await this.runBeforeStepHooks(idx, tourId, userId);
+          if (step.route) {
+            const currentUrl = this.router.url.split('?')[0];
+            if (currentUrl !== step.route) {
+              await this.navigateTo(step.route);
               // Let Angular finish rendering routed components / dynamic UI
               // (e.g. visitor detail panel that appears after a click).
               await new Promise((resolve) => setTimeout(resolve, 200));
             }
-          : undefined,
+          }
+        },
         when: {
           show(this: any) {
             // Inject a thin progress bar above the footer for every step.
@@ -305,6 +316,32 @@ export class TourService {
           }
         } catch (err) {
           console.error(`[TourService] lifecycle hook ${phase} failed`, err);
+        }
+      })
+    );
+  }
+
+  /**
+   * Runs the optional `onBeforeStep` lifecycle hook for every registered
+   * contributor before Shepherd renders a given step. Errors are swallowed
+   * (logged) so a misbehaving hook cannot abort the tour mid-flow.
+   */
+  private async runBeforeStepHooks(
+    stepIndex: number,
+    tourId: TourId,
+    userId: string
+  ): Promise<void> {
+    if (!this.lifecycleHooks.length) return;
+    await Promise.all(
+      this.lifecycleHooks.map(async (hook) => {
+        if (typeof hook.onBeforeStep !== 'function') return;
+        try {
+          await hook.onBeforeStep(stepIndex, tourId, userId);
+        } catch (err) {
+          console.error(
+            `[TourService] onBeforeStep hook failed (step ${stepIndex})`,
+            err
+          );
         }
       })
     );

@@ -6,10 +6,6 @@ import { Inbox } from './inbox';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { Environment } from '@guiders-frontend/shared/types';
 import { ChatService } from '@guiders-frontend/chat-service';
-import {
-  TourSandboxService,
-  DEMO_CHAT_ID,
-} from '@guiders-frontend/tour-sandbox';
 
 describe('Inbox', () => {
   let component: Inbox;
@@ -47,81 +43,18 @@ describe('Inbox', () => {
     expect(component).toBeTruthy();
   });
 
-  describe('onSendMessage · TourSandbox integration', () => {
+  describe('onSendMessage', () => {
     let chatService: ChatService;
-    let sandbox: TourSandboxService;
     let sendMessageSpy: ReturnType<typeof vi.spyOn>;
-    let appendOperatorSpy: ReturnType<typeof vi.spyOn>;
-    let simulateReplySpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       chatService = TestBed.inject(ChatService);
-      sandbox = TestBed.inject(TourSandboxService);
       sendMessageSpy = vi
         .spyOn(chatService, 'sendMessage')
         .mockReturnValue(of({} as never));
-      appendOperatorSpy = vi
-        .spyOn(sandbox, 'appendOperatorMessage')
-        .mockImplementation(() => undefined);
-      simulateReplySpy = vi
-        .spyOn(sandbox, 'simulateVisitorReply')
-        .mockImplementation(() => undefined);
     });
 
-    it('routes demo chat sends through TourSandboxService instead of ChatService', () => {
-      sandbox.activate();
-      component.selectedConversationId.set(DEMO_CHAT_ID);
-
-      component.onSendMessage('Hola María, claro que sí');
-
-      expect(appendOperatorSpy).toHaveBeenCalledWith(
-        'Hola María, claro que sí'
-      );
-      expect(simulateReplySpy).toHaveBeenCalled();
-      expect(sendMessageSpy).not.toHaveBeenCalled();
-    });
-
-    it('dispatches message-sent-demo event on the message-input anchor after a demo send', () => {
-      sandbox.activate();
-      component.selectedConversationId.set(DEMO_CHAT_ID);
-
-      // Inject the tour anchor element so the component can locate it.
-      const anchor = document.createElement('div');
-      anchor.setAttribute('data-tour', 'message-input');
-      document.body.appendChild(anchor);
-
-      const handler = vi.fn();
-      anchor.addEventListener('message-sent-demo', handler);
-
-      try {
-        component.onSendMessage('Probando el tour');
-        expect(handler).toHaveBeenCalledTimes(1);
-      } finally {
-        anchor.removeEventListener('message-sent-demo', handler);
-        anchor.remove();
-      }
-    });
-
-    it('does not dispatch message-sent-demo for non-demo conversations', () => {
-      component.selectedConversationId.set('real-chat-123');
-
-      const anchor = document.createElement('div');
-      anchor.setAttribute('data-tour', 'message-input');
-      document.body.appendChild(anchor);
-
-      const handler = vi.fn();
-      anchor.addEventListener('message-sent-demo', handler);
-
-      try {
-        component.onSendMessage('hello');
-        expect(handler).not.toHaveBeenCalled();
-      } finally {
-        anchor.removeEventListener('message-sent-demo', handler);
-        anchor.remove();
-      }
-    });
-
-    it('uses ChatService for non-demo conversations', () => {
+    it('routes the message through ChatService.sendMessage for any chatId', () => {
       component.selectedConversationId.set('real-chat-123');
 
       component.onSendMessage('hello');
@@ -131,19 +64,35 @@ describe('Inbox', () => {
         content: 'hello',
         type: 'text',
       });
-      expect(appendOperatorSpy).not.toHaveBeenCalled();
-      expect(simulateReplySpy).not.toHaveBeenCalled();
+    });
+
+    it('routes self chats through ChatService.sendMessage too (which will internally delegate to SelfChatService)', () => {
+      component.selectedConversationId.set('self-user-1');
+
+      component.onSendMessage('mensaje self');
+
+      expect(sendMessageSpy).toHaveBeenCalledWith({
+        chatId: 'self-user-1',
+        content: 'mensaje self',
+        type: 'text',
+      });
+    });
+
+    it('does nothing when there is no selected chat', () => {
+      component.selectedConversationId.set(null);
+
+      component.onSendMessage('hello');
+
+      expect(sendMessageSpy).not.toHaveBeenCalled();
     });
   });
 
-  describe('onUserSelected · TourSandbox integration', () => {
+  describe('onUserSelected', () => {
     let chatService: ChatService;
-    let sandbox: TourSandboxService;
     let getMessagesV2Spy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(() => {
       chatService = TestBed.inject(ChatService);
-      sandbox = TestBed.inject(TourSandboxService);
       getMessagesV2Spy = vi
         .spyOn(chatService, 'getMessagesV2')
         .mockReturnValue(
@@ -151,34 +100,7 @@ describe('Inbox', () => {
         );
     });
 
-    it('does not call getMessagesV2 for demo chats (sandbox provides messages)', () => {
-      sandbox.activate();
-      const demoChat = sandbox.chatsSnapshot[0];
-      expect(demoChat).toBeTruthy();
-
-      component.onUserSelected(demoChat as never);
-
-      expect(getMessagesV2Spy).not.toHaveBeenCalled();
-      expect(component.selectedConversationId()).toBe(DEMO_CHAT_ID);
-    });
-
-    it('exposes the seeded demo message via currentMessages after selection', () => {
-      sandbox.activate();
-      // Mirror what ChatTourSandboxLifecycleHook does on tour start.
-      chatService.addDemoChat(sandbox.chatsSnapshot[0]);
-      chatService.setDemoMessages(
-        DEMO_CHAT_ID,
-        sandbox.messagesSnapshot[DEMO_CHAT_ID] ?? []
-      );
-
-      const demoChat = sandbox.chatsSnapshot[0];
-      component.onUserSelected(demoChat as never);
-
-      expect(component.currentMessages().length).toBeGreaterThan(0);
-      expect(component.currentMessages()[0].chatId).toBe(DEMO_CHAT_ID);
-    });
-
-    it('still calls getMessagesV2 for real chats', () => {
+    it('calls getMessagesV2 for real chats', () => {
       const realChat = { chatId: 'real-chat-999', participants: [] } as never;
       component.onUserSelected(realChat);
 
@@ -186,6 +108,16 @@ describe('Inbox', () => {
         'real-chat-999',
         expect.objectContaining({ limit: 50 })
       );
+    });
+
+    it('does not call getMessagesV2 for self chats (messages are bridged via ChatService.messages$)', () => {
+      vi.spyOn(chatService, 'isSelfChatId').mockReturnValue(true);
+      const selfChat = { chatId: 'self-user-1', participants: [] } as never;
+
+      component.onUserSelected(selfChat);
+
+      expect(getMessagesV2Spy).not.toHaveBeenCalled();
+      expect(component.selectedConversationId()).toBe('self-user-1');
     });
   });
 });

@@ -1,4 +1,4 @@
-export type TourId = 'console' | 'admin';
+export type TourId = 'console' | 'admin' | 'visitors';
 
 export interface TourStepPopover {
   title: string;

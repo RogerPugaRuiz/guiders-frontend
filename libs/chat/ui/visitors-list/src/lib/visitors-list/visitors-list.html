@@ -158,6 +158,7 @@
                   <button
                     type="button"
                     class="row-drag-handle dropdown-trigger"
+                    [attr.data-tour]="i === 0 ? 'visitor-row-menu-trigger' : null"
                     (click)="toggleDropdown(visitor.id, $event)"
                     title="Más acciones"
                   >

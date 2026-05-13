@@ -21,11 +21,13 @@ import { PresenceService } from '@guiders-frontend/presence-service';
 import { ChatService } from '@guiders-frontend/chat-service';
 import { UnreadMessagesService } from '@guiders-frontend/unread-messages-service';
 import { TourSandboxService, DEMO_VISITOR_ID } from '@guiders-frontend/tour-sandbox';
+import { TourService } from '@guiders-frontend/shared/util/tour';
 
 // Importar componentes UI y servicios
 import { VisitorsListComponent } from '@guiders-frontend/visitors-list';
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
+import { UserService } from '@guiders-frontend/auth/data-access/session';
 import { VisitorsQuickFilters } from '@guiders-frontend/visitors-quick-filters';
 import { VisitorsActiveFilters } from '@guiders-frontend/visitors-active-filters';
 import { VisitorsAdvancedFilters } from '@guiders-frontend/visitors-advanced-filters';
@@ -96,6 +98,8 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private readonly chatService = inject(ChatService);
   private readonly unreadMessagesService = inject(UnreadMessagesService);
   private readonly tourSandbox = inject(TourSandboxService, { optional: true });
+  private readonly tourService = inject(TourService);
+  private readonly userService = inject(UserService);
 
   // Referencia al componente hijo de la lista de visitantes
   @ViewChild(VisitorsListComponent)
@@ -381,6 +385,18 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       switchMap(ms => ms === 0 ? EMPTY : interval(ms)),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => this.refreshVisitors());
+
+    // Auto-start the visitors tour the first time an operator lands on this view.
+    // Mirrors the console-tour auto-start in App but scoped per user via storage key.
+    effect(() => {
+      const user = this.userService.currentUser();
+      if (!user?.sub) return;
+      if (this.tourService.isRunning) return;
+      if (this.tourService.hasStartedFor('visitors', user.sub)) return;
+      if (this.tourService.isCompleted('visitors', user.sub)) return;
+
+      this.tourService.startTour('visitors', user.sub);
+    });
   }
 
   private readonly _refreshInterval$ = new BehaviorSubject<number>(this.loadAutoRefreshInterval());

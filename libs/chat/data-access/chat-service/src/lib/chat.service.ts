@@ -13,6 +13,9 @@ import {
   MessageListResponse
 } from '@guiders-frontend/shared/types';
 import { ENVIRONMENT_TOKEN, UserService } from '@guiders-frontend/auth/data-access/session';
+import { SelfChatService } from '@guiders-frontend/self-chat';
+
+const SELF_CHAT_PREFIX = 'self-';
 import { WebSocketService, ChatStatusUpdate } from '@guiders-frontend/chat/data-access/websocket-service';
 
 // Tipos internos para las respuestas de la API
@@ -144,6 +147,7 @@ export class ChatService {
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly webSocket = inject(WebSocketService);
   private readonly userService = inject(UserService);
+  private readonly selfChat = inject(SelfChatService);
   private readonly baseUrl = `${this.environment.api.baseUrl}/v2`;
   
   // Estado global del chat
@@ -170,6 +174,43 @@ export class ChatService {
 
     // Inicializar WebSocket
     this.initializeWebSocket();
+
+    // Bridge SelfChatService → chats$/messages$ streams (Microsoft Teams-style self chat)
+    this.bridgeSelfChat();
+  }
+
+  /**
+   * Returns true if the given chatId belongs to the per-user self chat.
+   * Self chats follow the convention `self-{userId}` and live entirely
+   * client-side (no backend round-trip).
+   */
+  isSelfChatId(chatId: string | null | undefined): boolean {
+    return typeof chatId === 'string' && chatId.startsWith(SELF_CHAT_PREFIX);
+  }
+
+  private bridgeSelfChat(): void {
+    this.selfChat.chat$.subscribe(() => {
+      const merged = this.mergeWithSelfChat(this.chatsSubject.value);
+      this.chatsSubject.next(merged);
+    });
+
+    this.selfChat.messages$.subscribe((messages) => {
+      const selfChatId = this.selfChat.currentChat?.chatId;
+      if (!selfChatId) return;
+      const current = this.messagesSubject.value;
+      this.messagesSubject.next({ ...current, [selfChatId]: messages });
+    });
+  }
+
+  /**
+   * Garantiza que el self-chat (si existe) esté pinneado al inicio de la lista.
+   * Usado tanto por el bridge reactivo como por los handlers HTTP que
+   * reemplazan completamente la lista de chats.
+   */
+  private mergeWithSelfChat(chats: Chat[]): Chat[] {
+    const selfChat = this.selfChat.currentChat;
+    const others = chats.filter((c) => !this.isSelfChatId(c.chatId));
+    return selfChat ? [selfChat, ...others] : others;
   }
 
   /**
@@ -416,7 +457,7 @@ export class ChatService {
       .pipe(
         map(response => {
           const chats = this.transformChatsFromApi(response.chats);
-          this.chatsSubject.next(chats);
+          this.chatsSubject.next(this.mergeWithSelfChat(chats));
           this.setLoading(false);
           return chats;
         }),
@@ -468,7 +509,7 @@ export class ChatService {
       .pipe(
         map(response => {
           const chats = this.transformChatsFromApi(response.chats);
-          this.chatsSubject.next(chats);
+          this.chatsSubject.next(this.mergeWithSelfChat(chats));
           this.setLoading(false);
           return chats;
         }),
@@ -690,6 +731,21 @@ export class ChatService {
    * Enviar mensaje
    */
   sendMessage(request: SendMessageRequest): Observable<Message | null> {
+    // Self chats live entirely client-side: delegate to SelfChatService and skip HTTP
+    if (this.isSelfChatId(request.chatId)) {
+      return new Observable<Message | null>((subscriber) => {
+        this.selfChat
+          .sendMessage(request.content)
+          .then(() => {
+            const selfMessages = this.messagesSubject.value[request.chatId] ?? [];
+            const last = selfMessages[selfMessages.length - 1] ?? null;
+            subscriber.next(last);
+            subscriber.complete();
+          })
+          .catch((error) => subscriber.error(error));
+      });
+    }
+
     return this.http.post<ApiMessageResponse>(`${this.baseUrl}/messages`, request, 
       this.getHttpOptions()
     ).pipe(
@@ -933,48 +989,6 @@ export class ChatService {
     };
   }
 
-  /**
-   * Public sandbox wrapper: append (or replace) a demo chat into chats$ stream.
-   * Used exclusively by the interactive tour to inject the fictional visitor
-   * conversation without going through the backend.
-   */
-  addDemoChat(chat: Chat): void {
-    this.addChatToState(chat);
-  }
-
-  /**
-   * Public sandbox wrapper: append a demo message into messages$ stream
-   * for the given chatId. Skips duplicates by messageId. Tour-only.
-   */
-  addDemoMessage(chatId: string, message: Message): void {
-    this.addMessageToState(chatId, message);
-  }
-
-  /**
-   * Public sandbox wrapper: replace the entire message list for the given
-   * chatId in messages$ stream. Tour-only.
-   */
-  setDemoMessages(chatId: string, messages: Message[]): void {
-    this.setMessagesForChat(chatId, messages);
-  }
-
-  /**
-   * Public sandbox wrapper: remove a demo chat (and its messages) from the
-   * streams. Used when the tour ends so the operator does not see leftover
-   * fictional data. Safe to call with an unknown chatId. Tour-only.
-   */
-  removeDemoChat(chatId: string): void {
-    const remaining = this.chatsSubject.value.filter((c) => c.chatId !== chatId);
-    this.chatsSubject.next(remaining);
-
-    const currentMessages = this.messagesSubject.value;
-    if (chatId in currentMessages) {
-      const next = { ...currentMessages };
-      delete next[chatId];
-      this.messagesSubject.next(next);
-    }
-  }
-
   private addChatToState(chat: Chat): void {
     const currentChats = this.chatsSubject.value;
     const existingIndex = currentChats.findIndex(c => c.chatId === chat.chatId);
@@ -985,7 +999,7 @@ export class ChatService {
       currentChats.unshift(chat);
     }
     
-    this.chatsSubject.next([...currentChats]);
+    this.chatsSubject.next(this.mergeWithSelfChat([...currentChats]));
   }
 
   private addMessageToState(chatId: string, message: Message): void {

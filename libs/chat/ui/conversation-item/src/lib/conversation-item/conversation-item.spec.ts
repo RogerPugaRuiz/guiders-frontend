@@ -1,7 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ConversationItem } from './conversation-item';
 import { Chat } from '@guiders-frontend/shared/types';
-import { DEMO_CHAT_ID } from '@guiders-frontend/tour-sandbox';
 
 describe('ConversationItem', () => {
   let fixture: ComponentFixture<ConversationItem>;
@@ -43,10 +42,10 @@ describe('ConversationItem', () => {
   });
 
   describe('TourSandbox demo badge', () => {
-    it('renders DEMO badge when conversation chatId matches demo id', () => {
+    it('renders DEMO badge when conversation chatId matches demo prefix', () => {
       fixture.componentRef.setInput(
         'conversation',
-        buildChat({ chatId: DEMO_CHAT_ID })
+        buildChat({ chatId: 'tour-demo-chat-1' })
       );
       fixture.detectChanges();
 

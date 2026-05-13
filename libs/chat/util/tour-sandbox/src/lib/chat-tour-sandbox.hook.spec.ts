@@ -2,46 +2,72 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ChatService } from '@guiders-frontend/chat-service';
+import { SelfChatService } from '@guiders-frontend/self-chat';
+import type { Chat } from '@guiders-frontend/shared/types';
 import {
   ChatTourSandboxLifecycleHook,
   CHAT_TOUR_SANDBOX_HOOK_PROVIDER,
 } from './chat-tour-sandbox.hook';
-import {
-  DEMO_CHAT_ID,
-  DEMO_VISITOR_ID,
-  TourSandboxService,
-} from './tour-sandbox';
+import { DEMO_VISITOR_ID, TourSandboxService } from './tour-sandbox';
+import { TourUiBridgeService } from './tour-ui-bridge';
 import { TOUR_LIFECYCLE_HOOKS } from '@guiders-frontend/shared/util/tour';
 
 /**
  * The hook must:
- * - Activate the sandbox AND mirror the demo chat + initial messages into
- *   ChatService state so the existing inbox UI renders them with zero
- *   changes to its rendering pipeline.
- * - On end, remove the demo chat from ChatService and deactivate the sandbox.
- * - Be a no-op for tour ids other than 'console'. Admin tour does not seed
- *   chat data (it lives in the dashboard scope).
+ * - Activate the sandbox (still needed for the demo visitor in the
+ *   visitors panel) on console tour start; deactivate on end.
+ * - Drive the inbox UI by selecting / deselecting the user's SELF chat
+ *   (no longer the DEMO chat). The self chat is created by SessionService
+ *   on login and bridged into ChatService.chats$ via SelfChatService.
+ * - Be a no-op for tour ids other than 'console'.
  */
 describe('ChatTourSandboxLifecycleHook', () => {
   let hook: ChatTourSandboxLifecycleHook;
   let sandbox: TourSandboxService;
   let chatService: {
-    addDemoChat: ReturnType<typeof vi.fn>;
-    setDemoMessages: ReturnType<typeof vi.fn>;
-    removeDemoChat: ReturnType<typeof vi.fn>;
+    selectChat: ReturnType<typeof vi.fn>;
+    isSelfChatId: ReturnType<typeof vi.fn>;
   };
+  let selfChat: { currentChat: Chat | null };
+
+  const SELF_CHAT_ID = 'self-user-1';
+  const buildSelfChat = (): Chat => ({
+    chatId: SELF_CHAT_ID,
+    status: 'ACTIVE',
+    priority: 'NORMAL',
+    visitorId: 'user-1',
+    unreadCount: 0,
+    isTyping: false,
+    typingUsers: [],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    participants: [
+      {
+        id: 'user-1',
+        name: 'Op (Tú)',
+        email: 'op@example.com',
+        role: 'commercial',
+        status: 'online',
+      },
+    ],
+    archived: false,
+    muted: false,
+    pinned: true,
+  });
 
   beforeEach(() => {
     chatService = {
-      addDemoChat: vi.fn(),
-      setDemoMessages: vi.fn(),
-      removeDemoChat: vi.fn(),
+      selectChat: vi.fn(),
+      isSelfChatId: vi.fn((id: string) => id?.startsWith('self-')),
     };
+    selfChat = { currentChat: buildSelfChat() };
 
     TestBed.configureTestingModule({
       providers: [
         TourSandboxService,
+        TourUiBridgeService,
         { provide: ChatService, useValue: chatService },
+        { provide: SelfChatService, useValue: selfChat },
         ChatTourSandboxLifecycleHook,
       ],
     });
@@ -56,53 +82,135 @@ describe('ChatTourSandboxLifecycleHook', () => {
       expect(sandbox.isActive()).toBe(true);
     });
 
-    it('seeds the demo chat into ChatService state', async () => {
+    it('does NOT seed any demo chat into ChatService (self-chat is bridged by SelfChatService)', async () => {
       await hook.onTourStart('console', 'user-1');
-      expect(chatService.addDemoChat).toHaveBeenCalledTimes(1);
-      const seededChat = chatService.addDemoChat.mock.calls[0][0];
-      expect(seededChat.chatId).toBe(DEMO_CHAT_ID);
-      expect(seededChat.visitorId).toBe(DEMO_VISITOR_ID);
-    });
-
-    it('seeds the initial visitor message into ChatService state', async () => {
-      await hook.onTourStart('console', 'user-1');
-      expect(chatService.setDemoMessages).toHaveBeenCalledTimes(1);
-      const [chatId, messages] = chatService.setDemoMessages.mock.calls[0];
-      expect(chatId).toBe(DEMO_CHAT_ID);
-      expect(messages).toHaveLength(1);
-      expect(messages[0].senderType).toBe('VISITOR');
+      expect(chatService.selectChat).not.toHaveBeenCalled();
     });
 
     it('is a no-op for the admin tour', async () => {
       await hook.onTourStart('admin', 'user-1');
       expect(sandbox.isActive()).toBe(false);
-      expect(chatService.addDemoChat).not.toHaveBeenCalled();
-      expect(chatService.setDemoMessages).not.toHaveBeenCalled();
+      expect(chatService.selectChat).not.toHaveBeenCalled();
     });
   });
 
   describe('onTourEnd', () => {
-    it('removes the demo chat from ChatService and deactivates the sandbox', async () => {
+    it('deselects the active chat and deactivates the sandbox', async () => {
       await hook.onTourStart('console', 'user-1');
       await hook.onTourEnd('console', 'user-1');
 
-      expect(chatService.removeDemoChat).toHaveBeenCalledWith(DEMO_CHAT_ID);
+      expect(chatService.selectChat).toHaveBeenCalledWith(null);
       expect(sandbox.isActive()).toBe(false);
+    });
+
+    it('resets the TourUiBridgeService so the visitor panel does not stay open', async () => {
+      const bridge = TestBed.inject(TourUiBridgeService);
+      bridge.requestOpenVisitorPanel(true);
+
+      await hook.onTourEnd('console', 'user-1');
+
+      expect(bridge.visitorPanelOpenRequested()).toBe(false);
     });
 
     it('is idempotent: calling onTourEnd without onTourStart does not throw', async () => {
       await expect(hook.onTourEnd('console', 'user-1')).resolves.toBeUndefined();
-      expect(chatService.removeDemoChat).toHaveBeenCalledWith(DEMO_CHAT_ID);
     });
 
     it('is a no-op for the admin tour', async () => {
       await hook.onTourEnd('admin', 'user-1');
-      expect(chatService.removeDemoChat).not.toHaveBeenCalled();
+      expect(chatService.selectChat).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onBeforeStep — auto-prepare UI for each step', () => {
+    // Step indices that need auto-setup so the user actually SEES what the
+    // tooltip is talking about:
+    //   - step 3 (inbox-main): auto-select the SELF chat so the
+    //     conversation thread is rendered behind the tooltip.
+    //   - step 4 (message-input): SELF chat must remain selected.
+    //   - step 5 (visitor-detail-panel): re-assert selection + open panel.
+    //   - step 6 (nav-escalations): close visitor panel.
+    // Other steps are pure orientation and need no setup.
+
+    it('selects the SELF chat before step 3 (inbox-main)', async () => {
+      await hook.onTourStart('console', 'user-1');
+      chatService.selectChat.mockClear();
+
+      await hook.onBeforeStep(3, 'console', 'user-1');
+
+      expect(chatService.selectChat).toHaveBeenCalledWith(SELF_CHAT_ID);
+    });
+
+    it('keeps the SELF chat selected before step 4 (message-input)', async () => {
+      await hook.onTourStart('console', 'user-1');
+      chatService.selectChat.mockClear();
+
+      await hook.onBeforeStep(4, 'console', 'user-1');
+
+      expect(chatService.selectChat).toHaveBeenCalledWith(SELF_CHAT_ID);
+    });
+
+    it('opens the visitor panel before step 5 (visitor-detail-panel)', async () => {
+      const bridge = TestBed.inject(TourUiBridgeService);
+      await hook.onTourStart('console', 'user-1');
+
+      await hook.onBeforeStep(5, 'console', 'user-1');
+
+      expect(bridge.visitorPanelOpenRequested()).toBe(true);
+    });
+
+    it('also re-asserts the SELF chat selection on step 5', async () => {
+      await hook.onTourStart('console', 'user-1');
+      chatService.selectChat.mockClear();
+
+      await hook.onBeforeStep(5, 'console', 'user-1');
+
+      expect(chatService.selectChat).toHaveBeenCalledWith(SELF_CHAT_ID);
+    });
+
+    it('closes the visitor panel before step 6 (nav-escalations)', async () => {
+      const bridge = TestBed.inject(TourUiBridgeService);
+      bridge.requestOpenVisitorPanel(true);
+      await hook.onTourStart('console', 'user-1');
+
+      await hook.onBeforeStep(6, 'console', 'user-1');
+
+      expect(bridge.visitorPanelOpenRequested()).toBe(false);
+    });
+
+    it('is a no-op for steps without setup needs (e.g. step 0 sidebar-header)', async () => {
+      const bridge = TestBed.inject(TourUiBridgeService);
+      await hook.onTourStart('console', 'user-1');
+      chatService.selectChat.mockClear();
+
+      await hook.onBeforeStep(0, 'console', 'user-1');
+
+      expect(chatService.selectChat).not.toHaveBeenCalled();
+      expect(bridge.visitorPanelOpenRequested()).toBe(false);
+    });
+
+    it('is a no-op for the admin tour', async () => {
+      const bridge = TestBed.inject(TourUiBridgeService);
+
+      await hook.onBeforeStep(3, 'admin', 'user-1');
+      await hook.onBeforeStep(5, 'admin', 'user-1');
+
+      expect(chatService.selectChat).not.toHaveBeenCalled();
+      expect(bridge.visitorPanelOpenRequested()).toBe(false);
+    });
+
+    it('does not crash on step 3 if SELF chat is not yet initialized (silent no-op)', async () => {
+      selfChat.currentChat = null;
+      await hook.onTourStart('console', 'user-1');
+      chatService.selectChat.mockClear();
+
+      await expect(hook.onBeforeStep(3, 'console', 'user-1')).resolves.toBeUndefined();
+      expect(chatService.selectChat).not.toHaveBeenCalled();
     });
   });
 
   describe('sandbox observable state', () => {
-    it('exposes the demo visitor through the sandbox after onTourStart', async () => {
+    it('exposes the demo visitor through the sandbox after onTourStart (visitors panel still uses it)', async () => {
       await hook.onTourStart('console', 'user-1');
       const visitors = await firstValueFrom(sandbox.visitors$);
       expect(visitors).toHaveLength(1);
@@ -114,15 +222,17 @@ describe('ChatTourSandboxLifecycleHook', () => {
 describe('CHAT_TOUR_SANDBOX_HOOK_PROVIDER', () => {
   it('registers ChatTourSandboxLifecycleHook as a TOUR_LIFECYCLE_HOOKS multi-provider', () => {
     const chatServiceStub = {
-      addDemoChat: vi.fn(),
-      setDemoMessages: vi.fn(),
-      removeDemoChat: vi.fn(),
+      selectChat: vi.fn(),
+      isSelfChatId: vi.fn(() => false),
     };
+    const selfChatStub = { currentChat: null };
 
     TestBed.configureTestingModule({
       providers: [
         TourSandboxService,
+        TourUiBridgeService,
         { provide: ChatService, useValue: chatServiceStub },
+        { provide: SelfChatService, useValue: selfChatStub },
         CHAT_TOUR_SANDBOX_HOOK_PROVIDER,
       ],
     });

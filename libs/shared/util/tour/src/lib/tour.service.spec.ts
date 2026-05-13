@@ -424,4 +424,105 @@ describe('TourService — lifecycle hooks', () => {
 
     await expect(service.startTour(consoleTourId, mockUserId)).resolves.toBeUndefined();
   });
+
+  // --- onBeforeStep wiring ---
+  // Each Shepherd step must run `hook.onBeforeStep(stepIndex, tourId, userId)`
+  // inside its `beforeShowPromise` (after route navigation, before render)
+  // so cross-domain side effects (open visitor panel, select demo chat,
+  // etc.) happen automatically without the user having to click anything.
+  // The hook method is OPTIONAL — service must work with old hooks too.
+
+  it('should call onBeforeStep on every step before it is shown', async () => {
+    const hook: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+      onBeforeStep: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const service = setupTestBedWithHooks([hook]);
+    await service.startTour(consoleTourId, mockUserId);
+
+    const steps = capturedTours[0].options.steps as any[];
+    // Trigger every step's beforeShowPromise as Shepherd would.
+    for (const step of steps) {
+      if (step.beforeShowPromise) {
+        await step.beforeShowPromise();
+      }
+    }
+
+    expect(hook.onBeforeStep).toHaveBeenCalledTimes(steps.length);
+    steps.forEach((_, idx) => {
+      expect(hook.onBeforeStep).toHaveBeenNthCalledWith(
+        idx + 1,
+        idx,
+        consoleTourId,
+        mockUserId
+      );
+    });
+  });
+
+  it('should await the onBeforeStep promise so async setup completes before render', async () => {
+    let resolveStep0!: () => void;
+    const step0Promise = new Promise<void>((res) => {
+      resolveStep0 = res;
+    });
+    const callOrder: string[] = [];
+
+    const hook: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+      onBeforeStep: vi.fn(async (idx: number) => {
+        callOrder.push(`hook-start-${idx}`);
+        if (idx === 0) await step0Promise;
+        callOrder.push(`hook-end-${idx}`);
+      }),
+    };
+
+    const service = setupTestBedWithHooks([hook]);
+    await service.startTour(consoleTourId, mockUserId);
+
+    const step0 = (capturedTours[0].options.steps as any[])[0];
+    const beforeShow = step0.beforeShowPromise();
+
+    // While beforeShowPromise is pending, hook is still running.
+    await Promise.resolve();
+    expect(callOrder).toEqual(['hook-start-0']);
+
+    resolveStep0();
+    await beforeShow;
+
+    expect(callOrder).toEqual(['hook-start-0', 'hook-end-0']);
+  });
+
+  it('should not crash when the hook does not implement onBeforeStep (backwards compat)', async () => {
+    const legacyHook: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+      // no onBeforeStep
+    };
+
+    const service = setupTestBedWithHooks([legacyHook]);
+    await service.startTour(consoleTourId, mockUserId);
+
+    const steps = capturedTours[0].options.steps as any[];
+    for (const step of steps) {
+      if (step.beforeShowPromise) {
+        await expect(step.beforeShowPromise()).resolves.toBeUndefined();
+      }
+    }
+  });
+
+  it('should swallow errors thrown by onBeforeStep so tour keeps running', async () => {
+    const hook: TourLifecycleHook = {
+      onTourStart: vi.fn(),
+      onTourEnd: vi.fn(),
+      onBeforeStep: vi.fn().mockRejectedValue(new Error('setup failed')),
+    };
+
+    const service = setupTestBedWithHooks([hook]);
+    await service.startTour(consoleTourId, mockUserId);
+
+    const step0 = (capturedTours[0].options.steps as any[])[0];
+    await expect(step0.beforeShowPromise()).resolves.toBeUndefined();
+  });
 });

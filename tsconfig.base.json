@@ -154,6 +154,9 @@
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
       ],
+      "@guiders-frontend/self-chat": [
+        "libs/chat/data-access/self-chat/src/index.ts"
+      ],
       "@guiders-frontend/lead-contact-service": [
         "libs/chat/data-access/lead-contact-service/src/index.ts"
       ],

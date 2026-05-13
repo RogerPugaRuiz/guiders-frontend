@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { SelfChatService } from '@guiders-frontend/self-chat';
 import { Observable } from 'rxjs';
 import { shareReplay, tap } from 'rxjs/operators';
 import { UserService } from './user.service';
@@ -9,6 +10,7 @@ import { AuthRefreshService } from './auth-refresh.service';
 export class SessionService {
   private readonly userService = inject(UserService);
   private readonly authRefreshService = inject(AuthRefreshService);
+  private readonly selfChat = inject(SelfChatService);
   private me$?: Observable<User>;
 
   ensureSession$(): Observable<User> {
@@ -19,6 +21,8 @@ export class SessionService {
             console.log('Session ensured for user:', user.email);
             // Programar refresh proactivo basado en la expiración del token
             this.scheduleProactiveRefresh(user);
+            // Bootstrap the per-user self chat (Microsoft Teams-style)
+            this.selfChat.initialize({ sub: user.sub, email: user.email });
           }),
           shareReplay({ bufferSize: 1, refCount: true })
         );
@@ -31,6 +35,8 @@ export class SessionService {
     this.userService.clearUser();
     // Cancelar refresh programado cuando se limpia la cache
     this.authRefreshService.cancelScheduledRefresh();
+    // Drop in-memory self chat snapshot (localStorage stays intact)
+    this.selfChat.clear();
   }
 
   // Método de conveniencia para obtener el usuario actual

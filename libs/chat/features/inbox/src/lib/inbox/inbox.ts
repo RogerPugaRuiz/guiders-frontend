@@ -3,6 +3,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   OnInit,
   OnDestroy,
   DestroyRef,
@@ -11,8 +12,7 @@ import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ChatService } from '@guiders-frontend/chat-service';
 import {
-  TourSandboxService,
-  isDemoId,
+  TourUiBridgeService,
 } from '@guiders-frontend/tour-sandbox';
 import {
   Chat,
@@ -72,7 +72,7 @@ export class Inbox implements OnInit, OnDestroy {
   private readonly presenceService = inject(PresenceService);
   private readonly visitorsDataService = inject(VisitorsDataService);
   private readonly leadContactService = inject(LeadContactService);
-  private readonly tourSandbox = inject(TourSandboxService, { optional: true });
+  private readonly tourUiBridge = inject(TourUiBridgeService, { optional: true });
 
   // ===== ESTADO PRINCIPAL =====
   readonly selectedConversationId = signal<string | null>(null);
@@ -101,6 +101,19 @@ export class Inbox implements OnInit, OnDestroy {
 
   // Estado del panel de detalles del visitante
   readonly showVisitorPanel = signal<boolean>(false);
+
+  /**
+   * Sync the visitor detail panel open/close with the tour UI bridge so the
+   * interactive tour can auto-open the panel during step 5
+   * (visitor-detail-panel) without requiring the user to click. Only active
+   * when the bridge is provided (i.e. tour-sandbox lib is loaded).
+   */
+  private readonly _tourPanelSync = this.tourUiBridge
+    ? effect(() => {
+        const requested = this.tourUiBridge!.visitorPanelOpenRequested();
+        this.showVisitorPanel.set(requested);
+      })
+    : null;
 
   // URL actual del visitante seleccionado
   readonly visitorCurrentUrl = signal<string | null>(null);
@@ -362,11 +375,17 @@ export class Inbox implements OnInit, OnDestroy {
         next: (chats) => {
           console.log('Chats cargados:', chats.length);
 
-          // Extraer IDs de todos los chats
-          const chatIds = chats.map((chat) => chat.chatId);
+          // Self chats are client-side only: exclude them from any backend
+          // round-trip (presence, unread counters, WS room joins, visitor registry).
+          const remoteChats = chats.filter(
+            (chat) => !this.chatService.isSelfChatId(chat.chatId)
+          );
+
+          // Extraer IDs de todos los chats remotos
+          const chatIds = remoteChats.map((chat) => chat.chatId);
 
           // ✅ Registrar relaciones chat-visitor para badges en la tabla de visitantes
-          const chatsToRegister = chats.map((chat) => ({
+          const chatsToRegister = remoteChats.map((chat) => ({
             chatId: chat.chatId,
             visitorId: chat.visitorId,
           }));
@@ -388,8 +407,8 @@ export class Inbox implements OnInit, OnDestroy {
           // Refrescar contadores de mensajes no leídos para todos los chats
           this.unreadMessagesService.refreshUnreadCounts(chatIds);
 
-          // Cargar estado de presencia para cada chat
-          chats.forEach((chat) => {
+          // Cargar estado de presencia para cada chat (loadChatPresence ya filtra self internamente)
+          remoteChats.forEach((chat) => {
             this.loadChatPresence(chat.chatId);
           });
         },
@@ -563,24 +582,6 @@ export class Inbox implements OnInit, OnDestroy {
       return;
     }
 
-    // Tour sandbox: derive demo conversation messages locally so the user
-    // can practice sending without hitting the backend.
-    if (isDemoId(chatId) && this.tourSandbox) {
-      this.tourSandbox.appendOperatorMessage(content);
-      this.tourSandbox.simulateVisitorReply();
-      // Notify the tour orchestrator that the demo send has happened so the
-      // 'envía un mensaje' action step can auto-advance. We dispatch directly
-      // on the tour anchor element when present; if it isn't mounted (e.g.
-      // tour not active or panel not open), the dispatch is silently skipped.
-      const anchor = document.querySelector('[data-tour="message-input"]');
-      if (anchor) {
-        anchor.dispatchEvent(
-          new CustomEvent('message-sent-demo', { bubbles: true })
-        );
-      }
-      return;
-    }
-
     this.chatService
       .sendMessage({
         chatId,
@@ -604,10 +605,10 @@ export class Inbox implements OnInit, OnDestroy {
   // ===== MÉTODOS AUXILIARES =====
 
   private loadMessages(chatId: string): void {
-    // Demo chats are seeded by TourSandboxService and exposed via
-    // ChatService.messages$ — never hit the backend for them, otherwise
+    // Self chats are persisted in localStorage and bridged through
+    // ChatService.messages$ — they must skip the HTTP fetch, otherwise
     // the 404 error path would clear the editor gate (messages.length > 0).
-    if (isDemoId(chatId)) {
+    if (this.chatService.isSelfChatId(chatId)) {
       return;
     }
     this.chatService
@@ -790,7 +791,9 @@ export class Inbox implements OnInit, OnDestroy {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((state) => {
         if (state === 'connected') {
-          const chatIds = this.conversations().map((chat) => chat.chatId);
+          const chatIds = this.conversations()
+            .filter((chat) => !this.chatService.isSelfChatId(chat.chatId))
+            .map((chat) => chat.chatId);
           if (chatIds.length > 0) {
             console.log(
               '[Inbox] WebSocket reconectado, resubscribiendo a chats...'
@@ -825,6 +828,10 @@ export class Inbox implements OnInit, OnDestroy {
    * Cargar estado de presencia para un chat específico
    */
   private loadChatPresence(chatId: string): void {
+    // Self chats live entirely client-side; no presence endpoint exists.
+    if (this.chatService.isSelfChatId(chatId)) {
+      return;
+    }
     this.presenceService
       .getChatPresence(chatId)
       .pipe(takeUntilDestroyed(this.destroyRef))

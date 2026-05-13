@@ -24,6 +24,30 @@ export interface TourLifecycleHook {
    * is marked as completed. Use to tear down sandbox/demo data.
    */
   onTourEnd(tourId: TourId, userId: string): void | Promise<void>;
+
+  /**
+   * OPTIONAL. Called by `TourService` from each step's
+   * `beforeShowPromise`, after route navigation has settled and before the
+   * step is rendered. Use to prepare cross-domain UI state so the user
+   * actually sees what the step is talking about (e.g. auto-select a demo
+   * chat before the "conversation area" step, open the visitor panel
+   * before the "visitor card" step).
+   *
+   * Backwards compatible: hooks that do not implement this method continue
+   * to work; the service detects its absence and skips the call.
+   *
+   * Errors thrown here are caught by the service and logged so the tour
+   * keeps progressing even if a single setup step fails.
+   *
+   * @param stepIndex Zero-based index of the step about to be shown.
+   * @param tourId The tour currently running.
+   * @param userId The user the tour is running for.
+   */
+  onBeforeStep?(
+    stepIndex: number,
+    tourId: TourId,
+    userId: string
+  ): void | Promise<void>;
 }
 
 /**
