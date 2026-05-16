@@ -27,7 +27,7 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
-    environment: production
+    environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@v4
