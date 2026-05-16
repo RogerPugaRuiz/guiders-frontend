@@ -27,7 +27,7 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
-    environment: staging
+    environment: production
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -297,39 +297,6 @@ jobs:
             ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; \
             echo 'Symlink actualizado -> current'; \
             if command -v systemctl >/dev/null 2>&1; then echo 'Opcional: systemctl reload nginx'; fi;"
-
-      - name: Exportar secrets a .env en servidor (TEMPORAL - revertir)
-        if: env.STAGING_SSH_HOST != ''
-        env:
-          SSH_HOST: ${{ env.STAGING_SSH_HOST }}
-          SSH_USER: ${{ env.STAGING_SSH_USER }}
-          SSH_PORT: ${{ env.STAGING_SSH_PORT }}
-          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
-          S_DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
-          S_SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
-          S_SSH_USER: ${{ secrets.STAGING_SSH_USER }}
-          S_SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
-          S_SSH_PASSWORD: ${{ secrets.STAGING_SSH_PASSWORD }}
-          S_WG_PRIVATE_KEY: ${{ secrets.WG_PRIVATE_KEY }}
-          S_WG_SERVER_ENDPOINT: ${{ secrets.WG_SERVER_ENDPOINT }}
-        run: |
-          set -e
-          PORT=${SSH_PORT:-22}
-          export SSHPASS="$SSH_PASS"
-          cat > /tmp/secrets.env <<EOF
-          STAGING_SSH_HOST=$S_SSH_HOST
-          STAGING_SSH_USER=$S_SSH_USER
-          STAGING_SSH_PORT=$S_SSH_PORT
-          STAGING_SSH_PASSWORD=$S_SSH_PASSWORD
-          STAGING_DEPLOY_PATH=$S_DEPLOY_PATH
-          WG_PRIVATE_KEY=$S_WG_PRIVATE_KEY
-          WG_SERVER_ENDPOINT=$S_WG_SERVER_ENDPOINT
-          EOF
-          sshpass -e scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -o PreferredAuthentications=password,keyboard-interactive \
-            -o PubkeyAuthentication=no -P "$PORT" \
-            /tmp/secrets.env "$SSH_USER@$SSH_HOST:/tmp/github-secrets.env"
-          echo "✅ Secrets exportados a /tmp/github-secrets.env en el servidor"
 
       - name: Mostrar skip deploy si faltan secrets
         if: env.STAGING_SSH_HOST == ''
