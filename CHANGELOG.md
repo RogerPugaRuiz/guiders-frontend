@@ -1,3 +1,7 @@
+## <small>0.0.3 (2026-05-16)</small>
+
+* fix: use staging environment for SSH secrets in deploy workflow ([bb7c4fa](https://github.com/RogerPugaRuiz/guiders-frontend/commit/bb7c4fa))
+
 ## <small>0.0.2 (2026-05-16)</small>
 
 * fix(ci): read APP_VERSION from git tag instead of package.json ([a18035f](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a18035f))
