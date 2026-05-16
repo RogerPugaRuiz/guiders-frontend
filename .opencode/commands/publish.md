@@ -1,7 +1,7 @@
 ---
 description: Publish changes to main branch
 agent: general
-model: github-copilot/claude-haiku-4.5
+model: github-copilot/gpt-5-mini
 ---
 
 Review the current git status and recent changes, then publish them to the main branch:

@@ -217,37 +217,45 @@ export class LeadCarsConfigComponent implements OnInit {
   private populateForm(config: LeadCarsCompanyConfig): void {
     const leadCarsConfig = config.config as LeadCarsConfig;
 
-    this.form.patchValue({
-      enabled: config.enabled,
-      syncChatConversations: config.syncChatConversations,
-      triggerEvents: {
-        lifecycle_to_lead: config.triggerEvents.includes('lifecycle_to_lead'),
-        chat_closed: config.triggerEvents.includes('chat_closed'),
-        contact_data_updated: config.triggerEvents.includes(
-          'contact_data_updated'
-        ),
-      },
-      clienteToken: leadCarsConfig.clienteToken || '',
-      useSandbox:
-        leadCarsConfig.useSandbox ?? LEADCARS_CONFIG_DEFAULTS.useSandbox,
-      concesionarioId: leadCarsConfig.concesionarioId || null,
-      sedeId: leadCarsConfig.sedeId || null,
-      campanaId: leadCarsConfig.campanaId || null,
-      tipoLeadDefault: leadCarsConfig.tipoLeadDefault
-        ? Number(leadCarsConfig.tipoLeadDefault)
-        : null,
-    });
+    const savedSedeId = leadCarsConfig.sedeId || null;
+    const savedCampanaId = leadCarsConfig.campanaId || null;
 
-    // Cargar datos dinámicos de LeadCars
+    // Usamos emitEvent: false en el concesionarioId para evitar que el listener
+    // de valueChanges resetee sedeId y campanaId durante la carga inicial
+    this.form.patchValue(
+      {
+        enabled: config.enabled,
+        syncChatConversations: config.syncChatConversations,
+        triggerEvents: {
+          lifecycle_to_lead: config.triggerEvents.includes('lifecycle_to_lead'),
+          chat_closed: config.triggerEvents.includes('chat_closed'),
+          contact_data_updated: config.triggerEvents.includes(
+            'contact_data_updated'
+          ),
+        },
+        clienteToken: leadCarsConfig.clienteToken || '',
+        useSandbox:
+          leadCarsConfig.useSandbox ?? LEADCARS_CONFIG_DEFAULTS.useSandbox,
+        concesionarioId: leadCarsConfig.concesionarioId || null,
+        sedeId: savedSedeId,
+        campanaId: savedCampanaId,
+        tipoLeadDefault: leadCarsConfig.tipoLeadDefault
+          ? Number(leadCarsConfig.tipoLeadDefault)
+          : null,
+      },
+      { emitEvent: false }
+    );
+
+    const clienteToken =
+      this.form.get('clienteToken')?.value as string | undefined;
+    const useSandbox =
+      this.form.get('useSandbox')?.value as boolean | undefined;
+
+    // Cargar concesionarios y tipos de lead
     this.loadLeadCarsData();
 
-    // Si hay concesionario, cargar sus sedes y campañas
+    // Si hay concesionario, cargar sus sedes y campañas y restaurar los valores guardados
     if (leadCarsConfig.concesionarioId) {
-      const clienteToken =
-        this.form.get('clienteToken')?.value as string | undefined;
-      const useSandbox =
-        this.form.get('useSandbox')?.value as boolean | undefined;
-
       forkJoin([
         this.leadsService.getSedes(
           leadCarsConfig.concesionarioId,
@@ -261,7 +269,14 @@ export class LeadCarsConfigComponent implements OnInit {
         ),
       ])
         .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe();
+        .subscribe(() => {
+          // Una vez cargadas las listas, restaurar los valores seleccionados
+          // para que el <select> encuentre la opción correcta y muestre el nombre
+          this.form.patchValue(
+            { sedeId: savedSedeId, campanaId: savedCampanaId },
+            { emitEvent: false }
+          );
+        });
     }
   }
 

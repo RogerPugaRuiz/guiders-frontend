@@ -10,6 +10,7 @@ interface Environment {
     baseUrl: string;
   };
   consoleUrl: string;
+  version?: string;
 }
 
 export const environment: Environment = {
@@ -23,5 +24,6 @@ export const environment: Environment = {
   api: {
     baseUrl: 'http://localhost:3000/api'
   },
-  consoleUrl: 'http://localhost:4200'
+  consoleUrl: 'http://localhost:4200',
+  version: '0.0.0-local',
 };

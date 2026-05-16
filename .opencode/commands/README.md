@@ -24,7 +24,7 @@ Este directorio contiene comandos personalizados de OpenCode para flujos de trab
 6. Hace push a origin/main
 7. Verifica el push exitoso
 
-**Modelo**: GitHub Copilot Claude Haiku 4.5
+**Modelo**: GitHub Copilot GPT-5-mini
 
 ---
 
@@ -46,7 +46,7 @@ Este directorio contiene comandos personalizados de OpenCode para flujos de trab
 4. Hace push a origin/main
 5. Muestra el commit confirmado
 
-**Modelo**: GitHub Copilot Claude Haiku 4.5
+**Modelo**: GitHub Copilot GPT-5-mini
 
 ---
 
@@ -106,7 +106,7 @@ Para crear un nuevo comando personalizado:
    ---
    description: Descripción breve del comando
    agent: general
-   model: github-copilot/claude-haiku-4.5
+    model: github-copilot/gpt-5-mini
    ---
    ```
 3. Escribe el contenido del comando como prompt

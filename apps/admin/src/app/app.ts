@@ -23,6 +23,7 @@ export class App {
   protected title = 'admin';
 
   readonly currentUser = this.userService.currentUser;
+  readonly appVersion: string = this.environment.version ?? '';
 
   private _tourStartedForUser: string | null = null;
 

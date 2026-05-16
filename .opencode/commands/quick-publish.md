@@ -1,7 +1,7 @@
 ---
 description: Quick publish to main (commit and push)
 agent: general
-model: github-copilot/claude-haiku-4.5
+model: github-copilot/gpt-5-mini
 ---
 
 Quickly commit and push changes to main branch:
