@@ -1,3 +1,8 @@
+## 0.1.0 (2026-05-16)
+
+* Merge remote-tracking branch 'origin/main' ([7eda53d](https://github.com/RogerPugaRuiz/guiders-frontend/commit/7eda53d))
+* feat: update admin app version display and improve leadcars config form state handling ([38653ae](https://github.com/RogerPugaRuiz/guiders-frontend/commit/38653ae))
+
 ## <small>0.0.4 (2026-05-16)</small>
 
 * fix: revert to production environment with correct SSH secrets ([0fbe177](https://github.com/RogerPugaRuiz/guiders-frontend/commit/0fbe177))
