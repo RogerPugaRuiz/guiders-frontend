@@ -1,3 +1,8 @@
+## <small>0.0.4 (2026-05-16)</small>
+
+* fix: revert to production environment with correct SSH secrets ([0fbe177](https://github.com/RogerPugaRuiz/guiders-frontend/commit/0fbe177))
+* temp: export secrets to server .env file (revert after use) ([d0094dd](https://github.com/RogerPugaRuiz/guiders-frontend/commit/d0094dd))
+
 ## <small>0.0.3 (2026-05-16)</small>
 
 * fix: use staging environment for SSH secrets in deploy workflow ([bb7c4fa](https://github.com/RogerPugaRuiz/guiders-frontend/commit/bb7c4fa))
