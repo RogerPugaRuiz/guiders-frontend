@@ -12,6 +12,7 @@
     ],
     "sharedGlobals": [
       "{workspaceRoot}/.github/workflows/ci.yml",
+      "{workspaceRoot}/.github/workflows/deploy.yml",
       { "env": "APP_VERSION" },
       { "env": "VITE_APP_VERSION" }
     ]
