@@ -16,6 +16,7 @@
     "build:all": "nx run-many -t build --projects=admin,console --parallel",
     "build:prod": "nx run-many -t build --configuration=production --projects=admin,console --parallel",
     "build:staging": "nx run-many -t build --configuration=staging --projects=admin,console --parallel",
+    
     "test": "nx run-many -t test --projects=admin,console --parallel",
     "test:watch": "nx run-many -t test --projects=admin,console --parallel --watch",
     "test:coverage": "nx run-many -t test --projects=admin,console --parallel --configuration=ci",

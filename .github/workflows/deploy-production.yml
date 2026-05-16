@@ -49,6 +49,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
 
+      - name: Set APP_VERSION from package.json
+        run: |
+          set -e
+          APP_VER=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$APP_VER" >> $GITHUB_ENV
+          echo "Determined APP_VERSION: $APP_VER"
+
+      - name: Validate APP_VERSION
+        run: |
+          set -e
+          if [ -z "${APP_VERSION:-}" ] || [ "${APP_VERSION:-}" = "0.0.0" ]; then
+            echo "❌ APP_VERSION is unset or '0.0.0'. Aborting build." >&2
+            exit 1
+          fi
+          echo "✅ APP_VERSION is $APP_VERSION"
       - name: Lint (production)
         run: npx nx run-many -t lint --projects=admin,console --parallel
 
