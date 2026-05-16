@@ -2,6 +2,16 @@
 
 * chore(ci): add conventional-changelog-conventionalcommits for semantic-release ([3a92d27](https://github.com/RogerPugaRuiz/guiders-frontend/commit/3a92d27))
 * chore(ci): rename develop to main, simplify to single deploy workflow ([a7f9045](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a7f9045))
+* chore(opencode): update publish commands to target main branch ([8dbed0c](https://github.com/RogerPugaRuiz/guiders-frontend/commit/8dbed0c))
+* chore(release): 0.0.2 [skip ci] ([f6971dd](https://github.com/RogerPugaRuiz/guiders-frontend/commit/f6971dd))
+* chore(release): 0.0.2-staging.1 [skip ci] ([79306bb](https://github.com/RogerPugaRuiz/guiders-frontend/commit/79306bb))
+* fix(ci): read APP_VERSION from git tag instead of package.json ([a18035f](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a18035f))
+* fix(version): inject APP_VERSION via sed before build to fix esbuild not reading vite define ([72d70f9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/72d70f9))
+
+## <small>0.0.2 (2026-05-16)</small>
+
+* chore(ci): add conventional-changelog-conventionalcommits for semantic-release ([3a92d27](https://github.com/RogerPugaRuiz/guiders-frontend/commit/3a92d27))
+* chore(ci): rename develop to main, simplify to single deploy workflow ([a7f9045](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a7f9045))
 * chore(release): 0.0.2-staging.1 [skip ci] ([79306bb](https://github.com/RogerPugaRuiz/guiders-frontend/commit/79306bb))
 * fix(ci): read APP_VERSION from git tag instead of package.json ([a18035f](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a18035f))
 * fix(version): inject APP_VERSION via sed before build to fix esbuild not reading vite define ([72d70f9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/72d70f9))
