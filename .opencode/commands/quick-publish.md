@@ -1,10 +1,10 @@
 ---
-description: Quick publish to develop (commit and push)
+description: Quick publish to main (commit and push)
 agent: general
 model: github-copilot/claude-haiku-4.5
 ---
 
-Quickly commit and push changes to develop branch:
+Quickly commit and push changes to main branch:
 
 1. Review current changes:
    !`git status --short`
@@ -14,8 +14,8 @@ Quickly commit and push changes to develop branch:
 
 3. Create a concise commit message and commit (use conventional commits format)
 
-4. Push to develop:
-   !`git push origin develop`
+4. Push to main:
+   !`git push origin main`
 
 5. Show confirmation:
    !`git log -1 --oneline`
