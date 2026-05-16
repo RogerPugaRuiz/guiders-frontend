@@ -14,8 +14,6 @@ interface Environment {
   version?: string;
 }
 
-declare const __APP_VERSION__: string;
-
 export const environment: Environment = {
   production: false, // staging no es producción completa
   auth: {
@@ -29,5 +27,5 @@ export const environment: Environment = {
     wsUrl: 'https://guiders.es' // WebSocket de staging (sin /api)
   },
   adminUrl: 'https://admin.guiders.es',
-  version: (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'),
+  version: '0.0.0-local',
 };

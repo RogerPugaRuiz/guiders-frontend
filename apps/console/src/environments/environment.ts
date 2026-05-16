@@ -14,8 +14,6 @@ interface Environment {
   version?: string;
 }
 
-declare const __APP_VERSION__: string;
-
 export const environment: Environment = {
   production: false,
   auth: {
@@ -29,5 +27,5 @@ export const environment: Environment = {
     wsUrl: 'http://localhost:3000' // URL específica para WebSocket (sin /api)
   },
   adminUrl: 'http://localhost:4201',
-  version: (typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0'),
+  version: '0.0.0-local',
 };

@@ -64,6 +64,19 @@ jobs:
             exit 1
           fi
           echo "✅ APP_VERSION is $APP_VERSION"
+      - name: Inject APP_VERSION into environment files
+        # Replace the placeholder '0.0.0-local' with the real APP_VERSION in all environment files
+        # This is necessary because @angular/build:application uses esbuild (not Vite),
+        # so vite.config.mts define() is never applied to production builds.
+        run: |
+          set -e
+          echo "Injecting version $APP_VERSION into environment files..."
+          find apps -name "environment*.ts" | while read f; do
+            sed -i "s/0\.0\.0-local/$APP_VERSION/g" "$f"
+            echo "  Patched: $f"
+          done
+          echo "Version injection complete."
+
       - name: Lint (production)
         run: npx nx run-many -t lint --projects=admin,console --parallel
 
