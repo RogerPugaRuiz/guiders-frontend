@@ -51,11 +51,14 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx semantic-release
 
-      - name: Set APP_VERSION from package.json
-        # Ensure builds use the deterministic package.json version unless CI overrides APP_VERSION
+      - name: Set APP_VERSION from git tag
+        # semantic-release creates the tag in the local repo but does NOT update package.json
+        # in the working tree (it commits+pushes remotely). Reading the latest git tag is reliable.
         run: |
           set -e
-          APP_VER=$(node -p "require('./package.json').version")
+          APP_VER=$(git describe --tags --abbrev=0)
+          # Strip leading 'v' if present
+          APP_VER=${APP_VER#v}
           echo "APP_VERSION=$APP_VER" >> $GITHUB_ENV
           echo "Determined APP_VERSION: $APP_VER"
 
