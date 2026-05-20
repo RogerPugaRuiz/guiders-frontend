@@ -67,6 +67,14 @@
   </div>
   }
 
+  <!-- LeadCars Data Load Error -->
+  @if (leadCarsDataError()) {
+  <div class="alert alert--error">
+    <span class="alert__icon">⚠️</span>
+    <span class="alert__message">{{ leadCarsDataError() }}</span>
+  </div>
+  }
+
   <form [formGroup]="form" (ngSubmit)="onSave()" class="config-form">
     <!-- General Settings -->
     <div class="form-section">

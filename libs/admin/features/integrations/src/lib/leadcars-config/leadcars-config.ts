@@ -24,7 +24,6 @@ import {
   filter,
   startWith,
   tap,
-  Observable,
 } from 'rxjs';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
@@ -83,6 +82,7 @@ export class LeadCarsConfigComponent implements OnInit {
   readonly campanas = signal<LeadCarsCampana[]>([]);
   readonly tiposLead = signal<LeadCarsTipoLead[]>([]);
   readonly loadingLeadCarsData = signal<boolean>(false);
+  readonly leadCarsDataError = signal<string | null>(null);
 
   // Eventos de trigger disponibles
   readonly availableTriggerEvents = AVAILABLE_TRIGGER_EVENTS;
@@ -305,6 +305,10 @@ export class LeadCarsConfigComponent implements OnInit {
    * Lanza la carga de concesionarios, tipos de lead y, si corresponde,
    * sedes y campañas del concesionario indicado. Centraliza la lógica
    * usada tanto por el listener automático como por populateForm.
+   *
+   * Cada llamada se observa por separado para que un fallo en una
+   * (p.ej. 500 del backend por token inválido) no cancele las demás,
+   * y para poder informar al usuario sin spam de errores en consola.
    */
   private fetchLeadCarsData(
     clienteToken: string,
@@ -312,33 +316,59 @@ export class LeadCarsConfigComponent implements OnInit {
     concesionarioId: number | null,
   ): void {
     this.loadingLeadCarsData.set(true);
+    this.leadCarsDataError.set(null);
 
-    const calls: Observable<unknown>[] = [
-      this.leadsService.getConcesionarios(clienteToken, useSandbox),
-      this.leadsService.getTiposLead(clienteToken, useSandbox),
-    ];
+    let pending = 2 + (concesionarioId ? 2 : 0);
+    let anyFailed = false;
+    const done = (failed: boolean) => {
+      if (failed) anyFailed = true;
+      pending -= 1;
+      if (pending === 0) {
+        this.loadingLeadCarsData.set(false);
+        if (anyFailed) {
+          this.leadCarsDataError.set(
+            'No se pudieron cargar los datos de LeadCars. Revisa el token y el entorno (sandbox/producción).',
+          );
+        }
+      }
+    };
 
-    if (concesionarioId) {
-      calls.push(
-        this.leadsService.getSedes(
-          Number(concesionarioId),
-          clienteToken,
-          useSandbox,
-        ),
-        this.leadsService.getCampanas(
-          Number(concesionarioId),
-          clienteToken,
-          useSandbox,
-        ),
-      );
-    }
-
-    forkJoin(calls)
+    this.leadsService
+      .getConcesionarios(clienteToken, useSandbox)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => this.loadingLeadCarsData.set(false),
-        error: () => this.loadingLeadCarsData.set(false),
+        next: (list) => done(list.length === 0 && anyFailed),
+        error: () => done(true),
+        complete: () => {
+          /* siguiente emisión ya marcó done */
+        },
       });
+
+    this.leadsService
+      .getTiposLead(clienteToken, useSandbox)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => done(false),
+        error: () => done(true),
+      });
+
+    if (concesionarioId) {
+      this.leadsService
+        .getSedes(Number(concesionarioId), clienteToken, useSandbox)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => done(false),
+          error: () => done(true),
+        });
+
+      this.leadsService
+        .getCampanas(Number(concesionarioId), clienteToken, useSandbox)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => done(false),
+          error: () => done(true),
+        });
+    }
   }
 
   private buildRequest(): CreateLeadCarsConfigRequest {
