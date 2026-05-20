@@ -24,6 +24,7 @@ import {
   filter,
   startWith,
   tap,
+  Observable,
 } from 'rxjs';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
@@ -176,50 +177,16 @@ export class LeadCarsConfigComponent implements OnInit {
     combineLatest([tokenChanges$, sandboxChanges$])
       .pipe(
         debounceTime(400),
-        distinctUntilChanged(
-          (a, b) => a[0] === b[0] && a[1] === b[1],
-        ),
+        distinctUntilChanged((a, b) => a[0] === b[0] && a[1] === b[1]),
         filter(([token]) => !!token && String(token).trim().length > 0),
-        tap(() => {
-          // Limpiar selecciones dependientes al cambiar token/sandbox
-          this.leadsService.clearSedesYCampanas();
-        }),
-        switchMap(([token, sandbox]) => {
-          this.loadingLeadCarsData.set(true);
-          const clienteToken = String(token);
-          const useSandbox = !!sandbox;
-
-          const concesionarioId = this.form.get('concesionarioId')?.value as
-            | number
-            | null;
-
-          const calls = [
-            this.leadsService.getConcesionarios(clienteToken, useSandbox),
-            this.leadsService.getTiposLead(clienteToken, useSandbox),
-          ];
-
-          if (concesionarioId) {
-            calls.push(
-              this.leadsService.getSedes(
-                Number(concesionarioId),
-                clienteToken,
-                useSandbox,
-              ) as never,
-              this.leadsService.getCampanas(
-                Number(concesionarioId),
-                clienteToken,
-                useSandbox,
-              ) as never,
-            );
-          }
-
-          return forkJoin(calls);
-        }),
+        tap(() => this.leadsService.clearSedesYCampanas()),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe({
-        next: () => this.loadingLeadCarsData.set(false),
-        error: () => this.loadingLeadCarsData.set(false),
+      .subscribe(([token, sandbox]) => {
+        const concesionarioId = this.form.get('concesionarioId')?.value as
+          | number
+          | null;
+        this.fetchLeadCarsData(String(token), !!sandbox, concesionarioId);
       });
   }
 
@@ -301,12 +268,23 @@ export class LeadCarsConfigComponent implements OnInit {
       { emitEvent: false }
     );
 
-    // La carga automática de concesionarios/tipos/sedes/campañas se dispara
-    // mediante setupAutoLoadLeadCarsData() al detectar el clienteToken.
-    // Tras cargar las listas, restauramos los valores guardados para que
-    // los <select> encuentren la opción correcta y muestren el nombre.
+    // Disparar carga manualmente porque patchValue con emitEvent:false no
+    // activa el listener de valueChanges en setupAutoLoadLeadCarsData().
+    const clienteToken = leadCarsConfig.clienteToken || '';
+    const useSandbox =
+      leadCarsConfig.useSandbox ?? LEADCARS_CONFIG_DEFAULTS.useSandbox;
+
+    if (clienteToken) {
+      this.fetchLeadCarsData(
+        clienteToken,
+        !!useSandbox,
+        leadCarsConfig.concesionarioId ?? null,
+      );
+    }
+
+    // Tras cargar las listas, restaurar los valores guardados para que los
+    // <select> encuentren la opción correcta y muestren el nombre.
     if (leadCarsConfig.concesionarioId) {
-      // Esperar a que las sedes/campañas se carguen y volver a aplicar los valores
       combineLatest([this.leadsService.sedes$, this.leadsService.campanas$])
         .pipe(
           filter(
@@ -321,6 +299,46 @@ export class LeadCarsConfigComponent implements OnInit {
           );
         });
     }
+  }
+
+  /**
+   * Lanza la carga de concesionarios, tipos de lead y, si corresponde,
+   * sedes y campañas del concesionario indicado. Centraliza la lógica
+   * usada tanto por el listener automático como por populateForm.
+   */
+  private fetchLeadCarsData(
+    clienteToken: string,
+    useSandbox: boolean,
+    concesionarioId: number | null,
+  ): void {
+    this.loadingLeadCarsData.set(true);
+
+    const calls: Observable<unknown>[] = [
+      this.leadsService.getConcesionarios(clienteToken, useSandbox),
+      this.leadsService.getTiposLead(clienteToken, useSandbox),
+    ];
+
+    if (concesionarioId) {
+      calls.push(
+        this.leadsService.getSedes(
+          Number(concesionarioId),
+          clienteToken,
+          useSandbox,
+        ),
+        this.leadsService.getCampanas(
+          Number(concesionarioId),
+          clienteToken,
+          useSandbox,
+        ),
+      );
+    }
+
+    forkJoin(calls)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => this.loadingLeadCarsData.set(false),
+        error: () => this.loadingLeadCarsData.set(false),
+      });
   }
 
   private buildRequest(): CreateLeadCarsConfigRequest {
