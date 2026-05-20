@@ -1,3 +1,7 @@
+## <small>0.2.1 (2026-05-20)</small>
+
+* fix(admin/integrations): auto-load LeadCars lists when config has saved token ([3181307](https://github.com/RogerPugaRuiz/guiders-frontend/commit/3181307))
+
 ## 0.2.0 (2026-05-20)
 
 * Merge branch 'develop' ([4c366f4](https://github.com/RogerPugaRuiz/guiders-frontend/commit/4c366f4))
