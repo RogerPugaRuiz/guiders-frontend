@@ -1,3 +1,8 @@
+## 0.2.0 (2026-05-20)
+
+* Merge branch 'develop' ([4c366f4](https://github.com/RogerPugaRuiz/guiders-frontend/commit/4c366f4))
+* feat(admin/integrations): improve LeadCars config form state handling and admin app version display ([1f6c222](https://github.com/RogerPugaRuiz/guiders-frontend/commit/1f6c222))
+
 ## 0.1.0 (2026-05-16)
 
 * Merge remote-tracking branch 'origin/main' ([7eda53d](https://github.com/RogerPugaRuiz/guiders-frontend/commit/7eda53d))
