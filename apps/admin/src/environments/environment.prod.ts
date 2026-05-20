@@ -25,5 +25,5 @@ export const environment: Environment = {
     baseUrl: 'https://guiders.es/api'
   },
   consoleUrl: 'https://console.guiders.es',
-  version: '0.0.0',
+  version: '0.0.0-local',
 };
