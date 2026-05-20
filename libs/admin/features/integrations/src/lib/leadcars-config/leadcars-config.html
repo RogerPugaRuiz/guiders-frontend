@@ -186,11 +186,13 @@
           placeholder="ID del concesionario"
           [class.form-control--error]="form.get('concesionarioId')?.invalid && form.get('concesionarioId')?.touched"
         />
+        @if (loadingLeadCarsData()) {
+        <p class="form-hint">Cargando lista de concesionarios desde LeadCars…</p>
+        } @else if (!form.get('clienteToken')?.value) {
         <p class="form-hint">
-          <button type="button" class="btn-link" (click)="loadLeadCarsData()">
-            Cargar lista de concesionarios
-          </button>
+          Introduce el token de cliente para cargar la lista de concesionarios.
         </p>
+        }
         } @if (form.get('concesionarioId')?.invalid &&
         form.get('concesionarioId')?.touched) {
         <span class="form-error">El concesionario es obligatorio</span>
@@ -302,11 +304,13 @@
           placeholder="ID del tipo de lead"
           min="1"
         />
+        @if (loadingLeadCarsData()) {
+        <p class="form-hint">Cargando tipos de lead desde LeadCars…</p>
+        } @else if (!form.get('clienteToken')?.value) {
         <p class="form-hint">
-          <button type="button" class="btn-link" (click)="loadLeadCarsData()">
-            Cargar tipos desde LeadCars
-          </button>
+          Introduce el token de cliente para cargar los tipos de lead.
         </p>
+        }
         }
       </div>
     </div>

@@ -14,7 +14,17 @@ import {
   Validators,
 } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap, forkJoin, of, EMPTY } from 'rxjs';
+import {
+  switchMap,
+  forkJoin,
+  EMPTY,
+  combineLatest,
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  startWith,
+  tap,
+} from 'rxjs';
 import { LeadsService } from '@guiders-frontend/leads-service';
 import { SessionService } from '@guiders-frontend/auth/data-access/session';
 import {
@@ -98,6 +108,7 @@ export class LeadCarsConfigComponent implements OnInit {
     this.loadConfig();
     this.subscribeToObservables();
     this.setupConcesionarioChangeListener();
+    this.setupAutoLoadLeadCarsData();
   }
 
   private subscribeToObservables(): void {
@@ -114,7 +125,12 @@ export class LeadCarsConfigComponent implements OnInit {
       .subscribe((error) => this.error.set(error));
 
     this.leadsService.config$
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        distinctUntilChanged(
+          (a, b) => (a?.id ?? null) === (b?.id ?? null),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((config) => {
         this.config.set(config);
         if (config) {
@@ -138,6 +154,73 @@ export class LeadCarsConfigComponent implements OnInit {
     this.leadsService.tiposLead$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((data) => this.tiposLead.set(data));
+  }
+
+  /**
+   * Escucha cambios en clienteToken y useSandbox para cargar automáticamente
+   * concesionarios y tipos de lead. Usa debounce para evitar peticiones
+   * mientras el usuario está escribiendo el token.
+   */
+  private setupAutoLoadLeadCarsData(): void {
+    const tokenCtrl = this.form.get('clienteToken');
+    const sandboxCtrl = this.form.get('useSandbox');
+    if (!tokenCtrl || !sandboxCtrl) return;
+
+    const tokenChanges$ = tokenCtrl.valueChanges.pipe(
+      startWith(tokenCtrl.value),
+    );
+    const sandboxChanges$ = sandboxCtrl.valueChanges.pipe(
+      startWith(sandboxCtrl.value),
+    );
+
+    combineLatest([tokenChanges$, sandboxChanges$])
+      .pipe(
+        debounceTime(400),
+        distinctUntilChanged(
+          (a, b) => a[0] === b[0] && a[1] === b[1],
+        ),
+        filter(([token]) => !!token && String(token).trim().length > 0),
+        tap(() => {
+          // Limpiar selecciones dependientes al cambiar token/sandbox
+          this.leadsService.clearSedesYCampanas();
+        }),
+        switchMap(([token, sandbox]) => {
+          this.loadingLeadCarsData.set(true);
+          const clienteToken = String(token);
+          const useSandbox = !!sandbox;
+
+          const concesionarioId = this.form.get('concesionarioId')?.value as
+            | number
+            | null;
+
+          const calls = [
+            this.leadsService.getConcesionarios(clienteToken, useSandbox),
+            this.leadsService.getTiposLead(clienteToken, useSandbox),
+          ];
+
+          if (concesionarioId) {
+            calls.push(
+              this.leadsService.getSedes(
+                Number(concesionarioId),
+                clienteToken,
+                useSandbox,
+              ) as never,
+              this.leadsService.getCampanas(
+                Number(concesionarioId),
+                clienteToken,
+                useSandbox,
+              ) as never,
+            );
+          }
+
+          return forkJoin(calls);
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => this.loadingLeadCarsData.set(false),
+        error: () => this.loadingLeadCarsData.set(false),
+      });
   }
 
   /**
@@ -186,34 +269,6 @@ export class LeadCarsConfigComponent implements OnInit {
       .subscribe();
   }
 
-  /**
-   * Cargar datos de LeadCars (concesionarios y tipos de lead)
-   */
-  loadLeadCarsData(): void {
-    if (this.concesionarios().length > 0) {
-      return; // Ya están cargados
-    }
-
-    const clienteToken = this.form.get('clienteToken')?.value as string | undefined;
-    const useSandbox = this.form.get('useSandbox')?.value as boolean | undefined;
-
-    this.loadingLeadCarsData.set(true);
-
-    // Cargar concesionarios y tipos de lead en paralelo
-    this.leadsService
-      .getConcesionarios(clienteToken || undefined, useSandbox)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        complete: () => this.loadingLeadCarsData.set(false),
-        error: () => this.loadingLeadCarsData.set(false),
-      });
-
-    this.leadsService
-      .getTiposLead(clienteToken || undefined, useSandbox)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe();
-  }
-
   private populateForm(config: LeadCarsCompanyConfig): void {
     const leadCarsConfig = config.config as LeadCarsConfig;
 
@@ -246,35 +301,23 @@ export class LeadCarsConfigComponent implements OnInit {
       { emitEvent: false }
     );
 
-    const clienteToken =
-      this.form.get('clienteToken')?.value as string | undefined;
-    const useSandbox =
-      this.form.get('useSandbox')?.value as boolean | undefined;
-
-    // Cargar concesionarios y tipos de lead
-    this.loadLeadCarsData();
-
-    // Si hay concesionario, cargar sus sedes y campañas y restaurar los valores guardados
+    // La carga automática de concesionarios/tipos/sedes/campañas se dispara
+    // mediante setupAutoLoadLeadCarsData() al detectar el clienteToken.
+    // Tras cargar las listas, restauramos los valores guardados para que
+    // los <select> encuentren la opción correcta y muestren el nombre.
     if (leadCarsConfig.concesionarioId) {
-      forkJoin([
-        this.leadsService.getSedes(
-          leadCarsConfig.concesionarioId,
-          clienteToken || undefined,
-          useSandbox,
-        ),
-        this.leadsService.getCampanas(
-          leadCarsConfig.concesionarioId,
-          clienteToken || undefined,
-          useSandbox,
-        ),
-      ])
-        .pipe(takeUntilDestroyed(this.destroyRef))
+      // Esperar a que las sedes/campañas se carguen y volver a aplicar los valores
+      combineLatest([this.leadsService.sedes$, this.leadsService.campanas$])
+        .pipe(
+          filter(
+            ([sedes, campanas]) => sedes.length > 0 || campanas.length > 0,
+          ),
+          takeUntilDestroyed(this.destroyRef),
+        )
         .subscribe(() => {
-          // Una vez cargadas las listas, restaurar los valores seleccionados
-          // para que el <select> encuentre la opción correcta y muestre el nombre
           this.form.patchValue(
             { sedeId: savedSedeId, campanaId: savedCampanaId },
-            { emitEvent: false }
+            { emitEvent: false },
           );
         });
     }
