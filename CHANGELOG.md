@@ -1,3 +1,7 @@
+## 0.3.0 (2026-05-20)
+
+* feat(admin/integrations): surface LeadCars data load failures and avoid console spam ([2acbdd0](https://github.com/RogerPugaRuiz/guiders-frontend/commit/2acbdd0))
+
 ## <small>0.2.1 (2026-05-20)</small>
 
 * fix(admin/integrations): auto-load LeadCars lists when config has saved token ([3181307](https://github.com/RogerPugaRuiz/guiders-frontend/commit/3181307))
