@@ -1,3 +1,7 @@
+## <small>0.3.1 (2026-05-20)</small>
+
+* fix(admin): use 0.0.0-local placeholder so CI sed injects APP_VERSION ([c86a1ae](https://github.com/RogerPugaRuiz/guiders-frontend/commit/c86a1ae))
+
 ## 0.3.0 (2026-05-20)
 
 * feat(admin/integrations): surface LeadCars data load failures and avoid console spam ([2acbdd0](https://github.com/RogerPugaRuiz/guiders-frontend/commit/2acbdd0))
