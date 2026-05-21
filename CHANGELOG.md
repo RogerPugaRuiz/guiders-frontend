@@ -1,3 +1,7 @@
+## <small>0.3.2 (2026-05-21)</small>
+
+* fix(routing): add wildcard catch-all routes to prevent NG04002 on unknown paths ([975d22e](https://github.com/RogerPugaRuiz/guiders-frontend/commit/975d22e))
+
 ## <small>0.3.1 (2026-05-20)</small>
 
 * fix(admin): use 0.0.0-local placeholder so CI sed injects APP_VERSION ([c86a1ae](https://github.com/RogerPugaRuiz/guiders-frontend/commit/c86a1ae))
