@@ -67,6 +67,9 @@ export class LeadCarsConfigComponent implements OnInit {
   // Estado para mostrar el formulario de setup cuando no hay config
   readonly showSetupForm = signal<boolean>(false);
 
+  // Estado para mostrar/ocultar el token
+  readonly showToken = signal<boolean>(false);
+
   // Indica si se debe mostrar el panel de onboarding (sin config y sin formulario abierto)
   readonly showOnboarding = computed(
     () =>

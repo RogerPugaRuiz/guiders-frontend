@@ -139,19 +139,29 @@
 
       <div class="form-group">
         <label for="clienteToken">Token de Cliente *</label>
-        <input
-          type="password"
-          id="clienteToken"
-          name="leadcars-cliente-token"
-          formControlName="clienteToken"
-          class="form-control"
-          placeholder="Introduce el token de LeadCars"
-          autocomplete="new-password"
-          [class.form-control--error]="form.get('clienteToken')?.invalid && form.get('clienteToken')?.touched"
-        />
-        @if (form.get('clienteToken')?.invalid &&
-        form.get('clienteToken')?.touched) {
-        <span class="form-error">El token de cliente es obligatorio</span>
+        <div class="token-input-wrapper">
+          <input
+            [type]="showToken() ? 'text' : 'password'"
+            id="clienteToken"
+            name="leadcars-cliente-token"
+            formControlName="clienteToken"
+            class="form-control"
+            placeholder="Introduce el token de LeadCars"
+            autocomplete="new-password"
+            [class.form-control--error]="form.get('clienteToken')?.invalid && form.get('clienteToken')?.touched"
+          />
+          <button
+            type="button"
+            class="token-toggle-btn"
+            (click)="showToken.set(!showToken())"
+            [title]="showToken() ? 'Ocultar token' : 'Mostrar token'"
+          >{{ showToken() ? '🙈' : '👁' }}</button>
+        </div>
+        @if (form.get('clienteToken')?.value) {
+          <span class="token-hint">Longitud: {{ form.get('clienteToken')?.value?.length }} caracteres</span>
+        }
+        @if (form.get('clienteToken')?.invalid && form.get('clienteToken')?.touched) {
+          <span class="form-error">El token de cliente es obligatorio</span>
         }
       </div>
 
