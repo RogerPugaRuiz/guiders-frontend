@@ -319,16 +319,23 @@ export class LeadCarsConfigComponent implements OnInit {
     this.leadCarsDataError.set(null);
 
     let pending = 2 + (concesionarioId ? 2 : 0);
-    let anyFailed = false;
-    const done = (failed: boolean) => {
-      if (failed) anyFailed = true;
+    let firstError: { status?: number; message?: string } | null = null;
+    const done = (error: { status?: number; message?: string } | null) => {
+      if (error && !firstError) firstError = error;
       pending -= 1;
       if (pending === 0) {
         this.loadingLeadCarsData.set(false);
-        if (anyFailed) {
-          this.leadCarsDataError.set(
-            'No se pudieron cargar los datos de LeadCars. Revisa el token y el entorno (sandbox/producción).',
-          );
+        if (firstError) {
+          const status = firstError.status;
+          if (status === 401) {
+            this.leadCarsDataError.set(
+              'Token de LeadCars inválido o sin permisos (401). Verifica el clienteToken y el entorno (sandbox/producción).',
+            );
+          } else {
+            this.leadCarsDataError.set(
+              'No se pudieron cargar los datos de LeadCars. Revisa el token y el entorno (sandbox/producción).',
+            );
+          }
         }
       }
     };
@@ -337,8 +344,8 @@ export class LeadCarsConfigComponent implements OnInit {
       .getConcesionarios(clienteToken, useSandbox)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (list) => done(list.length === 0 && anyFailed),
-        error: () => done(true),
+        next: () => done(null),
+        error: (err) => done({ status: err?.status }),
         complete: () => {
           /* siguiente emisión ya marcó done */
         },
@@ -348,8 +355,8 @@ export class LeadCarsConfigComponent implements OnInit {
       .getTiposLead(clienteToken, useSandbox)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => done(false),
-        error: () => done(true),
+        next: () => done(null),
+        error: (err) => done({ status: err?.status }),
       });
 
     if (concesionarioId) {
@@ -357,16 +364,16 @@ export class LeadCarsConfigComponent implements OnInit {
         .getSedes(Number(concesionarioId), clienteToken, useSandbox)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: () => done(false),
-          error: () => done(true),
+          next: () => done(null),
+          error: (err) => done({ status: err?.status }),
         });
 
       this.leadsService
         .getCampanas(Number(concesionarioId), clienteToken, useSandbox)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          next: () => done(false),
-          error: () => done(true),
+          next: () => done(null),
+          error: (err) => done({ status: err?.status }),
         });
     }
   }

@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, catchError, of, tap } from 'rxjs';
+import { Observable, BehaviorSubject, catchError, of, tap, throwError } from 'rxjs';
 import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import {
   LeadCarsCompanyConfig,
@@ -300,7 +300,8 @@ export class LeadsService {
         ),
         catchError((error) => {
           console.error('Error al obtener concesionarios:', error);
-          return of([]);
+          this.concesionariosSubject.next([]);
+          return throwError(() => error);
         })
       );
   }
@@ -332,7 +333,8 @@ export class LeadsService {
         tap((sedes) => this.sedesSubject.next(sedes)),
         catchError((error) => {
           console.error('Error al obtener sedes:', error);
-          return of([]);
+          this.sedesSubject.next([]);
+          return throwError(() => error);
         })
       );
   }
@@ -364,7 +366,8 @@ export class LeadsService {
         tap((campanas) => this.campanasSubject.next(campanas)),
         catchError((error) => {
           console.error('Error al obtener campañas:', error);
-          return of([]);
+          this.campanasSubject.next([]);
+          return throwError(() => error);
         })
       );
   }
@@ -392,7 +395,8 @@ export class LeadsService {
         tap((tipos) => this.tiposLeadSubject.next(tipos)),
         catchError((error) => {
           console.error('Error al obtener tipos de lead:', error);
-          return of([]);
+          this.tiposLeadSubject.next([]);
+          return throwError(() => error);
         })
       );
   }
