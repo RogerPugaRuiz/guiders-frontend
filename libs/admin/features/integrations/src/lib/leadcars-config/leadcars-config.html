@@ -142,9 +142,11 @@
         <input
           type="password"
           id="clienteToken"
+          name="leadcars-cliente-token"
           formControlName="clienteToken"
           class="form-control"
           placeholder="Introduce el token de LeadCars"
+          autocomplete="new-password"
           [class.form-control--error]="form.get('clienteToken')?.invalid && form.get('clienteToken')?.touched"
         />
         @if (form.get('clienteToken')?.invalid &&
