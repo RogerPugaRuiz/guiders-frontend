@@ -1,3 +1,7 @@
+## <small>0.3.4 (2026-05-21)</small>
+
+* fix(leadcars): disable password autocomplete on clienteToken input ([8935f76](https://github.com/RogerPugaRuiz/guiders-frontend/commit/8935f76))
+
 ## <small>0.3.3 (2026-05-21)</small>
 
 * fix(leadcars): propagate HTTP errors from LeadCars API and show specific 401 message ([b928975](https://github.com/RogerPugaRuiz/guiders-frontend/commit/b928975))
