@@ -50,4 +50,8 @@ export const appRoutes: Route[] = [
         (m) => m.loginRoutes
       ),
   },
+  {
+    path: '**',
+    redirectTo: 'dashboard',
+  },
 ];

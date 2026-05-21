@@ -36,5 +36,9 @@ export const appRoutes: Route[] = [
 		path: '',
 		pathMatch: 'full',
 		redirectTo: 'inbox',
+	},
+	{
+		path: '**',
+		redirectTo: 'inbox',
 	}
 ];
