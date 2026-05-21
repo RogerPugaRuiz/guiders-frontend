@@ -1,3 +1,7 @@
+## 0.4.0 (2026-05-21)
+
+* feat(leadcars): add show/hide toggle and length hint for clienteToken field ([9eb3b3b](https://github.com/RogerPugaRuiz/guiders-frontend/commit/9eb3b3b))
+
 ## <small>0.3.4 (2026-05-21)</small>
 
 * fix(leadcars): disable password autocomplete on clienteToken input ([8935f76](https://github.com/RogerPugaRuiz/guiders-frontend/commit/8935f76))
