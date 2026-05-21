@@ -1,3 +1,7 @@
+## <small>0.3.3 (2026-05-21)</small>
+
+* fix(leadcars): propagate HTTP errors from LeadCars API and show specific 401 message ([b928975](https://github.com/RogerPugaRuiz/guiders-frontend/commit/b928975))
+
 ## <small>0.3.2 (2026-05-21)</small>
 
 * fix(routing): add wildcard catch-all routes to prevent NG04002 on unknown paths ([975d22e](https://github.com/RogerPugaRuiz/guiders-frontend/commit/975d22e))
