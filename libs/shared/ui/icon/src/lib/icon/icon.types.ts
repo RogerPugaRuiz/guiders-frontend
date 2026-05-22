@@ -103,6 +103,7 @@ export type IconName =
   | 'building'
   | 'globe'
   | 'target'
+  | 'leadcars'
   | 'layers'
   | 'monitor'
   | 'server'
@@ -170,6 +171,6 @@ export const ICON_CATEGORIES = {
     'power', 'wifi', 'bluetooth', 'battery', 'signal'
   ],
   business: [
-    'building', 'globe', 'target', 'layers', 'monitor', 'server'
+    'building', 'globe', 'target', 'leadcars', 'layers', 'monitor', 'server'
   ]
 } as const;

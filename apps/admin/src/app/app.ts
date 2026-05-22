@@ -89,6 +89,12 @@ export class App {
           icon: 'globe',
           route: '/integrations/sites',
         },
+        {
+          id: 'lead-cars',
+          label: 'Lead Cars',
+          icon: 'leadcars',
+          route: '/integrations/leadcars',
+        },
       ],
     },
     {
