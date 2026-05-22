@@ -12,6 +12,7 @@ import {
   AfterViewInit,
   OnDestroy,
   ChangeDetectorRef,
+  NgZone,
   inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -120,6 +121,7 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
   private _loadMorePending = false;
 
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly ngZone = inject(NgZone);
 
   // Computed values
   readonly filteredVisitors = computed(() => {
@@ -238,7 +240,10 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
         const entry = entries[0];
         if (entry.isIntersecting && !this.isLoadingMore() && this.hasMore() && !this._loadMorePending) {
           this._loadMorePending = true;
-          this.loadMore.emit();
+          // Run inside Angular zone so outputs and signal updates are picked up
+          this.ngZone.run(() => {
+            this.loadMore.emit();
+          });
           // Reset the guard after a short debounce to allow subsequent loads
           setTimeout(() => {
             this._loadMorePending = false;

@@ -16,6 +16,8 @@ const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
  */
 export default defineConfig({
   ...nxE2EPreset(__filename, { testDir: './src' }),
+  /* Default timeout per test (ms). Real SSO + page load needs more than 30 s. */
+  timeout: 60_000,
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL,
@@ -28,12 +30,12 @@ export default defineConfig({
   },
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'VITE_USE_MOCK_DATA=true npx nx run console:serve',
+    command: 'VITE_USE_MOCK_DATA=false npx nx run console:serve',
     url: 'http://localhost:4200',
     reuseExistingServer: true,
     cwd: workspaceRoot,
     env: {
-      VITE_USE_MOCK_DATA: 'true',
+      VITE_USE_MOCK_DATA: 'false',
     },
   },
   projects: [

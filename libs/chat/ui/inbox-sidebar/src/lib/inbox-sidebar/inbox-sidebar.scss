@@ -26,6 +26,7 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+    overflow: hidden; // Critical: bounds flex children height for scroll chain
     margin: tokens.$spacing-lg;
   }
 

@@ -647,7 +647,7 @@
 
   // Cuando está dentro del panel de visitantes, sin padding para control total
   .visitors-panel & {
-    overflow: visible;
+    overflow: hidden; // CRÍTICO: acota la cadena flex
     height: 100%;
     padding: 0; // Remover padding para evitar que el paginador sobresalga
   }
@@ -662,7 +662,7 @@
 
   // Sobrescribir el overflow del bento-card-content genérico
   .bento-card-content {
-    overflow: visible; // Permitir que el contenido sea visible
+    overflow: hidden; // CRÍTICO: acota la cadena flex para que el scroll funcione
     height: 100%; // Altura fija
     display: flex; // Asegurar flexbox
     flex-direction: column; // Columna para el contenido
@@ -676,7 +676,7 @@
     min-height: 0; // CRÍTICO: Permitir contracción
     flex: 1; // Ocupar espacio disponible
     padding: 0; // Removemos el padding del contenedor
-    overflow: visible; // Cambiar de hidden a visible para permitir dropdowns
+    overflow: hidden; // CRÍTICO: hidden para que la cadena flex acote alturas correctamente
   }
 
   &__filters {
