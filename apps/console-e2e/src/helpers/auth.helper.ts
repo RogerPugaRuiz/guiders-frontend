@@ -1,56 +1,90 @@
 import { Page } from '@playwright/test';
 import { E2E } from '../constants/env';
 
-// Keycloak sub for the E2E admin user (used to suppress tours in localStorage).
-const E2E_ADMIN_SUB = '83f82e25-2732-4d5b-bf32-009a234bd587';
-
 /**
- * Performs a real SSO login through Keycloak and the BFF OAuth callback.
+ * Performs a real SSO login through the BFF OAuth callback.
  *
- * Flow:
- *   1. Navigate to /bff/auth/login/console  → redirects to Keycloak login page
- *   2. Fill in email + password and submit  → Keycloak redirects to BFF callback
- *   3. BFF callback sets console_session cookie and redirects to /
- *   4. Returns when the Angular app shell is ready (router-outlet in DOM)
+ * The flow adapts automatically to the environment:
+ *
+ * - **Local dev** (apiUrl=localhost:3000): BFF → Keycloak (localhost:8080) → BFF callback
+ * - **CI / E2E stack** (apiUrl=localhost:3099): BFF → embedded OIDC (localhost:3099/realms/e2e) → BFF callback
+ *
+ * In both cases the login form has a username + password field and a submit button.
+ * We wait for any input[type=text|email] and input[type=password] pair to appear.
  *
  * Tour tooltips are suppressed via addInitScript so they never appear during tests.
  *
- * NOTE: requires that no other process listens on localhost:8080 besides the
- * Keycloak Docker container. A local nginx on port 8080 (e.g. from Homebrew)
- * will intercept some browser navigations and return 404.
+ * NOTE (local dev only): no other process must listen on localhost:8080 besides the
+ * Keycloak Docker container. A local nginx on port 8080 (e.g. from Homebrew) will
+ * intercept browser navigations and return 404.
  */
 export async function loginAsAdmin(page: Page): Promise<void> {
+  const apiUrl = E2E.apiUrl;
+  const frontendUrl = 'http://localhost:4200';
+
   // Suppress tours before any page scripts run.
-  await page.addInitScript((sub: string) => {
+  await page.addInitScript(() => {
     try {
-      localStorage.setItem(`guiders_tour_console_${sub}`, 'true');
-      localStorage.setItem(`guiders_tour_visitors_${sub}`, 'true');
+      // We suppress by key pattern — sub is unknown until after login,
+      // so we use a storage event listener that sets the flag on first write.
+      // As a pragmatic workaround, we override localStorage.setItem to intercept
+      // tour keys written by the app and immediately overwrite them.
+      const _orig = localStorage.setItem.bind(localStorage);
+      localStorage.setItem = (key: string, value: string) => {
+        _orig(key, value);
+        if (key.startsWith('guiders_tour_')) {
+          _orig(key, 'true');
+        }
+      };
+      // Also suppress any already-set keys that might be stale.
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k?.startsWith('guiders_tour_')) {
+          _orig(k, 'true');
+        }
+      }
       localStorage.removeItem('visitors_auto_refresh_interval');
       localStorage.removeItem('visitors_page_size');
     } catch (_) {
-      // ignore
+      // ignore — storage may not be available before navigation
     }
-  }, E2E_ADMIN_SUB);
+  });
 
-  // Step 1: trigger BFF → Keycloak redirect.
+  // Step 1: trigger BFF → OIDC provider redirect.
   await page.goto(
-    'http://localhost:3000/api/bff/auth/login/console?redirect=http://localhost:4200/',
+    `${apiUrl}/api/bff/auth/login/console?redirect=${encodeURIComponent(frontendUrl + '/')}`,
     { waitUntil: 'domcontentloaded', timeout: 30_000 }
   );
 
-  // Step 2: fill and submit the Keycloak login form.
-  await page.waitForSelector('#kc-form-login', { timeout: 30_000 });
-  await page.fill('#username', E2E.adminEmail);
-  await page.fill('#password', E2E.adminPassword);
+  // Step 2: wait for the login form (works for both Keycloak and embedded OIDC).
+  // Keycloak uses #kc-form-login; embedded OIDC may use a different form id.
+  await page.waitForSelector(
+    'input[type="password"], input[name="password"]',
+    { timeout: 30_000 }
+  );
+
+  // Fill username and password — support both Keycloak field ids and generic inputs.
+  const usernameSelector =
+    '#username, input[name="username"], input[type="email"], input[type="text"]';
+  const passwordSelector =
+    '#password, input[name="password"], input[type="password"]';
+
+  await page.fill(usernameSelector, E2E.adminEmail);
+  await page.fill(passwordSelector, E2E.adminPassword);
 
   // Step 3: submit and wait for BFF callback → Angular app.
   await Promise.all([
-    page.waitForURL('http://localhost:4200/**', { timeout: 20_000 }),
-    page.click('#kc-login'),
+    page.waitForURL(`${frontendUrl}/**`, { timeout: 30_000 }),
+    page.click(
+      '#kc-login, button[type="submit"], input[type="submit"]'
+    ),
   ]);
 
   // Step 4: wait for Angular to bootstrap (router-outlet is present in DOM).
-  await page.waitForSelector('router-outlet', { state: 'attached', timeout: 20_000 });
+  await page.waitForSelector('router-outlet', {
+    state: 'attached',
+    timeout: 20_000,
+  });
 }
 
 /**

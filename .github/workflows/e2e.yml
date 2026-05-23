@@ -1,0 +1,85 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # These are not real secrets — they only exist inside the ephemeral Docker container.
+  E2E_ADMIN_EMAIL: admin@e2e.guiders.local
+  E2E_ADMIN_PASSWORD: E2ePassword123!
+  E2E_BASE_URL: http://localhost:4200
+  E2E_API_URL: http://localhost:3099
+
+jobs:
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v4
+
+      # Check out the backend into a temporary folder.
+      # The _backend folder is only used to spin up Docker — it is never deployed.
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.BACKEND_REPO }}
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+          path: _backend
+
+      - name: Start backend E2E stack
+        working-directory: _backend
+        run: |
+          docker compose -f docker-compose.e2e.yml build --no-cache backend-e2e
+          docker compose -f docker-compose.e2e.yml up -d
+
+      - name: Wait for backend to be healthy
+        run: |
+          timeout 120 bash -c '
+            until curl -sf http://localhost:3099/health > /dev/null; do
+              sleep 3
+            done
+          '
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E tests
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ env.E2E_BASE_URL }}
+          E2E_ADMIN_EMAIL: ${{ env.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ env.E2E_ADMIN_PASSWORD }}
+          E2E_API_URL: ${{ env.E2E_API_URL }}
+        run: npx nx e2e console-e2e --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: dist/.playwright/apps/console-e2e/playwright-report/
+          retention-days: 7
+
+      - name: Teardown backend E2E stack
+        if: always()
+        working-directory: _backend
+        run: docker compose -f docker-compose.e2e.yml down -v --remove-orphans

@@ -47,6 +47,6 @@ Thumbs.db
 
 vite.config.*.timestamp*
 vitest.config.*.timestamp*
-.playwright-mcp/
 
-vitest.config.*.timestamp*
+# E2E backend checkout (used by GitHub Actions e2e.yml, never committed)
+_backend/
