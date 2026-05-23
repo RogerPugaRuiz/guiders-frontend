@@ -12,7 +12,7 @@ export const E2E = {
   adminEmail:
     process.env['E2E_ADMIN_EMAIL'] ?? 'admin@e2e.guiders.local',
   adminPassword:
-    process.env['E2E_ADMIN_PASSWORD'] ?? 'E2ePassword123!',
+    process.env['E2E_ADMIN_PASSWORD'] ?? 'E2eAdmin123!',
   apiUrl:
     process.env['E2E_API_URL'] ?? 'http://localhost:3099',
 
