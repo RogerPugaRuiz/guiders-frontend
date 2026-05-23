@@ -28,6 +28,24 @@ jobs:
       - name: Checkout frontend
         uses: actions/checkout@v4
 
+      - name: Validate backend repo secrets
+        env:
+          BACKEND_REPO: ${{ secrets.BACKEND_REPO }}
+          BACKEND_REPO_TOKEN: ${{ secrets.BACKEND_REPO_TOKEN }}
+        run: |
+          if [ -z "$BACKEND_REPO" ]; then
+            echo "❌ Secret BACKEND_REPO is not set in the repository."
+            echo "   Add it under Settings → Secrets and variables → Actions."
+            echo "   Expected format: <owner>/<repo>  (e.g. RogerPugaRuiz/guiders-backend)"
+            exit 1
+          fi
+          if [ -z "$BACKEND_REPO_TOKEN" ]; then
+            echo "❌ Secret BACKEND_REPO_TOKEN is not set in the repository."
+            echo "   Add a Personal Access Token with 'contents: read' on $BACKEND_REPO."
+            exit 1
+          fi
+          echo "✅ Secrets present. BACKEND_REPO=$BACKEND_REPO"
+
       # Check out the backend into a temporary folder.
       # The _backend folder is only used to spin up Docker — it is never deployed.
       - name: Checkout backend
@@ -36,6 +54,20 @@ jobs:
           repository: ${{ secrets.BACKEND_REPO }}
           token: ${{ secrets.BACKEND_REPO_TOKEN }}
           path: _backend
+
+      - name: Verify backend checkout
+        run: |
+          if [ ! -d "_backend" ]; then
+            echo "❌ _backend directory does not exist after checkout."
+            exit 1
+          fi
+          if [ ! -f "_backend/docker-compose.e2e.yml" ]; then
+            echo "❌ _backend/docker-compose.e2e.yml is missing."
+            echo "   Contents of _backend:"
+            ls -la _backend
+            exit 1
+          fi
+          echo "✅ Backend checkout OK. docker-compose.e2e.yml found."
 
       - name: Start backend E2E stack
         working-directory: _backend
