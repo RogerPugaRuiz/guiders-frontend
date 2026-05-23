@@ -1,3 +1,12 @@
+## 0.5.0 (2026-05-23)
+
+* ci: remove e2e from ci.yml run-many, covered by e2e.yml workflow ([7bca8f9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/7bca8f9))
+* ci(e2e): add GitHub Actions workflow with ephemeral backend Docker stack ([c0f92f9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/c0f92f9))
+* test(e2e/visitors): add infinite scroll and update complex filters tests; fix auth helper and styles ([bda7a22](https://github.com/RogerPugaRuiz/guiders-frontend/commit/bda7a22))
+* chore: ignore .playwright-mcp directory ([482563c](https://github.com/RogerPugaRuiz/guiders-frontend/commit/482563c))
+* chore(playwright): add playwright-mcp logs ([f1504bb](https://github.com/RogerPugaRuiz/guiders-frontend/commit/f1504bb))
+* feat(integrations): add lead cars integration and icon ([c5c38a1](https://github.com/RogerPugaRuiz/guiders-frontend/commit/c5c38a1))
+
 ## 0.4.0 (2026-05-21)
 
 * feat(leadcars): add show/hide toggle and length hint for clienteToken field ([9eb3b3b](https://github.com/RogerPugaRuiz/guiders-frontend/commit/9eb3b3b))
