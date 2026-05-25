@@ -1,3 +1,10 @@
+## <small>0.5.1 (2026-05-25)</small>
+
+* test(e2e): fix full E2E suite for all browsers (chromium, firefox, webkit) ([d27075c](https://github.com/RogerPugaRuiz/guiders-frontend/commit/d27075c))
+* fix(e2e): correct admin password to E2eAdmin123! in workflow and env constants ([628066a](https://github.com/RogerPugaRuiz/guiders-frontend/commit/628066a))
+* ci(e2e): fix teardown step to handle missing _backend dir gracefully ([7337e1b](https://github.com/RogerPugaRuiz/guiders-frontend/commit/7337e1b))
+* ci(e2e): validate backend repo secrets and verify checkout before build ([ffd2475](https://github.com/RogerPugaRuiz/guiders-frontend/commit/ffd2475))
+
 ## 0.5.0 (2026-05-23)
 
 * ci: remove e2e from ci.yml run-many, covered by e2e.yml workflow ([7bca8f9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/7bca8f9))
