@@ -1,9 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { setupAuthenticatedState } from './helpers/auth.helper';
+import { loginAsAdmin, clearVisitorsLocalStorage } from './helpers/auth.helper';
 
 test.describe('Visitors - localStorage persistence', () => {
   test.beforeEach(async ({ page }) => {
-    await setupAuthenticatedState(page);
+    await loginAsAdmin(page);
+    await clearVisitorsLocalStorage(page);
   });
 
   test.describe('Auto-refresh interval selector', () => {

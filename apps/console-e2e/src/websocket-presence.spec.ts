@@ -8,7 +8,26 @@ import { io, Socket } from 'socket.io-client';
  * 1. Conexión exitosa al servidor WebSocket
  * 2. Unión a la sala del tenant
  * 3. Recepción de eventos presence:changed
+ *
+ * All tests in this suite are skipped automatically when the WebSocket backend
+ * is not reachable (e.g. local dev without Docker, or CI before the stack starts).
  */
+
+/** Returns true if the WebSocket backend at wsUrl is reachable. */
+async function isWebSocketAvailable(wsUrl: string): Promise<boolean> {
+  return new Promise<boolean>((resolve) => {
+    const s = io(wsUrl, {
+      path: '/socket.io/',
+      transports: ['websocket'],
+      reconnection: false,
+      timeout: 2000,
+    });
+    const t = setTimeout(() => { s.disconnect(); resolve(false); }, 2500);
+    s.on('connect', () => { clearTimeout(t); s.disconnect(); resolve(true); });
+    s.on('connect_error', () => { clearTimeout(t); resolve(false); });
+  });
+}
+
 test.describe('WebSocket - Presence Events', () => {
   let socket: Socket;
   const TENANT_ID = '83504359-b783-41dd-bee1-5237c009179d';
@@ -16,6 +35,15 @@ test.describe('WebSocket - Presence Events', () => {
   // El backend WebSocket está en el puerto 3000, no en el frontend (4200)
   // Esto debe coincidir con la configuración del backend
   const WS_URL = process.env['WS_URL'] || 'http://localhost:3000';
+
+  // Skip the entire suite if the WebSocket backend is not available.
+  test.beforeAll(async () => {
+    const available = await isWebSocketAvailable(WS_URL);
+    if (!available) {
+      console.log(`⚠️  WebSocket backend not available at ${WS_URL} — skipping suite`);
+      test.skip();
+    }
+  });
 
   test.afterEach(async () => {
     // Limpiar la conexión WebSocket después de cada test
@@ -59,25 +87,6 @@ test.describe('WebSocket - Presence Events', () => {
   });
 
   test('should join tenant presence room and receive tenant:joined event', async () => {
-    // NOTE: This test requires a real backend on WS_URL (default: localhost:3000).
-    // It is skipped when running in frontend-only mock mode.
-    const backendAvailable = await new Promise<boolean>((resolve) => {
-      const s = io(WS_URL, {
-        path: '/socket.io/',
-        transports: ['websocket'],
-        reconnection: false,
-        timeout: 2000,
-      });
-      const t = setTimeout(() => { s.disconnect(); resolve(false); }, 2500);
-      s.on('connect', () => { clearTimeout(t); s.disconnect(); resolve(true); });
-      s.on('connect_error', () => { clearTimeout(t); resolve(false); });
-    });
-
-    if (!backendAvailable) {
-      console.log('⚠️  Backend not available, skipping tenant room test');
-      return;
-    }
-    // Crear conexión al WebSocket
     socket = io(WS_URL, {
       path: '/socket.io/',
       transports: ['websocket', 'polling'],

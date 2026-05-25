@@ -1,90 +1,123 @@
-import { Page } from '@playwright/test';
+import { Page, request } from '@playwright/test';
 import { E2E } from '../constants/env';
 
 /**
- * Performs a real SSO login through the BFF OAuth callback.
+ * Authenticates as admin by:
+ * 1. Obtaining an access_token via POST /api/user/auth/login (no Keycloak required).
+ * 2. Decoding the JWT payload to extract user claims.
+ * 3. Mocking GET /bff/auth/me so Angular's authGuard sees a valid session.
+ * 4. Injecting Bearer token into all backend requests to prevent 401s.
+ * 5. Marking all tours as completed in localStorage before the test navigates.
  *
- * The flow adapts automatically to the environment:
+ * This avoids the BFF/OIDC/Keycloak flow entirely, making tests runnable both
+ * locally and in the E2E Docker stack.
  *
- * - **Local dev** (apiUrl=localhost:3000): BFF → Keycloak (localhost:8080) → BFF callback
- * - **CI / E2E stack** (apiUrl=localhost:3099): BFF → embedded OIDC (localhost:3099/realms/e2e) → BFF callback
- *
- * In both cases the login form has a username + password field and a submit button.
- * We wait for any input[type=text|email] and input[type=password] pair to appear.
- *
- * Tour tooltips are suppressed via addInitScript so they never appear during tests.
- *
- * NOTE (local dev only): no other process must listen on localhost:8080 besides the
- * Keycloak Docker container. A local nginx on port 8080 (e.g. from Homebrew) will
- * intercept browser navigations and return 404.
+ * NOTE: This helper does NOT navigate. Each test must call page.goto('/route') after.
  */
 export async function loginAsAdmin(page: Page): Promise<void> {
   const apiUrl = E2E.apiUrl;
-  const frontendUrl = 'http://localhost:4200';
 
-  // Suppress tours before any page scripts run.
-  await page.addInitScript(() => {
-    try {
-      // We suppress by key pattern — sub is unknown until after login,
-      // so we use a storage event listener that sets the flag on first write.
-      // As a pragmatic workaround, we override localStorage.setItem to intercept
-      // tour keys written by the app and immediately overwrite them.
-      const _orig = localStorage.setItem.bind(localStorage);
-      localStorage.setItem = (key: string, value: string) => {
-        _orig(key, value);
-        if (key.startsWith('guiders_tour_')) {
-          _orig(key, 'true');
+  // Step 1: obtain access_token via direct login endpoint.
+  const ctx = await request.newContext();
+  const res = await ctx.post(`${apiUrl}/api/user/auth/login`, {
+    data: {
+      email: E2E.adminEmail,
+      password: E2E.adminPassword,
+    },
+  });
+  if (!res.ok()) {
+    throw new Error(
+      `Login failed: ${res.status()} ${res.statusText()} — check E2E credentials and that the backend is running at ${apiUrl}`
+    );
+  }
+  const { access_token } = await res.json();
+  await ctx.dispose();
+
+  // Step 2: decode JWT payload (base64url, no signature verification needed for mocking).
+  const jwtPayload = JSON.parse(
+    Buffer.from(access_token.split('.')[1], 'base64url').toString('utf-8')
+  );
+  const userId: string = jwtPayload.sub;
+
+  // Step 3: decode JWT to build mock user object.
+  const mockUser = {
+    sub: jwtPayload.sub,
+    email: jwtPayload.email,
+    roles: Array.isArray(jwtPayload.role) ? jwtPayload.role : [jwtPayload.role],
+    companyId: jwtPayload.companyId,
+    app: 'console',
+    session: {
+      exp: jwtPayload.exp,
+      iat: jwtPayload.iat,
+    },
+  };
+
+  // Step 4: set up route interceptors.
+  // IMPORTANT: Playwright evaluates routes in LIFO order (last registered = first evaluated).
+  // Register the low-priority catch-all FIRST, then specific mocks LAST so they take precedence.
+
+  // 4a: Inject Bearer token into all requests going to the E2E backend.
+  // This prevents backend endpoints from returning 401, which GlobalErrorInterceptor
+  // treats as "unrecoverable" and redirects to BFF login (which returns 500 without Keycloak).
+  const backendOriginRegex = new RegExp(`^${apiUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+  await page.route(backendOriginRegex, (route) => {
+    const headers = {
+      ...route.request().headers(),
+      Authorization: `Bearer ${access_token}`,
+    };
+    route.continue({ headers });
+  });
+
+  // 4b: mock GET /bff/auth/me so Angular's authGuard considers the session valid.
+  // Registered AFTER the catch-all so it takes precedence (LIFO).
+  await page.route('**/bff/auth/me', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(mockUser),
+    });
+  });
+
+  // 4c: mock BFF auth endpoints to prevent redirect loops.
+  await page.route('**/bff/auth/refresh', (route) => {
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true }),
+    });
+  });
+
+  // Step 5: suppress tours.
+  // Strategy: use addInitScript to intercept localStorage.getItem (chromium/firefox) AND
+  // also use page.goto('about:blank') first to get a live document where localStorage
+  // is accessible, then set the tour keys directly.
+  // TourService storage key format: guiders_tour_${tourId}_${userId}
+  // Known tour IDs (from tours/ directory).
+  const tourIds = ['console', 'admin', 'visitors'];
+
+  // 5a: addInitScript — runs before Angular boots on every navigation.
+  // In chromium/firefox this intercepts localStorage.getItem at the Storage prototype level.
+  await page.addInitScript(
+    ({ ids, uid }: { ids: string[]; uid: string }) => {
+      // Directly write completed flags for known tours so TourService.isCompleted() returns true.
+      try {
+        for (const id of ids) {
+          localStorage.setItem(`guiders_tour_${id}_${uid}`, 'true');
         }
-      };
-      // Also suppress any already-set keys that might be stale.
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k?.startsWith('guiders_tour_')) {
-          _orig(k, 'true');
+        // Also intercept getItem as a belt-and-suspenders approach.
+        const _orig = Object.getOwnPropertyDescriptor(Storage.prototype, 'getItem');
+        if (_orig && _orig.value) {
+          Storage.prototype.getItem = function (key: string): string | null {
+            if (typeof key === 'string' && key.startsWith('guiders_tour_')) return 'true';
+            return _orig.value.call(this, key);
+          };
         }
+      } catch (_) {
+        // Ignore — may be called before a document exists (about:blank)
       }
-      localStorage.removeItem('visitors_auto_refresh_interval');
-      localStorage.removeItem('visitors_page_size');
-    } catch (_) {
-      // ignore — storage may not be available before navigation
-    }
-  });
-
-  // Step 1: trigger BFF → OIDC provider redirect.
-  await page.goto(
-    `${apiUrl}/api/bff/auth/login/console?redirect=${encodeURIComponent(frontendUrl + '/')}`,
-    { waitUntil: 'domcontentloaded', timeout: 30_000 }
+    },
+    { ids: tourIds, uid: userId }
   );
-
-  // Step 2: wait for the login form (works for both Keycloak and embedded OIDC).
-  // Keycloak uses #kc-form-login; embedded OIDC may use a different form id.
-  await page.waitForSelector(
-    'input[type="password"], input[name="password"]',
-    { timeout: 30_000 }
-  );
-
-  // Fill username and password — support both Keycloak field ids and generic inputs.
-  const usernameSelector =
-    '#username, input[name="username"], input[type="email"], input[type="text"]';
-  const passwordSelector =
-    '#password, input[name="password"], input[type="password"]';
-
-  await page.fill(usernameSelector, E2E.adminEmail);
-  await page.fill(passwordSelector, E2E.adminPassword);
-
-  // Step 3: submit and wait for BFF callback → Angular app.
-  await Promise.all([
-    page.waitForURL(`${frontendUrl}/**`, { timeout: 30_000 }),
-    page.click(
-      '#kc-login, button[type="submit"], input[type="submit"]'
-    ),
-  ]);
-
-  // Step 4: wait for Angular to bootstrap (router-outlet is present in DOM).
-  await page.waitForSelector('router-outlet', {
-    state: 'attached',
-    timeout: 20_000,
-  });
 }
 
 /**
@@ -104,86 +137,4 @@ export async function clearVisitorsLocalStorage(page: Page): Promise<void> {
   } catch (_) {
     // ignore
   }
-}
-
-/**
- * @deprecated Use loginAsAdmin() instead.
- * Kept for backward compatibility with specs that still use mocked auth.
- */
-export async function setupAuthMock(page: Page): Promise<void> {
-  const MOCK_USER = {
-    id: 'test-user-123',
-    name: 'Test User',
-    email: 'test@example.com',
-    companyId: 'test-company-123',
-    tenantId: 'test-tenant-123',
-  };
-
-  await page.route('**/*', (route) => {
-    const url = route.request().url();
-
-    if (url.includes('keycloak') || url.includes('/realms/') || url.includes('/auth/realms/')) {
-      route.abort();
-      return;
-    }
-    if (url.includes('/socket.io')) {
-      route.abort();
-      return;
-    }
-    if (url.includes('/bff/auth/me')) {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          sub: MOCK_USER.id,
-          email: MOCK_USER.email,
-          name: MOCK_USER.name,
-          roles: ['user', 'commercial'],
-          app: 'console',
-          session: {
-            companyId: MOCK_USER.companyId,
-            tenantId: MOCK_USER.tenantId,
-            exp: Math.floor(Date.now() / 1000) + 3600,
-          },
-        }),
-      });
-      return;
-    }
-    if (url.includes('/bff/auth/refresh')) {
-      route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ success: true }),
-      });
-      return;
-    }
-    if (url.includes('/bff/auth/login')) {
-      const urlObj = new URL(url);
-      const redirect = decodeURIComponent(urlObj.searchParams.get('redirect') || 'http://localhost:4200/');
-      route.fulfill({
-        status: 200,
-        contentType: 'text/html',
-        body: `<html><head><meta http-equiv="refresh" content="0;url=${redirect}"></head><body></body></html>`,
-      });
-      return;
-    }
-    route.continue();
-  });
-
-  await page.goto('/');
-}
-
-/**
- * @deprecated Use loginAsAdmin() instead.
- */
-export async function setupAuthenticatedState(page: Page): Promise<void> {
-  await setupAuthMock(page);
-  await clearVisitorsLocalStorage(page);
-}
-
-/**
- * @deprecated No-op kept for compatibility.
- */
-export async function clearAuthMock(_page: Page): Promise<void> {
-  // Nothing to clear when using real session cookies.
 }

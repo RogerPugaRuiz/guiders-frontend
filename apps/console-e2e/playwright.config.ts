@@ -36,6 +36,12 @@ export default defineConfig({
     cwd: workspaceRoot,
     env: {
       VITE_USE_MOCK_DATA: 'false',
+      // Point the Angular app at the E2E backend (port 3099) when running tests.
+      // In normal dev the backend is on :3000 (environment.ts default).
+      // The E2E Docker stack starts the backend on :3099 to avoid port collisions.
+      VITE_API_BASE_URL: process.env['E2E_API_URL']
+        ? process.env['E2E_API_URL'] + '/api'
+        : 'http://localhost:3099/api',
     },
   },
   projects: [

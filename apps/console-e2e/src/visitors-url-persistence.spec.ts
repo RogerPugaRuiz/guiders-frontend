@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { setupAuthenticatedState } from './helpers/auth.helper';
+import { loginAsAdmin } from './helpers/auth.helper';
 
 test.describe('Visitors - URL persistence for pagination', () => {
   test.beforeEach(async ({ page }) => {
-    // Configurar autenticación mockeada
-    await setupAuthenticatedState(page);
+    await loginAsAdmin(page);
   });
 
   test('should initialize with page parameter from URL', async ({ page }) => {
