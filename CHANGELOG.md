@@ -1,3 +1,7 @@
+## <small>0.5.2 (2026-05-26)</small>
+
+* fix(ci): pass --project=chromium to Playwright via -- separator ([e8c86b0](https://github.com/RogerPugaRuiz/guiders-frontend/commit/e8c86b0))
+
 ## <small>0.5.1 (2026-05-25)</small>
 
 * test(e2e): fix full E2E suite for all browsers (chromium, firefox, webkit) ([d27075c](https://github.com/RogerPugaRuiz/guiders-frontend/commit/d27075c))
