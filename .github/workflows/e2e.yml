@@ -103,7 +103,7 @@ jobs:
           E2E_ADMIN_EMAIL: ${{ env.E2E_ADMIN_EMAIL }}
           E2E_ADMIN_PASSWORD: ${{ env.E2E_ADMIN_PASSWORD }}
           E2E_API_URL: ${{ env.E2E_API_URL }}
-        run: npx nx e2e console-e2e --project=chromium
+        run: npx nx e2e console-e2e -- --project=chromium
 
       - name: Upload Playwright report
         if: always()
