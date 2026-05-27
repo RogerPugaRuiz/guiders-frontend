@@ -1,3 +1,7 @@
+## <small>0.5.3 (2026-05-27)</small>
+
+* fix(visitors): infinite scroll observer reconnect and strip page param from URL ([b47cda0](https://github.com/RogerPugaRuiz/guiders-frontend/commit/b47cda0))
+
 ## <small>0.5.2 (2026-05-26)</small>
 
 * fix(ci): pass --project=chromium to Playwright via -- separator ([e8c86b0](https://github.com/RogerPugaRuiz/guiders-frontend/commit/e8c86b0))
