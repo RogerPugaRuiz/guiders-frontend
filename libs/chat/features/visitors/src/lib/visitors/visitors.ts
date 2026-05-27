@@ -13,7 +13,7 @@ import {
 } from '@angular/core';
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Router, ActivatedRoute } from '@angular/router';
-import { BehaviorSubject, catchError, EMPTY, of, finalize, interval, switchMap, Subject, takeUntil } from 'rxjs';
+import { catchError, finalize, of, Subject, switchMap, takeUntil, interval } from 'rxjs';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { USE_MOCK_DATA } from '@guiders-frontend/shared/config';
 import { ChatWidgetService } from '@guiders-frontend/chat/data-access/chat-widget-service';
@@ -112,7 +112,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   private shouldScrollToTop = false;
 
   // Keys para localStorage
-  private readonly STORAGE_KEY_AUTO_REFRESH = 'visitors_auto_refresh_interval';
   private readonly STORAGE_KEY_PAGE_SIZE = 'visitors_page_size';
 
   // ID de la empresa resuelto dinámicamente
@@ -155,17 +154,7 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     }
   });
 
-  // Opciones de intervalo de auto-refresh (en milisegundos)
-  readonly autoRefreshOptions = [
-    { label: 'Desactivado', value: 0 },
-    { label: '10 segundos', value: 10000 },
-    { label: '30 segundos', value: 30000 },
-    { label: '1 minuto', value: 60000 },
-    { label: '5 minutos', value: 300000 },
-  ];
-
-  // Intervalo de auto-refresh seleccionado (cargar desde localStorage si existe)
-  readonly autoRefreshInterval = signal<number>(this.loadAutoRefreshInterval());
+  // Intervalo de auto-refresh eliminado — el botón manual hace reset completo.
 
   // Estado reactivo del componente
   readonly state = signal<VisitorState>({
@@ -379,13 +368,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
       });
     });
 
-    // Reactive polling: switchMap re-creates the interval on each interval change.
-    // takeUntilDestroyed ensures cleanup on component destroy — no manual clearInterval needed.
-    this._refreshInterval$.pipe(
-      switchMap(ms => ms === 0 ? EMPTY : interval(ms)),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe(() => this.refreshVisitors());
-
     // Auto-start the visitors tour the first time an operator lands on this view.
     // Mirrors the console-tour auto-start in App but scoped per user via storage key.
     effect(() => {
@@ -399,8 +381,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     });
   }
 
-  private readonly _refreshInterval$ = new BehaviorSubject<number>(this.loadAutoRefreshInterval());
-  private optimisticUpdateInProgress = false; // Flag para pausar auto-refresh
   /** Handle for the aria announcement reset timeout, to allow cleanup on destroy. */
   private _ariaResetTimeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -502,9 +482,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
 
           // Cargar chats del comercial para badges de mensajes no leídos
           this.loadCommercialChatsForBadges();
-
-          // Polling interval is driven by _refreshInterval$ BehaviorSubject set in constructor.
-          // No additional setup needed here.
         }
       );
 
@@ -588,7 +565,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this._cancelLoadMore$.next();
     this._cancelLoadMore$.complete();
-    this._refreshInterval$.complete();
     if (this._ariaResetTimeout !== null) {
       clearTimeout(this._ariaResetTimeout);
     }
@@ -596,26 +572,6 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para cargar configuraciones desde localStorage
-  private loadAutoRefreshInterval(): number {
-    try {
-      const stored = localStorage.getItem(this.STORAGE_KEY_AUTO_REFRESH);
-      if (stored !== null) {
-        const parsed = parseInt(stored, 10);
-        // Validar que sea un valor válido (0, 10000, 30000, 60000, 300000)
-        const validValues = [0, 10000, 30000, 60000, 300000];
-        if (!isNaN(parsed) && validValues.includes(parsed)) {
-          return parsed;
-        }
-      }
-    } catch (error) {
-      console.error(
-        'Error loading auto-refresh interval from localStorage:',
-        error
-      );
-    }
-    return 30000; // Default: 30 segundos
-  }
-
   private loadPageSize(): number {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY_PAGE_SIZE);
@@ -633,32 +589,11 @@ export class VisitorsComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para guardar configuraciones en localStorage
-  private saveAutoRefreshInterval(ms: number): void {
-    try {
-      localStorage.setItem(this.STORAGE_KEY_AUTO_REFRESH, ms.toString());
-    } catch (error) {
-      console.error(
-        'Error saving auto-refresh interval to localStorage:',
-        error
-      );
-    }
-  }
-
   private savePageSize(pageSize: number): void {
     try {
       localStorage.setItem(this.STORAGE_KEY_PAGE_SIZE, pageSize.toString());
     } catch (error) {
       console.error('Error saving page size to localStorage:', error);
-    }
-  }
-
-  // Método público para cambiar el intervalo de auto-refresh
-  onAutoRefreshIntervalChange(ms: number): void {
-    this.autoRefreshInterval.set(ms);
-    this.saveAutoRefreshInterval(ms);
-    this._refreshInterval$.next(ms); // triggers switchMap to restart interval
-    if (ms === 0) {
-      this.ariaAnnouncement.set('');
     }
   }
 
@@ -825,148 +760,26 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     }
   }
 
-  private refreshVisitors(): void {
-    // NO refrescar si hay una actualización optimista en progreso
-    if (this.optimisticUpdateInProgress) {
-      console.log(
-        '⏸️ Auto-refresh pausado - actualización optimista en progreso'
-      );
-      return;
-    }
-
-    if (this.state().loading) return;
-
-    // Usar el método silencioso que ya tiene la animación del botón
-    this.refreshVisitorsSilently();
-  }
-
-  // Método para refrescar visitantes SIN activar loading (para operaciones silenciosas)
+  // Refresh: reset to page 1 with batchSize and reload from scratch.
   refreshVisitorsSilently(): void {
-    const companyId = this.companyId();
-    if (!companyId) return;
+    if (!this.companyId()) return;
 
-    // Activar flag de refreshing para feedback visual
     this.isRefreshing.set(true);
+    this.resetAndLoad();
 
-    // Guardar la posición del scroll antes de refrescar
-    this.saveScrollPosition();
-
-    const currentState = this.state();
-
-    // Decidir si usar mock o servicio real basado en el token
-    if (this.useMockData) {
-      // USAR MOCK
-      setTimeout(() => {
-        const mockResponse = getMockVisitorsResponse(
-          currentState.pagination.limit,
-          currentState.pagination.offset || 0
-        );
-
-        this.updateState({
-          visitors: mockResponse.visitors,
-          pagination: {
-            ...currentState.pagination,
-            totalCount: mockResponse.total,
-          },
-        });
-
-        // Actualizar timestamp de última carga
+    // Update timestamp and announce to screen readers once loading settles.
+    // We watch the loading signal once it goes back to false after resetAndLoad.
+    const checkDone = setInterval(() => {
+      if (!this.state().loading) {
+        clearInterval(checkDone);
         this.lastRefreshTime.set(new Date());
-
-        // Announce update to screen readers
-        const total = mockResponse.total;
+        const total = this.state().pagination.totalCount;
         this.ariaAnnouncement.set(`Lista actualizada. ${total} visitantes activos.`);
         if (this._ariaResetTimeout !== null) clearTimeout(this._ariaResetTimeout);
         this._ariaResetTimeout = setTimeout(() => { this.ariaAnnouncement.set(''); this._ariaResetTimeout = null; }, 3000);
-
-        // Restaurar la posición del scroll después de actualizar
-        this.restoreScrollPosition();
-
-        // Desactivar flag de refreshing
         this.isRefreshing.set(false);
-      }, 300); // Breve delay para mostrar la animación
-    } else {
-      // USAR SERVICIO REAL - Usando searchVisitors como endpoint único
-      const currentSort = currentState.sort;
-
-      // Mapear los campos de sort internos a los del backend
-      const sortFieldMap: Record<string, VisitorSortField> = {
-        firstVisit: 'createdAt',
-        lastVisit: 'lastActivity',
-      };
-
-      // Usar filtros activos del sistema de búsqueda
-      const searchFilters: VisitorSearchFilters = {
-        ...this.activeSearchFilters(),
-      };
-
-      // Mantener compatibilidad con búsqueda del sistema antiguo
-      if (currentState.searchQuery && !searchFilters.currentUrlContains) {
-        searchFilters.currentUrlContains = currentState.searchQuery;
       }
-
-      const request: VisitorSearchRequest = {
-        filters: searchFilters,
-        sort: {
-          field: sortFieldMap[currentSort.field] || 'createdAt',
-          direction: currentSort.direction.toUpperCase() as SortDirection,
-        },
-        page:
-          Math.floor(
-            (currentState.pagination.offset || 0) /
-              currentState.pagination.limit
-          ) + 1,
-        limit: currentState.pagination.limit,
-      };
-
-      this.visitorsService
-        .searchVisitors(companyId, request)
-        .pipe(
-          catchError(() =>
-            of({
-              visitors: [],
-              pagination: {
-                total: 0,
-                page: 1,
-                limit: currentState.pagination.limit,
-                totalPages: 0,
-                hasNextPage: false,
-                hasPreviousPage: false,
-              },
-            })
-          ),
-          finalize(() => {
-            // Desactivar flag de refreshing
-            this.isRefreshing.set(false);
-          })
-        )
-        .subscribe((response) => {
-          // Mapear VisitorSearchResult a Visitor
-          const mappedVisitors: Visitor[] = this.applyDemoVisitorIfActive(
-            this.mapSearchResultsToVisitors(response.visitors)
-          );
-
-          this.updateState({
-            visitors: mappedVisitors,
-            pagination: {
-              ...currentState.pagination,
-              totalCount: response.pagination.total,
-            },
-          });
-
-          // Actualizar timestamp de última carga
-          this.lastRefreshTime.set(new Date());
-
-          // Announce update to screen readers
-          const total = response.pagination.total;
-          this.ariaAnnouncement.set(`Lista actualizada. ${total} visitantes activos.`);
-          if (this._ariaResetTimeout !== null) clearTimeout(this._ariaResetTimeout);
-          this._ariaResetTimeout = setTimeout(() => { this.ariaAnnouncement.set(''); this._ariaResetTimeout = null; }, 3000);
-
-          // Restaurar la posición del scroll después de actualizar
-          this.restoreScrollPosition();
-        });
-    }
+    }, 100);
   }
 
   // ============================================
