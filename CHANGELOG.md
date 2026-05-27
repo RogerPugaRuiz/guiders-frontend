@@ -1,3 +1,7 @@
+## 0.6.0 (2026-05-27)
+
+* feat(chat): sync unread badges via server-authoritative count and WebSocket reset ([cc35893](https://github.com/RogerPugaRuiz/guiders-frontend/commit/cc35893))
+
 ## <small>0.5.4 (2026-05-27)</small>
 
 * fix(visitors): remove auto-refresh polling and simplify refresh flow; restore manual refresh behavio ([1ed5940](https://github.com/RogerPugaRuiz/guiders-frontend/commit/1ed5940))
