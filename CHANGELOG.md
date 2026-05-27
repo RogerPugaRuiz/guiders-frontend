@@ -1,3 +1,10 @@
+## <small>0.6.3 (2026-05-27)</small>
+
+* fix(auth-guard): adjust routing guard behavior for not-provisioned path ([70301c9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/70301c9))
+* fix(interceptors): ensure global error interceptor changes are committed ([118c3f3](https://github.com/RogerPugaRuiz/guiders-frontend/commit/118c3f3))
+* fix(session): improve token refresh and session handling ([dca3b30](https://github.com/RogerPugaRuiz/guiders-frontend/commit/dca3b30))
+* Revert "fix(auth): use explicit bffOrigin for login redirects to exit Angular SPA" ([97ec834](https://github.com/RogerPugaRuiz/guiders-frontend/commit/97ec834))
+
 ## <small>0.6.2 (2026-05-27)</small>
 
 * fix(auth): use explicit bffOrigin for login redirects to exit Angular SPA ([3da3a11](https://github.com/RogerPugaRuiz/guiders-frontend/commit/3da3a11))
