@@ -10,7 +10,7 @@ import { ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
  * infinito: OAuth completa → /me devuelve 403 → login de nuevo → loop.
  */
 @Component({
-  selector: 'app-not-provisioned',
+  selector: 'console-not-provisioned',
   standalone: true,
   template: `
     <div class="not-provisioned">
