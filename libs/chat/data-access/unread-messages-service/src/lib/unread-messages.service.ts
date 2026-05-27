@@ -34,7 +34,8 @@ import { WebSocketService } from '@guiders-frontend/chat/data-access/websocket-s
  * Basado en la arquitectura del backend:
  * - GET /v2/messages/chat/:chatId/unread
  * - PUT /v2/messages/mark-as-read
- * - WebSocket: message:new
+ * - PUT /v2/chats/:chatId/unread/reset
+ * - WebSocket: message:new (payload includes unreadMessagesCount)
  */
 @Injectable({
   providedIn: 'root',
@@ -184,6 +185,8 @@ export class UnreadMessagesService {
         `[UnreadMessagesService] ✅ Iniciando markActiveChatAsRead para: ${chatId}`
       );
       this.markActiveChatAsRead(chatId);
+      // Notify the server to reset the persistent unread counter in MongoDB.
+      this.resetUnreadCountOnServer(chatId);
     } else {
       console.log(
         `[UnreadMessagesService] ⚠️ Chat desactivado (cerrado), no hay chat activo`
@@ -534,6 +537,31 @@ export class UnreadMessagesService {
   }
 
   /**
+   * Notify the server that the commercial has opened a chat and reset its unread count.
+   * PUT /v2/chats/:chatId/unread/reset
+   * This is fire-and-forget: the UI counter is already zeroed optimistically in setActiveChat.
+   */
+  private resetUnreadCountOnServer(chatId: string): void {
+    this.http
+      .put<{ success: boolean }>(
+        `${this.baseUrl}/chats/${chatId}/unread/reset`,
+        {},
+        this.getHttpOptions()
+      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          if (res.success) {
+            console.log(`[UnreadMessagesService] ✅ unreadCount reseteado en servidor para chat ${chatId}`);
+          }
+        },
+        error: (err) => {
+          console.warn(`[UnreadMessagesService] ⚠️ No se pudo resetear unreadCount en servidor para chat ${chatId}:`, err);
+        },
+      });
+  }
+
+  /**
    * Refrescar contadores de mensajes no leídos para todos los chats
    * IMPORTANTE: NO refresca el contador del chat activo para evitar conflictos
    */
@@ -749,14 +777,26 @@ export class UnreadMessagesService {
           '[UnreadMessagesService] ⚠️ Mensaje de chat INACTIVO - Incrementando contador'
         );
 
-        // 1. Incrementar contador
-        const currentCount = this.unreadCountMap()[message.chatId] || 0;
-        console.log('[UnreadMessagesService] 📊 Contador ANTES:', currentCount);
-        this.incrementUnreadCount(message.chatId);
-        console.log(
-          '[UnreadMessagesService] 📊 Contador DESPUÉS:',
-          this.unreadCountMap()[message.chatId]
-        );
+        // 1. Actualizar contador — preferir el valor autoritativo del servidor si viene en el payload.
+        if (message.unreadMessagesCount !== undefined) {
+          console.log(
+            `[UnreadMessagesService] 📊 Usando unreadMessagesCount del servidor: ${message.unreadMessagesCount}`
+          );
+          this.unreadCountMap.update((map) => ({
+            ...map,
+            [message.chatId]: message.unreadMessagesCount as number,
+          }));
+          this.unreadCountSubject.next(this.unreadCountMap());
+        } else {
+          // Fallback: incrementar localmente si el backend aún no envía el campo.
+          const currentCount = this.unreadCountMap()[message.chatId] || 0;
+          console.log('[UnreadMessagesService] 📊 Contador ANTES (local):', currentCount);
+          this.incrementUnreadCount(message.chatId);
+          console.log(
+            '[UnreadMessagesService] 📊 Contador DESPUÉS:',
+            this.unreadCountMap()[message.chatId]
+          );
+        }
 
         // 2. Agregar a lista de mensajes no leídos
         this.addUnreadMessage(message);
@@ -787,6 +827,28 @@ export class UnreadMessagesService {
           `[UnreadMessagesService] 📊 === PROCESAMIENTO COMPLETADO ===`
         );
       });
+
+    // Listen for authoritative unread count updates from the server.
+    // Emitted after PUT /v2/chats/:chatId/unread/reset so the badge stays
+    // in sync across sessions without polling.
+    this.webSocket.on('chat:unread_count', (data: unknown) => {
+      const payload = data as { chatId: string; unreadMessagesCount: number };
+      if (!payload?.chatId) return;
+
+      console.log(
+        `[UnreadMessagesService] 📊 chat:unread_count received — chatId: ${payload.chatId}, count: ${payload.unreadMessagesCount}`
+      );
+
+      this.unreadCountMap.update((map) => ({
+        ...map,
+        [payload.chatId]: payload.unreadMessagesCount,
+      }));
+      this.unreadCountSubject.next(this.unreadCountMap());
+
+      if (this.totalUnreadCount() === 0) {
+        this.stopTitleFlashing();
+      }
+    });
   }
 
   /**

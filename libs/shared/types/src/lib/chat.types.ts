@@ -24,6 +24,8 @@ export interface Message {
   isRead?: boolean; // Indica si el mensaje ha sido leído
   readAt?: Date | null; // Fecha y hora cuando fue leído
   readBy?: string | null; // ID del usuario que leyó el mensaje
+  /** Server-authoritative unread count for this chat, included in message:new WebSocket events. */
+  unreadMessagesCount?: number;
   isInternal?: boolean; // Mensaje interno (solo entre comerciales)
   isFirstResponse?: boolean; // Primer mensaje de respuesta del comercial
   // Campos para mensajes generados por IA
