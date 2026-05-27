@@ -1,3 +1,7 @@
+## <small>0.6.1 (2026-05-27)</small>
+
+* fix(auth): resolve infinite redirect loop with Vite proxy and relative baseUrl ([1aaedf5](https://github.com/RogerPugaRuiz/guiders-frontend/commit/1aaedf5))
+
 ## 0.6.0 (2026-05-27)
 
 * feat(chat): sync unread badges via server-authoritative count and WebSocket reset ([cc35893](https://github.com/RogerPugaRuiz/guiders-frontend/commit/cc35893))
