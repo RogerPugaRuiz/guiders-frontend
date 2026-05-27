@@ -1,3 +1,7 @@
+## <small>0.5.4 (2026-05-27)</small>
+
+* fix(visitors): remove auto-refresh polling and simplify refresh flow; restore manual refresh behavio ([1ed5940](https://github.com/RogerPugaRuiz/guiders-frontend/commit/1ed5940))
+
 ## <small>0.5.3 (2026-05-27)</small>
 
 * fix(visitors): infinite scroll observer reconnect and strip page param from URL ([b47cda0](https://github.com/RogerPugaRuiz/guiders-frontend/commit/b47cda0))
