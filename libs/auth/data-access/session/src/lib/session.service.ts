@@ -24,7 +24,7 @@ export class SessionService {
             // Bootstrap the per-user self chat (Microsoft Teams-style)
             this.selfChat.initialize({ sub: user.sub, email: user.email });
           }),
-          shareReplay({ bufferSize: 1, refCount: true })
+          shareReplay({ bufferSize: 1, refCount: false })
         );
     }
     return this.me$;
@@ -70,12 +70,11 @@ export class SessionService {
    * Fuerza un refresh de sesión inmediatamente
    */
   refreshSession(): Observable<void> {
-    return this.authRefreshService.refreshSession().pipe(
-      tap(() => {
-        // Después del refresh, limpiar cache para forzar nueva carga
-        this.clearCache();
-      })
-    );
+    // No se limpia la caché aquí: limpiarla forzaría un nuevo fetchUser() en cuanto
+    // cualquier consumidor de ensureSession$() volviera a suscribirse, generando
+    // una cascada de peticiones a /me. El token renovado se aplica vía cookie HttpOnly;
+    // el signal de UserService no necesita recargarse salvo que cambie el payload del JWT.
+    return this.authRefreshService.refreshSession();
   }
 
   /**

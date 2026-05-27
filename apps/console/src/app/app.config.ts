@@ -13,7 +13,7 @@ import { environment } from '../environments/environment';
 import {
   ENVIRONMENT_TOKEN,
   authRefreshInterceptor,
-  UserService,
+  SessionService,
   SessionGuardianService,
   globalErrorInterceptor,
 } from '@guiders-frontend/auth/data-access/session';
@@ -32,7 +32,7 @@ import { firstValueFrom } from 'rxjs';
  * Carga el usuario y conecta la presencia del comercial y WebSocket.
  */
 function initializeApp() {
-  const userService = inject(UserService);
+  const sessionService = inject(SessionService);
   const presenceService = inject(CommercialPresenceService);
   const statusService = inject(CommercialStatusService);
   const webSocketService = inject(WebSocketService);
@@ -41,10 +41,12 @@ function initializeApp() {
   const escalationService = inject(EscalationService);
 
   return async () => {
-    // 1. Cargar el usuario
+    // 1. Cargar el usuario — usa ensureSession$() para que el authGuard comparta
+    //    el mismo observable cacheado (shareReplay refCount:false) y no lance
+    //    una segunda petición a /me cuando active las rutas protegidas.
     console.log('[AppInitializer] 🚀 Cargando usuario...');
     try {
-      const user = await firstValueFrom(userService.fetchUser());
+      const user = await firstValueFrom(sessionService.ensureSession$());
       console.log('[AppInitializer] ✅ Usuario cargado:', user.sub);
 
       // 1.1 Configurar usuario en UnreadMessagesService para filtrar mensajes propios

@@ -91,6 +91,7 @@ function isAuthEndpoint(url: string): boolean {
     '/bff/auth/refresh',
     '/bff/auth/logout',
     '/bff/auth/callback',
+    '/bff/auth/me',    // Evitar bucle: si /me devuelve 401, no intentar refresh (lo gestiona globalErrorInterceptor)
     '/user/auth/login',
     '/user/auth/refresh',
     '/user/auth/logout'

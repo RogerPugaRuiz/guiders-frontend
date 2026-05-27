@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 import { authGuard } from '@guiders-frontend/auth/features/login';
+import { NotProvisionedComponent } from './not-provisioned/not-provisioned';
 
 export const appRoutes: Route[] = [
 	{
@@ -31,6 +32,13 @@ export const appRoutes: Route[] = [
 		loadChildren: () => import('@guiders-frontend/auth/features/settings').then(m => m.settingsRoutes),
 		title: 'Configuración',
 		canActivate: [authGuard],
+	},
+	{
+		// Ruta de emergencia: usuario autenticado en Keycloak pero no provisionado en BD.
+		// No requiere authGuard — no redirigir al login (causaría loop infinito).
+		path: 'account-not-configured',
+		component: NotProvisionedComponent,
+		title: 'Cuenta no configurada',
 	},
 	{
 		path: '',
