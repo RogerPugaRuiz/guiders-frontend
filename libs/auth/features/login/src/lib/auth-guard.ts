@@ -2,6 +2,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SessionService, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 
 export const authGuard: CanActivateFn = () => {
@@ -11,18 +12,24 @@ export const authGuard: CanActivateFn = () => {
   console.log('AuthGuard: Checking user session...');
 
   return sessionService.ensureSession$().pipe(
-    map(user => {
-      // Si hay usuario, permitir acceso
-      return !!user;
-    }),
-    catchError(error => {
-      // Build an absolute URL so location.replace exits the SPA. When baseUrl
-      // is relative (/api) resolve it against window.location.origin first.
-      const bffBase = environment.api.baseUrl.startsWith('/')
-        ? window.location.origin + environment.api.baseUrl
-        : environment.api.baseUrl;
-      const ret = encodeURIComponent(window.location.pathname + window.location.search);
-      location.replace(`${bffBase}/bff/auth/login?redirect=${ret}`);
+    map(user => !!user),
+    catchError((error: unknown) => {
+      // 403 user_not_provisioned: el usuario está autenticado en Keycloak pero
+      // no existe en la BD del backend. Redirigir al login causaría un loop
+      // infinito; en su lugar dejamos que globalErrorInterceptor muestre la
+      // página /account-not-configured. El guard devuelve false para bloquear
+      // la ruta pero sin hacer una segunda redirección.
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 403 &&
+        (error.error as { reason?: string })?.reason === 'user_not_provisioned'
+      ) {
+        return of(false);
+      }
+
+      // Cualquier otro error (401, red, etc.): redirigir al login BFF
+      const ret = encodeURIComponent(window.location.href);
+      location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
       return of(false);
     })
   );
