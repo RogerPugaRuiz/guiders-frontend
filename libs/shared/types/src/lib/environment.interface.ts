@@ -8,7 +8,6 @@ export interface Environment {
   };
   api: {
     baseUrl: string;
-    bffOrigin?: string; // Absolute origin for BFF auth navigation (login/callback). Falls back to baseUrl origin when absent.
     wsUrl?: string; // URL específica para WebSocket (opcional)
   };
   consoleUrl?: string; // URL de la app console para redirecciones (solo admin)

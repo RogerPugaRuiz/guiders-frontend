@@ -306,10 +306,9 @@ export class SessionGuardianService implements OnDestroy {
 
     const currentApp = this.getCurrentApp();
     const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-    const bffBase = this.environment.api.bffOrigin
-      ?? (this.environment.api.baseUrl.startsWith('/')
-        ? window.location.origin + this.environment.api.baseUrl
-        : this.environment.api.baseUrl);
+    const bffBase = this.environment.api.baseUrl.startsWith('/')
+      ? window.location.origin + this.environment.api.baseUrl
+      : this.environment.api.baseUrl;
     const loginUrl = `${bffBase}/bff/auth/login/${currentApp}?redirect=${returnUrl}`;
 
     console.error(`[SessionGuardian] Sesión expirada, redirigiendo al login: ${loginUrl}`);
