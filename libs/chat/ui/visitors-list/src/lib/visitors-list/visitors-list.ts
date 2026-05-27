@@ -91,8 +91,21 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
   readonly loadMore = output<void>();
 
   // Scroll sentinel & container refs
-  @ViewChild('scrollSentinel') scrollSentinelRef?: ElementRef<HTMLDivElement>;
-  @ViewChild('tableContainer') tableContainerRef?: ElementRef<HTMLDivElement>;
+  private _tableContainerEl?: HTMLDivElement;
+  @ViewChild('tableContainer') set tableContainerRef(ref: ElementRef<HTMLDivElement> | undefined) {
+    this._tableContainerEl = ref?.nativeElement;
+  }
+
+  @ViewChild('scrollSentinel') set scrollSentinelRef(ref: ElementRef<HTMLDivElement> | undefined) {
+    if (ref?.nativeElement) {
+      // Disconnect previous observer if any, then reconnect with the new element.
+      this.intersectionObserver?.disconnect();
+      this.setupIntersectionObserver(ref.nativeElement);
+    } else {
+      this.intersectionObserver?.disconnect();
+      this.intersectionObserver = undefined;
+    }
+  }
 
   // Internal state
   readonly searchQuery = signal<string>('');
@@ -221,7 +234,7 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.setupIntersectionObserver();
+    // Observer setup is driven by the scrollSentinelRef setter.
   }
 
   ngOnDestroy(): void {
@@ -229,10 +242,8 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
     this.intersectionObserver?.disconnect();
   }
 
-  private setupIntersectionObserver(): void {
-    if (!this.scrollSentinelRef?.nativeElement) return;
-
-    const root = this.tableContainerRef?.nativeElement ?? null;
+  private setupIntersectionObserver(sentinelEl: HTMLDivElement): void {
+    const root = this._tableContainerEl ?? null;
 
     this.intersectionObserver = new IntersectionObserver(
       (entries) => {
@@ -257,7 +268,7 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
       }
     );
 
-    this.intersectionObserver.observe(this.scrollSentinelRef.nativeElement);
+    this.intersectionObserver.observe(sentinelEl);
   }
 
   onSearchChange(query: string): void {
