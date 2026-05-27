@@ -37,12 +37,25 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 401) {
+        // Do not redirect if the failing request is itself a BFF auth endpoint
+        // (e.g. /api/bff/auth/me, /api/bff/auth/refresh). Redirecting in that
+        // case would cause an exponential encoding loop in the redirect param.
+        if (req.url.includes('/bff/auth/')) {
+          return throwError(() => error);
+        }
+
         if (!redirectingToLogin) {
           redirectingToLogin = true;
           console.warn('[GlobalErrorInterceptor] Unrecoverable 401 — clearing session and redirecting to BFF login', req.url);
           sessionService.clearCache();
-          const ret = encodeURIComponent(window.location.pathname);
-          location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
+          // Build an absolute login URL so location.replace exits the SPA. When baseUrl
+          // is relative (/api) resolve it against window.location.origin first.
+          const bffBase = environment.api.baseUrl.startsWith('/')
+            ? window.location.origin + environment.api.baseUrl
+            : environment.api.baseUrl;
+          const returnPath = window.location.pathname + window.location.search;
+          const ret = encodeURIComponent(returnPath);
+          location.replace(`${bffBase}/bff/auth/login?redirect=${ret}`);
           setTimeout(() => { redirectingToLogin = false; }, 5000);
         }
         return EMPTY;

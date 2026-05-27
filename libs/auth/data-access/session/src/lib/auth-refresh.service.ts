@@ -93,11 +93,12 @@ export class AuthRefreshService implements OnDestroy {
     const timeToRefresh = (expirationTimestamp - now - marginSeconds) * 1000;
 
     if (timeToRefresh <= 0) {
-      // Si ya pasó el tiempo, hacer refresh inmediatamente
-      console.log('[AuthRefreshService] Sesión próxima a expirar, refrescando ahora...');
-      this.refreshSession().subscribe({
-        error: (error) => console.error('Error en refresh proactivo:', error)
-      });
+      // El token ya está expirado o dentro del margen: NO disparar refresh aquí.
+      // En este punto la cookie de sesión puede estar caducada y el BFF devolvería 401,
+      // lo que provocaría un bucle login → reload → scheduleProactiveRefresh → refresh → 401 → login…
+      // El authRefreshInterceptor y globalErrorInterceptor gestionarán el 401
+      // en la próxima petición real al backend.
+      console.log('[AuthRefreshService] Token expirado o dentro del margen al iniciar; refresh proactivo omitido en init.');
       return;
     }
 
@@ -157,8 +158,11 @@ export class AuthRefreshService implements OnDestroy {
    */
   private redirectToLogin(): void {
     const currentApp = this.getCurrentApp();
-    const returnUrl = encodeURIComponent(window.location.href);
-    const loginUrl = `${this.environment.api.baseUrl}/bff/auth/login/${currentApp}?redirect=${returnUrl}`;
+    const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+    const bffBase = this.environment.api.baseUrl.startsWith('/')
+      ? window.location.origin + this.environment.api.baseUrl
+      : this.environment.api.baseUrl;
+    const loginUrl = `${bffBase}/bff/auth/login/${currentApp}?redirect=${returnUrl}`;
     
     console.log(`[AuthRefreshService] Redirigiendo al login: ${loginUrl}`);
     window.location.replace(loginUrl);

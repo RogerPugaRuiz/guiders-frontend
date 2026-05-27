@@ -9,6 +9,19 @@ export default defineConfig(() => ({
   cacheDir: '../../node_modules/.vite/apps/console',
   publicDir: 'public',
   plugins: [angular(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+  server: {
+    proxy: {
+      // Proxy all /api requests to the local backend so cookies share the
+      // same origin as the frontend (localhost:4200) and the BFF PKCE flow
+      // works without SameSite/cross-origin issues.
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+      },
+    },
+  },
   // Uncomment this if you are using workers.
   // worker: {
   //  plugins: [ nxViteTsPaths() ],
