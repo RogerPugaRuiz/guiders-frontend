@@ -17,14 +17,16 @@ let redirectingToLogin = false;
  * Handles:
  * - 401 Unauthorized (after authRefreshInterceptor has already tried token refresh):
  *   clears the user session and redirects to the BFF login endpoint.
+ * - 403 Forbidden with reason=user_not_provisioned:
+ *   the JWT is valid but the user does not exist in the backend DB.
+ *   Redirecting to login would cause an infinite loop (OAuth completes → same 403 → loop).
+ *   Instead, navigates to /account-not-configured so the user sees a clear error message.
  * - 500 Internal Server Error, 503 Service Unavailable, 0 (network error):
  *   logs to console and rethrows so individual components can show their own error state.
  * - All other errors: passes through unchanged.
  *
  * IMPORTANT: This interceptor must be registered AFTER authRefreshInterceptor and authInterceptor()
  * in withInterceptors([authRefreshInterceptor, authInterceptor(), globalErrorInterceptor]).
- * The authRefreshInterceptor will attempt token refresh on 401 first. Only unrecoverable
- * 401s (where refresh also fails) will propagate here.
  */
 export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
   const sessionService = inject(SessionService);
@@ -37,28 +39,28 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       if (error.status === 401) {
-        // Do not redirect if the failing request is itself a BFF auth endpoint
-        // (e.g. /api/bff/auth/me, /api/bff/auth/refresh). Redirecting in that
-        // case would cause an exponential encoding loop in the redirect param.
-        if (req.url.includes('/bff/auth/')) {
-          return throwError(() => error);
-        }
-
         if (!redirectingToLogin) {
           redirectingToLogin = true;
           console.warn('[GlobalErrorInterceptor] Unrecoverable 401 — clearing session and redirecting to BFF login', req.url);
           sessionService.clearCache();
-          // Build an absolute login URL so location.replace exits the SPA. When baseUrl
-          // is relative (/api) resolve it against window.location.origin first.
-          const bffBase = environment.api.baseUrl.startsWith('/')
-            ? window.location.origin + environment.api.baseUrl
-            : environment.api.baseUrl;
-          const returnPath = window.location.pathname + window.location.search;
-          const ret = encodeURIComponent(returnPath);
-          location.replace(`${bffBase}/bff/auth/login?redirect=${ret}`);
+          const ret = encodeURIComponent(window.location.href);
+          location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
           setTimeout(() => { redirectingToLogin = false; }, 5000);
         }
         return EMPTY;
+      }
+
+      // 403 user_not_provisioned: el JWT de Keycloak es válido pero el usuario
+      // no existe en la BD del backend. Redirigir al login causaría un loop
+      // infinito — en su lugar mostramos una página de error específica.
+      if (error.status === 403 && req.url.includes('/bff/auth/me')) {
+        const body = error.error as { reason?: string } | null;
+        if (body?.reason === 'user_not_provisioned') {
+          console.warn('[GlobalErrorInterceptor] 403 user_not_provisioned — usuario autenticado pero no configurado en BD', req.url);
+          sessionService.clearCache();
+          location.replace('/account-not-configured');
+          return EMPTY;
+        }
       }
 
       if (error.status === 500 || error.status === 503 || error.status === 0) {
