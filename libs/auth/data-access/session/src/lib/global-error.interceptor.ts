@@ -48,11 +48,13 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
           redirectingToLogin = true;
           console.warn('[GlobalErrorInterceptor] Unrecoverable 401 — clearing session and redirecting to BFF login', req.url);
           sessionService.clearCache();
-          // Build an absolute login URL so location.replace exits the SPA. When baseUrl
-          // is relative (/api) resolve it against window.location.origin first.
-          const bffBase = environment.api.baseUrl.startsWith('/')
-            ? window.location.origin + environment.api.baseUrl
-            : environment.api.baseUrl;
+          // Use the dedicated bffOrigin (absolute) so location.replace triggers a
+          // real browser navigation that exits the Angular SPA. Falls back to
+          // deriving the origin from baseUrl for backwards compatibility.
+          const bffBase = environment.api.bffOrigin
+            ?? (environment.api.baseUrl.startsWith('/')
+              ? window.location.origin + environment.api.baseUrl
+              : environment.api.baseUrl);
           const returnPath = window.location.pathname + window.location.search;
           const ret = encodeURIComponent(returnPath);
           location.replace(`${bffBase}/bff/auth/login?redirect=${ret}`);

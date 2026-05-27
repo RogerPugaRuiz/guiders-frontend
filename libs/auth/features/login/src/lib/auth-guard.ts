@@ -16,11 +16,10 @@ export const authGuard: CanActivateFn = () => {
       return !!user;
     }),
     catchError(error => {
-      // Build an absolute URL so location.replace exits the SPA. When baseUrl
-      // is relative (/api) resolve it against window.location.origin first.
-      const bffBase = environment.api.baseUrl.startsWith('/')
-        ? window.location.origin + environment.api.baseUrl
-        : environment.api.baseUrl;
+      const bffBase = environment.api.bffOrigin
+        ?? (environment.api.baseUrl.startsWith('/')
+          ? window.location.origin + environment.api.baseUrl
+          : environment.api.baseUrl);
       const ret = encodeURIComponent(window.location.pathname + window.location.search);
       location.replace(`${bffBase}/bff/auth/login?redirect=${ret}`);
       return of(false);
