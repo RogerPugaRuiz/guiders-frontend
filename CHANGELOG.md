@@ -1,3 +1,7 @@
+## <small>0.6.2 (2026-05-27)</small>
+
+* fix(auth): use explicit bffOrigin for login redirects to exit Angular SPA ([3da3a11](https://github.com/RogerPugaRuiz/guiders-frontend/commit/3da3a11))
+
 ## <small>0.6.1 (2026-05-27)</small>
 
 * fix(auth): resolve infinite redirect loop with Vite proxy and relative baseUrl ([1aaedf5](https://github.com/RogerPugaRuiz/guiders-frontend/commit/1aaedf5))
