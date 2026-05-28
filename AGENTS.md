@@ -272,6 +272,22 @@ Performance reporting & analytics         → Admin Dashboard (Analytics)
 User authentication                       → Login
 ```
 
+## QA (Quality Assurance)
+
+When the user asks about QA, testing, or test-related topics, **always use the `qa-testing` skill**.
+
+Load the skill using: `skill(name: "qa-testing")`
+
+This applies when the user asks about:
+- Writing tests (unit, integration, E2E)
+- Test strategy and patterns
+- Debugging test failures
+- Test coverage
+- Playwright or Vitest configuration
+- Any QA-related questions
+
+---
+
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
 

@@ -1,4 +1,3 @@
-/// <reference types='vitest' />
 import { defineConfig } from 'vite';
 import angular from '@analogjs/vite-plugin-angular';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
@@ -15,13 +14,13 @@ export default defineConfig(() => ({
   test: {
     name: 'login-form',
     watch: false,
+    setupFiles: ['src/test-setup.ts'],
     globals: true,
     environment: 'jsdom',
-    include: ['{src,tests}/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    setupFiles: ['src/test-setup.ts'],
+    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     reporters: ['default'],
     coverage: {
-      reportsDirectory: '../../../../coverage/lib/auth/ui/login-form',
+      reportsDirectory: '../../../../coverage/libs/auth/ui/login-form',
       provider: 'v8' as const,
     },
   },
