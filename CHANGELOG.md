@@ -1,3 +1,7 @@
+## <small>0.6.7 (2026-05-28)</small>
+
+* fix(e2e): simplify bridge installation and add safety checks ([8067707](https://github.com/RogerPugaRuiz/guiders-frontend/commit/8067707))
+
 ## <small>0.6.6 (2026-05-28)</small>
 
 * fix(e2e): add timeout to bridge install and handle missing selectors gracefully ([a5bb2e9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a5bb2e9))
