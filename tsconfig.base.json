@@ -154,9 +154,6 @@
       "@guiders-frontend/integrations": [
         "libs/admin/features/integrations/src/index.ts"
       ],
-      "@guiders-frontend/self-chat": [
-        "libs/chat/data-access/self-chat/src/index.ts"
-      ],
       "@guiders-frontend/lead-contact-service": [
         "libs/chat/data-access/lead-contact-service/src/index.ts"
       ],
@@ -193,6 +190,9 @@
         "libs/chat/ui/save-filter-dialog/src/index.ts"
       ],
       "@guiders-frontend/select": ["libs/shared/ui/select/src/index.ts"],
+      "@guiders-frontend/self-chat": [
+        "libs/chat/data-access/self-chat/src/index.ts"
+      ],
       "@guiders-frontend/shared/config": ["libs/shared/config/src/index.ts"],
       "@guiders-frontend/shared/data-access/theme": [
         "libs/shared/data-access/theme/src/index.ts"
