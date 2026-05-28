@@ -4,6 +4,6 @@
     "rootDir": ".",
     "types": ["node", "vitest"]
   },
-  "extends": "../../../../tsconfig.base.json",
+  "extends": "../../../tsconfig.base.json",
   "include": ["**/*.ts"]
 }
