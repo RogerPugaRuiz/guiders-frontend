@@ -1,3 +1,7 @@
+## <small>0.6.6 (2026-05-28)</small>
+
+* fix(e2e): add timeout to bridge install and handle missing selectors gracefully ([a5bb2e9](https://github.com/RogerPugaRuiz/guiders-frontend/commit/a5bb2e9))
+
 ## <small>0.6.5 (2026-05-28)</small>
 
 * fix(e2e): improve unread-badge and localstorage test reliability ([c04b334](https://github.com/RogerPugaRuiz/guiders-frontend/commit/c04b334))
