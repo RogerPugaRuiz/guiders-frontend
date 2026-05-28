@@ -1,3 +1,7 @@
+## <small>0.6.8 (2026-05-28)</small>
+
+* fix(e2e): use addInitScript for consistent bridge availability ([bbd2382](https://github.com/RogerPugaRuiz/guiders-frontend/commit/bbd2382))
+
 ## <small>0.6.7 (2026-05-28)</small>
 
 * fix(e2e): simplify bridge installation and add safety checks ([8067707](https://github.com/RogerPugaRuiz/guiders-frontend/commit/8067707))
