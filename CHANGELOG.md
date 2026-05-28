@@ -1,3 +1,7 @@
+## <small>0.6.5 (2026-05-28)</small>
+
+* fix(e2e): improve unread-badge and localstorage test reliability ([c04b334](https://github.com/RogerPugaRuiz/guiders-frontend/commit/c04b334))
+
 ## <small>0.6.4 (2026-05-27)</small>
 
 * fix(lint): use console prefix for not-provisioned component selector ([6ba9d13](https://github.com/RogerPugaRuiz/guiders-frontend/commit/6ba9d13))
