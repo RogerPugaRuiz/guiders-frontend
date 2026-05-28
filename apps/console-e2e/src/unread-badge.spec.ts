@@ -21,50 +21,44 @@ import { E2E } from './constants/env';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-async function isBridgeInstalled(page: Page): Promise<boolean> {
-  return page.evaluate(() => !!(document as any).__e2eUnreadBridgeInstalled);
-}
+function buildE2EUnreadBridgeScript(): string {
+  return `
+    (function() {
+      if (window.__e2eUnreadBridgeInstalled) return;
 
-async function installE2EUnreadBridge(page: Page): Promise<void> {
-  const alreadyInstalled = await isBridgeInstalled(page);
-  if (alreadyInstalled) return;
+      document.addEventListener('__e2e:chat:unread_count', function(ev) {
+        var detail = ev.detail;
+        var chatId = detail.chatId;
+        var unreadMessagesCount = detail.unreadMessagesCount;
 
-  const bridgeInstalled = await page.evaluate(() => {
-    const rootEl = document.querySelector('guiders-root');
-    if (!rootEl) return false;
-    const injector = (window as any).ng?.getInjector?.(rootEl);
-    if (!injector) return false;
+        var rootEl = document.querySelector('guiders-root');
+        if (!rootEl) return;
+        var ng = window.ng;
+        if (!ng) return;
+        var injector = ng.getInjector ? ng.getInjector(rootEl) : null;
+        if (!injector) return;
+        var records = injector._records;
+        if (!records) return;
 
-    const doc = document as any;
-    if (doc.__e2eUnreadBridgeInstalled) return true;
-
-    document.addEventListener('__e2e:chat:unread_count', (ev: Event) => {
-      const { chatId, unreadMessagesCount } = (ev as CustomEvent).detail;
-      const rootEl = document.querySelector('guiders-root') as any;
-      if (!rootEl) return;
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) return;
-      const records: Map<any, any> = (injector as any)._records;
-      if (!records) return;
-      records.forEach((record: any) => {
-        const svc = record?.value;
-        if (svc && typeof svc.unreadCountMap === 'function') {
-          svc.unreadCountMap.update((map: Record<string, number>) => ({
-            ...map,
-            [chatId]: unreadMessagesCount,
-          }));
-          svc.unreadCountSubject?.next?.(svc.unreadCountMap());
-        }
+        records.forEach(function(record) {
+          var svc = record && record.value;
+          if (svc && typeof svc.unreadCountMap === 'function') {
+            svc.unreadCountMap.update(function(map) {
+              var newMap = {};
+              Object.keys(map).forEach(function(k) { newMap[k] = map[k]; });
+              newMap[chatId] = unreadMessagesCount;
+              return newMap;
+            });
+            if (svc.unreadCountSubject && typeof svc.unreadCountSubject.next === 'function') {
+              svc.unreadCountSubject.next(svc.unreadCountMap());
+            }
+          }
+        });
       });
-    });
 
-    doc.__e2eUnreadBridgeInstalled = true;
-    return true;
-  });
-
-  if (!bridgeInstalled) {
-    console.warn('[E2E] Could not install unread bridge — Angular injector unavailable');
-  }
+      window.__e2eUnreadBridgeInstalled = true;
+    })();
+  `;
 }
 
 async function getUnreadCount(page: Page, chatId: string): Promise<number | null> {
@@ -113,6 +107,7 @@ async function emitUnreadCountEvent(
 test.describe('Unread Badge — visual behaviour', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
+    await page.addInitScript(buildE2EUnreadBridgeScript());
   });
 
   // ── 1. Badge visibility ──────────────────────────────────────────────────
@@ -208,13 +203,6 @@ test.describe('Unread Badge — visual behaviour', () => {
     await expect(page.locator('[data-testid="chat-inbox"]')).toBeVisible({
       timeout: 15_000,
     });
-    await installE2EUnreadBridge(page);
-
-    const bridgeReady = await isBridgeInstalled(page);
-    if (!bridgeReady) {
-      console.warn('[E2E] Skipping WS test — bridge not available');
-      return;
-    }
 
     const fakeChatId = 'e2e-test-chat-00000000-0000-0000-0000-000000000001';
 
@@ -236,7 +224,6 @@ test.describe('Unread Badge — visual behaviour', () => {
     await expect(page.locator('.visitors-page').first()).toBeVisible({
       timeout: 15_000,
     });
-    await installE2EUnreadBridge(page);
 
     const dotsInitial = await page.locator('span.unread-dot').count();
     console.log(`[E2E] Initial unread dots: ${dotsInitial}`);
@@ -294,13 +281,6 @@ test.describe('Unread Badge — visual behaviour', () => {
     await expect(page.locator('[data-testid="chat-inbox"]')).toBeVisible({
       timeout: 15_000,
     });
-    await installE2EUnreadBridge(page);
-
-    const bridgeReady = await isBridgeInstalled(page);
-    if (!bridgeReady) {
-      console.warn('[E2E] Skipping cross-session test — bridge not available');
-      return;
-    }
 
     const fakeChatId = 'e2e-cross-session-chat-00000000-0000-0000-0000-000000000002';
 
