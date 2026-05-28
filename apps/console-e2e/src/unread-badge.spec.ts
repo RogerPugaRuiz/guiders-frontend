@@ -21,6 +21,65 @@ import { E2E } from './constants/env';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
+async function installE2EUnreadBridge(page: Page): Promise<void> {
+  await page.waitForFunction(() => {
+    const rootEl = document.querySelector('guiders-root');
+    return !!rootEl && !!(window as any).ng?.getInjector?.(rootEl);
+  });
+
+  await page.evaluate(() => {
+    const doc = document as any;
+    if (doc.__e2eUnreadBridgeInstalled) return;
+
+    document.addEventListener('__e2e:chat:unread_count', (ev: Event) => {
+      const { chatId, unreadMessagesCount } = (ev as CustomEvent).detail;
+      const rootEl = document.querySelector('guiders-root') as any;
+      if (!rootEl) return;
+
+      const injector = (window as any).ng?.getInjector?.(rootEl);
+      if (!injector) return;
+
+      const records: Map<any, any> = (injector as any)._records;
+      if (!records) return;
+
+      records.forEach((record: any) => {
+        const svc = record?.value;
+        if (svc && typeof svc.unreadCountMap === 'function') {
+          svc.unreadCountMap.update((map: Record<string, number>) => ({
+            ...map,
+            [chatId]: unreadMessagesCount,
+          }));
+          svc.unreadCountSubject?.next?.(svc.unreadCountMap());
+        }
+      });
+    });
+
+    doc.__e2eUnreadBridgeInstalled = true;
+  });
+}
+
+async function getUnreadCount(page: Page, chatId: string): Promise<number | null> {
+  return page.evaluate((id: string) => {
+    const rootEl = document.querySelector('guiders-root') as any;
+    if (!rootEl) return null;
+
+    const injector = (window as any).ng?.getInjector?.(rootEl);
+    if (!injector) return null;
+
+    const records: Map<any, any> = (injector as any)._records;
+    if (!records) return null;
+
+    let found: number | null = null;
+    records.forEach((r: any) => {
+      const svc = r?.value;
+      if (svc && typeof svc.unreadCountMap === 'function') {
+        found = svc.unreadCountMap()[id] ?? null;
+      }
+    });
+    return found;
+  }, chatId);
+}
+
 /** Inject a synthetic chat:unread_count WS event into the running Angular app. */
 async function emitUnreadCountEvent(
   page: Page,
@@ -29,21 +88,6 @@ async function emitUnreadCountEvent(
 ): Promise<void> {
   await page.evaluate(
     ({ chatId, count }: { chatId: string; count: number }) => {
-      // Reach the WebSocketService through the Angular injector exposed on the root element.
-      const rootEl = document.querySelector('guiders-root') as any;
-      if (!rootEl) {
-        console.warn('[E2E] guiders-root not found');
-        return;
-      }
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) {
-        console.warn('[E2E] Angular injector not available');
-        return;
-      }
-      // The WebSocketService stores the underlying Socket.IO socket as a private field.
-      // We locate the service token by scanning the injector records.
-      // Fallback: dispatch a custom DOM event that the UnreadMessagesService also handles
-      // (added as a tested escape-hatch).
       const event = new CustomEvent('__e2e:chat:unread_count', {
         detail: { chatId, unreadMessagesCount: count },
         bubbles: true,
@@ -54,50 +98,10 @@ async function emitUnreadCountEvent(
   );
 }
 
-/**
- * Patch UnreadMessagesService to listen for the __e2e:chat:unread_count DOM event
- * so we can drive badge updates from tests without a real WebSocket connection.
- * Injected via addInitScript — runs before Angular boots.
- */
-async function installE2EUnreadBridgeScript(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    document.addEventListener('__e2e:chat:unread_count', (ev: Event) => {
-      const { chatId, unreadMessagesCount } = (ev as CustomEvent).detail;
-      // Find the Angular UnreadMessagesService via the root injector.
-      const rootEl = document.querySelector('guiders-root') as any;
-      if (!rootEl) return;
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) return;
-      // Iterate injector records to find the service that owns unreadCountMap.
-      const records: Map<any, any> = (injector as any)._records;
-      if (!records) return;
-      records.forEach((record: any) => {
-        const svc = record?.value;
-        if (svc && typeof svc.unreadCountMap === 'function') {
-          // It's the UnreadMessagesService (has a signal named unreadCountMap).
-          svc.unreadCountMap.update((map: Record<string, number>) => ({
-            ...map,
-            [chatId]: unreadMessagesCount,
-          }));
-          if (typeof svc.unreadCountSubject?.next === 'function') {
-            svc.unreadCountSubject.next(svc.unreadCountMap());
-          }
-          if (unreadMessagesCount === 0 && typeof svc.totalUnreadCount === 'function') {
-            if (svc.totalUnreadCount() === 0 && typeof svc.stopTitleFlashing === 'function') {
-              svc.stopTitleFlashing();
-            }
-          }
-        }
-      });
-    });
-  });
-}
-
 // ─── suite ──────────────────────────────────────────────────────────────────
 
 test.describe('Unread Badge — visual behaviour', () => {
   test.beforeEach(async ({ page }) => {
-    await installE2EUnreadBridgeScript(page);
     await loginAsAdmin(page);
   });
 
@@ -194,61 +198,16 @@ test.describe('Unread Badge — visual behaviour', () => {
     await expect(page.locator('[data-testid="chat-inbox"]')).toBeVisible({
       timeout: 15_000,
     });
-    await page.waitForTimeout(2000);
+    await installE2EUnreadBridge(page);
 
-    // Pick a fake chatId — we will inject it directly into the service state.
-    // In a real environment this would be a seeded chatId; using a UUID is fine
-    // because we are testing the rendering layer, not the HTTP endpoint.
     const fakeChatId = 'e2e-test-chat-00000000-0000-0000-0000-000000000001';
 
-    // Inject count = 5 via DOM bridge.
     await emitUnreadCountEvent(page, fakeChatId, 5);
-    await page.waitForTimeout(500);
-
-    // The title should now reflect the increased total unread count (title flashing starts).
-    // We also verify the badge count via the signal — read it from the service directly.
-    const countAfterInject = await page.evaluate((chatId: string) => {
-      const rootEl = document.querySelector('guiders-root') as any;
-      if (!rootEl) return null;
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) return null;
-      const records: Map<any, any> = (injector as any)._records;
-      if (!records) return null;
-      let found: number | null = null;
-      records.forEach((record: any) => {
-        const svc = record?.value;
-        if (svc && typeof svc.unreadCountMap === 'function') {
-          found = svc.unreadCountMap()[chatId] ?? null;
-        }
-      });
-      return found;
-    }, fakeChatId);
-
-    expect(countAfterInject).toBe(5);
+    await expect.poll(async () => await getUnreadCount(page, fakeChatId)).toBe(5);
     console.log('[E2E] unreadCountMap updated to 5 after WS event injection.');
 
-    // Now inject count = 0 (simulating reset from another session).
     await emitUnreadCountEvent(page, fakeChatId, 0);
-    await page.waitForTimeout(500);
-
-    const countAfterReset = await page.evaluate((chatId: string) => {
-      const rootEl = document.querySelector('guiders-root') as any;
-      if (!rootEl) return null;
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) return null;
-      const records: Map<any, any> = (injector as any)._records;
-      if (!records) return null;
-      let found: number | null = null;
-      records.forEach((record: any) => {
-        const svc = record?.value;
-        if (svc && typeof svc.unreadCountMap === 'function') {
-          found = svc.unreadCountMap()[chatId] ?? null;
-        }
-      });
-      return found;
-    }, fakeChatId);
-
-    expect(countAfterReset).toBe(0);
+    await expect.poll(async () => await getUnreadCount(page, fakeChatId)).toBe(0);
     console.log('[E2E] unreadCountMap reset to 0 after WS chat:unread_count=0 event.');
   });
 
@@ -258,10 +217,10 @@ test.describe('Unread Badge — visual behaviour', () => {
     page,
   }) => {
     await page.goto('/visitors');
-    await expect(page.locator('.visitors-page, lib-visitors, guiders-visitors-list')).toBeVisible({
+    await expect(page.locator('.visitors-page').first()).toBeVisible({
       timeout: 15_000,
     });
-    await page.waitForTimeout(2000);
+    await installE2EUnreadBridge(page);
 
     // Capture initial dot count.
     const dotsInitial = await page.locator('span.unread-dot').count();
@@ -347,47 +306,15 @@ test.describe('Unread Badge — visual behaviour', () => {
     await expect(page.locator('[data-testid="chat-inbox"]')).toBeVisible({
       timeout: 15_000,
     });
-    await page.waitForTimeout(1500);
+    await installE2EUnreadBridge(page);
 
-    // Simulate: another session opened the chat → WS emits chat:unread_count=0.
     const fakeChatId = 'e2e-cross-session-chat-00000000-0000-0000-0000-000000000002';
 
-    // First set it to non-zero so we can observe the change.
     await emitUnreadCountEvent(page, fakeChatId, 7);
-    await page.waitForTimeout(400);
+    await expect.poll(async () => await getUnreadCount(page, fakeChatId)).toBe(7);
 
-    // Verify injected value.
-    const before = await page.evaluate((id: string) => {
-      const rootEl = document.querySelector('guiders-root') as any;
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) return null;
-      let found: number | null = null;
-      (injector as any)._records?.forEach((r: any) => {
-        if (r?.value && typeof r.value.unreadCountMap === 'function') {
-          found = r.value.unreadCountMap()[id] ?? null;
-        }
-      });
-      return found;
-    }, fakeChatId);
-    expect(before).toBe(7);
-
-    // Now simulate the cross-session reset.
     await emitUnreadCountEvent(page, fakeChatId, 0);
-    await page.waitForTimeout(400);
-
-    const after = await page.evaluate((id: string) => {
-      const rootEl = document.querySelector('guiders-root') as any;
-      const injector = (window as any).ng?.getInjector?.(rootEl);
-      if (!injector) return null;
-      let found: number | null = null;
-      (injector as any)._records?.forEach((r: any) => {
-        if (r?.value && typeof r.value.unreadCountMap === 'function') {
-          found = r.value.unreadCountMap()[id] ?? null;
-        }
-      });
-      return found;
-    }, fakeChatId);
-    expect(after).toBe(0);
+    await expect.poll(async () => await getUnreadCount(page, fakeChatId)).toBe(0);
 
     console.log('[E2E] Badge synced to 0 via simulated cross-session WS event.');
   });
