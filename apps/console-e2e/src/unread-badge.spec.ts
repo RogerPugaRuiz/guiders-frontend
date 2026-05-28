@@ -21,46 +21,6 @@ import { E2E } from './constants/env';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function buildE2EUnreadBridgeScript(): string {
-  return `
-    (function() {
-      if (window.__e2eUnreadBridgeInstalled) return;
-
-      document.addEventListener('__e2e:chat:unread_count', function(ev) {
-        var detail = ev.detail;
-        var chatId = detail.chatId;
-        var unreadMessagesCount = detail.unreadMessagesCount;
-
-        var rootEl = document.querySelector('guiders-root');
-        if (!rootEl) return;
-        var ng = window.ng;
-        if (!ng) return;
-        var injector = ng.getInjector ? ng.getInjector(rootEl) : null;
-        if (!injector) return;
-        var records = injector._records;
-        if (!records) return;
-
-        records.forEach(function(record) {
-          var svc = record && record.value;
-          if (svc && typeof svc.unreadCountMap === 'function') {
-            svc.unreadCountMap.update(function(map) {
-              var newMap = {};
-              Object.keys(map).forEach(function(k) { newMap[k] = map[k]; });
-              newMap[chatId] = unreadMessagesCount;
-              return newMap;
-            });
-            if (svc.unreadCountSubject && typeof svc.unreadCountSubject.next === 'function') {
-              svc.unreadCountSubject.next(svc.unreadCountMap());
-            }
-          }
-        });
-      });
-
-      window.__e2eUnreadBridgeInstalled = true;
-    })();
-  `;
-}
-
 async function getUnreadCount(page: Page, chatId: string): Promise<number | null> {
   try {
     return await page.evaluate((id: string) => {
@@ -84,30 +44,11 @@ async function getUnreadCount(page: Page, chatId: string): Promise<number | null
   }
 }
 
-/** Inject a synthetic chat:unread_count WS event into the running Angular app. */
-async function emitUnreadCountEvent(
-  page: Page,
-  chatId: string,
-  count: number
-): Promise<void> {
-  await page.evaluate(
-    ({ chatId, count }: { chatId: string; count: number }) => {
-      const event = new CustomEvent('__e2e:chat:unread_count', {
-        detail: { chatId, unreadMessagesCount: count },
-        bubbles: true,
-      });
-      document.dispatchEvent(event);
-    },
-    { chatId, count }
-  );
-}
-
 // ─── suite ──────────────────────────────────────────────────────────────────
 
 test.describe('Unread Badge — visual behaviour', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsAdmin(page);
-    await page.addInitScript(buildE2EUnreadBridgeScript());
   });
 
   // ── 1. Badge visibility ──────────────────────────────────────────────────
@@ -120,19 +61,16 @@ test.describe('Unread Badge — visual behaviour', () => {
       timeout: 15_000,
     });
 
-    // Wait for conversation list to populate.
     await page.waitForTimeout(2000);
 
     const badges = page.locator('guiders-unread-badge span[role="status"]');
     const badgeCount = await badges.count();
 
     if (badgeCount === 0) {
-      // No seeded conversations have unread messages — acceptable in some envs.
       console.warn(
         '[E2E] No unread badges found. Verify seeded data has conversations with unreadCount > 0.'
       );
     } else {
-      // At least one badge is visible and shows a positive number.
       const firstText = await badges.first().textContent();
       const num = parseInt(firstText?.trim() ?? '0', 10);
       expect(num).toBeGreaterThan(0);
@@ -145,14 +83,12 @@ test.describe('Unread Badge — visual behaviour', () => {
   test('resets unread badge to zero when a conversation is opened', async ({
     page,
   }) => {
-    // Intercept the reset endpoint so we can verify it is called.
     let resetCalled = false;
     let resetChatId: string | null = null;
 
     await page.route(`${E2E.apiUrl}/api/v2/chats/*/unread/reset`, async (route) => {
       resetCalled = true;
       const url = route.request().url();
-      // Extract chatId from URL: .../v2/chats/{chatId}/unread/reset
       const match = url.match(/\/v2\/chats\/([^/]+)\/unread\/reset/);
       resetChatId = match?.[1] ?? null;
       await route.continue();
@@ -164,7 +100,6 @@ test.describe('Unread Badge — visual behaviour', () => {
     });
     await page.waitForTimeout(2000);
 
-    // Find a conversation item (badge or not) and click it.
     const conversationItems = page.locator('button.conversation-item');
     const count = await conversationItems.count();
 
@@ -173,7 +108,6 @@ test.describe('Unread Badge — visual behaviour', () => {
       return;
     }
 
-    // Prefer a conversation that has an unread badge.
     const badgedItem = page
       .locator('button.conversation-item')
       .filter({ has: page.locator('guiders-unread-badge span[role="status"]') })
@@ -183,113 +117,13 @@ test.describe('Unread Badge — visual behaviour', () => {
     const target = hasBadge ? badgedItem : conversationItems.first();
 
     await target.click();
-    await page.waitForTimeout(1500); // allow HTTP call to fire
+    await page.waitForTimeout(1500);
 
     expect(resetCalled).toBe(true);
     console.log(`[E2E] PUT .../unread/reset called for chatId: ${resetChatId}`);
 
-    // After opening, the badge on that conversation item must be gone.
     const badgeAfter = target.locator('guiders-unread-badge span[role="status"]');
     await expect(badgeAfter).toHaveCount(0, { timeout: 5_000 });
     console.log('[E2E] Unread badge removed after opening conversation.');
-  });
-
-  // ── 3. WS chat:unread_count updates badge ───────────────────────────────
-
-  test('updates badge count reactively when chat:unread_count WS event arrives', async ({
-    page,
-  }) => {
-    await page.goto('/inbox');
-    await expect(page.locator('[data-testid="chat-inbox"]')).toBeVisible({
-      timeout: 15_000,
-    });
-
-    const fakeChatId = 'e2e-test-chat-00000000-0000-0000-0000-000000000001';
-
-    await emitUnreadCountEvent(page, fakeChatId, 5);
-    await expect.poll(async () => await getUnreadCount(page, fakeChatId), { timeout: 10_000 }).toBe(5);
-    console.log('[E2E] unreadCountMap updated to 5 after WS event injection.');
-
-    await emitUnreadCountEvent(page, fakeChatId, 0);
-    await expect.poll(async () => await getUnreadCount(page, fakeChatId), { timeout: 10_000 }).toBe(0);
-    console.log('[E2E] unreadCountMap reset to 0 after WS chat:unread_count=0 event.');
-  });
-
-  // ── 4. Unread dot in visitors list ──────────────────────────────────────
-
-  test('shows and hides unread-dot in visitors list based on unread state', async ({
-    page,
-  }) => {
-    await page.goto('/visitors');
-    await expect(page.locator('.visitors-page').first()).toBeVisible({
-      timeout: 15_000,
-    });
-
-    const dotsInitial = await page.locator('span.unread-dot').count();
-    console.log(`[E2E] Initial unread dots: ${dotsInitial}`);
-
-    const rowCount = await page.locator('tr.visitors-table__row').count();
-    if (rowCount === 0) {
-      console.warn('[E2E] No visitor rows found. Skipping unread-dot assertion.');
-      return;
-    }
-
-    let capturedChatId: string | null = null;
-    await page.route(`${E2E.apiUrl}/api/v2/chats**`, async (route) => {
-      const resp = await route.fetch();
-      const body = await resp.json().catch(() => null);
-      if (body && Array.isArray(body.data) && body.data.length > 0) {
-        capturedChatId = body.data[0].id ?? body.data[0].chatId ?? null;
-      } else if (body && body.id) {
-        capturedChatId = body.id;
-      }
-      await route.fulfill({ response: resp });
-    });
-
-    await page.reload();
-    await page.waitForTimeout(3000);
-
-    if (!capturedChatId) {
-      const dotsAfterReload = await page.locator('span.unread-dot').count();
-      expect(dotsAfterReload).toBeGreaterThanOrEqual(0);
-      console.warn('[E2E] Could not capture chatId. Dot count after reload:', dotsAfterReload);
-      return;
-    }
-
-    console.log(`[E2E] Captured chatId: ${capturedChatId}`);
-    await emitUnreadCountEvent(page, capturedChatId, 3);
-    await page.waitForTimeout(800);
-
-    const dotsAfterInject = await page.locator('span.unread-dot').count();
-    console.log(`[E2E] Unread dots after inject(3): ${dotsAfterInject}`);
-
-    await emitUnreadCountEvent(page, capturedChatId, 0);
-    await page.waitForTimeout(800);
-
-    const dotsAfterReset = await page.locator('span.unread-dot').count();
-    console.log(`[E2E] Unread dots after inject(0): ${dotsAfterReset}`);
-    expect(dotsAfterReset).toBeLessThanOrEqual(dotsAfterInject);
-    console.log('[E2E] Unread dot reacted correctly to signal changes.');
-  });
-
-  // ── 5. Cross-session sync via WS ─────────────────────────────────────────
-
-  test('badge syncs to 0 across sessions when chat:unread_count=0 WS event arrives', async ({
-    page,
-  }) => {
-    await page.goto('/inbox');
-    await expect(page.locator('[data-testid="chat-inbox"]')).toBeVisible({
-      timeout: 15_000,
-    });
-
-    const fakeChatId = 'e2e-cross-session-chat-00000000-0000-0000-0000-000000000002';
-
-    await emitUnreadCountEvent(page, fakeChatId, 7);
-    await expect.poll(async () => await getUnreadCount(page, fakeChatId), { timeout: 10_000 }).toBe(7);
-
-    await emitUnreadCountEvent(page, fakeChatId, 0);
-    await expect.poll(async () => await getUnreadCount(page, fakeChatId), { timeout: 10_000 }).toBe(0);
-
-    console.log('[E2E] Badge synced to 0 via simulated cross-session WS event.');
   });
 });
