@@ -20,8 +20,7 @@
     "src/**/*.test.js",
     "src/**/*.spec.js",
     "src/**/*.test.jsx",
-    "src/**/*.spec.jsx",
-    "src/test-setup.ts"
+    "src/**/*.spec.jsx"
   ],
   "include": ["src/**/*.ts"]
 }

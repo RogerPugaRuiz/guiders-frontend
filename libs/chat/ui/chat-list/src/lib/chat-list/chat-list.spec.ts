@@ -1,7 +1,26 @@
-import { describe, it, expect } from 'vitest';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ChatList } from './chat-list';
+import { ComponentRef } from '@angular/core';
 
-describe('placeholder', () => {
-  it('should pass', () => {
-    expect(true).toBe(true);
+describe('ChatList', () => {
+  let component: ChatList;
+  let fixture: ComponentFixture<ChatList>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ChatList],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ChatList);
+    component = fixture.componentInstance;
+    
+    // Proporcionar valores requeridos para los inputs
+    fixture.componentRef.setInput('chats', []);
+    
+    fixture.detectChanges();
+  });
+
+  it('should create', () => {
+    expect(component).toBeTruthy();
   });
 });
