@@ -1,3 +1,7 @@
+## <small>0.6.9 (2026-05-28)</small>
+
+* fix(e2e): remove tests 3-5 that depend on Angular internals ([b124c19](https://github.com/RogerPugaRuiz/guiders-frontend/commit/b124c19))
+
 ## <small>0.6.8 (2026-05-28)</small>
 
 * fix(e2e): use addInitScript for consistent bridge availability ([bbd2382](https://github.com/RogerPugaRuiz/guiders-frontend/commit/bbd2382))
