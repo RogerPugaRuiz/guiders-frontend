@@ -40,6 +40,12 @@ nx test <project> --testFile=<filename>   # Run single test file
 nx test <project> -- --grep "<pattern>"   # Run tests matching pattern
 ```
 
+### CI Pipeline
+
+```bash
+npx nx run-many -t lint test build        # Full CI pipeline (lint + test + build)
+```
+
 ### E2E Testing (Playwright)
 
 ```bash
