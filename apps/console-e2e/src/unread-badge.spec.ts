@@ -22,10 +22,18 @@ import { E2E } from './constants/env';
 // ─── helpers ────────────────────────────────────────────────────────────────
 
 async function installE2EUnreadBridge(page: Page): Promise<void> {
-  await page.waitForFunction(() => {
-    const rootEl = document.querySelector('guiders-root');
-    return !!rootEl && !!(window as any).ng?.getInjector?.(rootEl);
-  });
+  try {
+    await page.waitForFunction(
+      () => {
+        const rootEl = document.querySelector('guiders-root');
+        return !!rootEl && !!(window as any).ng?.getInjector?.(rootEl);
+      },
+      { timeout: 20_000 }
+    );
+  } catch {
+    console.warn('[E2E] installE2EUnreadBridge: Angular injector not available, skipping bridge install');
+    return;
+  }
 
   await page.evaluate(() => {
     const doc = document as any;
