@@ -21,7 +21,7 @@ import { Badge } from '@guiders-frontend/badge';
 type LeadFilter = 'all' | SyncStatus;
 
 @Component({
-  selector: 'lib-leads-list',
+  selector: 'guiders-leads-list',
   imports: [CommonModule, FormsModule, Badge],
   templateUrl: './leads-list.html',
   styleUrl: './leads-list.scss',

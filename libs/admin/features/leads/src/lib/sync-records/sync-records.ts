@@ -19,7 +19,7 @@ import {
 import { Badge } from '@guiders-frontend/badge';
 
 @Component({
-  selector: 'lib-sync-records',
+  selector: 'guiders-sync-records',
   imports: [CommonModule, FormsModule, Badge],
   templateUrl: './sync-records.html',
   styleUrl: './sync-records.scss',

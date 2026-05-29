@@ -223,7 +223,7 @@ export class ChatWidgetService {
   /**
    * Abrir el widget con múltiples chats como pestañas
    */
-  openWithTabs(chats: Chat[], visitor: Visitor, activeIndex: number = 0): void {
+  openWithTabs(chats: Chat[], visitor: Visitor, activeIndex = 0): void {
     console.log('[ChatWidgetService] Abriendo widget con pestañas:', chats.length, 'chats');
 
     const tabs: ChatTab[] = chats.map((chat, index) => ({
@@ -251,7 +251,7 @@ export class ChatWidgetService {
   /**
    * Abrir el widget con múltiples chats pendientes como pestañas
    */
-  openWithPendingTabs(chats: Chat[], visitor: Visitor, activeIndex: number = 0): void {
+  openWithPendingTabs(chats: Chat[], visitor: Visitor, activeIndex = 0): void {
     console.log('[ChatWidgetService] 🟠 Abriendo widget con pestañas pendientes:', chats.length, 'chats');
 
     const tabs: ChatTab[] = chats.map((chat, index) => ({

@@ -28,6 +28,9 @@
       class="stat-card"
       [class.stat-card--active]="activeFilter() === 'all'"
       (click)="setFilter('all')"
+      (keydown.enter)="setFilter('all')"
+      role="button"
+      tabindex="0"
     >
       <span class="stat-card__value">{{ totalCount() }}</span>
       <span class="stat-card__label">Total leads</span>
@@ -36,6 +39,9 @@
       class="stat-card stat-card--success"
       [class.stat-card--active]="activeFilter() === 'synced'"
       (click)="setFilter('synced')"
+      (keydown.enter)="setFilter('synced')"
+      role="button"
+      tabindex="0"
     >
       <span class="stat-card__icon">✓</span>
       <span class="stat-card__value">{{ syncedCount() }}</span>
@@ -45,6 +51,9 @@
       class="stat-card stat-card--warning"
       [class.stat-card--active]="activeFilter() === 'pending'"
       (click)="setFilter('pending')"
+      (keydown.enter)="setFilter('pending')"
+      role="button"
+      tabindex="0"
     >
       <span class="stat-card__value">{{ pendingCount() }}</span>
       <span class="stat-card__label">Pendientes</span>
@@ -53,6 +62,9 @@
       class="stat-card stat-card--error"
       [class.stat-card--active]="activeFilter() === 'failed'"
       (click)="setFilter('failed')"
+      (keydown.enter)="setFilter('failed')"
+      role="button"
+      tabindex="0"
     >
       <span class="stat-card__value">{{ failedCount() }}</span>
       <span class="stat-card__label">Fallidos</span>
@@ -179,6 +191,9 @@
           [class.lead-row--expanded]="isExpanded(record.id)"
           [class.lead-row--failed]="record.status === 'failed'"
           (click)="toggleRow(record.id)"
+          (keydown.enter)="toggleRow(record.id)"
+          role="button"
+          tabindex="0"
         >
           <!-- Visitante -->
           <td>
