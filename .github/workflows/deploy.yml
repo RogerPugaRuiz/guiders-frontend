@@ -10,24 +10,106 @@ env:
   STAGING_SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
   STAGING_SSH_USER: ${{ secrets.STAGING_SSH_USER }}
   STAGING_SSH_PORT: ${{ secrets.STAGING_SSH_PORT }}
-  STAGING_DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }} # Ej: /var/www/guiders-frontend-staging
-  # Usar STAGING_SSH_PASSWORD para autenticación por contraseña
+  STAGING_DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
 
 concurrency:
   group: deploy
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
   deployments: write
   issues: write
   pull-requests: write
 
 jobs:
-  build-and-deploy:
-    name: Build & Deploy
+  ci:
+    name: CI (lint + test + build)
     runs-on: ubuntu-latest
-    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          filter: tree:0
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - run: npm ci --legacy-peer-deps
+      - run: npx nx run-many -t lint test build
+
+  e2e:
+    name: Playwright E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate backend secrets
+        env:
+          BACKEND_REPO: ${{ secrets.BACKEND_REPO }}
+          BACKEND_REPO_TOKEN: ${{ secrets.BACKEND_REPO_TOKEN }}
+        run: |
+          if [ -z "$BACKEND_REPO" ]; then
+            echo "❌ BACKEND_REPO secret not set." && exit 1
+          fi
+          if [ -z "$BACKEND_REPO_TOKEN" ]; then
+            echo "❌ BACKEND_REPO_TOKEN secret not set." && exit 1
+          fi
+          echo "✅ Backend secrets present."
+
+      - name: Checkout backend
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.BACKEND_REPO }}
+          token: ${{ secrets.BACKEND_REPO_TOKEN }}
+          path: _backend
+
+      - name: Start backend E2E stack
+        working-directory: _backend
+        run: |
+          docker compose -f docker-compose.e2e.yml up -d
+
+      - name: Wait for backend
+        run: |
+          timeout 120 bash -c 'until curl -sf http://localhost:3099/api/tracking-v2/health; do sleep 3; done'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+      - run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E
+        env:
+          PLAYWRIGHT_BASE_URL: http://localhost:4200
+          E2E_API_URL: http://localhost:3099
+        run: npx nx e2e console-e2e -- --project=chromium
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: dist/.playwright/apps/console-e2e/playwright-report/
+          retention-days: 7
+
+      - name: Teardown backend
+        if: always()
+        run: docker compose -f _backend/docker-compose.e2e.yml down -v --remove-orphans || true
+
+  deploy:
+    name: Build & Deploy
+    needs: [ci, e2e]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy-url.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,87 +117,51 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Use Node ${{ env.NODE_VERSION }}
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci --legacy-peer-deps
-
-      - name: Version bump (semantic-release)
-        # Don't attempt to publish from pull_request events
-        if: github.event_name != 'pull_request'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+      - run: npm ci --legacy-peer-deps
 
       - name: Set APP_VERSION from git tag
-        # semantic-release creates the tag in the local repo but does NOT update package.json
-        # in the working tree (it commits+pushes remotely). Reading the latest git tag is reliable.
         run: |
           set -e
           APP_VER=$(git describe --tags --abbrev=0)
-          # Strip leading 'v' if present
           APP_VER=${APP_VER#v}
           echo "APP_VERSION=$APP_VER" >> $GITHUB_ENV
-          echo "Determined APP_VERSION: $APP_VER"
-
-      - name: Validate APP_VERSION
-        # Fail fast if APP_VERSION was not set or resolved to the non-unique default '0.0.0'
-        run: |
-          set -e
-          if [ -z "${APP_VERSION:-}" ] || [ "${APP_VERSION:-}" = "0.0.0" ]; then
-            echo "❌ APP_VERSION is unset or '0.0.0'. Aborting build." >&2
-            exit 1
-          fi
-          echo "✅ APP_VERSION is $APP_VERSION"
 
       - name: Inject APP_VERSION into environment files
-        # Replace the placeholder '0.0.0-local' with the real APP_VERSION in all environment files
-        # This is necessary because @angular/build:application uses esbuild (not Vite),
-        # so vite.config.mts define() is never applied to production builds.
         run: |
           set -e
-          echo "Injecting version $APP_VERSION into environment files..."
           find apps -name "environment*.ts" | while read f; do
             sed -i "s/0\.0\.0-local/$APP_VERSION/g" "$f"
-            echo "  Patched: $f"
           done
-          echo "Version injection complete."
 
-      - name: Lint
-        run: npx nx run-many -t lint --projects=admin,console --parallel
-
-      - name: Test
-        run: npx nx run-many -t test --projects=admin,console --parallel --configuration=ci || npx nx run-many -t test --projects=admin,console --parallel
-
-      - name: Build (staging configuration)
+      - name: Build (staging)
         run: npx nx run-many -t build --configuration=production --projects=admin,console --parallel
 
-      - name: Publicar artefacto admin (staging)
+      - name: Publish artefacto admin
         uses: actions/upload-artifact@v4
         with:
           name: admin-dist
           path: dist/apps/admin/**
           if-no-files-found: error
 
-      - name: Publicar artefacto console (staging)
+      - name: Publish artefacto console
         uses: actions/upload-artifact@v4
         with:
           name: console-dist
           path: dist/apps/console/**
           if-no-files-found: error
-      
-      # ===================== VPN / WireGuard =====================
+
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
       - name: Install WireGuard
         run: sudo apt-get update && sudo apt-get install -y wireguard
 
-      - name: Configure WireGuard (github.conf)
+      - name: Configure WireGuard
         env:
           WG_PK: ${{ secrets.WG_PRIVATE_KEY }}
           WG_ENDPOINT: ${{ secrets.WG_SERVER_ENDPOINT }}
@@ -123,18 +169,16 @@ jobs:
           set -euo pipefail
           if [ -z "$WG_PK" ]; then echo "🔕 WG_PRIVATE_KEY no definido. Omitiendo WireGuard."; exit 0; fi
           if [ -z "$WG_ENDPOINT" ]; then echo "❌ Falta WG_SERVER_ENDPOINT"; exit 1; fi
-          # Saneado y validación de la clave privada WireGuard
           WG_PK_CLEAN=$(printf '%s' "$WG_PK" | tr -d '"\r\n' | xargs)
           if ! echo "$WG_PK_CLEAN" | grep -Eq '^[A-Za-z0-9+/]{43}=$|^[A-Za-z0-9+/]{44}$'; then
-            echo "❌ Formato inválido de WG_PRIVATE_KEY (longitud ${#WG_PK_CLEAN}). Debe ser salida de 'wg genkey' (44 chars base64)."; exit 1;
+            echo "❌ Formato inválido de WG_PRIVATE_KEY."; exit 1;
           fi
-          echo "🔑 Clave WireGuard validada (longitud ${#WG_PK_CLEAN})."
+          echo "🔑 Clave WireGuard validada."
           sudo mkdir -p /etc/wireguard && sudo chmod 700 /etc/wireguard
           cat > github.conf <<'CFG'
           [Interface]
           PrivateKey = REPLACE_PRIVATE_KEY
           Address = 10.0.0.4/24
-
           [Peer]
           PublicKey = rcfGmqdqyiQs+J81rx5mabiyAjQkvoDfiCTD2eLqaHQ=
           Endpoint = WG_ENDPOINT_PLACEHOLDER:51820
@@ -146,7 +190,7 @@ jobs:
           sudo mv github.conf /etc/wireguard/github.conf
           sudo chmod 600 /etc/wireguard/github.conf
           if sudo wg show github >/dev/null 2>&1; then sudo wg-quick down github || true; fi
-          sudo wg-quick up github || { echo "❌ Error al levantar WireGuard"; sudo wg-quick down github || true; exit 1; }
+          sudo wg-quick up github || { echo "❌ Error al levantar WireGuard"; exit 1; }
 
       - name: Verify VPN connection
         env:
@@ -154,84 +198,46 @@ jobs:
           VPN_TARGET_HOST: ${{ env.STAGING_SSH_HOST }}
         run: |
           set -e
-          if [ -z "$WG_PK" ]; then echo "🔕 Saltando verificación VPN (sin WG_PRIVATE_KEY)"; exit 0; fi
-          if [ -z "$VPN_TARGET_HOST" ]; then echo "❌ Falta STAGING_SSH_HOST (usado como host VPN)"; exit 1; fi
-          echo "🔍 Verificando conexión VPN..."
-          echo "📋 Estado de WireGuard:"; sudo wg show || true
-          echo "\n📋 Interfaces WireGuard activas:"; ip link show type wireguard 2>/dev/null || echo "No se encontraron interfaces WireGuard"
-          echo "\n📋 IPs asignadas:"; for iface in $(ip link show type wireguard 2>/dev/null | grep -o 'wg[^:]*' || echo ""); do [ -n "$iface" ] && echo "  $iface:" && ip addr show "$iface" | grep -E "inet " | sed 's/^/    /'; done
-          echo "\n📋 Rutas VPN:"; ip route | grep -E "10\.0\.0\.|wg" || echo "No se encontraron rutas VPN"
-          echo "\n🏓 Ping endpoints internos (10.0.0.1 / 10.0.0.254):"
+          if [ -z "$VPN_TARGET_HOST" ]; then echo "❌ Falta STAGING_SSH_HOST"; exit 1; fi
           VPN_SERVER_IP=""
           for server_ip in 10.0.0.1 10.0.0.254; do
-            if timeout 3 ping -c 1 -W 2 "$server_ip" >/dev/null 2>&1; then
-              echo "  ✅ $server_ip responde"; VPN_SERVER_IP="$server_ip"; break
-            else
-              echo "  ❌ $server_ip no responde"
-            fi
+            if timeout 3 ping -c 1 -W 2 "$server_ip" >/dev/null 2>&1; then VPN_SERVER_IP="$server_ip"; break; fi
           done
-          if [ -z "$VPN_SERVER_IP" ]; then echo "❌ Servidor VPN interno no responde"; exit 1; fi
-          echo "\n🎯 Probando acceso al servidor STAGING (VPN/SSH host: $VPN_TARGET_HOST)";
-          if ping -c 2 -W 5 "$VPN_TARGET_HOST" >/dev/null 2>&1; then
-            echo "✅ Servidor STAGING accesible vía VPN";
-          else
-            echo "❌ No se alcanza STAGING_SSH_HOST ($VPN_TARGET_HOST) via VPN"; exit 1;
-          fi
+          if [ -z "$VPN_SERVER_IP" ]; then echo "❌ Servidor VPN no responde"; exit 1; fi
+          if ! ping -c 2 -W 5 "$VPN_TARGET_HOST" >/dev/null 2>&1; then echo "❌ STAGING no alcanzable via VPN"; exit 1; fi
+          echo "✅ VPN OK"
 
-      - name: Add staging server to known_hosts
-        env:
-          VPN_TARGET_HOST: ${{ env.STAGING_SSH_HOST }}
-        run: |
-          if [ -z "$VPN_TARGET_HOST" ]; then echo "🔕 Sin STAGING_SSH_HOST; omitido"; exit 0; fi
-          mkdir -p ~/.ssh
-          ssh-keyscan -H "$VPN_TARGET_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-      - name: Preparar timestamp de release
+      - name: Prepare release timestamp
         id: release_time
         run: echo "RELEASE_TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
 
-      - name: Validar credenciales SSH
+      - name: Validate SSH credentials
         if: env.STAGING_SSH_HOST != ''
         env:
           PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
-          if [ -z "$PASS" ]; then
-            echo "❌ Falta STAGING_SSH_PASSWORD. Añádela como secret." >&2
-            exit 1
-          fi
-          echo "ℹ️ Usando autenticación por contraseña (sshpass)."
+          if [ -z "$PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD" && exit 1; fi
+          echo "ℹ️ Usando autenticación por contraseña."
 
-      - name: Probar conexión SSH
+      - name: Test SSH connection
         if: env.STAGING_SSH_HOST != ''
         env:
           SSH_HOST: ${{ env.STAGING_SSH_HOST }}
           SSH_USER: ${{ env.STAGING_SSH_USER }}
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
-          PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          echo "🔍 Probando autenticación SSH por contraseña..."
-          if [ -z "$PASS" ]; then echo "❌ Sin contraseña definida"; exit 1; fi
-          # Usar variable de entorno para evitar problemas de comillas en la contraseña
-          export SSHPASS="$PASS"
+          export SSHPASS="${{ secrets.STAGING_SSH_PASSWORD }}"
           attempts=0; ok=0
           while [ $attempts -lt 3 ]; do
-            if sshpass -e ssh -o StrictHostKeyChecking=no \
-                 -o UserKnownHostsFile=/dev/null \
-                 -o PreferredAuthentications=password,keyboard-interactive \
-                 -o PubkeyAuthentication=no -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then
-              ok=1; break
-            fi
-            attempts=$((attempts+1))
-            echo "⚠️ Intento $attempts fallido..."; sleep 2
+            if sshpass -e ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -p "$PORT" "$SSH_USER@$SSH_HOST" 'echo OK' >/dev/null 2>&1; then ok=1; break; fi
+            attempts=$((attempts+1)); echo "⚠️ Intento $attempts..."; sleep 2
           done
-          if [ $ok -ne 1 ]; then
-            echo "❌ Falló autenticación por contraseña tras 3 intentos. Revisa: usuario, password, PasswordAuthentication en sshd_config y bloqueos de fail2ban." >&2
-            exit 1
-          fi
-          echo "✅ Autenticación por contraseña exitosa"
+          if [ $ok -ne 1 ]; then echo "❌ SSH fallido tras 3 intentos" && exit 1; fi
+          echo "✅ SSH OK"
 
-      - name: Crear estructura de release en servidor
+      - name: Create release structure
         if: env.STAGING_SSH_HOST != ''
         env:
           SSH_HOST: ${{ env.STAGING_SSH_HOST }}
@@ -239,22 +245,15 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
-          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
-          export SSHPASS="$SSH_PASS"
-          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
+          export SSHPASS="${{ secrets.STAGING_SSH_PASSWORD }}"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -p $PORT"
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
-            set -e; \
-            BASE=\"$DEPLOY_PATH\"; \
-            RELEASES=\"$DEPLOY_PATH/releases\"; \
-            mkdir -p $DEPLOY_PATH $RELEASES $DEPLOY_PATH/shared; \
-            mkdir -p $RELEASES/$RELEASE_TIMESTAMP/admin $RELEASES/$RELEASE_TIMESTAMP/console; \
-            echo 'Estructura creada';"
+            set -e; mkdir -p $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console; echo 'EstructuraOK';"
 
-      - name: Subir archivos (rsync)
+      - name: Upload files (rsync)
         if: env.STAGING_SSH_HOST != ''
         env:
           SSH_HOST: ${{ env.STAGING_SSH_HOST }}
@@ -262,22 +261,17 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
-          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          echo "📦 Preparando transferencia a $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP"
-          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
-          export SSHPASS="$SSH_PASS"
-          RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no"
-          SSH_BASE="$RSYNC_SSH"
-          echo "📁 Verificando/creando directorios remotos..."
-          $SSH_BASE "$SSH_USER@$SSH_HOST" "mkdir -p $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console" || { echo '❌ Error creando directorios remotos'; exit 1; }
-          echo "✅ Directorios asegurados. Ejecutando rsync..."
+          export SSHPASS="${{ secrets.STAGING_SSH_PASSWORD }}"
+          RSYNC_SSH="sshpass -e ssh -p $PORT -o StrictHostKeyChecking=no -o PreferredAuthentications=password"
+          echo "📦 rsync admin..."
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/admin/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/admin/"
+          echo "📦 rsync console..."
           rsync -az --delete -e "$RSYNC_SSH" dist/apps/console/browser/ "$SSH_USER@$SSH_HOST:$DEPLOY_PATH/releases/$RELEASE_TIMESTAMP/console/"
 
-      - name: Activar release (symlink swap)
+      - name: Activate release (symlink swap)
         if: env.STAGING_SSH_HOST != ''
         env:
           SSH_HOST: ${{ env.STAGING_SSH_HOST }}
@@ -285,27 +279,23 @@ jobs:
           SSH_PORT: ${{ env.STAGING_SSH_PORT }}
           DEPLOY_PATH: ${{ env.STAGING_DEPLOY_PATH }}
           RELEASE_TIMESTAMP: ${{ env.RELEASE_TIMESTAMP }}
-          SSH_PASS: ${{ secrets.STAGING_SSH_PASSWORD }}
         run: |
           set -e
           PORT=${SSH_PORT:-22}
-          if [ -z "$SSH_PASS" ]; then echo "❌ Falta STAGING_SSH_PASSWORD"; exit 1; fi
-          export SSHPASS="$SSH_PASS"
-          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PreferredAuthentications=password,keyboard-interactive -o PubkeyAuthentication=no -p $PORT"
+          export SSHPASS="${{ secrets.STAGING_SSH_PASSWORD }}"
+          SSH_BASE="sshpass -e ssh -o StrictHostKeyChecking=no -o PreferredAuthentications=password -p $PORT"
           $SSH_BASE "$SSH_USER@$SSH_HOST" "\
-            set -e; \
-            ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; \
-            echo 'Symlink actualizado -> current'; \
-            if command -v systemctl >/dev/null 2>&1; then echo 'Opcional: systemctl reload nginx'; fi;"
+            set -e; ln -sfn $DEPLOY_PATH/releases/$RELEASE_TIMESTAMP $DEPLOY_PATH/current; echo 'SymlinkOK';"
 
-      - name: Mostrar skip deploy si faltan secrets
+      - name: Skip deploy if no secrets
         if: env.STAGING_SSH_HOST == ''
         run: |
-          echo '[INFO] Saltando despliegue: define STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_PASSWORD y STAGING_DEPLOY_PATH.'
+          echo '[INFO] Saltando despliegue: STAGING_SSH_HOST no está definido.'
 
       - name: Summary
         run: |
           VERSION=${APP_VERSION:-$(node -p "require('./package.json').version")}
           echo "## Despliegue" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
-          echo "- Build completado y artefactos publicados." >> $GITHUB_STEP_SUMMARY
+          echo "- **Versión**: \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: \`$GITHUB_SHA\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Build y artefactos listos." >> $GITHUB_STEP_SUMMARY
