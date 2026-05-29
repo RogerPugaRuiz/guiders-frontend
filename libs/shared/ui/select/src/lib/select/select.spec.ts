@@ -12,6 +12,13 @@ describe('Select', () => {
 
     fixture = TestBed.createComponent(Select);
     component = fixture.componentInstance;
+
+    fixture.componentRef.setInput('options', [
+      { label: 'Option 1', value: '1' },
+      { label: 'Option 2', value: '2' },
+    ]);
+    fixture.componentRef.setInput('value', '1');
+
     fixture.detectChanges();
   });
 
