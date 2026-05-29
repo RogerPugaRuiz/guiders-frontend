@@ -1,9 +1,9 @@
 @if (isOpen()) {
-  <div class="modal-overlay" (click)="onClose()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
+  <div class="modal-overlay" (click)="onClose()" (keydown.enter)="onClose()" tabindex="0" role="button">
+    <div class="modal-content" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="-1" role="presentation">
       <div class="modal-header">
         <h3>Chats Pendientes - {{ data().visitor.name || data().visitor.email }}</h3>
-        <button class="close-button" (click)="onClose()">×</button>
+        <button class="close-button" (click)="onClose()" type="button" aria-label="Cerrar">×</button>
       </div>
 
       <div class="modal-body">

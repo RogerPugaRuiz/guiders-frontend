@@ -6,7 +6,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * Automatically sets aria-hidden="true" to hide from screen readers.
  */
 @Component({
-  selector: 'guiders-skeleton-block',
+  selector: 'lib-skeleton-block',
   standalone: true,
   imports: [],
   template: `<div class="skeleton-block" [style.width]="width()" [style.height]="height()"></div>`,

@@ -13,7 +13,7 @@ import {
 import { VisitorsDataService } from '@guiders-frontend/visitors-data-service';
 
 @Component({
-  selector: 'admin-ai-config',
+  selector: 'lib-ai-config',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './ai-config.html',

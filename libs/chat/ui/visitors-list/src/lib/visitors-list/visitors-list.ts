@@ -9,7 +9,6 @@ import {
   ChangeDetectionStrategy,
   ViewChild,
   ElementRef,
-  AfterViewInit,
   OnDestroy,
   ChangeDetectorRef,
   NgZone,
@@ -23,7 +22,6 @@ import {
   VisitorFilters,
   VisitorSort,
   CreateChatWithVisitorRequest,
-  Chat,
   VisitorSearchSort,
 } from '@guiders-frontend/shared/types';
 
@@ -44,7 +42,7 @@ export interface VisitorListConfig {
   styleUrls: ['./visitors-list.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VisitorsListComponent implements AfterViewInit, OnDestroy {
+export class VisitorsListComponent implements OnDestroy {
   // Inputs
   readonly visitors = input<Visitor[]>([]);
   readonly loading = input<boolean>(false);
@@ -231,10 +229,6 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
         this.registerVisitorChatsEvent.emit(newChats);
       }
     });
-  }
-
-  ngAfterViewInit(): void {
-    // Observer setup is driven by the scrollSentinelRef setter.
   }
 
   ngOnDestroy(): void {
@@ -663,10 +657,10 @@ export class VisitorsListComponent implements AfterViewInit, OnDestroy {
     return `${seconds}s`;
   }
 
-  truncateUrl(url: string | undefined, maxLength: number = 40): string {
+  truncateUrl(url: string | undefined, maxLength = 40): string {
     if (!url) return '-';
 
-    let cleanUrl = url.replace(/^https?:\/\//, '');
+    const cleanUrl = url.replace(/^https?:\/\//, '');
 
     if (cleanUrl.length <= maxLength) {
       return cleanUrl;

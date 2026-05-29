@@ -157,9 +157,11 @@ test.describe('Visitors – Infinite Scroll (real backend)', () => {
     await scrollVisitorsListToBottom(page);
 
     const skeletons = page.locator('.visitors-table__row--skeleton');
-    await expect(skeletons.first()).toBeVisible({ timeout: 3_000 }).catch(() => {
-      // Acceptable if skeletons resolve before assertion window.
-    });
+    await page.waitForFunction(
+      () => (document.querySelector('.visitors-table__row--skeleton') as HTMLElement)?.isVisible() ?? true,
+      { timeout: 3_000 }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    ).catch(() => {});
 
     await expect(skeletons).toHaveCount(0, { timeout: 10_000 });
   });

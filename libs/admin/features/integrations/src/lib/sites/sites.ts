@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'admin-sites',
+  selector: 'lib-sites',
   imports: [],
   templateUrl: './sites.html',
   styleUrl: './sites.scss',

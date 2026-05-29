@@ -23,7 +23,7 @@ export interface LeadCarsSyncRecord {
  * Stories 4.1 and 4.2 will provide the full data layer.
  */
 @Component({
-  selector: 'guiders-leadcars-status-panel',
+  selector: 'lib-leadcars-status-panel',
   standalone: true,
   imports: [SkeletonBlockComponent],
   templateUrl: './leadcars-status-panel.html',

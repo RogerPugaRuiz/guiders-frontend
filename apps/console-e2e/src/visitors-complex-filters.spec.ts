@@ -129,7 +129,7 @@ test.describe('Visitors - Complex Filters (real backend)', () => {
       const closeButton = page.locator('.advanced-filters__close');
       await closeButton.click();
 
-      await expect(page.locator('.advanced-filters__panel')).not.toBeVisible();
+      await expect(page.locator('.advanced-filters__panel')).toBeHidden();
     });
 
     test('should apply filters when clicking apply button', async ({ page }) => {
@@ -146,7 +146,7 @@ test.describe('Visitors - Complex Filters (real backend)', () => {
       const applyButton = page.locator('.advanced-filters__btn--primary');
       await applyButton.click();
 
-      await expect(page.locator('.advanced-filters__panel')).not.toBeVisible();
+      await expect(page.locator('.advanced-filters__panel')).toBeHidden();
     });
 
     test('should remove active filter when clicking remove button on chip', async ({ page }) => {
@@ -223,7 +223,7 @@ test.describe('Visitors - Complex Filters (real backend)', () => {
         const confirmSave = page.locator('.save-filter-dialog__btn--primary');
         await confirmSave.click();
 
-        await expect(page.locator('.save-filter-dialog__modal')).not.toBeVisible();
+        await expect(page.locator('.save-filter-dialog__modal')).toBeHidden();
       }
     });
 
@@ -240,7 +240,7 @@ test.describe('Visitors - Complex Filters (real backend)', () => {
         const cancelButton = page.locator('.save-filter-dialog__btn--secondary');
         await cancelButton.click();
 
-        await expect(page.locator('.save-filter-dialog__modal')).not.toBeVisible();
+        await expect(page.locator('.save-filter-dialog__modal')).toBeHidden();
       }
     });
 

@@ -11,7 +11,7 @@ import { RedirectConfirmService } from '../redirect-confirm.service';
 export class RedirectConfirm {
   protected readonly redirectService = inject(RedirectConfirmService);
 
-  onBackdropClick(event: MouseEvent): void {
+  onBackdropClick(event: Event): void {
     if ((event.target as HTMLElement).classList.contains('redirect-confirm__backdrop')) {
       this.redirectService.cancel();
     }

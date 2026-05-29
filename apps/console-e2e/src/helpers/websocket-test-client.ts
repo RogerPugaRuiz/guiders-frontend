@@ -24,7 +24,7 @@ export class WebSocketTestClient {
   private wsUrl: string;
   private connected = false;
 
-  constructor(wsUrl: string = 'http://localhost:3000') {
+  constructor(wsUrl = 'http://localhost:3000') {
     this.wsUrl = wsUrl;
   }
 

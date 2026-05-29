@@ -13,6 +13,13 @@
 
 // El archivo principal de tokens SCSS está disponible en:
 // libs/shared/design-tokens/src/lib/tokens-vars.scss
-// 
+//
 // Se puede importar usando la ruta:
 // '@guiders-frontend/shared/design-tokens/src/lib/tokens-vars'
+
+/**
+ * Path to the compiled SCSS tokens entrypoint.
+ * Exported so the package has a valid TypeScript entry symbol for ng-packagr.
+ */
+export const DESIGN_TOKENS_SCSS_ENTRY =
+  '@guiders-frontend/shared/design-tokens/src/lib/tokens-vars';

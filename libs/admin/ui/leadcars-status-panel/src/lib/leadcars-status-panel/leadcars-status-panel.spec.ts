@@ -43,7 +43,7 @@ describe('LeadCarsStatusPanelComponent', () => {
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();
 
-    const skeletonBlocks = fixture.nativeElement.querySelectorAll('guiders-skeleton-block');
+    const skeletonBlocks = fixture.nativeElement.querySelectorAll('lib-skeleton-block');
     skeletonBlocks.forEach((block: Element) => {
       expect(block.getAttribute('aria-hidden')).toBe('true');
     });

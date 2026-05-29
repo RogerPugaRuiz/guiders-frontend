@@ -1,5 +1,5 @@
 @if (redirectService.isOpen()) {
-  <div class="redirect-confirm__backdrop" (click)="onBackdropClick($event)">
+  <div class="redirect-confirm__backdrop" (click)="onBackdropClick($event)" (keydown.enter)="onBackdropClick($event)" tabindex="0" role="button">
     <div class="redirect-confirm__dialog">
       <div class="redirect-confirm__icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

@@ -60,8 +60,8 @@
 
   <!-- Modal de confirmación de eliminación -->
   @if (showDeleteConfirm()) {
-    <div class="quick-filters__modal-overlay" (click)="onCancelDelete()">
-      <div class="quick-filters__modal" (click)="$event.stopPropagation()">
+    <div class="quick-filters__modal-overlay" (click)="onCancelDelete()" (keydown.enter)="onCancelDelete()" tabindex="0" role="button">
+      <div class="quick-filters__modal" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="-1" role="presentation">
         <div class="quick-filters__modal-header">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>

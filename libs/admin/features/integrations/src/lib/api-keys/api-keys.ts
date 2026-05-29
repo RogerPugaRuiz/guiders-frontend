@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'admin-api-keys',
+  selector: 'lib-api-keys',
   imports: [],
   templateUrl: './api-keys.html',
   styleUrl: './api-keys.scss',

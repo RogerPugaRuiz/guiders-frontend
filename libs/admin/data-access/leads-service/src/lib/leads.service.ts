@@ -215,7 +215,7 @@ export class LeadsService {
    * GET /api/v1/leads/admin/sync-records
    */
   getSyncRecords(
-    onlyFailed: boolean = false
+    onlyFailed = false
   ): Observable<LeadCarsSyncRecord[]> {
     this.loadingSubject.next(true);
     this.errorSubject.next(null);

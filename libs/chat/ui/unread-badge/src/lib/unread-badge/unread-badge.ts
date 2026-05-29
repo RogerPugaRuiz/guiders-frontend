@@ -13,13 +13,13 @@ import { CommonModule } from '@angular/common';
  *
  * @example
  * ```html
- * <guiders-unread-badge [count]="5" />
- * <guiders-unread-badge [count]="150" /> <!-- Muestra "99+" -->
- * <guiders-unread-badge [count]="0" />  <!-- No muestra nada -->
+ * <lib-unread-badge [count]="5" />
+ * <lib-unread-badge [count]="150" /> <!-- Muestra "99+" -->
+ * <lib-unread-badge [count]="0" />  <!-- No muestra nada -->
  * ```
  */
 @Component({
-  selector: 'guiders-unread-badge',
+  selector: 'lib-unread-badge',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './unread-badge.html',

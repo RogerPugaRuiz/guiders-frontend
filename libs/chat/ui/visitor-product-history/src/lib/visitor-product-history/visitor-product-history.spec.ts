@@ -30,7 +30,7 @@ describe('VisitorProductHistoryComponent', () => {
 
     const skeleton = fixture.nativeElement.querySelector('.product-history__skeleton');
     const empty = fixture.nativeElement.querySelector('.product-history__empty');
-    const skeletonBlocks = fixture.nativeElement.querySelectorAll('guiders-skeleton-block');
+    const skeletonBlocks = fixture.nativeElement.querySelectorAll('lib-skeleton-block');
 
     expect(skeleton).toBeTruthy();
     expect(empty).toBeNull();
@@ -41,7 +41,7 @@ describe('VisitorProductHistoryComponent', () => {
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();
 
-    const skeletonBlocks = fixture.nativeElement.querySelectorAll('guiders-skeleton-block');
+    const skeletonBlocks = fixture.nativeElement.querySelectorAll('lib-skeleton-block');
     skeletonBlocks.forEach((block: Element) => {
       expect(block.getAttribute('aria-hidden')).toBe('true');
     });

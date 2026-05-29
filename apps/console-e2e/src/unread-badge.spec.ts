@@ -63,7 +63,7 @@ test.describe('Unread Badge — visual behaviour', () => {
 
     await page.waitForTimeout(2000);
 
-    const badges = page.locator('guiders-unread-badge span[role="status"]');
+    const badges = page.locator('lib-unread-badge span[role="status"]');
     const badgeCount = await badges.count();
 
     if (badgeCount === 0) {
@@ -110,7 +110,7 @@ test.describe('Unread Badge — visual behaviour', () => {
 
     const badgedItem = page
       .locator('button.conversation-item')
-      .filter({ has: page.locator('guiders-unread-badge span[role="status"]') })
+      .filter({ has: page.locator('lib-unread-badge span[role="status"]') })
       .first();
 
     const hasBadge = (await badgedItem.count()) > 0;
@@ -122,7 +122,7 @@ test.describe('Unread Badge — visual behaviour', () => {
     expect(resetCalled).toBe(true);
     console.log(`[E2E] PUT .../unread/reset called for chatId: ${resetChatId}`);
 
-    const badgeAfter = target.locator('guiders-unread-badge span[role="status"]');
+    const badgeAfter = target.locator('lib-unread-badge span[role="status"]');
     await expect(badgeAfter).toHaveCount(0, { timeout: 5_000 });
     console.log('[E2E] Unread badge removed after opening conversation.');
   });

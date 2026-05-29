@@ -17,7 +17,7 @@ export interface ProductView {
  * Stories 2.2 and 2.3 will provide the full data layer.
  */
 @Component({
-  selector: 'guiders-visitor-product-history',
+  selector: 'lib-visitor-product-history',
   standalone: true,
   imports: [SkeletonBlockComponent],
   templateUrl: './visitor-product-history.html',

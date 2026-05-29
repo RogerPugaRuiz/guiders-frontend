@@ -21,13 +21,13 @@ import { PresenceStatus } from '@guiders-frontend/shared/types';
  *
  * @example
  * ```html
- * <guiders-presence-badge [status]="'online'" [size]="'medium'" />
- * <guiders-presence-badge [status]="'away'" />
- * <guiders-presence-badge [status]="'offline'" [size]="'small'" />
+ * <lib-presence-badge [status]="'online'" [size]="'medium'" />
+ * <lib-presence-badge [status]="'away'" />
+ * <lib-presence-badge [status]="'offline'" [size]="'small'" />
  * ```
  */
 @Component({
-  selector: 'guiders-presence-badge',
+  selector: 'lib-presence-badge',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './presence-badge.component.html',

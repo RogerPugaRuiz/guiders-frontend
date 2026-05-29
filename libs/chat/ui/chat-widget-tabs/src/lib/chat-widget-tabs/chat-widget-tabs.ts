@@ -68,7 +68,7 @@ export class ChatWidgetTabs {
   }
 
   /** Trunca el título si es muy largo */
-  truncateTitle(title: string, maxLength: number = 12): string {
+  truncateTitle(title: string, maxLength = 12): string {
     if (title.length <= maxLength) return title;
     return title.substring(0, maxLength) + '...';
   }

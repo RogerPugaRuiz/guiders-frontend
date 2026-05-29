@@ -26,15 +26,17 @@
 
   <!-- Modal de confirmación -->
   @if (showConfirmDialog()) {
-    <div 
-      class="guiders-logout-overlay" 
-      role="dialog" 
+    <div
+      class="guiders-logout-overlay"
+      role="dialog"
       aria-modal="true"
       aria-labelledby="logout-dialog-title"
       aria-describedby="logout-dialog-description"
-      (click)="onCancelLogout()">
+      (click)="onCancelLogout()"
+      (keydown.enter)="onCancelLogout()"
+      tabindex="0">
       
-      <div class="guiders-logout-dialog" (click)="$event.stopPropagation()">
+      <div class="guiders-logout-dialog" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()" tabindex="-1" role="presentation">
         <div class="guiders-logout-dialog-header">
           <h3 id="logout-dialog-title" class="guiders-logout-dialog-title">
             Confirmar cierre de sesión

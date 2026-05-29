@@ -16,14 +16,14 @@ import { CommonModule } from '@angular/common';
  *
  * @example
  * ```html
- * <guiders-typing-indicator
+ * <lib-typing-indicator
  *   [userName]="'Juan Pérez'"
  *   [userType]="'commercial'"
  * />
  * ```
  */
 @Component({
-  selector: 'guiders-typing-indicator',
+  selector: 'lib-typing-indicator',
   standalone: true,
   imports: [CommonModule],
   templateUrl: './typing-indicator.component.html',

@@ -127,7 +127,7 @@ export class UnreadMessagesService {
   private audioResumed = false;
 
   // ===== TÍTULO PARPADEANTE =====
-  private originalTitle: string = '';
+  private originalTitle = '';
   private titleFlashInterval: ReturnType<typeof setInterval> | null = null;
   private isTitleFlashing = false;
 
