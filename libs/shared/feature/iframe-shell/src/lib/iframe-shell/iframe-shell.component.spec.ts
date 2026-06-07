@@ -240,6 +240,22 @@ describe(IframeShellComponent.name, () => {
 
       expect(shell.headerVariant()).toBe('default');
     });
+
+    it('variant is leadcars when config.variant is leadcars', async () => {
+      vi.spyOn(iframeInitService, 'initialize').mockReturnValue(of(createSuccessResult()));
+
+      const newFixture = TestBed.createComponent(TestHostComponent);
+      await newFixture.detectChanges(true);
+
+      const shell = newFixture.debugElement.children[0].componentInstance as IframeShellComponent;
+      await newFixture.detectChanges(true);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- test access to protected signal
+      (shell as any)._embedConfig.set({ variant: 'leadcars', timestamp: Date.now(), features: [] });
+      await newFixture.detectChanges(true);
+
+      expect(shell.headerVariant()).toBe('leadcars');
+    });
   });
 
   describe('retry', () => {
@@ -296,6 +312,27 @@ describe(IframeShellComponent.name, () => {
       await newFixture.detectChanges(true);
 
       expect(shell.sessionExpiredVisible()).toBe(false);
+    });
+
+    it('LEADCARS_SESSION_EXPIRED handler sets modal visible', async () => {
+      vi.spyOn(iframeInitService, 'initialize').mockReturnValue(of(createSuccessResult()));
+
+      const newFixture = TestBed.createComponent(TestHostComponent);
+      await newFixture.detectChanges(true);
+
+      const shell = newFixture.debugElement.children[0].componentInstance as IframeShellComponent;
+      await newFixture.detectChanges(true);
+
+      expect(shell.sessionExpiredVisible()).toBe(false);
+
+      const handlers = (postMessageHandler as any).handlers.get('LEADCARS_SESSION_EXPIRED');
+      const handlerArray = Array.from(handlers);
+      expect(handlerArray.length).toBeGreaterThan(0);
+      const handler = handlerArray[handlerArray.length - 1];
+      handler({});
+      newFixture.detectChanges();
+
+      expect(shell.sessionExpiredVisible()).toBe(true);
     });
 
     it('dismissed closes the modal', () => {

@@ -29,5 +29,4 @@ import { Component, input } from '@angular/core';
 })
 export class SidebarSlotComponent {
   readonly variant = input<'default' | 'icon-only'>('default');
-  readonly collapsed = input<boolean>(false);
 }

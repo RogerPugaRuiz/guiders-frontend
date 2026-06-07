@@ -74,6 +74,8 @@ export class IframeShellComponent {
   private readonly config = inject(IFRAME_CONFIG_TOKEN, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
 
+  private readonly _postMessageUnsubscribers: (() => void)[] = [];
+
   protected readonly _shellState = signal<ShellState>('loading');
   protected readonly _embedConfig = signal<EmbedConfig | null>(null);
   protected readonly _sessionExpiredVisible = signal(false);
@@ -103,11 +105,15 @@ export class IframeShellComponent {
 
   readonly headerVariant = computed((): 'default' | 'leadcars' => {
     const config = this._embedConfig();
-    return config ? 'default' : 'default';
+    return config?.variant === 'leadcars' ? 'leadcars' : 'default';
   });
 
   constructor() {
     this.destroyRef.onDestroy(() => {
+      for (const unsub of this._postMessageUnsubscribers) {
+        unsub();
+      }
+      this._postMessageUnsubscribers.length = 0;
       this.postMessageHandler.stop();
     });
 
@@ -123,21 +129,33 @@ export class IframeShellComponent {
   }
 
   private setupPostMessageListeners(): void {
-    this.postMessageHandler.listen('LEADCARS_EMBED_CONFIG', (payload) => {
-      const config = payload as EmbedConfig;
-      this._embedConfig.set(config);
-    });
+    this._postMessageUnsubscribers.push(
+      this.postMessageHandler.listen('LEADCARS_EMBED_CONFIG', (payload) => {
+        const config = payload as EmbedConfig;
+        this._embedConfig.set(config);
+      }),
+    );
 
-    this.postMessageHandler.listen('LEADCARS_USER_INFO', () => {
-      // No-op for MVP - UI hints are optional
-    });
+    this._postMessageUnsubscribers.push(
+      this.postMessageHandler.listen('LEADCARS_USER_INFO', () => {
+        // No-op for MVP - UI hints are optional
+      }),
+    );
 
-    this.postMessageHandler.listen('LEADCARS_REAUTH_COMPLETE', (payload) => {
-      const reauthPayload = payload as { success: boolean };
-      if (reauthPayload.success) {
-        this._sessionExpiredVisible.set(false);
-      }
-    });
+    this._postMessageUnsubscribers.push(
+      this.postMessageHandler.listen('LEADCARS_REAUTH_COMPLETE', (payload) => {
+        const reauthPayload = payload as { success: boolean };
+        if (reauthPayload.success) {
+          this._sessionExpiredVisible.set(false);
+        }
+      }),
+    );
+
+    this._postMessageUnsubscribers.push(
+      this.postMessageHandler.listen('LEADCARS_SESSION_EXPIRED', () => {
+        this._sessionExpiredVisible.set(true);
+      }),
+    );
   }
 
   private initialize(): void {
@@ -206,7 +224,9 @@ export class IframeShellComponent {
       reAuthCallback: url,
       timestamp: Date.now(),
     });
-    window.location.href = url;
+    setTimeout(() => {
+      window.location.href = url;
+    }, 0);
   }
 
   onSessionExpiredDismissed(): void {
