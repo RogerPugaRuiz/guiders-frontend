@@ -1,0 +1,69 @@
+# generated: 2026-06-06T00:00:00Z
+# last_updated: 2026-06-06T00:00:00Z
+# project: Guiders Frontend
+# project_key: GUIDERS-FE
+# tracking_system: file-system
+# story_location: _bmad/implementation
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+
+generated: 2026-06-06T00:00:00Z
+last_updated: 2026-06-06T00:00:00Z
+project: Guiders Frontend
+project_key: GUIDERS-FE
+tracking_system: file-system
+story_location: _bmad/implementation
+
+development_status:
+  # Epic 1: Evaluación y Preparación
+  epic-1: backlog
+  1-1-auditoria-estado-actual: backlog
+  1-2-evaluacion-signals-rxjs: backlog
+  1-3-plan-migracion-detallado: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Preparación para Zoneless
+  epic-2: backlog
+  2-1-migracion-onpush-global: backlog
+  2-2-eliminacion-side-effects-implicitos: backlog
+  2-3-validacion-signal-change-detection: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Migración a Angular 21
+  epic-3: backlog
+  3-1-actualizacion-angular-cli-core: backlog
+  3-2-migracion-signal-forms: backlog
+  3-3-habilitacion-zoneless-mode: backlog
+  3-4-verificacion-ssr-hydration: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Migración a Angular 22
+  epic-4: backlog
+  4-1-actualizacion-angular-22: backlog
+  4-2-adopcion-signal-forms-estables: backlog
+  4-3-angular-aria-integration: backlog
+  4-4-async-signals-estables: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Estabilización y Optimización
+  epic-5: backlog
+  5-1-testing-exhaustivo: backlog
+  5-2-performance-profiling: backlog
+  5-3-documentacion-nuevos-patrones: backlog
+  epic-5-retrospective: optional
