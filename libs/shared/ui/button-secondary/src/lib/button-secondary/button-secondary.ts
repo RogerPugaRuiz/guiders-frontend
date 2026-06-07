@@ -9,6 +9,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export class ButtonSecondaryComponent {
   @Input() disabled = false;
   @Input() type: 'button' | 'submit' | 'reset' = 'button';
+  @Input() ariaLabel: string | null = null;
   @Output() clicked = new EventEmitter<void>();
 
   onClick(): void {

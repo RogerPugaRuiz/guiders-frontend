@@ -1,0 +1,116 @@
+@use '@guiders-frontend/shared/design-tokens' as tokens;
+
+:host {
+  display: contents;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: tokens.$color-surface-overlay;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: tokens.$z-index-modal;
+  padding: tokens.$spacing-md;
+}
+
+.modal-card {
+  position: relative;
+  background: var(--guiders-color-background, #{tokens.$neutral-50});
+  border-radius: tokens.$border-radius-lg;
+  padding: tokens.$spacing-xl;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: tokens.$shadow-2xl;
+  outline: none;
+}
+
+.close-btn {
+  position: absolute;
+  top: tokens.$spacing-md;
+  right: tokens.$spacing-md;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--guiders-color-text-primary, #{tokens.$color-text-primary});
+  padding: tokens.$spacing-xs;
+  border-radius: tokens.$border-radius-sm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background tokens.$transition-fast;
+
+  &:hover {
+    background: tokens.$color-interactive-hover;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--guiders-color-primary, #{tokens.$neutral-950});
+    outline-offset: 2px;
+  }
+}
+
+.modal-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: tokens.$spacing-md;
+  color: var(--guiders-color-primary, #{tokens.$neutral-950});
+}
+
+.modal-title {
+  font-family: var(--guiders-font-family, #{tokens.$font-family-ui});
+  font-size: tokens.$font-size-lg;
+  font-weight: tokens.$font-weight-semibold;
+  color: var(--guiders-color-text-primary, #{tokens.$color-text-primary});
+  margin: 0 0 tokens.$spacing-sm;
+}
+
+.modal-body {
+  font-family: var(--guiders-font-family, #{tokens.$font-family-ui});
+  font-size: tokens.$font-size-sm;
+  color: var(--guiders-color-text-primary, #{tokens.$color-text-primary});
+  line-height: tokens.$line-height-normal;
+  margin: 0 0 tokens.$spacing-md;
+}
+
+.session-id {
+  font-family: tokens.$font-family-mono;
+  font-size: tokens.$font-size-xs;
+  color: tokens.$color-text-secondary;
+  margin: 0 0 tokens.$spacing-md;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: tokens.$spacing-sm;
+  align-items: center;
+}
+
+.login-link {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  color: var(--guiders-color-primary, #{tokens.$neutral-950});
+  font-family: var(--guiders-font-family, #{tokens.$font-family-ui});
+  font-size: tokens.$font-size-sm;
+  cursor: pointer;
+  padding: tokens.$spacing-xs tokens.$spacing-sm;
+  border-radius: tokens.$border-radius-sm;
+  transition: background tokens.$transition-fast;
+  text-decoration: none;
+
+  &:hover {
+    background: tokens.$color-interactive-hover;
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--guiders-color-primary, #{tokens.$neutral-950});
+    outline-offset: 2px;
+  }
+}

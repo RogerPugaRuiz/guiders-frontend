@@ -1,0 +1,21 @@
+{
+  "name": "iframe",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/types/iframe/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:types"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "configFile": "libs/shared/types/iframe/vite.config.mts",
+        "reportsDirectory": "../../../../coverage/libs/shared/types/iframe"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

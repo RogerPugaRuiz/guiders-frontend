@@ -1,0 +1,25 @@
+{
+  "name": "iframe-data-access",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/shared/data-access/iframe/src",
+  "prefix": "lib",
+  "projectType": "library",
+  "tags": ["scope:shared", "type:data-access"],
+  "targets": {
+    "test": {
+      "executor": "@nx/vite:test",
+      "options": {
+        "configFile": "libs/shared/data-access/iframe/vite.config.mts"
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/shared/data-access/iframe/**/*.ts",
+          "libs/shared/data-access/iframe/**/*.html"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+@if (visible()) {
+  <div
+    class="modal-overlay"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="titleId"
+    [attr.aria-describedby]="bodyId"
+    (click)="onBackdropClick($event)"
+    (keydown.escape)="onEscape()">
+    <div
+      class="modal-card"
+      data-modal-card
+      tabindex="-1">
+      <button
+        class="close-btn"
+        type="button"
+        aria-label="Cerrar"
+        (click)="onCloseClick()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+
+      <div class="modal-icon">
+        <guiders-icon
+          [name]="config().icon"
+          [size]="'xl'"
+          [config]="{ decorative: true }" />
+      </div>
+
+      <h2 [id]="titleId" class="modal-title">{{ config().title }}</h2>
+
+      <p [id]="bodyId" class="modal-body">{{ config().body }}</p>
+
+      @if (sessionId()) {
+        <p class="session-id" title="ID de sesión para soporte">…{{ sessionId().slice(-4) }}</p>
+      }
+
+      <div class="modal-actions">
+        <guiders-button-secondary
+          (clicked)="onReAuthenticate()">
+          Reintentar sesión
+        </guiders-button-secondary>
+
+        <a
+          [href]="loginUrl() || null"
+          class="login-link"
+          target="_top"
+          rel="noopener noreferrer"
+          (click)="onNavigateToLogin($event)"
+          (keydown.enter)="onNavigateToLogin($event)">
+          Ir a login completo
+        </a>
+      </div>
+    </div>
+  </div>
+}

@@ -26,6 +26,7 @@ import { ChatService } from '@guiders-frontend/chat-service';
 import { EscalationService } from '@guiders-frontend/escalation-service';
 import { CHAT_TOUR_SANDBOX_HOOK_PROVIDER } from '@guiders-frontend/tour-sandbox';
 import { firstValueFrom } from 'rxjs';
+import { initializeIframeInit } from '@guiders-frontend/shared/data-access/iframe';
 
 /**
  * Factory para inicializar el usuario y presencia del comercial al arrancar la aplicación.
@@ -317,6 +318,12 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initializeSessionGuardian,
+      multi: true,
+    },
+    // Inicializar iframe (APP_INITIALIZER para cargar /iframe/init)
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeIframeInit,
       multi: true,
     },
     // Registrar el hook de sandbox del tour para sembrar/limpiar

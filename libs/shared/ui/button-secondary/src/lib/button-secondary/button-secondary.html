@@ -1,7 +1,8 @@
-<button 
+<button
   class="btn-secondary"
   [disabled]="disabled"
   [type]="type"
+  [attr.aria-label]="ariaLabel"
   (click)="onClick()">
   <ng-content></ng-content>
 </button>

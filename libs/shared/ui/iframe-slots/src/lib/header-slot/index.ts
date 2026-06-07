@@ -1,0 +1,1 @@
+export * from './header-slot.component';

@@ -1,0 +1,108 @@
+@use '@guiders-frontend/shared/design-tokens' as tokens;
+
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background-color: var(--guiders-color-background, tokens.$color-background);
+  font-family: var(--guiders-font-family, tokens.$font-family-base);
+  color: var(--guiders-color-text-primary, tokens.$color-text-primary);
+}
+
+.guiders-bootstrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: tokens.$spacing-md;
+  width: 100%;
+  max-width: 400px;
+  padding: tokens.$spacing-xl;
+  text-align: center;
+
+  &__neutral,
+  &__themed {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: tokens.$spacing-md;
+    width: 100%;
+  }
+
+  &__logo {
+    max-width: 120px;
+    max-height: 48px;
+    object-fit: contain;
+    margin-bottom: tokens.$spacing-sm;
+  }
+
+  &__text {
+    margin: 0;
+    font-size: tokens.$font-size-sm;
+    color: var(--guiders-color-text-primary, tokens.$color-text-secondary);
+  }
+
+  &__warning {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: tokens.$spacing-md;
+    width: 100%;
+
+    guiders-icon {
+      color: var(--guiders-color-primary, tokens.$color-primary);
+      animation: guiders-bootstrap-spin 1s linear infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+  }
+
+  &__error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: tokens.$spacing-md;
+    width: 100%;
+
+    guiders-icon {
+      color: tokens.$color-error;
+    }
+
+    guiders-button-secondary {
+      margin-top: tokens.$spacing-sm;
+    }
+  }
+
+  &__error-title {
+    margin: 0;
+    font-size: tokens.$font-size-base;
+    font-weight: tokens.$font-weight-semibold;
+    color: var(--guiders-color-text-primary, tokens.$color-text-primary);
+  }
+
+  &__login-link {
+    margin-top: tokens.$spacing-sm;
+    font-size: tokens.$font-size-sm;
+    color: var(--guiders-color-primary, tokens.$color-primary);
+    text-decoration: underline;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+@keyframes guiders-bootstrap-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

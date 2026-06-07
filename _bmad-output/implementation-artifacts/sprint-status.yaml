@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-22
-last_updated: 2026-05-08T14:00:00
+last_updated: 2026-06-06T22:53:00
 project: guiders-frontend
 project_key: NOKEY
 tracking_system: file-system
@@ -112,3 +112,23 @@ development_status:
   epic-7: in-progress
   7-1-settings-page-migration: done
   epic-7-retrospective: optional
+
+  # ─────────────────────────────────────────────────────────────
+  # Epic 8: White-Label Iframe (leadcars white-label) — NEW
+  # Architect: Winston | Source: _bmad-output/planning-artifacts/architecture-whitelabel-iframe.md
+  # Backend handoff: _bmad-output/planning-artifacts/backend-handoff-whitelabel-iframe.md
+  # ─────────────────────────────────────────────────────────────
+  epic-8: in-progress
+  8-1-fix-themeservice-multitenant-localstorage-leak: done
+  8-2-create-shared-types-iframe-library: done
+  8-3-create-iframe-data-access-library-theme-service: done
+  8-4-create-iframe-data-access-library-postmessage-handler: done
+  8-5-create-iframe-data-access-library-iframe-init-service: done
+  8-6-create-iframe-bootstrap-ui-component: done
+  8-7-create-session-expired-modal-ui-component: done
+  8-8-create-iframe-slots-ui-library: done
+  8-9-create-iframe-shell-feature-library: review
+  8-10-add-iframe-init-app-initializer-to-app-config: review
+  8-11-add-anti-fouc-inline-script-to-index-html: backlog
+  8-12-create-admin-white-label-config-feature: backlog
+  epic-8-retrospective: optional
