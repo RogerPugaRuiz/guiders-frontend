@@ -26,8 +26,24 @@ export class EscalationService {
   private browserNotificationsEnabled = false;
 
   constructor() {
-    this.initializeListener();
+    this.initializeListenerWhenConnected();
     this.requestNotificationPermission();
+  }
+
+  private initializeListenerWhenConnected(): void {
+    if (this.webSocket.isConnected()) {
+      this.initializeListener();
+      return;
+    }
+
+    const connectionSubscription = this.webSocket.connectionState$.subscribe(
+      (state) => {
+        if (state === 'connected') {
+          this.initializeListener();
+          connectionSubscription.unsubscribe();
+        }
+      }
+    );
   }
 
   /**

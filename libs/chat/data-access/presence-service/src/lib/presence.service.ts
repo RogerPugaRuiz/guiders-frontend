@@ -87,13 +87,29 @@ export class PresenceService {
   readonly typingStop$ = this.typingStopSubject.asObservable();
 
   constructor() {
-    this.setupWebSocketListeners();
     this.setupTypingDebounce();
 
-    // Auto-cleanup al destruir el servicio
+    this.setupWebSocketListenersWhenConnected();
+
     this.destroyRef.onDestroy(() => {
       this.cleanup();
     });
+  }
+
+  private setupWebSocketListenersWhenConnected(): void {
+    if (this.websocketService.isConnected()) {
+      this.setupWebSocketListeners();
+      return;
+    }
+
+    const connectionSubscription = this.websocketService.connectionState$.subscribe(
+      (state) => {
+        if (state === 'connected') {
+          this.setupWebSocketListeners();
+          connectionSubscription.unsubscribe();
+        }
+      }
+    );
   }
 
   /**

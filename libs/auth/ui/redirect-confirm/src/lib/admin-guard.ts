@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, map, of, from, switchMap } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SessionService, ENVIRONMENT_TOKEN } from '@guiders-frontend/auth/data-access/session';
 import { RedirectConfirmService } from './redirect-confirm.service';
 
@@ -37,7 +38,14 @@ export const adminGuard: CanActivateFn = () => {
       // User has neither admin nor commercial role - deny access
       return of(false);
     }),
-    catchError(() => {
+    catchError((error: unknown) => {
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 403 &&
+        (error.error as { reason?: string })?.reason === 'user_not_provisioned'
+      ) {
+        return of(false);
+      }
       const ret = encodeURIComponent(router.url);
       location.replace(`${environment.api.baseUrl}/bff/auth/login?redirect=${ret}`);
       return of(false);

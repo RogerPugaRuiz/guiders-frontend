@@ -735,15 +735,12 @@ export class VisitorsComponent implements OnInit, OnDestroy {
     const companyId = this.companyId();
     if (!companyId) return;
 
-    // Decidir si usar mock o servicio real basado en el token
     if (this.useMockData) {
-      // USAR MOCK
       setTimeout(() => {
         const mockStats = getMockVisitorStats();
         this.updateState({ stats: mockStats });
-      }, 300); // Simular latencia de red
+      }, 300);
     } else {
-      // USAR SERVICIO REAL
       this.visitorsService
         .getVisitorStats(companyId)
         .pipe(
@@ -755,9 +752,30 @@ export class VisitorsComponent implements OnInit, OnDestroy {
         .subscribe((stats: VisitorStats | null) => {
           if (stats) {
             this.updateState({ stats });
+          } else {
+            const localStats = this.computeLocalStats();
+            if (localStats.totalVisitors > 0) {
+              this.updateState({ stats: localStats });
+            }
           }
         });
     }
+  }
+
+  private computeLocalStats(): VisitorStats {
+    const visitors = this.state().visitors;
+    return {
+      totalVisitors: visitors.length,
+      onlineVisitors: visitors.filter((v) => v.status === 'online').length,
+      newVisitors: visitors.filter((v) => v.isNewVisitor).length,
+      returningVisitors: visitors.filter((v) => !v.isNewVisitor).length,
+      withPendingChats: visitors.filter((v) => v.hasActiveChat).length,
+      averageSessionDuration: 0,
+      bounceRate: 0,
+      conversionRate: 0,
+      topPages: [],
+      topSources: [],
+    };
   }
 
   // Refresh: reset to page 1 with batchSize and reload from scratch.

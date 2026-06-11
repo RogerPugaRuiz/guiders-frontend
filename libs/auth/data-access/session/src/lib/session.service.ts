@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { SelfChatService } from '@guiders-frontend/self-chat';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { shareReplay, tap } from 'rxjs/operators';
 import { UserService } from './user.service';
 import { User } from './user.interface';
@@ -12,16 +13,23 @@ export class SessionService {
   private readonly authRefreshService = inject(AuthRefreshService);
   private readonly selfChat = inject(SelfChatService);
   private me$?: Observable<User>;
+  private userNotProvisioned = false;
 
   ensureSession$(): Observable<User> {
+    if (this.userNotProvisioned) {
+      const error = new HttpErrorResponse({
+        status: 403,
+        statusText: 'User Not Provisioned',
+        error: { reason: 'user_not_provisioned' },
+      });
+      return throwError(() => error);
+    }
     if (!this.me$) {
       this.me$ = this.userService.fetchUser()
         .pipe(
           tap(user => {
             console.log('Session ensured for user:', user.email);
-            // Programar refresh proactivo basado en la expiración del token
             this.scheduleProactiveRefresh(user);
-            // Bootstrap the per-user self chat (Microsoft Teams-style)
             this.selfChat.initialize({ sub: user.sub, email: user.email });
           }),
           shareReplay({ bufferSize: 1, refCount: false })
@@ -30,33 +38,30 @@ export class SessionService {
     return this.me$;
   }
 
+  markUserNotProvisioned(): void {
+    this.userNotProvisioned = true;
+  }
+
   clearCache(): void {
     this.me$ = undefined;
+    this.userNotProvisioned = false;
     this.userService.clearUser();
-    // Cancelar refresh programado cuando se limpia la cache
     this.authRefreshService.cancelScheduledRefresh();
-    // Drop in-memory self chat snapshot (localStorage stays intact)
     this.selfChat.clear();
   }
 
-  // Método de conveniencia para obtener el usuario actual
   getCurrentUser(): User | null {
     return this.userService.currentUser();
   }
 
-  // Método de conveniencia para verificar autenticación
   isAuthenticated(): boolean {
     return this.userService.isAuthenticated();
   }
 
-  // Método de conveniencia para verificar si la sesión ha expirado
   isSessionExpired(): boolean {
     return this.userService.isSessionExpired();
   }
 
-  /**
-   * Programa un refresh proactivo basado en la información del usuario
-   */
   private scheduleProactiveRefresh(user: User): void {
     if (user.session?.exp) {
       console.log('[SessionService] Programando refresh proactivo para el usuario:', user.email);
@@ -66,20 +71,10 @@ export class SessionService {
     }
   }
 
-  /**
-   * Fuerza un refresh de sesión inmediatamente
-   */
   refreshSession(): Observable<void> {
-    // No se limpia la caché aquí: limpiarla forzaría un nuevo fetchUser() en cuanto
-    // cualquier consumidor de ensureSession$() volviera a suscribirse, generando
-    // una cascada de peticiones a /me. El token renovado se aplica vía cookie HttpOnly;
-    // el signal de UserService no necesita recargarse salvo que cambie el payload del JWT.
     return this.authRefreshService.refreshSession();
   }
 
-  /**
-   * Verifica si hay un refresh en progreso
-   */
   isRefreshInProgress(): boolean {
     return this.authRefreshService.isRefreshInProgress();
   }

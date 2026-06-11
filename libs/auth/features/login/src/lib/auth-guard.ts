@@ -16,14 +16,17 @@ export const authGuard: CanActivateFn = () => {
     catchError((error: unknown) => {
       // 403 user_not_provisioned: el usuario está autenticado en Keycloak pero
       // no existe en la BD del backend. Redirigir al login causaría un loop
-      // infinito; en su lugar dejamos que globalErrorInterceptor muestre la
-      // página /account-not-configured. El guard devuelve false para bloquear
-      // la ruta pero sin hacer una segunda redirección.
+      // infinito; en su lugar navegamos a /account-not-configured para mostrar
+      // la página de error específica. El guard devuelve false para bloquear
+      // la ruta protegida.
       if (
         error instanceof HttpErrorResponse &&
         error.status === 403 &&
         (error.error as { reason?: string })?.reason === 'user_not_provisioned'
       ) {
+        if (window.location.pathname !== '/account-not-configured') {
+          location.replace('/account-not-configured');
+        }
         return of(false);
       }
 
