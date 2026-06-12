@@ -25,6 +25,8 @@ const mockEnvironment: Environment = {
 const mockWebSocketService = {
   connected: false,
   socketId: undefined,
+  isConnected: vi.fn().mockReturnValue(false),
+  connectionState$: new Subject<'connected' | 'disconnected' | 'connecting'>(),
   on: vi.fn().mockReturnValue(undefined),
   off: vi.fn().mockReturnValue(undefined),
   emit: vi.fn().mockReturnValue(undefined),
@@ -59,6 +61,10 @@ describe('UnreadMessagesService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('should NOT setup WebSocket listeners immediately when not connected', () => {
+    expect(mockWebSocketService.on).not.toHaveBeenCalled();
   });
 
   it('should initialize with empty unread count', () => {

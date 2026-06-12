@@ -7,6 +7,8 @@ import { Subject } from 'rxjs';
 const mockWebSocketService = {
   connected: false,
   socketId: undefined,
+  isConnected: vi.fn().mockReturnValue(false),
+  connectionState$: new Subject<'connected' | 'disconnected' | 'connecting'>(),
   on: vi.fn().mockReturnValue(undefined),
   off: vi.fn().mockReturnValue(undefined),
   emit: vi.fn().mockReturnValue(undefined),
@@ -30,9 +32,8 @@ describe('EscalationService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should setup WebSocket listener on init', () => {
-    expect(mockWebSocketService.on).toHaveBeenCalled();
-    expect(mockWebSocketService.on.mock.calls.length).toBeGreaterThanOrEqual(1);
+  it('should NOT setup WebSocket listener immediately when not connected', () => {
+    expect(mockWebSocketService.on).not.toHaveBeenCalled();
   });
 
   it('should initialize with empty escalations', () => {

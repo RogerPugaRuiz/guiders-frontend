@@ -17,10 +17,12 @@ let redirectingToLogin = false;
  * Handles:
  * - 401 Unauthorized (after authRefreshInterceptor has already tried token refresh):
  *   clears the user session and redirects to the BFF login endpoint.
- * - 403 Forbidden with reason=user_not_provisioned:
- *   the JWT is valid but the user does not exist in the backend DB.
- *   Redirecting to login would cause an infinite loop (OAuth completes → same 403 → loop).
- *   Instead, navigates to /account-not-configured so the user sees a clear error message.
+ * - /bff/auth/me errors (any non-401 status, including 403, 500, 503, 0 network error):
+ *   the user is authenticated in Keycloak but the backend cannot provision them.
+ *   We normalize all these cases to a 403 user_not_provisioned error so the
+ *   authGuard and SessionService can handle them consistently. This prevents
+ *   the silent "no count" failure that occurred when the backend returned 500
+ *   or a network error instead of the expected 403 reason.
  * - 500 Internal Server Error, 503 Service Unavailable, 0 (network error):
  *   logs to console and rethrows so individual components can show their own error state.
  * - All other errors: passes through unchanged.
@@ -50,17 +52,26 @@ export const globalErrorInterceptor: HttpInterceptorFn = (req, next) => {
         return EMPTY;
       }
 
-      // 403 user_not_provisioned: el JWT de Keycloak es válido pero el usuario
-      // no existe en la BD del backend. Redirigir al login causaría un loop
-      // infinito — en su lugar mostramos una página de error específica.
-      if (error.status === 403 && req.url.includes('/bff/auth/me')) {
-        const body = error.error as { reason?: string } | null;
-        if (body?.reason === 'user_not_provisioned') {
-          console.warn('[GlobalErrorInterceptor] 403 user_not_provisioned — usuario autenticado pero no configurado en BD', req.url);
-          sessionService.clearCache();
-          location.replace('/account-not-configured');
-          return EMPTY;
-        }
+      // /bff/auth/me falló por un motivo distinto a 401.
+      // El usuario está autenticado en Keycloak pero el backend no puede
+      // provisionarlo (puede ser 403, 500, 503 o un error de red status 0).
+      // Normalizamos a 403 user_not_provisioned para que authGuard y
+      // SessionService.ensureSession$() lo manejen de forma consistente.
+      if (req.url.includes('/bff/auth/me')) {
+        console.warn(
+          '[GlobalErrorInterceptor] /bff/auth/me falló con status',
+          error.status,
+          '— marcando usuario como no provisionado',
+          req.url
+        );
+        sessionService.markUserNotProvisioned();
+        const specificError = new HttpErrorResponse({
+          status: 403,
+          statusText: 'User Not Provisioned',
+          url: req.url,
+          error: { reason: 'user_not_provisioned' },
+        });
+        return throwError(() => specificError);
       }
 
       if (error.status === 500 || error.status === 503 || error.status === 0) {

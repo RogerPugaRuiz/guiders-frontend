@@ -172,8 +172,10 @@ export class ChatService {
     this.currentUserId = this.userService.getUserId();
     console.log('[ChatService] Usuario actual inicializado desde UserService:', this.currentUserId);
 
-    // Inicializar WebSocket
-    this.initializeWebSocket();
+    // ⚠️ No llamar a webSocket.connect() aquí: el WebSocket se conecta
+    // desde app.config.ts después de que el usuario está autenticado y
+    // provisionado. Llamarlo en el constructor causa intentos de conexión
+    // fallidos cuando el usuario no está en el backend (ej. admin-wp).
 
     // Bridge SelfChatService → chats$/messages$ streams (Microsoft Teams-style self chat)
     this.bridgeSelfChat();
@@ -612,8 +614,10 @@ export class ChatService {
     };
   }): Observable<MessageListResponse> {
     this.setLoading(true);
-    
-    const url = new URL(`${this.baseUrl}/messages/chat/${chatId}`);
+
+    const baseUrl = this.baseUrl || '/api/v2';
+    const urlString = `${baseUrl}/messages/chat/${chatId}`;
+    const url = new URL(urlString, window.location.origin);
     const params = url.searchParams;
     
     // Paginación

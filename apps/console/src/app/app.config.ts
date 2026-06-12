@@ -47,6 +47,12 @@ function initializeApp() {
     console.log('[AppInitializer] 🚀 Cargando usuario...');
     try {
       const user = await firstValueFrom(sessionService.ensureSession$());
+      if (!user?.sub) {
+        console.warn(
+          '[AppInitializer] ⚠️ Usuario sin sub — abortando WebSocket y servicios'
+        );
+        return;
+      }
       console.log('[AppInitializer] ✅ Usuario cargado:', user.sub);
 
       // 1.1 Configurar usuario en UnreadMessagesService para filtrar mensajes propios
@@ -58,6 +64,16 @@ function initializeApp() {
 
       // 2. Conectar presencia del comercial (solo si hay usuario)
       if (user) {
+        // Unirse a la sala del tenant para recibir eventos de badges
+        // Esto permite escuchar chat:unread_count y chat:created para actualizar
+        // los contadores de mensajes no leídos en la lista de visitantes
+        if (user.companyId) {
+          console.log(
+            `[AppInitializer] 🏢 Uniéndose a sala del tenant: tenant:${user.companyId}`
+          );
+          webSocketService.joinTenantPresenceRoom(user.companyId);
+        }
+
         console.log('[AppInitializer] 🔌 Conectando comercial...');
         try {
           const commercial = await firstValueFrom(presenceService.connect());

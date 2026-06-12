@@ -134,10 +134,26 @@ export class UnreadMessagesService {
   constructor() {
     console.log('[UnreadMessagesService] 🚀 === SERVICIO INICIALIZADO ===');
     console.log('[UnreadMessagesService] 📋 BaseUrl:', this.baseUrl);
-    this.initializeWebSocketListeners();
+    this.initializeWebSocketListenersWhenConnected();
     this.requestNotificationPermission();
     this.initializeNotificationSound();
     this.setupAudioContextResume();
+  }
+
+  private initializeWebSocketListenersWhenConnected(): void {
+    if (this.webSocket.isConnected()) {
+      this.initializeWebSocketListeners();
+      return;
+    }
+
+    const connectionSubscription = this.webSocket.connectionState$.subscribe(
+      (state) => {
+        if (state === 'connected') {
+          this.initializeWebSocketListeners();
+          connectionSubscription.unsubscribe();
+        }
+      }
+    );
   }
 
   // ===== CONFIGURACIÓN =====
@@ -848,6 +864,31 @@ export class UnreadMessagesService {
       if (this.totalUnreadCount() === 0) {
         this.stopTitleFlashing();
       }
+    });
+
+    // Listen for new chat creation events from the tenant room.
+    // This updates the unread badge when a new chat is created for this commercial.
+    this.webSocket.on('chat:created', (data: unknown) => {
+      const payload = data as { chatId: string; visitorId: string; commercialId?: string };
+      if (!payload?.chatId) return;
+
+      console.log(
+        `[UnreadMessagesService] 💬 chat:created received — chatId: ${payload.chatId}, visitorId: ${payload.visitorId}`
+      );
+
+      // Only process if this chat is assigned to the current commercial
+      if (payload.commercialId && payload.commercialId !== this.currentUserId) {
+        console.log(
+          `[UnreadMessagesService] ⏭️ Chat creado para otro comercial: ${payload.commercialId}, ignorando`
+        );
+        return;
+      }
+
+      // Initialize unread count for the new chat
+      this.unreadCountMap.update((map) => ({
+        ...map,
+        [payload.chatId]: 0,
+      }));
     });
   }
 
