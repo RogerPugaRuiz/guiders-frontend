@@ -24,6 +24,8 @@ const mockEnvironment: Environment = {
 const mockWebSocketService = {
   connected: false,
   socketId: undefined,
+  isConnected: vi.fn().mockReturnValue(false),
+  connectionState$: new Subject<'connected' | 'disconnected' | 'connecting'>(),
   on: vi.fn().mockReturnValue(undefined),
   off: vi.fn().mockReturnValue(undefined),
   emit: vi.fn().mockReturnValue(undefined),
@@ -35,6 +37,10 @@ describe('PresenceService', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
+    mockWebSocketService.isConnected.mockReturnValue(false);
+    mockWebSocketService.connectionState$ = new Subject();
+    mockWebSocketService.on.mockClear();
+
     TestBed.configureTestingModule({
       providers: [
         provideHttpClient(),
@@ -43,7 +49,9 @@ describe('PresenceService', () => {
         { provide: WebSocketService, useValue: mockWebSocketService }
       ]
     });
+  });
 
+  beforeEach(() => {
     service = TestBed.inject(PresenceService);
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -56,8 +64,7 @@ describe('PresenceService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should setup WebSocket listeners on init', () => {
-    expect(mockWebSocketService.on).toHaveBeenCalled();
-    expect(mockWebSocketService.on.mock.calls.length).toBeGreaterThanOrEqual(3);
+  it('should NOT setup WebSocket listeners immediately when not connected', () => {
+    expect(mockWebSocketService.on).not.toHaveBeenCalled();
   });
 });
