@@ -208,6 +208,7 @@
         "libs/shared/util/tour/src/index.ts"
       ],
       "@guiders-frontend/sidebar": ["libs/shared/ui/sidebar/src/index.ts"],
+      "@guiders-frontend/embed": ["libs/admin/features/embed/src/index.ts"],
       "@guiders-frontend/status-selector": [
         "libs/shared/ui/status-selector/src/index.ts"
       ],

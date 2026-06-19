@@ -37,3 +37,23 @@
     padding: 0;
   }
 }
+
+// Story 3.2: Embed mode (iframe inside parent application).
+// When the app runs inside an iframe or with ?embed=true:
+// - The sidebar is hidden by Angular @if (see app.html)
+// - The .embed-mode class is applied to .admin-app so CSS rules can target it
+// - Each feature's <header class="page-header"> is hidden to give a clean canvas
+//   for the parent's own chrome (e.g. LeadCars' own navigation)
+.admin-app.embed-mode {
+  flex-direction: column;
+}
+
+.admin-app.embed-mode .admin-content {
+  padding: 0;
+}
+
+// Global rule: hide all page-headers when in embed mode
+// (each feature has its own <header class="page-header">)
+.admin-app.embed-mode :is(header.page-header) {
+  display: none;
+}

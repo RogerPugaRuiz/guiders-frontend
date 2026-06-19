@@ -18,6 +18,7 @@ import {
   globalErrorInterceptor,
 } from '@guiders-frontend/auth/data-access/session';
 import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/data-access/session';
+import { EmbedBootstrapService, EmbedModeService } from '@guiders-frontend/embed';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -55,9 +56,26 @@ function initializeSessionGuardian() {
     sessionGuardian.initialize({
       inactivityRefreshMinutes: 5,
       inactivityExpiredMinutes: 30,
-      heartbeatIntervalMinutes: 0,
+      heartbeatIntervalMs: 0,
       debug: !environment.production,
     });
+  };
+}
+
+/**
+ * Story 3.1 + 3.2: Initialize the embed handshake.
+ *
+ * Only runs in embed mode (Story 3.2). In standalone mode, this is a no-op
+ * because there is no parent window to handshake with.
+ */
+function initializeEmbedHandshake() {
+  const embedMode = inject(EmbedModeService);
+  const embedBootstrap = inject(EmbedBootstrapService);
+
+  return () => {
+    if (embedMode.isEmbed()) {
+      embedBootstrap.bootstrap();
+    }
   };
 }
 
@@ -92,6 +110,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initializeSessionGuardian,
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeEmbedHandshake,
       multi: true,
     },
   ],

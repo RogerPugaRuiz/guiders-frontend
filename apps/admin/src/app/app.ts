@@ -7,6 +7,7 @@ import {
 } from '@guiders-frontend/auth/data-access/session';
 import { RedirectConfirm } from '@guiders-frontend/redirect-confirm';
 import { TourService } from '@guiders-frontend/shared/util/tour';
+import { EmbedModeService } from '@guiders-frontend/embed';
 
 @Component({
   imports: [RouterModule, Sidebar, RedirectConfirm],
@@ -19,11 +20,15 @@ export class App {
   private readonly router = inject(Router);
   private readonly environment = inject(ENVIRONMENT_TOKEN);
   private readonly tourService = inject(TourService);
+  private readonly embedMode = inject(EmbedModeService);
 
   protected title = 'admin';
 
   readonly currentUser = this.userService.currentUser;
   readonly appVersion: string = this.environment.version ?? '';
+
+  /** Story 3.2: embed mode detection (iframe OR ?embed=true). */
+  readonly isEmbedMode = (): boolean => this.embedMode.isEmbed();
 
   private _tourStartedForUser: string | null = null;
 

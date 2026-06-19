@@ -4,3 +4,4 @@ export * from './lib/visitor.types';
 export * from './lib/presence.types';
 export * from './lib/leads.types';
 export * from './lib/escalation.types';
+export * from './lib/embed.types';
