@@ -18,7 +18,7 @@ import {
   globalErrorInterceptor,
 } from '@guiders-frontend/auth/data-access/session';
 import { SETTINGS_CLOSE_ROUTE } from '@guiders-frontend/auth/data-access/session';
-import { EmbedBootstrapService, EmbedModeService } from '@guiders-frontend/embed';
+import { EmbedBootstrapService, EmbedModeService, BrandingService } from '@guiders-frontend/embed';
 import { firstValueFrom } from 'rxjs';
 
 /**
@@ -79,6 +79,26 @@ function initializeEmbedHandshake() {
   };
 }
 
+/**
+ * Story 4.2: Load tenant branding at startup.
+ *
+ * If `environment.embedCompanyId` is set (embed build per-tenant), loads
+ * the white-label config and applies CSS variables + title + favicon.
+ * In standalone mode (embedCompanyId undefined), this is a no-op — the
+ * admin user may belong to multiple companies and the branding is loaded
+ * later based on the active tenant context.
+ */
+function initializeBranding() {
+  const brandingService = inject(BrandingService);
+  const environment = inject(ENVIRONMENT_TOKEN);
+
+  return () => {
+    if (environment.embedCompanyId) {
+      void brandingService.loadBranding(environment.embedCompanyId);
+    }
+  };
+}
+
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -115,6 +135,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: APP_INITIALIZER,
       useFactory: initializeEmbedHandshake,
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializeBranding,
       multi: true,
     },
   ],
